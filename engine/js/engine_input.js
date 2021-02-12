@@ -1,42 +1,5 @@
 class IN {
 
-    // keyboard
-    static __heldKeys = [];
-    static __releasedKeys = [];
-    static __pressedKeys = [];
-    
-    // mouse
-    static __heldButtons = [];
-    static __releasedButtons = [];
-    static __pressedButtons = [];
-
-    // carry variables will hold all the data collected through the frame before being pushed to the normal variables.
-    static __heldKeysCarry = [];
-    static __releasedKeysCarry = [];
-    static __pressedKeysCarry = [];
-
-
-    static __heldButtonsCarry = [];
-    static __releasedButtonsCarry = [];
-    static __pressedButtonsCarry = [];
-
-    static __mouseX = 0;
-    static __mouseY = 0;
-
-    static __wheel=0;
-    static __wheelCarry = 0;
-
-    static __anyKeyPressedCarry=false;
-    static __lastKeyCarry="";
-
-    static __anyKeyPressed = false;
-    static __lastKey = "";
-
-    static __mouseValid = false;
-
-    static __debugRecordKeyPress = false;
-    static __debugRecordMousePress = false;
-
     static __register() {
         // code by adeneo, https://stackoverflow.com/users/965051/adeneo
         // source: https://stackoverflow.com/a/17015116
@@ -235,5 +198,42 @@ class IN {
         }
     }
 }
+
+// keyboard
+IN.__heldKeys = [];
+IN.__releasedKeys = [];
+IN.__pressedKeys = [];
+
+// mouse
+IN.__heldButtons = [];
+IN.__releasedButtons = [];
+IN.__pressedButtons = [];
+
+// carry variables will hold all the data collected through the frame before being pushed to the normal variables.
+IN.__heldKeysCarry = [];
+IN.__releasedKeysCarry = [];
+IN.__pressedKeysCarry = [];
+
+
+IN.__heldButtonsCarry = [];
+IN.__releasedButtonsCarry = [];
+IN.__pressedButtonsCarry = [];
+
+IN.__mouseX = 0;
+IN.__mouseY = 0;
+
+IN.__wheel=0;
+IN.__wheelCarry = 0;
+
+IN.__anyKeyPressedCarry=false;
+IN.__lastKeyCarry="";
+
+IN.__anyKeyPressed = false;
+IN.__lastKey = "";
+
+IN.__mouseValid = false;
+
+IN.__debugRecordKeyPress = false;
+IN.__debugRecordMousePress = false;
 
 IN.__register();

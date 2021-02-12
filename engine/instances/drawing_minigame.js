@@ -193,7 +193,6 @@ class DrawController extends EngineInstance { // controls the minigame
 }
 
 class ShapeToDraw extends EngineInstance {
-    static paths = [];
     onEngineCreate() {
     }
 
@@ -239,8 +238,8 @@ class ShapeToDraw extends EngineInstance {
         this.score = EngineUtils.clamp(score,0,1);
 
     }
-
 }
+ShapeToDraw.paths = [];
 
 ShapeToDraw.paths.push(
 {path:[new Vertex(-88,-117),new Vertex(-73,-118),new Vertex(-57,-118),new Vertex(-39,-120),new Vertex(-28,-121),new Vertex(-6,-122),

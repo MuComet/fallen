@@ -35,7 +35,6 @@ class EngineUtils {
     static attachScript(src,callback) {
         var body = document.body || document.getElementsByTagName('body')[0];
         var imp = document.createElement('script')
-        var obj = {loaded:false}
         imp.onload = function() {
             callback();
         }

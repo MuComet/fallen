@@ -1,7 +1,5 @@
 // hitboxes are an abstract idea. All data is calculated and stored in local space, not room space.
 class Hitbox { // container for actual hitboxes
-    static TYPE_POLYGON = 0;
-    static TYPE_RECTANGLE = 1;
     //static TYPE_CIRCLE = 2;
     constructor(parent, hitbox) {
         this.__parent = parent;
@@ -219,6 +217,8 @@ class Hitbox { // container for actual hitboxes
     }
 
 }
+Hitbox.TYPE_POLYGON = 0;
+Hitbox.TYPE_RECTANGLE = 1;
 
 class BaseHitbox {
     constructor(parent) {
