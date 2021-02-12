@@ -5,7 +5,7 @@ var $__engineData = {}
 $__engineData.__textureCache = {};
 $__engineData.__haltAndReturn = false;
 $__engineData.__ready = false;
-$__engineData.loadRoom = "";
+$__engineData.loadRoom = "MenuIntro";
 
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST; // set PIXI to render as nearest neighbour
 
@@ -39,7 +39,6 @@ class Scene_Engine extends Scene_Base {
     }
 
     start() {
-        console.log($__engineData.loadRoom)
         this.__setRoom($__engineData.loadRoom);
         IN.__forceClear();
     }
@@ -387,7 +386,6 @@ __readTextures = function(texture_file,obj) { // already sync
 }
 
 Scene_Boot.prototype.start = function() { // hijack the boot routine
-    console.log("Called")
     Scene_Base.prototype.start.call(this);
     SoundManager.preloadImportantSounds();
     if (DataManager.isBattleTest()) {

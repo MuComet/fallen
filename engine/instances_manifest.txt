@@ -2,3 +2,4 @@ TestInstance engine/instances/test_instance.js
 TestInstance2 engine/instances/test_instance2.js
 Umbrella Man Raindrop engine/instances/umbrella_minigame.js
 DrawController ShapeToDraw DrawableLine engine/instances/drawing_minigame.js
+MenuIntroController engine/instances/menu_intro.js
