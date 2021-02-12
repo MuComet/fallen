@@ -180,7 +180,12 @@ class DrawController extends EngineInstance { // controls the minigame
                 draw.line.distanceText.alpha = 0;
             }
         }
-        var ind = Math.floor(this.gameOverTimer/200)%3
+        var ind = Math.floor(this.gameOverTimer/200)
+        if(ind>=3) {
+            ind = 2;
+            $engine.startFadeOut(30,false)
+            SceneManager.pop();
+        }
         var draw = this.drawings[ind];
         draw.getSprite().alpha = 1;
         if(draw.line) {
