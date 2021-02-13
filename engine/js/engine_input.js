@@ -42,13 +42,14 @@ class IN {
         IN.__validMouse=false; // for sanity reasons, all mouse events invalidate the mouse location and force a refresh.
         var type = event.type;
         if(type === "pointerdown" || type === "mousedown" || type === "touchstart") {
+            IN.__anyButtonPressedCarry=true;
             if(IN.__heldButtons.indexOf(event.button)===-1 && IN.__pressedButtonsCarry.indexOf(event.button)===-1) {
                 IN.__pressedButtonsCarry.push(event.button)
             }
         } else if(type === "pointerup" || type === "mouseup" || type === "touchend") {
             IN.__releasedButtonsCarry.push(event.button);
         }
-        if(IN.__debugRecordKeyPress) 
+        if(IN.__debugRecordMousePress) 
             console.log(type + " :: " + event.button);
     }
 
@@ -94,11 +95,15 @@ class IN {
         IN.__wheelCarry = 0;
 
         var mGUI = Graphics._renderer.plugins.interaction.mouse.getLocalPosition($engine)
-        IN.__mouseXGUI = mGUI.x;
-        IN.__mouseYGUI = mGUI.y;
+        // when until the first mouse move, PIXI reports the mouse as -999999
+        IN.__mouseXGUI = mGUI.x === -999999 ? 0 : mGUI.x;
+        IN.__mouseYGUI = mGUI.y === -999999 ? 0 : mGUI.y;
 
         IN.__anyKeyPressed=IN.__anyKeyPressedCarry;
         IN.__anyKeyPressedCarry=false;
+
+        IN.__anyButtonPressed=IN.__anyButtonPressedCarry;
+        IN.__anyButtonPressedCarry=false;
 
         IN.__lastKey=IN.__lastKeyCarry;
     }
@@ -115,6 +120,11 @@ class IN {
         IN.__heldButtons = [];
         IN.__releasedButtonsCarry = [];
         IN.__pressedButtonsCarry = [];
+
+        IN.__anyKeyPressedCarry=false;
+        IN.__anyButtonPressedCarry=false;
+        IN.__lastKeyCarry="";
+        IN.__mouseValid=false;
     }
 
     static debugDisplayKeyPress(b) {
@@ -139,6 +149,18 @@ class IN {
 
     static getLastKey() {
         return IN.__lastKey;
+    }
+
+    static anyKeyPressed() {
+        return IN.__anyKeyPressed;
+    }
+
+    static anyButtonPressed() {
+        return IN.__anyButtonPressed;
+    }
+
+    static anyInputPressed() {
+        return IN.__anyKeyPressed || IN.__anyButtonPressed;
     }
 
     static mouseCheck(button) {
@@ -192,8 +214,8 @@ class IN {
     static __requireMouseValid() {
         if(!IN.__validMouse) {
             var mouse = $engine.getCamera().__reportMouse();
-            IN.__mouseX = mouse.x;
-            IN.__mouseY =  mouse.y;
+            IN.__mouseX = mouse.x === -999999 ? 0 : mouse.x;
+            IN.__mouseY =  mouse.y === -999999 ? 0 : mouse.y;
             IN.__validMouse=true;
         }
     }
@@ -225,11 +247,15 @@ IN.__mouseY = 0;
 IN.__wheel=0;
 IN.__wheelCarry = 0;
 
-IN.__anyKeyPressedCarry=false;
 IN.__lastKeyCarry="";
-
-IN.__anyKeyPressed = false;
 IN.__lastKey = "";
+
+IN.__anyKeyPressedCarry=false;
+IN.__anyKeyPressed = false;
+
+IN.__anyButtonPressedCarry=false;
+IN.__anyButtonPressed = false;
+
 
 IN.__mouseValid = false;
 

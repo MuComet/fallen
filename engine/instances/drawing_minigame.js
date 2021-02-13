@@ -107,14 +107,14 @@ class DrawController extends EngineInstance { // controls the minigame
     nextDrawing() {
         this.drawingInd++;
         if(this.drawingInd>0) {
-            this.drawings[this.drawingInd-1].getSprite().alpha = 0;
+            this.drawings[this.drawingInd-1].alpha = 0;
             this.drawings[this.drawingInd-1].calculateScore();
         }
         if(this.drawingInd>=3) {
             this.done = true;
             return;
         }
-        this.drawings[this.drawingInd].getSprite().alpha = 1;
+        this.drawings[this.drawingInd].alpha = 1;
         this.waitTimer = -9999999;
     }
 
@@ -174,7 +174,7 @@ class DrawController extends EngineInstance { // controls the minigame
     gameOverSummary() {
         this.gameOverTimer++;
         for(const draw of this.drawings) {
-            draw.getSprite().alpha = 0;
+            draw.alpha = 0;
             if(draw.line) {
                 draw.line.display(false);
                 draw.line.distanceText.alpha = 0;
@@ -187,7 +187,7 @@ class DrawController extends EngineInstance { // controls the minigame
             SceneManager.pop();
         }
         var draw = this.drawings[ind];
-        draw.getSprite().alpha = 1;
+        draw.alpha = 1;
         if(draw.line) {
             draw.line.display(true);
             draw.line.distanceText.alpha = 1;
@@ -205,7 +205,7 @@ class ShapeToDraw extends EngineInstance {
         this.setSprite(new PIXI.Sprite($engine.getTexture("drawing_minigame_"+String(index))));
         this.x = $engine.getWindowSizeX()/2;
         this.y = $engine.getWindowSizeY()/2;
-        this.getSprite().alpha = 1;
+        this.alpha = 0;
         this.pathData = ShapeToDraw.paths[index-1];
         this.score = 0;
         this.onEngineCreate();

@@ -138,6 +138,6 @@ class EngineDebugUtils {
 
     static drawBoundingBox(graphics, inst) {
         var bb = inst.hitbox.getBoundingBox();
-        graphics.lineStyle(1,0xe74c3c).moveTo(bb.x1+inst.x,bb.y1+inst.y).lineTo(bb.x2+inst.x,bb.y1+inst.y).lineTo(bb.x2+inst.x,bb.y2+inst.y).lineTo(bb.x1+inst.x,bb.y2+inst.y).lineTo(bb.x1+inst.x,bb.y1+inst.y);
+        graphics.lineStyle(1,0xe74c3c).moveTo(bb.x1,bb.y1).lineTo(bb.x2,bb.y1).lineTo(bb.x2,bb.y2).lineTo(bb.x1,bb.y2).lineTo(bb.x1,bb.y1);
     }
 }

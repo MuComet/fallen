@@ -5,6 +5,8 @@ var $__engineData = {}
 $__engineData.__textureCache = {};
 $__engineData.__haltAndReturn = false;
 $__engineData.__ready = false;
+$__engineData.__writeBackValue = -1
+$__engineData.writeBackIndex = -1;
 $__engineData.loadRoom = "MenuIntro";
 
 //PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST; // set PIXI to render as nearest neighbour
@@ -19,6 +21,7 @@ class Scene_Engine extends Scene_Base {
     create() {
         super.create();
         $engine = this;
+        $__engineData.__writeBackValue = -1
         this.paused = false;
         this.__renderables = []
         this.__filters = [];
@@ -93,8 +96,17 @@ class Scene_Engine extends Scene_Base {
         $__engineData.__haltAndReturn=true;
     }
 
+    setWriteBackValue(value) {
+        $__engineData.__writeBackValue=value;
+    }
+
     __endAndReturn() {
         $__engineData.__haltAndReturn=false;
+        if($__engineData.writeBackIndex!==-1) {
+            if($__engineData.__writeBackValue<0)
+                throw "Engine expects a non negative write back value";
+            $gameVariables.setValue($__engineData.writeBackIndex,$__engineData.__writeBackValue);
+        }
         SceneManager.pop();
     }
 
@@ -415,6 +427,19 @@ Scene_Boot.prototype.isReady = function() {
     } else {
         return false;
     }
+};
+
+// you get one.
+DataManager.maxSavefiles = function() {
+    return 1;
+};
+
+
+// take over menu
+Scene_GameEnd.prototype.commandToTitle = function() {
+    this.fadeOutAll();
+    $__engineData.loadRoom = "MenuIntro";
+    SceneManager.goto(Scene_Engine);
 };
 
 __initalize();

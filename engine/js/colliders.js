@@ -19,6 +19,7 @@ class Hitbox { // container for actual hitboxes
 
     setHitbox(hitbox) {
         this.hitbox = hitbox;
+        this.hitbox.hitboxParent = this;
         this.type = hitbox.type;
         this.polygon=null;
         this.forcePolygon = false;
@@ -27,6 +28,10 @@ class Hitbox { // container for actual hitboxes
         } else if(this.type === Hitbox.TYPE_RECTANGLE) {
             this.polygon = this.__generatePolygon();
         }
+        this.valid = false;
+    }
+
+    __invlidate() { // allow the hitbox to force us to recalculate
         this.valid = false;
     }
 
@@ -181,7 +186,30 @@ class Hitbox { // container for actual hitboxes
 
     getBoundingBox() {
         this.__requireValid();
-        return this.__boundingBox;
+        return BaseHitbox.__makeBoundingBox(this.__boundingBox.x1+this.x,
+                                            this.__boundingBox.y1+this.y,
+                                            this.__boundingBox.x2+this.x,
+                                            this.__boundingBox.y2+this.y)
+    }
+
+    getBoundingBoxLeft() {
+        this.__requireValid();
+        return this.x + this.__boundingBox.x1;
+    }
+
+    getBoundingBoxRight() {
+        this.__requireValid();
+        return this.x + this.__boundingBox.x2;
+    }
+
+    getBoundingBoxTop() {
+        this.__requireValid();
+        return this.y + this.__boundingBox.y1;
+    }
+
+    getBoundingBoxBottom() {
+        this.__requireValid();
+        return this.y + this.__boundingBox.y2;
     }
 
     __calculateBoundingBox() {
@@ -224,7 +252,7 @@ class BaseHitbox {
         this.__parent = parent;
     }
 
-    __makeBoundingBox(X1,Y1,X2,Y2) { // utility
+    static __makeBoundingBox(X1,Y1,X2,Y2) { // utility
         var r = {x1:X1,y1:Y1,x2:X2,y2:Y2};
         return r
     }
@@ -312,7 +340,7 @@ class PolygonHitbox extends BaseHitbox{
         }
         this.__topLeft = new EnginePoint(xMin,yMin);
         this.__bottomRight = new EnginePoint(xMax,yMax);
-        this.__boundingBox = this.__makeBoundingBox(xMin,yMin,xMax,yMax);
+        this.__boundingBox = BaseHitbox.__makeBoundingBox(xMin,yMin,xMax,yMax);
     }
 
     doCollision(otherPoly,x,y) {
@@ -420,10 +448,22 @@ class RectangeHitbox extends BaseHitbox {
         return new EnginePoint(Math.max(this.x1,this.x2),Math.max(this.y1,this.y2));
     }
 
+    setBottomRight(x,y) {
+        this.sx2 = x;
+        this.sy2 = y;
+        this.hitboxParent.__invalidate();
+    }
+
+    setTopLeft(x,y) {
+        this.sx1 = x;
+        this.sy1 = y;
+        this.hitboxParent.__invalidate();
+    }
+
     __getBoundingBox() {
         var tl = this.getTopLeft();
         var br = this.getBottomRight();
-        return this.__makeBoundingBox(tl.x,tl.y,br.x,br.y);
+        return BaseHitbox.__makeBoundingBox(tl.x,tl.y,br.x,br.y);
     }
 
     __validate(parentHitbox) {

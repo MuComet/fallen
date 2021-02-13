@@ -2,5 +2,5 @@ TestInstance engine/instances/test_instance.js
 TestInstance2 engine/instances/test_instance2.js
 Umbrella Man Raindrop engine/instances/umbrella_minigame.js
 DrawController ShapeToDraw DrawableLine engine/instances/drawing_minigame.js
-MenuIntroController Letter Cloud StartButton engine/instances/menu_intro.js
+MenuIntroController Letter Cloud MainMenuButton engine/instances/menu_intro.js
 RockMinigameController RockDodgingPlayer FallingRock engine/instances/falling_rocks.js

@@ -1,7 +1,8 @@
 class MenuIntroController extends EngineInstance {
     onEngineCreate() {
         this.letters = [];
-        var locX = [37,159,308,451,522,671];
+        //var locX = [37,159,308,451,522,671];
+        var locX = [25,142,306,453,532,685];
         var locY = [175,255,165,255,165,205];
         var offsets = [14, 36, 27, 42, 20, 55]
         for(var i =1;i<=6;i++) {
@@ -24,10 +25,38 @@ class MenuIntroController extends EngineInstance {
         IN.getMouseX()
         IN.__mouseX=410;
         IN.__mouseY=120;
-        new StartButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2)
+
+        var startButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2);
+        startButton.setTextures("introStart1","introStart1","introStart2")
+        startButton.setOnPressed(function(){return true});
+        startButton.setScript(MenuIntroController.startNewGame);
+        
+        var continueButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+120);
+        continueButton.setTextures("introStart1","introStart1","introStart2")
+        continueButton.setOnPressed(function(){
+            if (DataManager.loadGame(1)) {
+                // reload map if applicable -- taken from rpg_scenes.js line 1770
+                if ($gameSystem.versionId() !== $dataSystem.versionId) {
+                    $gamePlayer.reserveTransfer($gameMap.mapId(), $gamePlayer.x, $gamePlayer.y);
+                    $gamePlayer.requestMapReload();
+                }
+                return true;
+            } else {
+                SoundManager.playBuzzer();
+                return false;
+            }
+        });
+        continueButton.setScript(function() {
+            $gameSystem.onAfterLoad();
+            SceneManager.goto(Scene_Map);
+        });
     }
 
     step() {
+        if(IN.anyKeyPressed() && this.timer < this.endTime) {
+            this.endTime=this.timer;
+        }
+
         this.timer++;
 
         this.nextCloud--;
@@ -46,7 +75,13 @@ class MenuIntroController extends EngineInstance {
                     letter.f1.bloomScale = 0.25;
                     letter.f1.brightness = 1;
                 })
-                IM.find(StartButton,0).enable();
+                IM.with(MainMenuButton, function(button){button.enable()})
+                for(var i=0;i<6;i++) {
+                    var letter = this.letters[i]
+                    letter.y = letter.destY
+                    letter.x = letter.destX
+                    letter.angle = 0;
+                }
             }
             for(var i =0;i<6;i++)
                 this.letters[i].floatRandom();
@@ -65,9 +100,14 @@ class MenuIntroController extends EngineInstance {
         if(this.isFading) {
             this.fadeTimer++;
             if(this.fadeTimer>=this.endFadeTime) {
-                SceneManager.goto(Scene_Title)
+                this.afterFade.apply(this.afterFadeArgs);
             }
         }
+    }
+
+    static startNewGame() {
+        DataManager.setupNewGame();
+        SceneManager.goto(Scene_Map);
     }
 
     draw(gui, camera) {
@@ -105,10 +145,12 @@ class MenuIntroController extends EngineInstance {
         return (max-min)*((val-1)**3+1)+min;
     }
 
-    beginFade() {
+    beginFade(func, ...args) {
         this.isFading = true;
         this.fadeTimer = 0;
         this.endFadeTime = 60;
+        this.afterFade=func;
+        this.afterFadeArgs=args;
     }
 }
 
@@ -143,8 +185,8 @@ class Letter extends EngineInstance {
     }
 
     step() {
-        var diffX = (this.ox - (IN.getMouseX()-410)/8)
-        var diffY = (this.oy - (IN.getMouseY()-120)/8)
+        var diffX = (this.ox - (IN.getMouseX()-this.x)/8)
+        var diffY = (this.oy - (IN.getMouseY()-this.y)/8)
         this.ox -= diffX/60;
         this.oy -= diffY/60;
         this.destX = this.xStart + this.random2 * Math.cos(($engine.getGlobalTimer()+this.x+this.random1)/64) + this.ox;
@@ -200,14 +242,20 @@ class Cloud extends EngineInstance {
     }
 }
 
-class StartButton extends EngineInstance {
+class MainMenuButton extends EngineInstance {
     onEngineCreate() {
-        this.tex1 = $engine.getTexture("introStart1");
-        this.tex2 = $engine.getTexture("introStart2");
         this.hitbox = new Hitbox(this,new RectangeHitbox(this,-64,-32,64,32));
-        this.setSprite(new PIXI.Sprite(this.tex1))
         this.alpha = 0;
         this.enabled = false;
+        this.script = undefined;
+        this.onPressed = undefined;
+    }
+
+    setTextures(def, armed, fire) {
+        this.tex1 = $engine.getTexture(def);
+        this.tex2 = $engine.getTexture(armed);
+        this.tex3 = $engine.getTexture(fire);
+        this.setSprite(new PIXI.Sprite(this.tex1))
     }
 
     onCreate(x,y) {
@@ -217,25 +265,41 @@ class StartButton extends EngineInstance {
         this.yStart = y;
         this.ox = 0;
         this.oy = 0;
-        this.rand1 = EngineUtils.irandom(60);
+        this.rand1 = EngineUtils.irandom(128);
+        this.rand2 = EngineUtils.irandom(128);
         this.onEngineCreate();
     }
 
+    setOnPressed(scr) {
+        this.onPressed = scr;
+    }
+
+    setScript(scr) {
+        this.script = scr;
+    }
+
     step() {
-        var diffX = (this.ox - (IN.getMouseX()-410)/8)
-        var diffY = (this.oy - (IN.getMouseY()-120)/8)
+        var diffX = (this.ox - (IN.getMouseX()-this.x)/8)
+        var diffY = (this.oy - (IN.getMouseY()-this.y)/8)
         this.ox -= diffX/60;
         this.oy -= diffY/60;
-        this.x = this.xStart + 10 * Math.sin(($engine.getGlobalTimer()+this.x)/64) + this.ox;
-        this.y = this.yStart + 10 *  Math.cos(($engine.getGlobalTimer()+this.rand1)/64) + this.oy;
+        this.x = this.xStart + 10 * Math.sin(($engine.getGlobalTimer()+this.x+this.rand2)/64) + this.ox;
+        this.y = this.yStart + 10 *  Math.cos(($engine.getGlobalTimer()+this.y+this.rand1)/64) + this.oy;
         if(!this.enabled)
             return;
         //this.removeSprite();
-        if(this.pressed || this.hitbox.boundingBoxContainsPoint(IN.getMouseX(),IN.getMouseY())) {
-            this.getSprite().texture = this.tex2;
-            if(!this.pressed && IN.mouseCheckPressed(0)) {
-                IM.find(MenuIntroController,0).beginFade();
-                this.pressed = true;
+        if(this.pressed) {
+            this.getSprite().texture = this.tex3; // pressed
+        } else if(this.hitbox.boundingBoxContainsPoint(IN.getMouseX(),IN.getMouseY())) {
+            this.getSprite().texture = this.tex2; // armed
+            if(IN.mouseCheck(0)) {
+                this.getSprite().texture = this.tex3; // pressed
+            } else if(IN.mouseCheckReleased(0)) {
+                this.getSprite().texture = this.tex3; // pressed
+                if(this.onPressed()) {
+                    IM.find(MenuIntroController,0).beginFade(this.script);
+                    this.pressed = true;
+                }
             }
         } else {
             this.getSprite().texture = this.tex1;
