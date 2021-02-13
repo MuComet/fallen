@@ -5,10 +5,10 @@ class EngineInstance {
         this.y=0;
         this.xScale = 1;
         this.yScale = 1;
-        this.alpha = 0;
+        this.alpha = 1;
         this.angle = 0;
         this.__alive = true;
-        this.__hasSprite = true;
+        this.__hasSprite = false;
         this.oid = -1;
         this.id = -1;
         this.__renderables = [];
@@ -56,7 +56,7 @@ class EngineInstance {
 
     onRoomStart() {}
 
-    onRoomEnd() {}
+    onRoomEnd() {} // guaranteed to run any time the current room is changed out of, if the game is ending, this funciton is called before onGameEnd
 
     onGameEnd() {}
 

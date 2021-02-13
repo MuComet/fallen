@@ -140,6 +140,7 @@ class Camera extends PIXI.Container {
             child.rotation = parent.angle;
             child.scale.x = parent.xScale;
             child.scale.y = parent.yScale;
+            child.alpha = parent.alpha
         }
     }
 

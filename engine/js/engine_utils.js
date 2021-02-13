@@ -45,10 +45,6 @@ class EngineUtils {
         body.appendChild(imp,body.lastChild);
     }
 
-    static sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve,ms));
-    }
-
     static strToArrNewline(str) {
         return str.split(/\r?\n/).filter( e => e.trim().length > 0);  // uses regex and ignores empty lines
     }

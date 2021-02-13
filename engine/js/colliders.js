@@ -109,7 +109,6 @@ class Hitbox { // container for actual hitboxes
 
     boundingBoxContainsPoint(x,y) {
         this.__requireValid();
-        console.log(this.__boundingBox.x1+this.x,this.__boundingBox.y1+this.y,this.__boundingBox.x2+this.x,this.__boundingBox.y2+this.y)
         return this.__boundingBox.x1+this.x <= x && this.__boundingBox.y1+this.y <= y && x <= this.__boundingBox.x2+this.x && y <= this.__boundingBox.y2+this.y;
     }
 

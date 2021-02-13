@@ -212,6 +212,9 @@ class IM {
 
     static __endGame() {
         for(const obj of IM.__objects) {
+            obj.onRoomEnd();
+        }
+        for(const obj of IM.__objects) {
             obj.onGameEnd();
         }
     }
@@ -297,13 +300,7 @@ class IM {
     }
 
     static instanceCollision(source,x,y, ...targets) {
-        var ox = source.x;
-        var oy = source.y;
-        source.x = x;
-        source.y = y;
         var PCS = IM.__generatePCS(source,x,y,targets);
-        source.x = ox;
-        source.y = oy;
         
         for(const inst of PCS) {
             if(source.hitbox.doCollision(inst.hitbox,x,y))
@@ -313,13 +310,7 @@ class IM {
     }
 
     static instanceCollisionList(source,x,y,...targets) {
-        var ox = source.x;
-        var oy = source.y;
-        source.x = x;
-        source.y = y;
         var PCS = IM.__generatePCS(source,x,y,targets);
-        source.x = ox;
-        source.y = oy;
 
         var lst = []
         for(const inst of PCS) {
@@ -389,12 +380,6 @@ class IM {
             }
         }
         return false;
-    }
-
-    static create(inst, ...args) {
-        var i = new inst();
-        i.onCreate.apply(args);
-        return i;
     }
 
     static find(obj, ind) {

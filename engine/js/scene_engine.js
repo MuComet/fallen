@@ -7,7 +7,7 @@ $__engineData.__haltAndReturn = false;
 $__engineData.__ready = false;
 $__engineData.loadRoom = "MenuIntro";
 
-PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST; // set PIXI to render as nearest neighbour
+//PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST; // set PIXI to render as nearest neighbour
 
 /*DEBUG CODE MANIFEST (REMOVE ALL BEFORE LAUNCH):
 IN: keydown listener will put you into engine on "ctrl + enter" press
@@ -84,6 +84,7 @@ class Scene_Engine extends Scene_Base {
         this.__shouldChangeRooms=false;
     }
 
+    /** @returns {Camera} The camera */
     getCamera() {
         return this.__cameras[0];
     }
@@ -94,10 +95,10 @@ class Scene_Engine extends Scene_Base {
 
     __endAndReturn() {
         $__engineData.__haltAndReturn=false;
-        this.__cleanup();
         SceneManager.pop();
     }
 
+    // called exclusively by terminate, which is called from RPG maker.
     __cleanup() {
         this.__GUIgraphics.destroy();
         IM.__endGame()
@@ -107,6 +108,11 @@ class Scene_Engine extends Scene_Base {
         this.__renderables=null;
         for(const camera of this.__cameras)
             camera.destroy();
+    }
+
+    terminate() {
+        super.terminate()
+        this.__cleanup();
     }
 
     __doSimTick() {
