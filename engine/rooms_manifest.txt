@@ -3,3 +3,4 @@ Umbrella2 engine/rooms/umbrella2.txt
 testRoom engine/rooms/testroom.txt
 DrawingMinigame engine/rooms/draw.txt
 MenuIntro engine/rooms/menu_intro.txt
+RockRoom engine/rooms/rock.txt

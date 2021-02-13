@@ -315,7 +315,7 @@ class IM {
         var lst = []
         for(const inst of PCS) {
             if(source.hitbox.doCollision(inst.hitbox,x,y))
-                return lst.push(inst);
+                lst.push(inst);
         }
         return lst;
     }

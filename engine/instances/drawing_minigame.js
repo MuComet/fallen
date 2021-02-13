@@ -205,7 +205,7 @@ class ShapeToDraw extends EngineInstance {
         this.setSprite(new PIXI.Sprite($engine.getTexture("drawing_minigame_"+String(index))));
         this.x = $engine.getWindowSizeX()/2;
         this.y = $engine.getWindowSizeY()/2;
-        this.getSprite().alpha = 0;
+        this.getSprite().alpha = 1;
         this.pathData = ShapeToDraw.paths[index-1];
         this.score = 0;
         this.onEngineCreate();

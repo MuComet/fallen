@@ -6,6 +6,9 @@ drawing_minigame_1 engine/textures/drawing1.png 0.5 0.5
 drawing_minigame_2 engine/textures/drawing2.png 0.5 0.5
 drawing_minigame_3 engine/textures/drawing3.png 0.5 0.5
 
+falling_rock_1 engine/textures/rock_falling.png 0.5 0.5
+falling_rock_rocky_1 engine/textures/rock_falling_man.png 0.5 1
+
 intro_1 engine/textures/intro/intro_1.png 0.5 0.5
 intro_2 engine/textures/intro/intro_2.png 0.5 0.5
 intro_3 engine/textures/intro/intro_3.png 0.5 0.5
