@@ -4,6 +4,8 @@ class IN {
         // code by adeneo, https://stackoverflow.com/users/965051/adeneo
         // source: https://stackoverflow.com/a/17015116
         document.addEventListener('keydown', (e) => {
+            if(e.__handled)
+                return;
             if(!e.repeat && IN.__heldKeys.indexOf(e.code)===-1 && IN.__pressedKeysCarry.indexOf(e.code)===-1) {
                 IN.__lastKeyCarry=e.code;
                 IN.__anyKeyPressedCarry=true;
@@ -16,10 +18,15 @@ class IN {
                     SceneManager.push(Scene_Engine)
                 }
             }
+            e.__handled = true;
         });
 
         document.addEventListener('keyup', (e) => {
+            // prevent weird double event register
+            if(e.__handled)
+                return;
             IN.__releasedKeysCarry.push(e.code);
+            e.__handled = true;
         });
 
         // for an unknown reason, PIXI.JS mouse down does not register. So we access the document directly.
@@ -39,6 +46,8 @@ class IN {
     }
 
     static __onMouseEvent(event) {
+        if(event.__handled)
+            return;
         IN.__validMouse=false; // for sanity reasons, all mouse events invalidate the mouse location and force a refresh.
         var type = event.type;
         if(type === "pointerdown" || type === "mousedown" || type === "touchstart") {
@@ -51,11 +60,15 @@ class IN {
         }
         if(IN.__debugRecordMousePress) 
             console.log(type + " :: " + event.button);
+        event.__handled = true;
     }
 
     static __onMouseScrollEvent(event) {
-        IN.__validMouse=false;
+        if(event.__handled)
+            return;
+        IN.__validMouse = false;
         IN.__wheelCarry += event.wheelDelta;
+        event.__handled = true;
     }
 
     static __mouseMoved(event) {
@@ -66,7 +79,10 @@ class IN {
         IN.__releasedKeys = IN.__releasedKeysCarry;
         IN.__pressedKeys = IN.__pressedKeysCarry;
         for(const key of IN.__releasedKeys) {
-            IN.__heldKeys.splice(IN.__heldKeys.indexOf(key),1);
+            var ind = IN.__heldKeys.indexOf(key)
+            if(ind===-1)
+                continue;
+            IN.__heldKeys.splice(ind,1);
         }
 
         for(const key of IN.__pressedKeys) {
