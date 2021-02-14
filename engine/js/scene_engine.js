@@ -422,6 +422,7 @@ __readTextures = function(texture_file,obj) { // already sync
     EngineUtils.readLocalFileAsync(texture_file,callback);
 }
 
+////////////////// begin overriding RPG maker /////////////////
 Scene_Boot.prototype.start = function() { // hijack the boot routine
     Scene_Base.prototype.start.call(this);
     SoundManager.preloadImportantSounds();

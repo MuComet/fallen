@@ -19,8 +19,6 @@ class MenuIntroController extends EngineInstance {
         this.endTime = 300;
         this.nextCloud = 0;
 
-        this.depth = 1;
-
         this.isFading=false;
 
         // overwrite the mouse location, PIXI doesn't update immedaitely...

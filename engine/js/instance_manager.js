@@ -155,7 +155,11 @@ class IM {
 
     static __sort() {
         IM.__objectsSorted.sort((x,y) => {
-            return y.depth - x.depth;
+            // because we sort in place, we must explicitly make our sort stable. later created objects always render last
+            var d = (y.depth - x.depth);
+            if(d===0)
+                return (x.id-y.id)
+            return d
         })
     }
 
