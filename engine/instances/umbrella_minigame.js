@@ -7,7 +7,7 @@ class Man extends EngineInstance{
         this.hitbox = new Hitbox(this, new RectangeHitbox(this,-32,-128,32,0))
         this.lmx = 0;
         this.lmy = 0;
-        $engine.createRenderable(this,new PIXI.Sprite($engine.getTexture("man")))
+        this.setSprite(new PIXI.Sprite($engine.getTexture("man")))
         this.filter = new PIXI.filters.MotionBlurFilter();
         $engine.addFilter(this.filter)
         this.filter2 = new PIXI.filters.AdvancedBloomFilter();
@@ -104,7 +104,7 @@ class Umbrella extends EngineInstance {
         this.sx = this.x;
         this.sy = this.y;
         this.hitbox = new Hitbox(this, new RectangeHitbox(this,-32,-64,32,0))
-        $engine.createRenderable(this,new PIXI.Sprite($engine.getTexture("umbrella")))
+        this.setSprite(new PIXI.Sprite($engine.getTexture("umbrella")))
     }
 
     onCreate(x,y) {
@@ -143,8 +143,8 @@ class Umbrella extends EngineInstance {
         }
     }
 
-    drawExtras(gui, camera) {
-        //EngineDebugUtils.drawHitbox(camera,this);
+    draw(gui, camera) {
+        EngineDebugUtils.drawHitbox(camera,this);
         EngineDebugUtils.drawBoundingBox(camera,this);
     }
 }
@@ -155,7 +155,7 @@ class Raindrop extends EngineInstance {
         this.dx = EngineUtils.randomRange(-1,2);
         this.dy = EngineUtils.randomRange(-2,2);
         this.hitbox = new Hitbox(this, new RectangeHitbox(this,0,-1,16,1))
-        $engine.createRenderable(this,new PIXI.Sprite($engine.getTexture("raindrop")))
+        this.setSprite(new PIXI.Sprite($engine.getTexture("raindrop")))
     }
 
     onCreate(x,y) {
@@ -185,6 +185,6 @@ class Raindrop extends EngineInstance {
 
     draw(gui,camera) {
         //EngineDebugUtils.drawHitbox(camera,this);
-        EngineDebugUtils.drawBoundingBox(camera,this);
+        //EngineDebugUtils.drawBoundingBox(camera,this);
     }
 }

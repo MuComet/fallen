@@ -13,7 +13,7 @@ class Hitbox { // container for actual hitboxes
         this.rotation = 0;
         this.sx = 1;
         this.sy = 1;
-        this.valid = true;
+        this.valid = [false,false]; // first is default hitbox, second is the polygon
         this.__requireValid();
     }
 
@@ -28,17 +28,19 @@ class Hitbox { // container for actual hitboxes
         } else if(this.type === Hitbox.TYPE_RECTANGLE) {
             this.polygon = this.__generatePolygon();
         }
-        this.valid = false;
+        this.valid = [false,false];
     }
 
-    __invlidate() { // allow the hitbox to force us to recalculate
-        this.valid = false;
+    __invalidate() { // force full invalidation
+        this.valid = [false,false];
+        if(this.getOriginalType()!==Hitbox.TYPE_POLYGON) {
+            this.polygon=this.__generatePolygon();
+        }
     }
 
     __generatePolygon() {
         var tl = this.hitbox.getTopLeft();
         var br = this.hitbox.getBottomRight();
-
         return new PolygonHitbox(this.__parent,new Vertex(tl.x,tl.y),new Vertex(br.x,tl.y),new Vertex(br.x,br.y),new Vertex(tl.x,br.y));
     }
 
@@ -46,66 +48,58 @@ class Hitbox { // container for actual hitboxes
         this.forcePolygon = this.rotation!==0
     }
 
+    getOriginalType() {
+        return this.type;
+    }
+
     getType() {
-        return this.forcePolygon ? Hitbox.TYPE_POLYGON : this.type;
+        this.__requireValid();
+        return this.getHitbox().getType();
     }
 
     getHitbox() {
-        if(this.forcePolygon) 
-            return this.polygon;
-        return this.hitbox;
+        this.__requireValid();
+        return this.forcePolygon ? this.polygon : this.hitbox;
+    }
+
+    __getHitboxUnsafe() { // DOES NOT VALIDATE
+        return this.forcePolygon ? this.polygon : this.hitbox;
     }
 
     getPolygonHitbox() {
+        if(this.getOriginalType() === Hitbox.TYPE_POLYGON) {
+            this.__requireValid();
+            return this.hitbox;
+        }
+        this.__requireValidPolygon();
         return this.polygon;
-    }
-
-    setLocation(x,y) {
-        this.x = x;
-        this.y = y;
-        this.valid = false;
-    }
-
-    setX(x) {
-        this.x = x;
-        this.valid = false;
-    }
-
-    setY(y) {
-        this.y = y;
-        this.valid = false;
     }
 
     setScaleX(sx) {
         this.sx = sx;
-        this.valid = false;
+        this.valid = [false,false];
     }
 
     setScaleY(sy) {
         this.sy = sy;
-        this.valid = false;
+        this.valid = [false,false];
     }
 
     setRotation(theta) {
         this.rotation = theta;
-        this.valid = false;
+        this.valid = [false,false];
     }
 
     distanceToInstSq(inst) {
-        this.__requireValid();
-        var hb = inst.hitbox;
-        hb.__requireValid();
-        return this.getHitbox().__distanceToHitboxSq(hitbox2.getHitbox());
+        var hb = inst.hitbox.getHitbox();
+        return this.getHitbox().__distanceToHitboxSq(hitbox2);
     }
 
     distanceToPointSq(x,y) {
-        this.__requireValid();
         return this.getHitbox().__distanceToPointSq(x,y);
     }
 
     doCollision(hitbox, x,y) { // does collision directly, ignores bounding box
-        this.__requireValid();
-        hitbox.__requireValid();
         var test = this.__getApplicableTest(hitbox);
         if(test===1)
             return this.__testPolygon(hitbox,x,y)
@@ -113,28 +107,26 @@ class Hitbox { // container for actual hitboxes
     }
 
     boundingBoxContainsPoint(x,y) {
-        this.__requireValid();
-        return this.__boundingBox.x1+this.x <= x && this.__boundingBox.y1+this.y <= y && x <= this.__boundingBox.x2+this.x && y <= this.__boundingBox.y2+this.y;
+        var bb = this.getBoundingBox();
+        return bb.x1+this.x <= x && bb.y1+this.y <= y && x <= bb.x2+this.x && y <= bb.y2+this.y;
     }
 
     containsPoint(x,y) {
-        this.__requireValidPolygon();
         return this.getPolygonHitbox().containsPoint(x,y);
     }
 
-    getType() {
-        return this.hitbox.getType();
-    }
-
     __requireValid() {
-        if(!this.valid || !this.__parentAligned()) {
+        this.__testForcePolygon();
+        if(this.forcePolygon) {
+            this.__requireValidPolygon(); // forward the call to the more appropriate method
+        } else if(!this.valid[0] || !this.__parentAligned()) { // you either know you're not valid, or you're not parent aligned
             this.__validate();
             this.__calculateBoundingBox();
         }
     }
 
     __requireValidPolygon() { // some operations require the polygon hitbox, so we supply this method to force the hitbox into polygon mode.
-        if(!this.forcePolygon || (!this.valid || !this.__parentAligned())) { // if polygon is not required, always update, otherwise check.
+        if(!this.valid[1] || !this.__parentAligned()) { // if polygon is not required, always update, otherwise check.
             this.__validatePolygon();
             var s = this.forcePolygon;
             this.forcePolygon=true;
@@ -148,26 +140,24 @@ class Hitbox { // container for actual hitboxes
                     && this.sy === this.__parent.yScale && this.rotation === this.__parent.angle;
     }
 
-    __validate() { // basically, defer updating the hitbox until you absolutely need to.
+    __match() {
         this.x = this.__parent.x;
         this.y = this.__parent.y;
         this.sx = this.__parent.xScale;
         this.sy = this.__parent.yScale;
         this.rotation = this.__parent.angle;
-        this.__testForcePolygon();
-        this.getHitbox().__validate(this);
-        this.valid = true;
+    }
+
+    __validate() { // basically, defer updating the hitbox until you absolutely need to.
+        this.__match();
+        this.__getHitboxUnsafe().__validate(this);
+        this.valid[0] = true;
     }
 
     __validatePolygon() {
-        this.sx = this.__parent.xScale;
-        this.sy = this.__parent.yScale;
-        this.sx = this.__parent.xScale;
-        this.sy = this.__parent.yScale;
-        this.rotation = this.__parent.angle;
-        this.getPolygonHitbox().__validate(this);
-        if(this.forcePolygon)
-            this.valid = true;
+        this.__match();
+        this.polygon.__validate(this);
+        this.valid[1] = true;
     }
 
     // https://developer.mozilla.org/en-US/docs/Games/Techniques/2D_collision_detection
@@ -213,7 +203,7 @@ class Hitbox { // container for actual hitboxes
     }
 
     __calculateBoundingBox() {
-        this.__boundingBox = this.getHitbox().__getBoundingBox();
+        this.__boundingBox = this.__getHitboxUnsafe().__getBoundingBox();
     }
 
     __getApplicableTest(hitbox) {

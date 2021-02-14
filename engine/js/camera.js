@@ -12,27 +12,29 @@ class Camera extends PIXI.Container {
         this.__cameraGraphics = new PIXI.Graphics(); // shared graphics, always draws on top of everything.
     }
 
+    /**@deprecated */
     getBackground() {
         return this.__background;
     }
-
+    /**@deprecated */
     setBackground(background) { // expects any PIXI renderable. renders first.
         this.__background = background;
         if(!(this.__background instanceof PIXI.Graphics)) {
             this.__usingSolidColourBackground = false;
         }
-
     }
-
+    
+    /**@deprecated */
     setBackgroundColour(col) {
         if(!(this.__background instanceof PIXI.Graphics)) {
             console.error("WARN: setBackgroundColour applied to non Graphics background... Set the background to a Graphics first!");
-            this.__background = new PIXI.Graphics();
+            this.setBackgroud(new PIXI.Graphics());
         }
         this.__backgroundColour = col;
         this.__usingSolidColourBackground = true;
     }
 
+    /**@deprecated */
     getBackgroundColour() {
         return this.__backgroundColour;
     }

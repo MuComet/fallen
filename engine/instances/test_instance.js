@@ -7,7 +7,7 @@ class TestInstance extends EngineInstance {
         this.dz = 0.01//EngineUtils.randomRange(-Math.PI/16,Math.PI/16)
         this.setSprite(new PIXI.Sprite($engine.getTexture("default")));
         this.hitbox = new Hitbox(this, new RectangeHitbox(this,-32,-32,32,32))
-        this.enableDrawGraphics();
+        this.graphics = $engine.createRenderable(this, new PIXI.Graphics())
     }
 
     onCreate(x,y) {
@@ -70,7 +70,12 @@ class TestInstance extends EngineInstance {
             //this.y+=5;
     }
 
-    draw(graphics) {
+    draw(gui, camera) {
+        EngineDebugUtils.drawHitbox(camera,this);
+        EngineDebugUtils.drawBoundingBox(camera,this);
+
+        var graphics = this.graphics;
+        graphics.clear();
         var touching = EngineUtils.collisionLine(new Vertex(0,0),new Vertex(200,200),new Vertex(500,300), new Vertex(this.x,this.y));
         var touching = this.hitbox.containsPoint(200,200)
         graphics.lineStyle(1,0xe74c3c).moveTo(0,0).lineTo(200,200).moveTo(500,300).lineStyle(1,touching ? 0xffffff : 0xe74c3c).lineTo(this.x,this.y)

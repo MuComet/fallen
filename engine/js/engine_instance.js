@@ -27,7 +27,7 @@ class EngineInstance {
 
     setSprite(sprite) {
         this.__hasSprite = true;
-        this.__sprite = $engine.createRenderable(this,sprite);
+        this.__sprite = $engine.createRenderable(this,sprite,true);
     }
 
     removeSprite() {

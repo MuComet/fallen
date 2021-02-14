@@ -127,11 +127,15 @@ class EngineDebugUtils {
         var poly = inst.hitbox.getPolygonHitbox()
         var len = poly.__getNumPoints();
         var p2 = new PIXI.Polygon();
+        var v;
         for(var i =0;i<len;i++) {
-            var v = poly.__getAbsolutePoint(i)
+            v = poly.__getAbsolutePoint(i)
             p2.points.push(new PIXI.Point(v.x,v.y));
         }
-        graphics.beginFill(0xe74c3c);
+        v = poly.__getAbsolutePoint(0)
+        p2.points.push(new PIXI.Point(v.x,v.y));
+        graphics.lineStyle(2,0xe74c3c);
+        graphics.beginFill(0xe74c3c,0.5);
         graphics.drawPolygon(p2)
         graphics.endFill();
     }

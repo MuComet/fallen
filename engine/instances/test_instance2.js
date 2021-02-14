@@ -14,6 +14,7 @@ class TestInstance2 extends EngineInstance {
     }
 
     step() {
+        this.angle+=0.01
         /*
         if(Input.isPressed('left')) {
             this.xScale = 1;

@@ -189,7 +189,7 @@ class Scene_Engine extends Scene_Base {
         this.__enabledCameras[index] = enable;
     }
 
-    createRenderable(parent, renderable, align = true) {
+    createRenderable(parent, renderable, align = false) {
         renderable.__depth = parent.depth
         renderable.__parent = parent;
         renderable.__align = align;
@@ -207,17 +207,36 @@ class Scene_Engine extends Scene_Base {
         renderable.__parent=null; // leave it to be cleaned up eventually
         renderable.destroy(this.__renderableDestroyOptions);
     }
-
+    //TODO: leave as deprecated until it's done
+    /**@deprecated */
     addGlobalObject(obj, name) { // TODO: global objects should run step and draw events...
         this.__globalObjects[name] = (obj);
     }
 
+    /**@deprecated */
     getGlobalObject(name) {
         return this.__globalObjects[name];
     }
 
+    /**@deprecated */
     removeGlobalObject(name) {
         delete this.__globalObjects[name]
+    }
+
+    getBackground() {
+        return this.getCamera().getBackground();
+    }
+
+    setBackground(background) { // expects any PIXI renderable. renders first.
+        this.getCamera().setBackground(background)
+    }
+    
+    setBackgroundColour(col) {
+        this.getCamera().setBackgroundColour(col);
+    }
+
+    getBackgroundColour() {
+        return this.getCamera().getBackgroundColour();
     }
 
     __prepareRenderToCameras() {
