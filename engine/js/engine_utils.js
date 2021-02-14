@@ -1,7 +1,7 @@
 class EngineUtils {
 
     constructor() {
-        throw "Cannot instantiate static class.";
+        throw new Error("Cannot instantiate static class.");
     }
     // Code created by Dave Burton, https://stackoverflow.com/users/562862/dave-burton
     // Source: https://stackoverflow.com/a/41133213

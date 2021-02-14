@@ -1,5 +1,6 @@
-class Man extends EngineInstance{
+class Man extends InstanceMover {
     onEngineCreate() {
+        super.onEngineCreate();
         this.score = 1000;
         this.text= $engine.createRenderable(this,new PIXI.Text('COUNT 4EVAR: 0', { font: 'bold italic 60px Arvo', fill: '#3e1707', align: 'center', stroke: '#a4410e', strokeThickness: 7 }),false);
         this.text.anchor.x=0.5
@@ -12,6 +13,7 @@ class Man extends EngineInstance{
         $engine.addFilter(this.filter)
         this.filter2 = new PIXI.filters.AdvancedBloomFilter();
         $engine.addFilter(this.filter2);
+        this.maxVelocity=10;
     }
 
     onCreate(x,y) {
@@ -21,6 +23,7 @@ class Man extends EngineInstance{
     }
 
     step() {
+        super.step();
         this.text.text=String(this.score);
         /*if(Input.isPressed('right')) {
             if(this.dx < 12)
@@ -34,27 +37,17 @@ class Man extends EngineInstance{
                 this.dx-=2;
         } else
             this.dx/=1.2*/
-
+        var accel = [0,0]
         if(IN.keyCheck('ArrowRight')) {
-            //$engine.getCamera().setX($engine.getCamera().getX()+5)
-            this.x+=5;
-        }else if(IN.keyCheck('ArrowLeft')) {
-            this.x-=5
-            //$engine.getCamera().setX($engine.getCamera().getX()-5)
-        } else if (IN.keyCheck('KeyQ')) {
-            $engine.getCamera().setRotation($engine.getCamera().getRotation()+0.05)
+            accel[0]+=0.8;
         }
+        if(IN.keyCheck('ArrowLeft')) {
+            accel[0]-=0.8;
+        }
+
+        this.move(accel,this.vel);
+
         $engine.getCamera().setBackgroundColour((Math.sin($engine.getGlobalTimer()/128)+1)*128);
-        
-        if(this.x<0) {
-            this.x = 0;
-            this.dx=0;
-        }
-        if(this.x>800) {
-            this.x=800;
-            this.dx=0;
-        }
-        this.x+=this.dx
 
         if(IN.keyCheck('Escape')) {
             RoomManager.changeRooms("Umbrella2")
@@ -82,14 +75,22 @@ class Man extends EngineInstance{
         //console.log(IN.getMouseX(),IN.getMouseY(), $engine.getCamera().getX(), $engine.getCamera().getY());
     }
 
+    canControl() {
+        return true;
+    }
+
+    collisionCheck(x,y) {
+        return IM.instanceCollision(this,x,y,Umbrella) || x<=0 || x>=816;
+    }
+
     preDraw() {
         this.text.x = this.x;
         this.text.y = this.y-128;
     }
 
     draw(gui, camera) {
-        //EngineDebugUtils.drawHitbox(graphics,this);
-        EngineDebugUtils.drawBoundingBox(camera,this);
+        EngineDebugUtils.drawHitbox(camera,this);
+        //EngineDebugUtils.drawBoundingBox(camera,this);
     }
 }
 
@@ -177,8 +178,6 @@ class Raindrop extends EngineInstance {
         if(IM.instanceCollision(this,this.x,this.y,Man)) {
             IM.find(Man,0).score--;
             this.destroy();
-            $engine.startFadeOut(60,false)
-            SceneManager.goto(Scene_Title)
         }
 
     }

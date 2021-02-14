@@ -64,7 +64,7 @@ class Scene_Engine extends Scene_Base {
 
     setRoom(newRoom) {
         if(!RoomManager.roomExists(newRoom))
-            throw "Attemping to change to non existent room "+newRoom;
+            throw new Error("Attemping to change to non existent room "+newRoom);
         if(this.shouldChangeRooms)
             return;
         this.__shouldChangeRooms=true;
@@ -104,7 +104,7 @@ class Scene_Engine extends Scene_Base {
         $__engineData.__haltAndReturn=false;
         if($__engineData.writeBackIndex!==-1) {
             if($__engineData.__writeBackValue<0)
-                throw "Engine expects a non negative write back value";
+                throw new Error("Engine expects a non negative write back value");
             $gameVariables.setValue($__engineData.writeBackIndex,$__engineData.__writeBackValue);
         }
         SceneManager.pop();

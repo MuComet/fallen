@@ -19,6 +19,8 @@ class MenuIntroController extends EngineInstance {
         this.endTime = 300;
         this.nextCloud = 0;
 
+        this.depth = 1;
+
         this.isFading=false;
 
         // overwrite the mouse location, PIXI doesn't update immedaitely...
@@ -85,7 +87,7 @@ class MenuIntroController extends EngineInstance {
             }
             for(var i =0;i<6;i++)
                 this.letters[i].floatRandom();
-        } else { // 2 seconds
+        } else {
             for(var i=0;i<6;i++) {
                 var letter = this.letters[i]
                 if(this.timer>=letter.randomOffset) {
@@ -206,7 +208,6 @@ class Cloud extends EngineInstance {
     }
 
     onCreate(x) {
-        this.depth = 1
         this.x = x;
         this.y = $engine.getWindowSizeY()+120;
 
@@ -267,6 +268,8 @@ class MainMenuButton extends EngineInstance {
         this.oy = 0;
         this.rand1 = EngineUtils.irandom(128);
         this.rand2 = EngineUtils.irandom(128);
+        this.rand3 = EngineUtils.irandom(128);
+        this.rand4 = EngineUtils.irandomRange(64,128);
         this.onEngineCreate();
     }
 
@@ -279,6 +282,7 @@ class MainMenuButton extends EngineInstance {
     }
 
     step() {
+        this.angle = Math.sin(($engine.getGlobalTimer()+this.rand3)/this.rand4)/16
         var diffX = (this.ox - (IN.getMouseX()-this.x)/8)
         var diffY = (this.oy - (IN.getMouseY()-this.y)/8)
         this.ox -= diffX/60;
@@ -290,7 +294,7 @@ class MainMenuButton extends EngineInstance {
         //this.removeSprite();
         if(this.pressed) {
             this.getSprite().texture = this.tex3; // pressed
-        } else if(this.hitbox.boundingBoxContainsPoint(IN.getMouseX(),IN.getMouseY())) {
+        } else if(this.hitbox.containsPoint(IN.getMouseX(),IN.getMouseY())) {
             this.getSprite().texture = this.tex2; // armed
             if(IN.mouseCheck(0)) {
                 this.getSprite().texture = this.tex3; // pressed

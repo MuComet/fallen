@@ -1,5 +1,10 @@
+MinigameTimer engine/instances/shared/minigame_assets.js
+InstanceMover engine/instances/shared/minigame_instances.js
+BufferedInput engine/instances/shared/minigame_utils.js
+
 TestInstance engine/instances/test_instance.js
 TestInstance2 engine/instances/test_instance2.js
+
 Umbrella Man Raindrop engine/instances/umbrella_minigame.js
 DrawController ShapeToDraw DrawableLine engine/instances/drawing_minigame.js
 MenuIntroController Letter Cloud MainMenuButton engine/instances/menu_intro.js

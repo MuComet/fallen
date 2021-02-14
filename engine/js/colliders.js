@@ -108,7 +108,7 @@ class Hitbox { // container for actual hitboxes
 
     boundingBoxContainsPoint(x,y) {
         var bb = this.getBoundingBox();
-        return bb.x1+this.x <= x && bb.y1+this.y <= y && x <= bb.x2+this.x && y <= bb.y2+this.y;
+        return bb.x1 <= x && bb.y1 <= y && x <= bb.x2 && y <= bb.y2;
     }
 
     containsPoint(x,y) {
@@ -248,19 +248,19 @@ class BaseHitbox {
     }
 
     __getBoundingBox() {
-        throw "CBB Not implemented";
+        throw new Error("CBB Not implemented");
     }
 
     __validate(hitboxContainer) {
-        throw "V Not implemented";
+        throw new Error("V Not implemented");
     }
 
     __distanceToHitboxSq(hitbox) {
-        throw "DTHS Not implemented";
+        throw new Error("DTHS Not implemented");
     }
 
     __distanceToPointSq(x,y) {
-        throw "DTPS Not implemented";
+        throw new Error("DTPS Not implemented");
     }
 
     getParent() {

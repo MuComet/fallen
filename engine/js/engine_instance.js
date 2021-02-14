@@ -38,7 +38,7 @@ class EngineInstance {
 
     getSprite() {
         if(!this.__hasSprite)
-            throw "Object has no sprite";
+            throw new Error("Object has no sprite");
         return this.__sprite;
     }
 
