@@ -1,6 +1,9 @@
 class InstanceMover extends EngineInstance {
 
     onEngineCreate() {
+        if(this.__initalized)
+            return;
+        this.__initalized = true;
         this.snapMoveFactor = 0.5; // how much to factor in your current speed to the snap distance
         this.snapDistance = 20; // how far to try to snap
         this.maxVelocity = 8;
@@ -34,6 +37,11 @@ class InstanceMover extends EngineInstance {
         throw new Error("IMPLEMENT CANCONTROL IN SUBCLASS");
     }
 
+    /**
+     * 
+     * @param {Array} accelVector The desired acceleration.
+     * @param {Array} velocity The current velocity, usually this.vel
+     */
     move(accelVector, velocity) {
         if(this.canControl()) {
             this.__groundControl(accelVector, velocity);
@@ -99,6 +107,7 @@ class InstanceMover extends EngineInstance {
             } else if(Math.sign(accelVector[i])===Math.sign(velocity[i]) && Math.abs(accelVector[i]+velocity[i]) > maxSpd) 
                 accelVector[i] = (maxSpd - Math.abs(velocity[i])) * Math.sign(accelVector[i])
         }
+
     
         velocity[0]+=accelVector[0];
         velocity[1]+=accelVector[1];

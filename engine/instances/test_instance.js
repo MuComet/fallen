@@ -1,13 +1,16 @@
-class TestInstance extends EngineInstance {
+class TestInstance extends InstanceMover {
     onEngineCreate() {
+        super.onEngineCreate();
         this.dy = 0;
         this.dx = 0;
         this.grav = 0;
         this.shouldDie = false;
         this.dz = 0.01//EngineUtils.randomRange(-Math.PI/16,Math.PI/16)
         this.setSprite(new PIXI.Sprite($engine.getTexture("default")));
-        this.hitbox = new Hitbox(this, new RectangeHitbox(this,-32,-32,32,32))
+        this.hitbox = new Hitbox(this, new PolygonHitbox(this,new Vertex(-32,-32),new Vertex(32,-32),new Vertex(32,32),new Vertex(-32,32)))
         this.graphics = $engine.createRenderable(this, new PIXI.Graphics())
+        this.turnLagStop=8;
+        this.snapDistance=8;
     }
 
     onCreate(x,y) {
@@ -17,13 +20,13 @@ class TestInstance extends EngineInstance {
     }
 
     step() {
-
+        super.step();
         if(Input.isPressed('escape')) {
             this.dx = EngineUtils.randomRange(-2,2);
             this.dy = EngineUtils.randomRange(-12,0);
             this.shouldDie=true;
         }
-
+        /*
         if(IM.instanceCollision(this,this.x,this.y,TestInstance2)) { // touching
             if(this.dy===0) {
                 while(IM.instanceCollision(this,this.x,this.y,TestInstance2))
@@ -39,21 +42,22 @@ class TestInstance extends EngineInstance {
             while(!IM.instanceCollision(this,this.x+Math.sign(this.dx),this.y,TestInstance2))
                 this.x+=Math.sign(this.dx);
             this.dx = 0;
-        }
+        }*/
+        var accel = [0,0];
+        if(IN.keyCheck('ArrowRight'))
+            accel[0]+=2;
+        else if(IN.keyCheck('ArrowLeft'))
+            accel[0]-=2;
+        if(IN.keyCheck('ArrowUp'))
+            accel[1]-=2;
+        else if(IN.keyCheck('ArrowDown'))
+            accel[1]+=2;
 
-        if(Input.isPressed('right') && this.dx < 5)
-            this.dx+=0.25;
-        else if(Input.isPressed('left') && this.dx > -5)
-            this.dx-=0.25;
-        if(Input.isPressed('up') && this.dy > -5)
-            this.dy-=0.25;
-        else if(Input.isPressed('down') && this.dy < 5)
-            this.dy+=0.25;
+        this.move(accel,this.vel);
 
+        
         this.angle +=this.dz
-        this.dy+=this.grav;
-        this.dx/=1.05
-        this.dy/=1.05
+        /*
         if(IM.instanceCollision(this,this.x,this.y+this.dy,TestInstance2)) {
             while(!IM.instanceCollision(this,this.x,this.y+Math.sign(this.dy),TestInstance2))
                 this.y+=Math.sign(this.dy);
@@ -63,11 +67,18 @@ class TestInstance extends EngineInstance {
                 this.destroy();
             }
             //$engine.endGame();
-        }
-        this.y+=this.dy;
-        this.x+=this.dx
+        }*/
+        
         //if(Input.isPressed('down'))
             //this.y+=5;
+    }
+
+    canControl() {
+        return true;
+    }
+
+    collisionCheck(x,y) {
+        return IM.instanceCollision(this,x,y,TestInstance2);
     }
 
     draw(gui, camera) {

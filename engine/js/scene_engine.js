@@ -14,6 +14,7 @@ $__engineData.loadRoom = "MenuIntro";
 /*DEBUG CODE MANIFEST (REMOVE ALL BEFORE LAUNCH):
 IN: keydown listener will put you into engine on "ctrl + enter" press
 IN: log key press code
+Scene_Engine - debug_log_frame_time (create, doSimTick)
 */
 
 class Scene_Engine extends Scene_Base {
@@ -22,7 +23,6 @@ class Scene_Engine extends Scene_Base {
         super.create();
         $engine = this;
         this.paused = false;
-        this.__renderables = []
         this.__filters = [];
         this.filters = []; // PIXI
         this.__enabledCameras = [true,false];
@@ -34,6 +34,8 @@ class Scene_Engine extends Scene_Base {
         this.__timer = 0;
         this.__instanceCreationSpecial = {}; // it doesn't matter what this is so long as it's an object.
         this.__renderableDestroyOptions = {children:true};
+
+        this.debugLogFrameTime = false;
 
         this.__background = undefined;
         this.__backgroundColour = 0;
@@ -80,15 +82,11 @@ class Scene_Engine extends Scene_Base {
 
     __setRoom(roomName) {
         IM.__endRoom();
-        for(const renderable of this.__renderables) { // free the renderables.
-            renderable.destroy(this.__renderableDestroyOptions);
-        }
         for(var i = this.__filters.length-1;i>=0;i--) {
             if(this.__filters[i].remove) {
                 this.removeFilter(this.__filters[i].filter);
             }
         }
-        this.__renderables=[];
         this.__currentRoom = RoomManager.loadRoom(roomName);
         IM.__startRoom();
         this.__shouldChangeRooms=false;
@@ -114,18 +112,13 @@ class Scene_Engine extends Scene_Base {
 
     // called exclusively by terminate, which is called from RPG maker.
     __cleanup() {
-        this.__GUIgraphics.destroy();
+        this.freeRenderable(this.__GUIgraphics)
         IM.__endGame()
-        for(const renderable of this.__renderables) {
-            renderable.destroy(this.__renderableDestroyOptions);
-        }
-        this.__renderables=null;
         for(const camera of this.__cameras)
-            camera.destroy();
+            this.freeRenderable(camera);
     }
 
     __writeBack() {
-        console.log("write back ",$__engineData.writeBackIndex," ",$__engineData.__writeBackValue)
         if($__engineData.writeBackIndex!==-1) {
             if($__engineData.__writeBackValue<0)
                 throw new Error("Engine expects a non negative write back value");
@@ -145,13 +138,14 @@ class Scene_Engine extends Scene_Base {
     __doSimTick() {
         var start = window.performance.now();
 
-        this.__removeRenderables(); // remove any lingering renderables.
+        this.__clearGraphics();
         IM.__doSimTick();
         this.__updateBackground();
         this.__prepareRenderToCameras();
 
         var time = window.performance.now()-start;
-        //console.log("Time taken for this frame: "+(time)+" ms")
+        if(this.debugLogFrameTime)
+            console.log("Time taken for this frame: "+(time)+" ms")
     }
 
     addFilter(screenFilter, removeOnRoomChange = true, name = "ENGINE_DEFAULT_FILTER_NAME") {
@@ -214,15 +208,36 @@ class Scene_Engine extends Scene_Base {
         if(renderable.texture && renderable.texture.defaultAnchor)
             renderable.anchor.set(renderable.texture.defaultAnchor.x,renderable.texture.defaultAnchor.y)
         parent.__renderables.push(renderable);
-        // this.__renderables.push(renderable);
         return renderable;
+    }
+
+    // if you want to manage the renderable yourself, you may still use this function to free it in the same way a manged one would be freed.
+    freeRenderable(renderable) {
+        renderable.destroy(this.__renderableDestroyOptions);
     }
 
     removeRenderable(renderable) {
         renderable.__parent.__renderables.splice(renderable.__parent.__renderables.indexOf(renderable),1); // remove from parent
         renderable.__parent=null; // leave it to be cleaned up eventually
-        renderable.destroy(this.__renderableDestroyOptions);
+        this.freeRenderable(renderable)
     }
+
+    /**
+     * Requests that on this frame, the renderable be rendered to the GUI layer.
+     * @param {PIXI.Container} renderable 
+     */
+    requestRenderOnGUI(renderable) {
+        this.__GUIgraphics.addChild(renderable);
+    }
+    
+    /**
+     * Requests that on this frame, the renderable be rendered to the Camera layer.
+     * @param {PIXI.Container} renderable 
+     */
+    requestRenderOnCamera(renderable) {
+        this.getCamera().addChild(renderable);
+    }
+
     //TODO: leave as deprecated until it's done
     /**@deprecated */
     addGlobalObject(obj, name) { // TODO: global objects should run step and draw events...
@@ -297,13 +312,17 @@ class Scene_Engine extends Scene_Base {
         return array;
     }
 
-    __removeRenderables() {
-        this.__renderables = this.__renderables.filter(x=>x.__parent!==undefined && x.__parent.__alive); // THE RENDERABLE SHOULD BE DESTROYED AT THIS POINT!
+    __clearGraphics() {
+        this.__GUIgraphics.clear();
+        this.__GUIgraphics.removeChildren();
+
+        this.getCamera().getCameraGraphics().clear();
+        this.getCamera().getCameraGraphics().removeChildren();
     }
 
     __disposeHandles(instance) { //TODO: disposes of any resources associated with the object. This should remove any objects (renderables) associated with the instance.
         for(const renderable of instance.__renderables) {
-            renderable.destroy(this.__renderableDestroyOptions);
+            this.freeRenderable(renderable)
         }
     }
 }

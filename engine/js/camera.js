@@ -7,7 +7,6 @@ class Camera extends PIXI.Container {
         this.setLocation(x,y);
         this.setDimensions(w,h);
         this.setRotation(r);
-        this.__background = new PIXI.Graphics();
         this.__cameraGraphics = new PIXI.Graphics(); // shared graphics, always draws on top of everything.
     }
 
@@ -141,18 +140,6 @@ class Camera extends PIXI.Container {
         }
     }
 
-    __updateBackground() {
-        this.__background.x = -this.x;
-        this.__background.y = -this.y;
-        this.__background.rotation = -this.rotation;
-        if(!this.__usingSolidColourBackground)
-            return;
-        this.__background.clear();
-        this.__background.beginFill(this.__backgroundColour);
-        this.__background.drawRect(0,0,this.getWidth()+1,this.getHeight()+1)
-        this.__background.endFill()
-    }
-
     __reportMouse() {
         return Graphics._renderer.plugins.interaction.mouse.getLocalPosition(this);
     }
@@ -160,7 +147,6 @@ class Camera extends PIXI.Container {
 
     updateTransform() {
         this.__match();
-        this.__updateBackground();
         super.updateTransform();
     }
 }

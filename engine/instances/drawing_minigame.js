@@ -70,11 +70,6 @@ class DrawableLine extends EngineInstance {
 
 class DrawController extends EngineInstance { // controls the minigame
     onEngineCreate() {
-        this.timer = 60*25 // 25 seconds;
-        this.timerText = $engine.createRenderable(this,new PIXI.Text('TIME REMAINING:', { font: 'bold italic 40px Arvo', fill: '#612669', align: 'center', stroke: '#410f49', strokeThickness: 4 }),false);
-        this.timerText.anchor.x=0.5
-        this.timerText.x = $engine.getWindowSizeX()/2;
-        this.timerText.y = 40;
 
         this.instructiontext = $engine.createRenderable(this,new PIXI.Text('TIME REMAINING:', { font: 'bold italic 40px Arvo', fill: '#612669', align: 'center', stroke: '#410f49', strokeThickness: 4 }),false);
         this.instructiontext.anchor.x=0.5
@@ -91,6 +86,15 @@ class DrawController extends EngineInstance { // controls the minigame
         this.selectDrawings();
         this.nextDrawing();
         this.waitTimer = 0;
+
+        this.timer = new MinigameTimer(60*25);
+        this.timer.addOnTimerStopped(this, function(parent, bool) {
+            if(parent.currentLine)
+                parent.currentLine.endDrawing();
+            while(!parent.done) {
+                parent.nextDrawing();
+            }
+        })
     }
 
     onCreate() {
@@ -122,15 +126,8 @@ class DrawController extends EngineInstance { // controls the minigame
         if(IN.keyCheckPressed("KeyR")) {
             RoomManager.changeRooms(RoomManager.currentRoom().name)
         }
-        if(this.timer<0) {
-            if(this.currentLine)
-                this.currentLine.endDrawing();
-            while(!this.done) {
-                this.nextDrawing();
-            }
-        }
 
-        if(!this.done) {
+        if(!this.timer.isDone()) {
             this.waitTimer++;
             if(this.waitTimer<150) {
                 if(this.waitTimer<=60) {
@@ -156,17 +153,13 @@ class DrawController extends EngineInstance { // controls the minigame
                 this.currentLine.distanceText.alpha = 0;
                 this.drawing = false;
                 this.nextDrawing();
+                if(this.done) {
+                    this.timer.setGameComplete();
+                }
                 this.waitTimer=0;
             }
         
-            var strEnd = String(EngineUtils.roundMultiple((this.timer%60)/60,0.01))+"000"
-            this.timerText.text = "TIME REMAINING: " + String(Math.floor(this.timer/60) +":"+strEnd.substring(2,4))
-            this.timer--;
         } else {
-            if(this.timer<0)
-                this.timerText.text = "GAME OVER!"
-            else
-                this.timerText.text = "GAME COMPLETE!"
             this.gameOverSummary();
         }
     }

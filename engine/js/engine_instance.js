@@ -64,3 +64,5 @@ class EngineInstance {
         IM.destroy(this);
     }
 }
+
+EngineInstance.__ENGINE_ORDER_FIRST = false;

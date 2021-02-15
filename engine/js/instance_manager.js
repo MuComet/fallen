@@ -215,7 +215,10 @@ class IM {
     }
 
     static __add(inst) {
-        IM.__objects.push(inst);
+        if(inst.constructor.__ENGINE_ORDER_FIRST)
+            IM.__objects.unshift(inst);
+        else
+            IM.__objects.push(inst);
         IM.__objectsSorted.push(inst);
         IM.__accessMap[inst.oid].push(inst);
     }

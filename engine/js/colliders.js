@@ -1,4 +1,4 @@
-// hitboxes are an abstract idea. All data is calculated and stored in local space, not room space.
+// by convention, 'get' methods are required to check if the hitbox is valid first.
 class Hitbox { // container for actual hitboxes
     //static TYPE_CIRCLE = 2;
     constructor(parent, hitbox) {
@@ -107,8 +107,8 @@ class Hitbox { // container for actual hitboxes
     }
 
     boundingBoxContainsPoint(x,y) {
-        var bb = this.getBoundingBox();
-        return bb.x1 <= x && bb.y1 <= y && x <= bb.x2 && y <= bb.y2;
+        var bb = this.__getBoundingBox();
+        return bb.x1 <= x-this.x && bb.y1 <= y-this.y && x-this.x <= bb.x2 && y-this.y <= bb.y2;
     }
 
     containsPoint(x,y) {
@@ -162,16 +162,20 @@ class Hitbox { // container for actual hitboxes
 
     // https://developer.mozilla.org/en-US/docs/Games/Techniques/2D_collision_detection
     checkBoundingBox(hitbox, x, y) {
-        this.__requireValid();
-        hitbox.__requireValid();
-        var other = hitbox.__boundingBox
-        return  this.__boundingBox.x1+x <= other.x2+hitbox.x && this.__boundingBox.x2+x >= other.x1+hitbox.x && 
-                this.__boundingBox.y1+y <= other.y2+hitbox.y && this.__boundingBox.y2+y >= other.y1+hitbox.y
+        var bb = this.__getBoundingBox();
+        var other = hitbox.__getBoundingBox();
+        return  bb.x1+x <= other.x2+hitbox.x && bb.x2+x >= other.x1+hitbox.x && 
+                bb.y1+y <= other.y2+hitbox.y && bb.y2+y >= other.y1+hitbox.y
     }
 
     checkLineCollision(v1,v2) {
-        this.__requireValidPolygon()
         return this.getPolygonHitbox().collisionLine(v1,v2);
+    }
+
+    // does not correct space
+    __getBoundingBox() {
+        this.__requireValid();
+        return this.__boundingBox;
     }
 
     getBoundingBox() {
@@ -281,7 +285,7 @@ class BaseHitbox {
 class PolygonHitbox extends BaseHitbox{
     constructor(parent, ...vertices) {
         super(parent);
-        this.__type = Hitbox.TYPE_POLYGON;
+        this.type = Hitbox.TYPE_POLYGON;
         this.__srcPolygon = new PIXI.Polygon();
         this.__polygon = null;
         this.__bbox = null;
