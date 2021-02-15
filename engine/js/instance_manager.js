@@ -6,26 +6,29 @@ class IM {
     static __initializeVariables() {
         IM.__objects = [];
         IM.__objectsSorted = []
-        for(const key in IM.accessMap)
-            IM.accessMap[key] = [];
+        for(var i = 1;i<=IM.__numRegisteredClasses;i++)
+            IM.__accessMap[i] = [];
+            IM.__alteredLists[i] = false;
         IM.__cleanupList = [];
         IM.ind = 100000;
     }
 
     static __init(instances) { // assumed instances is a list of classes.
-        IM.accessMap[1] = [];
+        IM.__numRegisteredClasses = instances.length;
+        IM.__accessMap = [[],];
+        IM.__accessMap[1] = [];
         EngineInstance.__oid=1;
-        IM.childMap[1] = IM.childTree;
+        IM.__childMap[1] = IM.__childTree;
         var id=2;
         for(const x of instances) {
-            IM.accessMap[id] = [];
+            IM.__accessMap[id] = [];
             x.__oid=id++;
         };
 
         var BFS = function(target) {
-            var stack = [IM.childTree];
-            if(IM.childTree.__children!==undefined)
-                IM.childTree.__children.forEach(x => stack.push(x));
+            var stack = [IM.__childTree];
+            if(IM.__childTree.__children!==undefined)
+                IM.__childTree.__children.forEach(x => stack.push(x));
 
             while(stack.length!==0) {
                 var len = stack.length;
@@ -82,7 +85,7 @@ class IM {
                     rebind(r,result.__children);
                 }
                 result.__children.push(r);
-                IM.childMap[IM.__oidFrom(x)] = r;
+                IM.__childMap[IM.__oidFrom(x)] = r;
             } else {
                 throw "Attemping to add non Instance subclass("+String(x)+") to IM";
             }
@@ -96,8 +99,8 @@ class IM {
             }
         }
 
-        recurseLoop(IM.childTree.__children);
-        IM.childTree.__oid=1;
+        recurseLoop(IM.__childTree.__children);
+        IM.__childTree.__oid=1;
     }
 
     static __doSimTick() {
@@ -121,16 +124,19 @@ class IM {
 
     static __deleteFromObjects() {
         IM.__cleanupList = [];
-        for(var i = IM.__objects.length-1;i>=0;i--) {
-            if(!IM.__objects[i].__alive) {
-                IM.__cleanupList.push(IM.__objects[i]);
+        for(const obj of IM.__objects) {
+            if(!obj.__alive) {
+                IM.__cleanupList.push(obj);
+                IM.__alteredLists[obj.oid]=true;
             }
         }
         if(IM.__cleanupList.length!==0) { // don't waste CPU if there's nothing to update...
             IM.__objects=IM.__objects.filter(x=>x.__alive);
             IM.__objectsSorted=IM.__objectsSorted.filter(x=>x.__alive);
-            for(var key in IM.accessMap) {
-                IM.accessMap[key] = IM.accessMap[key].filter(x => x.__alive)
+            for(var i =1;i<=IM.__numRegisteredClasses;i++) { // only filter lists that were changed
+                if(IM.__alteredLists[i])
+                    IM.__accessMap[i] = IM.__accessMap[i].filter(x => x.__alive)
+                IM.__alteredLists[i] = false;
             }
         }
     }
@@ -168,7 +174,7 @@ class IM {
     }
 
     static __findAll(oid) {
-        return IM.accessMap[oid];
+        return IM.__accessMap[oid];
     }
 
     static __findById(id) {
@@ -184,7 +190,7 @@ class IM {
     }
 
     static __children(oid) {
-        var obj = IM.childMap[oid];
+        var obj = IM.__childMap[oid];
         return IM.__childrenDFS([],obj);
     }
 
@@ -211,7 +217,7 @@ class IM {
     static __add(inst) {
         IM.__objects.push(inst);
         IM.__objectsSorted.push(inst);
-        IM.accessMap[inst.oid].push(inst);
+        IM.__accessMap[inst.oid].push(inst);
     }
 
     static __endGame() {
@@ -388,7 +394,7 @@ class IM {
 
     static find(obj, ind) {
         var oid = IM.__oidFrom(obj);
-        return IM.accessMap[oid][ind]
+        return IM.__accessMap[oid][ind]
     }
 
     static with(target, script) {
@@ -399,12 +405,14 @@ class IM {
 
 }
 
-IM.accessMap = {};        // indexes every single instance with oid being the key and an array of all those instances being the value
-IM.childMap = {};         // maps each oid to a tree containting all children oid
-IM.childTree = {
+IM.__accessMap = [];        // indexes every single instance with oid being the key and an array of all those instances being the value
+IM.__alteredLists = [];     // whether or not this specific OID has had instances removed (lets us skip filtering objects which haven't been touched)
+IM.__childMap = {};         // maps each oid to a tree containting all children oid
+IM.__childTree = {
     __oid:EngineInstance,
     __children:undefined
 }
+IM.__numRegisteredClasses = -1;
 IM.__initializeVariables();
 
 /*

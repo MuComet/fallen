@@ -8,35 +8,30 @@ class Camera extends PIXI.Container {
         this.setDimensions(w,h);
         this.setRotation(r);
         this.__background = new PIXI.Graphics();
-        this.setBackgroundColour(0);
         this.__cameraGraphics = new PIXI.Graphics(); // shared graphics, always draws on top of everything.
     }
 
     /**@deprecated */
     getBackground() {
-        return this.__background;
+        console.error("Camera.getBackground -> USE THE ENGINE FUNCTION!")
+        return $engine.getBackground();
     }
     /**@deprecated */
     setBackground(background) { // expects any PIXI renderable. renders first.
-        this.__background = background;
-        if(!(this.__background instanceof PIXI.Graphics)) {
-            this.__usingSolidColourBackground = false;
-        }
+        console.error("Camera.setBackground -> USE THE ENGINE FUNCTION!")
+        $engine.getBackground(background)
     }
     
     /**@deprecated */
     setBackgroundColour(col) {
-        if(!(this.__background instanceof PIXI.Graphics)) {
-            console.error("WARN: setBackgroundColour applied to non Graphics background... Set the background to a Graphics first!");
-            this.setBackgroud(new PIXI.Graphics());
-        }
-        this.__backgroundColour = col;
-        this.__usingSolidColourBackground = true;
+        console.error("Camera.setBackgroundColour -> USE THE ENGINE FUNCTION!")
+        $engine.setBackgroundColour(col)
     }
 
     /**@deprecated */
     getBackgroundColour() {
-        return this.__backgroundColour;
+        console.error("Camera.getBackgroundColour -> USE THE ENGINE FUNCTION!")
+        return $engine.getBackgroundColour();
     }
 
     getCameraGraphics() {

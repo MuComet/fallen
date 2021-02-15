@@ -14,7 +14,7 @@ class MenuIntroController extends EngineInstance {
             letter.y = $engine.getWindowSizeY()+200;
         }
         this.timer = 0;
-        $engine.getCamera().setBackgroundColour(0x65ceeb)
+        $engine.setBackgroundColour(0x65ceeb)
         this.graphics = $engine.createRenderable(this,new PIXI.Graphics(),false)
         this.endTime = 300;
         this.nextCloud = 0;

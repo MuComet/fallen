@@ -21,7 +21,6 @@ class Scene_Engine extends Scene_Base {
     create() {
         super.create();
         $engine = this;
-        $__engineData.__writeBackValue = -1
         this.paused = false;
         this.__renderables = []
         this.__filters = [];
@@ -35,6 +34,14 @@ class Scene_Engine extends Scene_Base {
         this.__timer = 0;
         this.__instanceCreationSpecial = {}; // it doesn't matter what this is so long as it's an object.
         this.__renderableDestroyOptions = {children:true};
+
+        this.__background = undefined;
+        this.__backgroundColour = 0;
+        this.__usingSolidColourBackground = true;
+        this.__backgroundContainer = new PIXI.Container();
+        this.setBackground(new PIXI.Graphics())
+
+        this.addChild(this.__backgroundContainer);
         this.addChild(this.__cameras[0]);
         this.addChild(this.__GUIgraphics)
         IM.__initializeVariables();
@@ -106,6 +113,8 @@ class Scene_Engine extends Scene_Base {
             if($__engineData.__writeBackValue<0)
                 throw new Error("Engine expects a non negative write back value");
             $gameVariables.setValue($__engineData.writeBackIndex,$__engineData.__writeBackValue);
+            $__engineData.writeBackIndex=-1; // reset for next time
+            $__engineData.__writeBackValue=-1; // reset for next time
         }
         SceneManager.pop();
     }
@@ -132,6 +141,7 @@ class Scene_Engine extends Scene_Base {
 
         this.__removeRenderables(); // remove any lingering renderables.
         IM.__doSimTick();
+        this.__updateBackground();
         this.__prepareRenderToCameras();
 
         var time = window.performance.now()-start;
@@ -224,19 +234,38 @@ class Scene_Engine extends Scene_Base {
     }
 
     getBackground() {
-        return this.getCamera().getBackground();
+        return this.__background;
     }
 
     setBackground(background) { // expects any PIXI renderable. renders first.
-        this.getCamera().setBackground(background)
+        this.__usingSolidColourBackground = false;
+        this.__background = background;
+        this.__backgroundContainer.removeChildren();
+        this.__backgroundContainer.addChild(background)
     }
     
     setBackgroundColour(col) {
-        this.getCamera().setBackgroundColour(col);
+        if(!(this.__background instanceof PIXI.Graphics)) {
+            throw new Error("Cannot set background colour of non graphics background. current type = " +  typeof(this.__background));
+            //this.setBackgroud(new PIXI.Graphics());
+        }
+        this.__backgroundColour = col;
+        this.__usingSolidColourBackground = true;
     }
 
     getBackgroundColour() {
-        return this.getCamera().getBackgroundColour();
+        if(!this.__usingSolidColourBackground)
+            throw new Error("Background is not a colour");
+        return this.__backgroundColour;
+    }
+
+    __updateBackground() {
+        if(!this.__usingSolidColourBackground)
+            return;
+        this.__background.clear();
+        this.__background.beginFill(this.__backgroundColour);
+        this.__background.drawRect(-128,-128,this.getWindowSizeX()+128,this.getWindowSizeY()+128)
+        this.__background.endFill()
     }
 
     __prepareRenderToCameras() {
@@ -246,7 +275,6 @@ class Scene_Engine extends Scene_Base {
             var camera = this.__cameras[i];
             camera.removeChildren();
             
-            camera.addChild(camera.getBackground())
             var arr = this.__collectAllRenderables();
             if(arr.length!==0) // prevent null call
                 camera.addChild(...arr)
