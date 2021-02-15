@@ -109,13 +109,6 @@ class Scene_Engine extends Scene_Base {
 
     __endAndReturn() {
         $__engineData.__haltAndReturn=false;
-        if($__engineData.writeBackIndex!==-1) {
-            if($__engineData.__writeBackValue<0)
-                throw new Error("Engine expects a non negative write back value");
-            $gameVariables.setValue($__engineData.writeBackIndex,$__engineData.__writeBackValue);
-            $__engineData.writeBackIndex=-1; // reset for next time
-            $__engineData.__writeBackValue=-1; // reset for next time
-        }
         SceneManager.pop();
     }
 
@@ -131,10 +124,23 @@ class Scene_Engine extends Scene_Base {
             camera.destroy();
     }
 
+    __writeBack() {
+        console.log("write back ",$__engineData.writeBackIndex," ",$__engineData.__writeBackValue)
+        if($__engineData.writeBackIndex!==-1) {
+            if($__engineData.__writeBackValue<0)
+                throw new Error("Engine expects a non negative write back value");
+            $gameVariables.setValue($__engineData.writeBackIndex,$__engineData.__writeBackValue);
+            $__engineData.writeBackIndex=-1; // reset for next time
+            $__engineData.__writeBackValue=-1; // reset for next time
+        }
+    }
+
     terminate() {
         super.terminate()
         this.__cleanup();
+        this.__writeBack();
     }
+
 
     __doSimTick() {
         var start = window.performance.now();
