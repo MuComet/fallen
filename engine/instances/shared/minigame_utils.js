@@ -79,7 +79,9 @@ class EngineButton extends EngineInstance {
         this.usingTint=tint;
     }
 
-    setDefaultTint(tint)
+    setDefaultTint(tint) {
+        
+    }
 
     lock() {
         this.locked = true;
