@@ -250,7 +250,7 @@ class IM {
         var lst = [];
         if(source.hitbox.getType()==Hitbox.TYPE_RECTANGLE) { // fast mode.
             for(var i = 0;i<targets.length;i++) {
-                var r = IM.__queryObjects(targets[i]).filter(obj=>source.hitbox.checkBoundingBox(obj.hitbox,x,y))
+                var r = IM.__queryObjects(targets[i]).filter(obj=>obj !== source && source.hitbox.checkBoundingBox(obj.hitbox,x,y))
                 for(const e of r) {
                     if(e.hitbox.getType()===Hitbox.TYPE_RECTANGLE) {// early break out. both are rectangle so collision is done.
                         return [e];
@@ -260,7 +260,7 @@ class IM {
             }
         } else {
             for(var i = 0;i<targets.length;i++) {
-                var r = IM.__queryObjects(targets[i]).filter(obj=>source.hitbox.checkBoundingBox(obj.hitbox,x,y))
+                var r = IM.__queryObjects(targets[i]).filter(obj=>obj !== source && source.hitbox.checkBoundingBox(obj.hitbox,x,y))
                 for(const e of r)
                     lst.push(e)
             }
@@ -273,7 +273,6 @@ class IM {
         var lst = [];
         for(var i = 0;i<targets.length;i++) {
             var r = IM.__queryObjects(targets[i]).filter(obj=>obj.hitbox.boundingBoxContainsPoint(x,y));
-
             for(const e of r)
                 lst.push(e)
         }
