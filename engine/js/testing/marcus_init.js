@@ -1,3 +1,3 @@
-$__engineData.loadRoom = "DrawingMinigame"
+$__engineData.loadRoom = "UmbrellaRoom"
 IN.debugDisplayKeyPress(true)
 IN.debugDisplayMousePress(true)

@@ -347,7 +347,7 @@ class IM {
         var lst = [];
         for(const inst of PCS) {
             if(inst.hitbox.containsPoint(x,y));
-                return lst.push(inst);
+                lst.push(inst);
         }
         return lst;
     }
@@ -374,7 +374,7 @@ class IM {
         for(const i of targets) {
             var lst = IM.__queryObjects(i);
             for(const inst of lst) {
-                var nDst = inst.hitbox.getPolygon().distanceToPointSq(x,y);
+                var nDst = inst.hitbox.distanceToPointSq(x,y);
                 if(nDst < dst) {
                     dst = nDst;
                     nearest = inst;
@@ -400,10 +400,10 @@ class IM {
         return IM.__accessMap[oid][ind]
     }
 
-    static with(target, script) {
+    static with(target, script, other = undefined) {
         var instances = IM.__queryObjects(target);
         for(const inst of instances)
-            script(inst);
+            script(inst, other);
     }
 
 }

@@ -90,9 +90,9 @@ class Hitbox { // container for actual hitboxes
         this.valid = [false,false];
     }
 
-    distanceToInstSq(inst) {
-        var hb = inst.hitbox.getHitbox();
-        return this.getHitbox().__distanceToHitboxSq(hitbox2);
+    distanceToHitboxSq(hitbox) {
+        var hb = hitbox.getHitbox();
+        return this.getHitbox().__distanceToHitboxSq(hb);
     }
 
     distanceToPointSq(x,y) {

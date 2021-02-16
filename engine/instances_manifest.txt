@@ -1,6 +1,6 @@
 MinigameTimer engine/instances/shared/minigame_assets.js
 InstanceMover engine/instances/shared/minigame_instances.js
-BufferedKeyInput BufferedMouseInput engine/instances/shared/minigame_utils.js
+BufferedKeyInput BufferedMouseInput EngineButton engine/instances/shared/minigame_utils.js
 
 TestInstance engine/instances/test_instance.js
 TestInstance2 engine/instances/test_instance2.js

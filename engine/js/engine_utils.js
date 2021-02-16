@@ -115,15 +115,45 @@ class EngineUtils {
         return V2D.distanceSq(point.x,point.y,p.x,p.y);
     }
 
-    static interpolate(from, to, factor, interpType) {
-        // TODO copy from gamemaker
+    static interpolate(val, min, max, interpType) {
+        var diff = max-min;
+        if(val > 1)
+            val = 1;
+        else if(val <= 0)
+            val = 0.00000001; // prevent divide by zero
+        switch(interpType) {
+            case(EngineUtils.INTERPOLATE_IN):
+                return diff*val*val*val + min;
+            case(EngineUtils.INTERPOLATE_OUT):
+                var t = val-1;
+                return diff*(t*t*t+1) + min
+            case(EngineUtils.INTERPOLATE_SMOOTH):
+                return diff*(3*val*val-2*val*val*val)+min
+            // functions written by Chriustian Figueroa
+            // source: https://gist.github.com/gre/1650294#gistcomment-1892122
+            case(EngineUtils.INTERPOLATE_IN_ELASTIC):
+                return diff*((.04 - .04 / val) * Math.sin(25 * val) + 1)+min
+            case(EngineUtils.INTERPOLATE_OUT_ELASTIC):
+                 return diff*(.04 * val / (--val) * Math.sin(25 * val))+min
+            case(EngineUtils.INTERPOLATE_SMOOTH_ELASTIC):
+                if(val===0.5) // prevent divide by zero
+                    val = 0.50000001;
+                return  diff*((val -= .5) < 0 ?     (.02 + .01 / val) * Math.sin(50 * val) 
+                                                :   (.02 - .01 / val) * Math.sin(50 * val) + 1) + min
+        }
     }
 }
+
+EngineUtils.INTERPOLATE_IN=0;
+EngineUtils.INTERPOLATE_OUT=1;
+EngineUtils.INTERPOLATE_SMOOTH=2;
+EngineUtils.INTERPOLATE_IN_ELASTIC=3;
+EngineUtils.INTERPOLATE_OUT_ELASTIC=4;
+EngineUtils.INTERPOLATE_SMOOTH_ELASTIC=5;
 
 class EngineDebugUtils {
 
     static drawHitbox(graphics, inst) {
-        inst.hitbox.__requireValidPolygon();
         var poly = inst.hitbox.getPolygonHitbox()
         var len = poly.__getNumPoints();
         var p2 = new PIXI.Polygon();

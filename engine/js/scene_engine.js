@@ -5,9 +5,30 @@ var $__engineData = {}
 $__engineData.__textureCache = {};
 $__engineData.__haltAndReturn = false;
 $__engineData.__ready = false;
-$__engineData.__writeBackValue = -1
-$__engineData.writeBackIndex = -1;
+$__engineData.__outcomeWriteBackValue = -1
+$__engineData.outcomeWriteBackIndex = -1;
+$__engineData.__cheatWriteBackValue = -1
+$__engineData.cheatWriteBackIndex = -1;
 $__engineData.loadRoom = "MenuIntro";
+
+const ENGINE_RETURN = {};
+ENGINE_RETURN.LOSS = 0;
+ENGINE_RETURN.WIN = 1;
+ENGINE_RETURN.NO_CHEAT = 0;
+ENGINE_RETURN.CHEAT = 1;
+
+const SET_ENGINE_ROOM = function(room) {
+    $__engineData.loadRoom = room;
+}
+
+const SET_ENGINE_RETURN = function(indexOutcome, indexCheat) {
+    $__engineData.outcomeWriteBackIndex = indexOutcome;
+    $__engineData.cheatWriteBackIndex = indexCheat;
+}
+
+const ENGINE_START = function() {
+    SceneManager.push(Scene_Engine);
+}
 
 //PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST; // set PIXI to render as nearest neighbour
 
@@ -101,8 +122,12 @@ class Scene_Engine extends Scene_Base {
         $__engineData.__haltAndReturn=true;
     }
 
-    setWriteBackValue(value) {
-        $__engineData.__writeBackValue=value;
+    setOutcomeWriteBackValue(value) {
+        $__engineData.__outcomeWriteBackValue=value;
+    }
+
+    setCheatWriteBackValue(value) {
+        $__engineData.__cheatWriteBackValue=value;
     }
 
     __endAndReturn() {
@@ -119,12 +144,19 @@ class Scene_Engine extends Scene_Base {
     }
 
     __writeBack() {
-        if($__engineData.writeBackIndex!==-1) {
-            if($__engineData.__writeBackValue<0)
+        if($__engineData.outcomeWriteBackIndex!==-1) {
+            if($__engineData.__outcomeWriteBackValue<0)
                 throw new Error("Engine expects a non negative write back value");
-            $gameVariables.setValue($__engineData.writeBackIndex,$__engineData.__writeBackValue);
-            $__engineData.writeBackIndex=-1; // reset for next time
-            $__engineData.__writeBackValue=-1; // reset for next time
+            $gameVariables.setValue($__engineData.outcomeWriteBackIndex,$__engineData.__outcomeWriteBackValue);
+            $__engineData.outcomeWriteBackIndex=-1; // reset for next time
+            $__engineData.__outcomeWriteBackValue=-1;
+        }
+        if($__engineData.cheatWriteBackIndex!==-1) {
+            if($__engineData.cheatWriteBackIndex<0)
+                throw new Error("Engine expects a non negative write back value");
+            $gameVariables.setValue($__engineData.cheatWriteBackIndex,$__engineData.__cheatWriteBackValue);
+            $__engineData.cheatWriteBackIndex=-1;
+            $__engineData.__cheatWriteBackValue=-1;
         }
     }
 

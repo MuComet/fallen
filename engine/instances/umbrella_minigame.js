@@ -47,7 +47,7 @@ class Man extends InstanceMover {
 
         this.move(accel,this.vel);
 
-        $engine.getCamera().setBackgroundColour((Math.sin($engine.getGlobalTimer()/128)+1)*128);
+        $engine.setBackgroundColour((Math.sin($engine.getGlobalTimer()/128)+1)*128);
 
         if(IN.keyCheck('Escape')) {
             RoomManager.changeRooms("Umbrella2")
@@ -114,10 +114,6 @@ class Umbrella extends EngineInstance {
         this.onEngineCreate();
     }
 
-    interp(val,min,max) {
-        return (max-min)*(3*val*val-2*val*val*val)+min;
-    }
-
     step() {
         this.angle=Math.PI/4
         if(IN.keyCheck('ArrowUp')) {
@@ -139,8 +135,8 @@ class Umbrella extends EngineInstance {
             this.sy = this.y;
         }
         if(this.timer<=this.time) {
-            this.x = this.interp(this.timer/this.time,this.sx,this.rx)
-            this.y = this.interp(this.timer/this.time,this.sy,this.ry)
+            this.x = EngineUtils.interpolate(this.timer/this.time,this.sx,this.rx,EngineUtils.INTERPOLATE_SMOOTH_ELASTIC)
+            this.y = EngineUtils.interpolate(this.timer/this.time,this.sy,this.ry,EngineUtils.INTERPOLATE_SMOOTH_ELASTIC)
         }
     }
 
