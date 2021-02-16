@@ -2,13 +2,18 @@ class BufferedKeyInput extends EngineInstance {
     onEngineCreate() {}
 
     onCreate(keyToBuffer, bufferLength) {
-        this.timer=bufferLength+1;
+        this.timer=bufferLength + 1;
         this.bufferLength = bufferLength;
-        this.keyToBuffer=keyToBuffer;
+        this.keyToBuffer = keyToBuffer;
+        this.shouldConsume = false;
     }
 
     step() {
         this.timer++;
+        if(this.shouldConsume) {
+            this.timer = this.bufferLength+1;
+            this.shouldConsume=false;
+        }
         if(IN.keyCheckPressed(this.keyToBuffer)) {
             this.timer = 0;
         }
@@ -20,7 +25,14 @@ class BufferedKeyInput extends EngineInstance {
 
     consume() {
         var value = this.timer<=this.bufferLength
+        this.shouldConsume = true;
+        return value;
+    }
+
+    consumeImmedaitely() {
+        var value = this.timer<=this.bufferLength
         this.timer = this.bufferLength+1;
+        this.shouldConsume=false;
         return value;
     }
 

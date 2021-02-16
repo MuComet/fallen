@@ -13,6 +13,7 @@ class MinigameTimer extends EngineInstance {
 
         this.timerDone = false;
         this.isPaused = false;
+        this.visible=true;
 
         this.onTimerUp = [];
 
@@ -75,6 +76,10 @@ class MinigameTimer extends EngineInstance {
         return this.timer;
     }
 
+    setTimeRemaining(frames) {
+        this.timer = frames;
+    }
+
     setGameComplete() {
         for(const f of this.onTimerUp)
             f.func(f.parent,false);
@@ -94,6 +99,14 @@ class MinigameTimer extends EngineInstance {
         this.isPaused=false;
     }
 
+    hide() {
+        this.visible = false;
+    }
+
+    unhide() {
+        this.visible=true;
+    }
+
     setLocation(x,y) {
         this.timerText.x = x;
         this.timerText.y = y;
@@ -104,7 +117,8 @@ class MinigameTimer extends EngineInstance {
     }
 
     draw(gui, camera) {
-        $engine.requestRenderOnGUI(this.timerText);
+        if(this.visible)
+            $engine.requestRenderOnGUI(this.timerText);
     }
 
     onDestroy() {

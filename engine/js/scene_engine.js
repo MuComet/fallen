@@ -146,14 +146,14 @@ class Scene_Engine extends Scene_Base {
     __writeBack() {
         if($__engineData.outcomeWriteBackIndex!==-1) {
             if($__engineData.__outcomeWriteBackValue<0)
-                throw new Error("Engine expects a non negative write back value");
+                throw new Error("Engine expects a non negative outcome write back value");
             $gameVariables.setValue($__engineData.outcomeWriteBackIndex,$__engineData.__outcomeWriteBackValue);
             $__engineData.outcomeWriteBackIndex=-1; // reset for next time
             $__engineData.__outcomeWriteBackValue=-1;
         }
         if($__engineData.cheatWriteBackIndex!==-1) {
             if($__engineData.cheatWriteBackIndex<0)
-                throw new Error("Engine expects a non negative write back value");
+                throw new Error("Engine expects a non negative cheat write back value");
             $gameVariables.setValue($__engineData.cheatWriteBackIndex,$__engineData.__cheatWriteBackValue);
             $__engineData.cheatWriteBackIndex=-1;
             $__engineData.__cheatWriteBackValue=-1;

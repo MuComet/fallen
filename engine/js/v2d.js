@@ -60,14 +60,12 @@ class V2D extends EnginePoint {
 		setVectorFromAngle((this.angle+angleDifference*2)%360,magnitude);
     }
 
-    static lengthDirX(angle, distance)
-	{
-		return Math.cos(Math.toRadians(angle))*distance;
+    static lengthDirX(angle, distance) {
+		return Math.cos(angle)*distance;
 	}
 	
-    static lengthDirY(angle, distance)
-	{
-		return -Math.sin(Math.toRadians(angle))*distance;
+    static lengthDirY(angle, distance) {
+		return -Math.sin(angle)*distance;
     }
     
     static distance(x1,y1,x2,y2) {

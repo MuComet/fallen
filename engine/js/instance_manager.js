@@ -394,7 +394,13 @@ class IM {
         return false;
     }
 
-    static find(obj, ind) {
+    /**
+     * 
+     * @param {EngineInstance} obj  the class to query
+     * @param {Number} ind optional - the nth instance to find.
+     * @returns {EngineInstance} The requested instance, or undefined if unvailable.
+     */
+    static find(obj, ind=0) {
         var oid = IM.__oidFrom(obj);
         return IM.__accessMap[oid][ind]
     }

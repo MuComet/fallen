@@ -9,8 +9,8 @@ drawing_minigame_3 engine/textures/drawing3.png 0.5 0.5
 falling_rock_1 engine/textures/rock_falling.png 0.5 0.5
 falling_rock_rocky_1 engine/textures/rock_falling_man.png 0.5 1
 
-falling_tower_1 engine/textures/tower_1.png 0.5 0.5
-sky_platform engine/textures/sky_platform.png 0.5 0.5
+falling_tower_1 engine/textures/tower_1.png 0.5 0
+sky_platform engine/textures/sky_platform.png 0.5 0
 
 intro_1 engine/textures/intro/intro_1.png 0.5 0.5
 intro_2 engine/textures/intro/intro_2.png 0.5 0.5
