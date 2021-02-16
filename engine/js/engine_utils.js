@@ -1,3 +1,6 @@
+/**
+ * Various utility methods.
+ */
 class EngineUtils {
 
     constructor() {
@@ -54,31 +57,74 @@ class EngineUtils {
         return str.split(/(\s+)/).filter( e => e.trim().length > 0)
     }
 
+    /**
+     * Utility to round a number to an arbitrary multiple
+     * @param {Number} input The input number
+     * @param {Number} multiple The multiple to round to
+     * @returns {Number} rounded value
+     */
     static roundMultiple(input, multiple) {
         return Math.round(input/multiple)*multiple;
     }
 
+    /**
+     * Utility to ensure a number stays between a max and min value. If the input is undefined the output is also undefined.
+     * @param {Number} input The input value
+     * @param {Number} minVal The lowest allowed value
+     * @param {Number} maxVal The highest allowed value
+     * @returns {Number} the clamped value
+     */
     static clamp(input, minVal,maxVal) {
         return Math.max(Math.min(input,maxVal),minVal);
     }
 
+    /**
+     * Generates a random number between low and high
+     * @param {Number} low The lowest allowed number, inclusive
+     * @param {Number} high The highest allowed number, exclusive
+     * @returns {Number} the random number
+     */
     static randomRange(low, high) {
         return Math.random()*(high-low)+low;
     }
 
+    /**
+     * Generates a random integer between low and high inclusive.
+     * @param {Number} low The lowest allowed number, inclusive
+     * @param {Number} high The highest allowed number, includive
+     * @returns {Number} the random number
+     */
     static irandomRange(low, high) {
         return Math.round(this.randomRange(low,high));
     }
 
+    /**
+     * Generates a random number between 0 and high
+     * @param {Number} high The highest allowed number, exclusive
+     * @returns {Number} the random number
+     */
     static random(high) {
         return Math.random()*high;
     }
 
+    /**
+     * Generates a random integer between 0 and high
+     * @param {Number} high The highest allowed number, inclusive
+     * @returns {Number} the random number
+     */
     static irandom(high) {
         return Math.round(Math.random()*high);
     }
-
-    static collisionLinePoint(v1,v2,v3,v4) { // point in which they collide
+ 
+    /**
+     * Calculates the intersection between two lines.
+     * @param {EnginePoint} v1 The first vertex of the first line
+     * @param {EnginePoint} v2 The second vertex of the first line
+     * @param {EnginePoint} v3 The first vertex of the second line
+     * @param {EnginePoint} v4 The second vertex of the second line
+     * @returns {EnginePoint} The point in which they collide, or undefined if they don't
+     */
+    static linesCollisionPoint(v1,v2,v3,v4) { // point in which they collide
         var d= (v2.x-v1.x) * (v4.y-v3.y) - (v2.y-v1.y) * (v4.x-v3.x);
 		var n1=(v1.y-v3.y) * (v4.x-v3.x) - (v1.x-v3.x) * (v4.y-v3.y);
 		var n2=(v1.y-v3.y) * (v2.x-v1.x) - (v1.x-v3.x) * (v2.y-v1.y);
@@ -89,13 +135,27 @@ class EngineUtils {
 		var s=n2/d;
 		if((r>=0 && r<=1) &&(s>=0 && s<=1))
 			return new EnginePoint(v1.x+(v2.x-v1.x)*r,v3.y+(v4.y-v3.y)*s);
-		return null;
+		return undefined;
     }
 
-    static collisionLine(v1,v2,v3,v4) {
-        return EngineUtils.collisionLinePoint(v1,v2,v3,v4)!==null;
+    /**
+     * Calculates if two lines intersect
+     * @param {EnginePoint} v1 The first vertex of the first line
+     * @param {EnginePoint} v2 The second vertex of the first line
+     * @param {EnginePoint} v3 The first vertex of the second line
+     * @param {EnginePoint} v4 The second vertex of the second line
+     * @returns {Boolean} Whether or not the two lines collide
+     */
+    static linesCollide(v1,v2,v3,v4) {
+        return EngineUtils.linesCollisionPoint(v1,v2,v3,v4)!==undefined;
     }
 
+    /**
+     * Returns the non null nearest position on a line to point.
+     * @param {EnginePoint} point The point to check
+     * @param {EnginePoint} l1 The first vertex of the line
+     * @param {EnginePoint} l2 The second vertex of the line
+     */
     static nearestPositionOnLine(point, l1, l2)
 	{
 		var length = V2D.distanceSq(l1.x,l1.y,l2.x,l2.y);
@@ -106,15 +166,42 @@ class EngineUtils {
 		return new Vertex(l1.x+t*(l2.x-l1.x), l1.y+t*(l2.y-l1.y));
     }
 
+    /**
+     * Calculates the distance between two line segments
+     * @param {EnginePoint} l1 The first vertex of the first line
+     * @param {EnginePoint} l2 The second vertex of the first line
+     * @param {EnginePoint} l3 The first vertex of the second line
+     * @param {EnginePoint} l4 The second vertex of the second line
+     * @returns {Number} The distance between two lines
+     */
     static distanceBetweenLines(l1,l2,l3,l4) {
+        if(EngineUtils.linesCollide(l1,l2,l3,l4))
+            return 0;
         return Math.sqrt(Math.min(EngineUtils.distanceToLineSq(l1,l3,l4),EngineUtils.distanceToLineSq(l2,l3,l4)));
     }
     
+    /**
+     * Finds the distance from a specified point to the line
+     * @param {EnginePoint} point The point to check
+     * @param {EnginePoint} l1 The first vertex of the line
+     * @param {EnginePoint} l2 The second vertex of the line
+     * @returns {Number} The squared distance from the point to the line
+     */
     static distanceToLineSq(point,l1,l2) {
         var p = EngineUtils.nearestPositionOnLine(point, l1,l2);
         return V2D.distanceSq(point.x,point.y,p.x,p.y);
     }
 
+    /**
+     * Interpolates between min and max given a certain interpolation fuction and an input value.
+     * example usage: interpolate(0.5,0,100,EngineUtils.INTERPOLATE_LINEAR) -> returns 50
+     * interpolate(0.25,0,500,EngineUtils.INTERPOLATE_SMOOTH) -> returns 78.125
+     * interpolate(0,0,500,EngineUtils.INTERPOLATE_SMOOTH) -> returns 0
+     * @param {Number} val A normalized value represeting the value position along the interpolation curve to sample.
+     * @param {Number} min The begin value to interpolate to
+     * @param {Number} max The end value to interpolate to
+     * @param {Number} interpType an EngineUtils.INTERPOLATE_<type>
+     */
     static interpolate(val, min, max, interpType) {
         var diff = max-min;
         if(val > 1)
@@ -122,6 +209,8 @@ class EngineUtils {
         else if(val <= 0)
             val = 0.00000001; // prevent divide by zero
         switch(interpType) {
+            case(EngineUtils.INTERPOLATE_LINEAR):
+                return diff*val + min;
             case(EngineUtils.INTERPOLATE_IN):
                 return diff*val*val*val + min;
             case(EngineUtils.INTERPOLATE_OUT):
@@ -144,15 +233,21 @@ class EngineUtils {
     }
 }
 
-EngineUtils.INTERPOLATE_IN=0;
-EngineUtils.INTERPOLATE_OUT=1;
-EngineUtils.INTERPOLATE_SMOOTH=2;
-EngineUtils.INTERPOLATE_IN_ELASTIC=3;
-EngineUtils.INTERPOLATE_OUT_ELASTIC=4;
-EngineUtils.INTERPOLATE_SMOOTH_ELASTIC=5;
+EngineUtils.INTERPOLATE_LINEAR = 0;
+EngineUtils.INTERPOLATE_IN=1;
+EngineUtils.INTERPOLATE_OUT=2;
+EngineUtils.INTERPOLATE_SMOOTH=3;
+EngineUtils.INTERPOLATE_IN_ELASTIC=4;
+EngineUtils.INTERPOLATE_OUT_ELASTIC=5;
+EngineUtils.INTERPOLATE_SMOOTH_ELASTIC=6;
 
 class EngineDebugUtils {
 
+    /**
+     * Draws the hitbox of the specified EngineInstance
+     * @param {PIXI.graphics} graphics The grapics instance to use
+     * @param {EngineInstance} inst The engine instance to draw the hitbox of
+     */
     static drawHitbox(graphics, inst) {
         var poly = inst.hitbox.getPolygonHitbox()
         var len = poly.__getNumPoints();
@@ -170,6 +265,11 @@ class EngineDebugUtils {
         graphics.endFill();
     }
 
+    /**
+     * Draws the bounding box of the specified EngineInstance
+     * @param {PIXI.graphics} graphics The grapics instance to use
+     * @param {EngineInstance} inst The engine instance to draw the bounding box of
+     */
     static drawBoundingBox(graphics, inst) {
         var bb = inst.hitbox.getBoundingBox();
         graphics.lineStyle(1,0xe74c3c).moveTo(bb.x1,bb.y1).lineTo(bb.x2,bb.y1).lineTo(bb.x2,bb.y2).lineTo(bb.x1,bb.y2).lineTo(bb.x1,bb.y1);

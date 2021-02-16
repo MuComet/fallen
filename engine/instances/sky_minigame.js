@@ -1,7 +1,16 @@
 class SkyMinigameController extends EngineInstance { // All classes that can be added to the engine MUST extend EngineInstance
 
     onEngineCreate() { // called when the instance is made from a room.
- 
+        SkyMinigameController.score = 0;
+        SkyMinigameController.nextBlock = 0;
+        SkyMinigameController.timer = 0;
+        SkyMinigameController.endTime = 20;
+        SkyMinigameController.pCamY = 0;
+        SkyMinigameController.nCamY = 0;
+        SkyMinigameController.iBuffer = undefined
+        SkyMinigameController.mingameTimer = undefined
+        SkyMinigameController.maxScore = 10
+
         new SkyBuildPlayer($engine.getWindowSizeX()/2,0,0);
         new FallingTowerPlatform($engine.getWindowSizeX()/2,$engine.getWindowSizeY()-50);
         this.timer = 0;
@@ -19,7 +28,10 @@ class SkyMinigameController extends EngineInstance { // All classes that can be 
 
         SkyMinigameController.mingameTimer = new MinigameTimer(60*5);
         SkyMinigameController.mingameTimer.addOnTimerStopped(this, function(parent, bool) {
-            $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
+            if(bool)
+                $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
+            else
+                $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN);
             $engine.startFadeOut(30,false)
             SceneManager.pop();
         })
@@ -42,15 +54,6 @@ class SkyMinigameController extends EngineInstance { // All classes that can be 
         SkyMinigameController.iBuffer.destroy();
     }
 }
-
-SkyMinigameController.score = 0;
-SkyMinigameController.nextBlock = 0;
-SkyMinigameController.timer = 0;
-SkyMinigameController.endTime = 20;
-SkyMinigameController.pCamY = 0;
-SkyMinigameController.nCamY = 0;
-SkyMinigameController.iBuffer = undefined
-SkyMinigameController.mingameTimer = undefined
 
 class SkyBuildPlayer extends EngineInstance {
 
@@ -111,12 +114,9 @@ class SkyBuildPlayer extends EngineInstance {
                         SkyMinigameController.nCamY = -100 * (SkyMinigameController.score-3)-100;
                         SkyMinigameController.timer=0;
                     }
-                    if(SkyMinigameController.score>=32) {
+                    if(SkyMinigameController.score>=SkyMinigameController.maxScore) {
                         // RPG MAKER
                         SkyMinigameController.mingameTimer.setGameComplete();
-                        $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN);
-                        $engine.startFadeOut(30,false)
-                        SceneManager.pop();
                     }
 
                     /*var bb1 = tower.hitbox.getBoundingBox();

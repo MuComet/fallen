@@ -10,6 +10,9 @@ class DrawableLine extends EngineInstance {
         this.distanceText.x = $engine.getWindowSizeX()/2;
         this.distanceText.y = 80;
         this.show = true;
+
+        $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
+        $engine.setCheatWriteBackValue(ENGINE_RETURN.NO_CHEAT);
     }
 
     onCreate() {
@@ -94,7 +97,19 @@ class DrawController extends EngineInstance { // controls the minigame
             while(!parent.done) {
                 parent.nextDrawing();
             }
+            parent.calcWin();
         })
+    }
+
+    calcWin() {
+        var ts = 0;
+        for(var i = 0;i<3;i++) {
+            ts+=this.drawings[i].score;
+        }
+        ts/=3;
+        if(ts>0.75) {
+            $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN);
+        }
     }
 
     onCreate() {

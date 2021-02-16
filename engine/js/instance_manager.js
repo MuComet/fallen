@@ -1,3 +1,9 @@
+/**
+ * Collision checking and general interactions with other instances.
+ * All collision functions take in one of 4 possible values for ...targets:
+ * (EngineInstance, instance of EngineInstance, instance.id, instance.oid).
+ * It is recommended to only use the first two options.
+ */
 class IM {
     constructor() {
         throw "Cannot instantiate static class.";
@@ -178,7 +184,7 @@ class IM {
     }
 
     static __findById(id) {
-        for(const inst of objects) {
+        for(const inst of __objects) {
             if(inst.id===id)
                 return inst;
         }
@@ -304,13 +310,26 @@ class IM {
         return false;
     }
 
-    static destroy(...targets) { // marks instances for deletion at the end of the frame
+    /**
+     * Queries all targets instanes and then marks them for deletion.
+     * @param  {...EngineInstance} targets N instances of EngineInstance or classes
+     */
+    static destroy(...targets) {
         for(const input of targets)
             for(const inst of IM.__queryObjects(input))
                 inst.__alive = false;
                 
     }
 
+    /**
+     * Performs a collision with source against the specified targets.
+     * When you call this function, you are asking the engine to move source to x,y and then check if it's colliding with any objects, then move it back
+     * @param {EngineInstance} source The source instance to collide with
+     * @param {Number} x The x position to collide at
+     * @param {Number} y the y position to collide at
+     * @param  {...EngineInstance} targets N instances of EngineInstance or classes
+     * @returns {Boolean} True if there is a collision, false otherwise
+     */
     static instanceCollision(source,x,y, ...targets) {
         var PCS = IM.__generatePCS(source,x,y,targets);
         
@@ -321,6 +340,35 @@ class IM {
         return false;
     }
 
+    /**
+     * Performs a collision with source against the specified targets.
+     * When you call this function, you are asking the engine to move source to x,y and then check if it's colliding with any objects, then move it back
+     * @param {EngineInstance} source The source instance to collide with
+     * @param {Number} x The x position to collide at
+     * @param {Number} y the y position to collide at
+     * @param  {...EngineInstance} targets N instances of EngineInstance or classes
+     * @returns {EngineInstance} The first EngineInstance that is collided with, or undefined if there are none.
+     */
+    static instancePlace(source,x,y, ...targets) {
+        var PCS = IM.__generatePCS(source,x,y,targets);
+        
+        for(const inst of PCS) {
+            if(source.hitbox.doCollision(inst.hitbox,x,y))
+                return inst;
+        }
+        return undefined;
+    }
+
+    /**
+     * Performs a collision with source against the specified targets and returns a list of all instances which are colliding with source.
+     * This function is slow because the engine is forced to check all instances. consider other options if you don't need a list.
+     * When you call this function, you are asking the engine to move source to x, y, then check if it's colliding with any objects, then move it back
+     * @param {EngineInstance} source The source instance to collide with
+     * @param {Number} x The x position to collide at
+     * @param {Number} y the y position to collide at
+     * @param  {...EngineInstance} targets N instances of EngineInstance or classes
+     * @returns {EngineInstance} A non null list of all instances that collide with source
+     */
     static instanceCollisionList(source,x,y,...targets) {
         var PCS = IM.__generatePCS(source,x,y,targets);
 
@@ -332,6 +380,30 @@ class IM {
         return lst;
     }
 
+    /**
+     * Performs a collision at the specified location using exact hitboxes and finds the first instance of targets which contains that point.
+     * @param {Number} x The x position to collide at
+     * @param {Number} y the y position to collide at
+     * @param  {...EngineInstance} targets N instances of EngineInstance or classes
+     * @returns {Boolean} The first EngineInstance that is collided with, or undefined if there are none.
+     */
+    static instancePosition(x,y, ...targets) {
+        var PCS = IM.__generatePCSFromPoint(x,y,...targets);
+        for(const inst of PCS) {
+            if(inst.hitbox.containsPoint(x,y));
+                return inst;
+        }
+        return undefined;
+    }
+
+    /**
+     * Performs a collision at the specified location using exact hitboxes and determines if any instance of targets contains that point
+     * When you call this function, you are asking the engine to move source to x, y, then check if it's colliding with any objects, then move it back
+     * @param {Number} x The x position to collide at
+     * @param {Number} y the y position to collide at
+     * @param  {...EngineInstance} targets N instances of EngineInstance or classes
+     * @returns {Boolean} True if any instance collides with the point, false otherwise
+     */
     static instanceCollisionPoint(x,y, ...targets) {
         var PCS = IM.__generatePCSFromPoint(x,y,...targets);
         for(const inst of PCS) {
@@ -340,7 +412,14 @@ class IM {
         }
         return false;
     }
-
+    /**
+     * Performs a collision at the specified location using exact hitboxes and returns a list of all instances which are contain x, y.
+     * This function is slow because the engine is forced to check all instances. consider other options if you don't need a list.
+     * @param {Number} x The x position to collide at
+     * @param {Number} y the y position to collide at
+     * @param  {...EngineInstance} targets N instances of EngineInstance or classes
+     * @returns {...EngineInstance} A non null list of all instances that collide with source
+     */
     static instanceCollisionPointList(x,y, ...targets) {
         var PCS = IM.__generatePCSFromPoint(x,y,...targets);
         var lst = [];
@@ -351,8 +430,23 @@ class IM {
         return lst;
     }
 
-    static instanceNearest(source, ...targets) {
-        var nearest=null;
+    /**
+     * Queries targets and finds the nearest instance to source. The distance determined is exact and uses hitboxes to find the nearest position on two instances.
+     * As a result, this function is slow. If you don't need exact distance, use instanceNearestPoint.
+     * When you call this function, you are asking the engine to move source to x, y, then find the nearest instance, then move it back
+     * @param {EngineInstance} source The source instance to collide with
+     * @param {Number} x The x position to collide at
+     * @param {Number} y the y position to collide at
+     * @param  {...EngineInstance} targets N instances of EngineInstance or classes
+     * @returns {EngineInstance} The nearest instance of targets, or undefined if no targets exist.
+     */
+    static instanceNearest(source,x,y, ...targets) {
+        var ox = source.x
+        var oy = source.y;
+        source.x = x;
+        source.y = y;
+
+        var nearest=undefined;
         var dst = 99999999;
         for(const i of targets) {
             var lst = IM.__queryObjects(i);
@@ -361,12 +455,28 @@ class IM {
                 if(nDst < dst) {
                     dst = nDst;
                     nearest = inst;
+                    if(nDst===0) {
+                        source.x = ox;
+                        source.y = oy;
+                        return nearest;
+                    }
                 }
             }
         }
+        source.x = ox;
+        source.y = oy;
         return nearest;
     }
 
+    /**
+     * Queries targets and finds the nearest instance the point x,y.
+     * Distance is calculated using exact distance to hitboxes.
+     * @param {EngineInstance} source The source instance to collide with
+     * @param {Number} x The x position to collide at
+     * @param {Number} y the y position to collide at
+     * @param  {...EngineInstance} targets N instances of EngineInstance or classes
+     * @returns {EngineInstance} The nearest instance of targets, or undefined if no targets exist.
+     */
     static instanceNearestPoint(x,y,...targets) {
         var nearest=null;
         var dst = 99999999;
@@ -377,12 +487,23 @@ class IM {
                 if(nDst < dst) {
                     dst = nDst;
                     nearest = inst;
+                    if(nDst===0)
+                        return nearest;
                 }
             }
         }
         return nearest;
     }
 
+    /**
+     * Performs a collision along the line defined by x1,y1,x2,y2. If the line intersects any instance of targets, then the function returns true.
+     * @param {Number} x1 The x coord of the first point
+     * @param {Number} y1 the y coord of the first point
+     * @param {Number} x2 the x coord of the second point
+     * @param {Number} y2 the y coord of the second point
+     * @param  {...EngineInstance} targets N instances of EngineInstance or classes
+     * @returns {Boolean} True if any instance collides with the line, false otherwise
+     */
     static instanceCollisionLine(x1,y1,x2,y2,...targets) {
         for(const i of targets) {
             var lst = IM.__queryObjects(i);
@@ -395,9 +516,10 @@ class IM {
     }
 
     /**
-     * 
+     * Queries the InstanceManager's internal list of objects and returns the nth instance of type obj.
+     * This is a constant time operation.
      * @param {EngineInstance} obj  the class to query
-     * @param {Number} ind optional - the nth instance to find.
+     * @param {Number} [ind=0] the nth instance to find.
      * @returns {EngineInstance} The requested instance, or undefined if unvailable.
      */
     static find(obj, ind=0) {
@@ -405,6 +527,12 @@ class IM {
         return IM.__accessMap[oid][ind]
     }
 
+    /**
+     * Runs the specified function as func(target,other) on all instances that match target.
+     * @param {EngineInstance, instance} target The target instance, or class.
+     * @param {Fucntion} script The script to execute
+     * @param {EngineInstance} [other] the calling instance (this)
+     */
     static with(target, script, other = undefined) {
         var instances = IM.__queryObjects(target);
         for(const inst of instances)
