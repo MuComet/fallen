@@ -4,3 +4,4 @@ testRoom engine/rooms/testroom.txt
 DrawingMinigame engine/rooms/draw.txt
 MenuIntro engine/rooms/menu_intro.txt
 RockRoom engine/rooms/rock.txt
+SkyRoom engine/rooms/sky.txt

@@ -1,3 +1,3 @@
-$__engineData.loadRoom = "RockRoom";
+$__engineData.loadRoom = "SkyRoom"
 IN.debugDisplayKeyPress(true)
 IN.debugDisplayMousePress(true)
