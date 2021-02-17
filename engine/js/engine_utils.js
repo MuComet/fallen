@@ -195,12 +195,12 @@ class EngineUtils {
     /**
      * Interpolates between min and max given a certain interpolation fuction and an input value.
      * example usage: interpolate(0.5,0,100,EngineUtils.INTERPOLATE_LINEAR) -> returns 50
-     * interpolate(0.25,0,500,EngineUtils.INTERPOLATE_SMOOTH) -> returns 78.125
-     * interpolate(0,0,500,EngineUtils.INTERPOLATE_SMOOTH) -> returns 0
+     * interpolate(0.25, 0, 500, EngineUtils.INTERPOLATE_SMOOTH) -> returns 78.125
+     * interpolate(0, 0, 500, EngineUtils.INTERPOLATE_SMOOTH) -> returns 0
      * @param {Number} val A normalized value represeting the value position along the interpolation curve to sample.
      * @param {Number} min The begin value to interpolate to
      * @param {Number} max The end value to interpolate to
-     * @param {Number} interpType an EngineUtils.INTERPOLATE_<type>
+     * @param {Number} interpType an EngineUtils.INTERPOLATE
      */
     static interpolate(val, min, max, interpType) {
         var diff = max-min;

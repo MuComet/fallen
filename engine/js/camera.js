@@ -7,6 +7,8 @@ class Camera extends PIXI.Container {
         this.setLocation(x,y);
         this.setDimensions(w,h);
         this.setRotation(r);
+        this.filters = [];
+        this.__filters = [];
         this.__cameraGraphics = new PIXI.Graphics(); // shared graphics, always draws on top of everything.
     }
 
@@ -31,6 +33,35 @@ class Camera extends PIXI.Container {
     getBackgroundColour() {
         console.error("Camera.getBackgroundColour -> USE THE ENGINE FUNCTION!")
         return $engine.getBackgroundColour();
+    }
+
+    addFilter(screenFilter, removeOnRoomChange = true, name = "ENGINE_DEFAULT_FILTER_NAME") {
+        this.__filters.push({filter:screenFilter,remove:removeOnRoomChange,filterName: name});
+        var filters = this.filters // PIXI requires reassignment
+        filters.push(screenFilter);
+        this.filters = filters;
+    }
+
+    removeFilter(filter) {
+        var index = -1;
+        for(var i = 0;i<this.__filters.length;i++) {
+            if(filter===this.__filters[i].filter || filter === this.__filters[i].filterName) {
+                index = i;
+                break;
+            }
+        }
+        if(index===-1) {
+            console.error("Cannot find filter "+filter);
+            return;
+        }
+        var filterObj = this.__filters[i]
+
+        var filters = this.filters; // PIXI requirments.
+        filters.splice(this.filters.indexOf(filterObj.filter),1);
+        this.filters = filters;
+
+        this.__filters.splice(index,1);
+        
     }
 
     getCameraGraphics() {

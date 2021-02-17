@@ -51,22 +51,22 @@ class DrawableLine extends EngineInstance {
         if(!this.show) 
             return;
         var graphics = this.drawGraphics;
-        graphics.lineStyle(3+Math.abs(Math.sin($engine.getGlobalTimer()/60)*7),0xffffff).moveTo(this.points[0].x,this.points[0].y);
+        graphics.lineStyle(3+Math.abs(Math.sin($engine.getGameTimer()/60)*7),0xffffff).moveTo(this.points[0].x,this.points[0].y);
         for(var i =1;i<this.points.length;i++) {
             graphics.lineTo(this.points[i].x,this.points[i].y)
         }
 
-        graphics.lineStyle(Math.abs(Math.sin($engine.getGlobalTimer()/60)*2),0xaaaaaa).moveTo(this.points[0].x,this.points[0].y);
+        graphics.lineStyle(Math.abs(Math.sin($engine.getGameTimer()/60)*2),0xaaaaaa).moveTo(this.points[0].x,this.points[0].y);
         for(var i =1;i<this.points.length;i++) {
             graphics.lineTo(this.points[i].x,this.points[i].y)
         }
 
         graphics.lineStyle(0,0xffffff)
         graphics.beginFill(0xffffff);
-        graphics.drawCircle(this.points[0].x,this.points[0].y,(3+Math.abs(Math.sin($engine.getGlobalTimer()/60)*7))/2)
-        graphics.drawCircle(this.points[this.points.length-1].x,this.points[this.points.length-1].y,(3+Math.abs(Math.sin($engine.getGlobalTimer()/60)*7))/2)
-        graphics.drawCircle(this.points[0].x,this.points[0].y,Math.abs(Math.sin($engine.getGlobalTimer()/60)))
-        graphics.drawCircle(this.points[this.points.length-1].x,this.points[this.points.length-1].y,Math.abs(Math.sin($engine.getGlobalTimer()/60)))
+        graphics.drawCircle(this.points[0].x,this.points[0].y,(3+Math.abs(Math.sin($engine.getGameTimer()/60)*7))/2)
+        graphics.drawCircle(this.points[this.points.length-1].x,this.points[this.points.length-1].y,(3+Math.abs(Math.sin($engine.getGameTimer()/60)*7))/2)
+        graphics.drawCircle(this.points[0].x,this.points[0].y,Math.abs(Math.sin($engine.getGameTimer()/60)))
+        graphics.drawCircle(this.points[this.points.length-1].x,this.points[this.points.length-1].y,Math.abs(Math.sin($engine.getGameTimer()/60)))
         graphics.endFill();
     }
 }

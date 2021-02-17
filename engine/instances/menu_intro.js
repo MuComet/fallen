@@ -189,8 +189,8 @@ class Letter extends EngineInstance {
         var diffY = (this.oy - (IN.getMouseY()-this.y)/8)
         this.ox -= diffX/60;
         this.oy -= diffY/60;
-        this.destX = this.xStart + this.random2 * Math.cos(($engine.getGlobalTimer()+this.x+this.random1)/64) + this.ox;
-        this.destY = this.yStart + 10 * Math.sin(($engine.getGlobalTimer()+this.x)/64) + this.oy;
+        this.destX = this.xStart + this.random2 * Math.cos(($engine.getGameTimer()+this.x+this.random1)/64) + this.ox;
+        this.destY = this.yStart + 10 * Math.sin(($engine.getGameTimer()+this.x)/64) + this.oy;
     }
 
     floatRandom() {
@@ -237,7 +237,7 @@ class Cloud extends EngineInstance {
         this.getSprite().tint = 0xffffff
         if(this.y<=-120)
             this.destroy();
-        this.angle = this.baseAngle+Math.sin(this.randRot+$engine.getGlobalTimer()/32)/16;
+        this.angle = this.baseAngle+Math.sin(this.randRot+$engine.getGameTimer()/32)/16;
     }
 }
 
@@ -280,13 +280,13 @@ class MainMenuButton extends EngineInstance {
     }
 
     step() {
-        this.angle = Math.sin(($engine.getGlobalTimer()+this.rand3)/this.rand4)/16
+        this.angle = Math.sin(($engine.getGameTimer()+this.rand3)/this.rand4)/16
         var diffX = (this.ox - (IN.getMouseX()-this.x)/8)
         var diffY = (this.oy - (IN.getMouseY()-this.y)/8)
         this.ox -= diffX/60;
         this.oy -= diffY/60;
-        this.x = this.xStart + 10 * Math.sin(($engine.getGlobalTimer()+this.x+this.rand2)/64) + this.ox;
-        this.y = this.yStart + 10 *  Math.cos(($engine.getGlobalTimer()+this.y+this.rand1)/64) + this.oy;
+        this.x = this.xStart + 10 * Math.sin(($engine.getGameTimer()+this.x+this.rand2)/64) + this.ox;
+        this.y = this.yStart + 10 *  Math.cos(($engine.getGameTimer()+this.y+this.rand1)/64) + this.oy;
         if(!this.enabled)
             return;
         //this.removeSprite();

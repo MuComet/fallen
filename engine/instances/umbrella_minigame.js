@@ -47,7 +47,7 @@ class Man extends InstanceMover {
 
         this.move(accel,this.vel);
 
-        $engine.setBackgroundColour((Math.sin($engine.getGlobalTimer()/128)+1)*128);
+        $engine.setBackgroundColour((Math.sin($engine.getGameTimer()/128)+1)*128);
 
         if(IN.keyCheck('Escape')) {
             RoomManager.changeRooms("Umbrella2")

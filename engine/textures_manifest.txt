@@ -1,3 +1,16 @@
+intro_1 engine/textures/intro/intro_1.png 0.5 0.5
+intro_2 engine/textures/intro/intro_2.png 0.5 0.5
+intro_3 engine/textures/intro/intro_3.png 0.5 0.5
+intro_4 engine/textures/intro/intro_4.png 0.5 0.5
+intro_5 engine/textures/intro/intro_5.png 0.5 0.5
+intro_6 engine/textures/intro/intro_6.png 0.5 0.5
+cloud engine/textures/intro/cloud1.png 0.5 0.5
+introStart1 engine/textures/intro/start1.png 0.5 0.5
+introStart2 engine/textures/intro/start2.png 0.5 0.5
+
+title_card engine/textures/fallen/fallen.png
+gui_cheat_graphic engine/textures/minigames/minigame_cheat.png
+
 ooi engine/textures/oof_ouchi_owie.png 0.5 0.5
 man engine/textures/man.png 0.5 1
 raindrop engine/textures/rain_drop.png 0 0.5
@@ -11,13 +24,3 @@ falling_rock_rocky_1 engine/textures/rock_falling_man.png 0.5 1
 
 falling_tower_1 engine/textures/tower_1.png 0.5 0
 sky_platform engine/textures/sky_platform.png 0.5 0
-
-intro_1 engine/textures/intro/intro_1.png 0.5 0.5
-intro_2 engine/textures/intro/intro_2.png 0.5 0.5
-intro_3 engine/textures/intro/intro_3.png 0.5 0.5
-intro_4 engine/textures/intro/intro_4.png 0.5 0.5
-intro_5 engine/textures/intro/intro_5.png 0.5 0.5
-intro_6 engine/textures/intro/intro_6.png 0.5 0.5
-cloud engine/textures/intro/cloud1.png 0.5 0.5
-introStart1 engine/textures/intro/start1.png 0.5 0.5
-introStart2 engine/textures/intro/start2.png 0.5 0.5

@@ -1,6 +1,7 @@
-class SkyMinigameController extends EngineInstance { // All classes that can be added to the engine MUST extend EngineInstance
+class SkyMinigameController extends MinigameController { // All classes that can be added to the engine MUST extend EngineInstance
 
     onEngineCreate() { // called when the instance is made from a room.
+        super.onEngineCreate();
         SkyMinigameController.score = 0;
         SkyMinigameController.nextBlock = 0;
         SkyMinigameController.timer = 0;
@@ -9,7 +10,7 @@ class SkyMinigameController extends EngineInstance { // All classes that can be 
         SkyMinigameController.nCamY = 0;
         SkyMinigameController.iBuffer = undefined
         SkyMinigameController.mingameTimer = undefined
-        SkyMinigameController.maxScore = 10
+        SkyMinigameController.maxScore = 32
 
         new SkyBuildPlayer($engine.getWindowSizeX()/2,0,0);
         new FallingTowerPlatform($engine.getWindowSizeX()/2,$engine.getWindowSizeY()-50);
@@ -33,15 +34,17 @@ class SkyMinigameController extends EngineInstance { // All classes that can be 
             else
                 $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN);
             $engine.startFadeOut(30,false)
-            SceneManager.pop();
+            $engine.endGame();
         })
 
     }  
     onCreate() { // called when you construct the instance yourself
         this.onEngineCreate();
+        super.onCreate();
     }
 
     step() {
+        super.step();
         var timer = SkyMinigameController.timer;
         var endTime = SkyMinigameController.endTime;
         if(timer<=endTime) {
@@ -51,6 +54,7 @@ class SkyMinigameController extends EngineInstance { // All classes that can be 
     }
 
     onDestroy() {
+        super.onDestroy();
         SkyMinigameController.iBuffer.destroy();
     }
 }
@@ -69,6 +73,17 @@ class SkyBuildPlayer extends EngineInstance {
         this.hitbox = new Hitbox(this,new RectangeHitbox(this,-50,0,50,100));
         this.dropping=false;
         this.randomOffset = EngineUtils.irandom(120);
+        this.swingMove();
+    }
+
+    swingMove() {
+        var controller = SkyMinigameController.getInstance();
+        var val = controller.hasCheated() ? 0.5 : 1;
+        var sin = Math.sin($engine.getGameTimer()/EngineUtils.clamp(32-SkyMinigameController.score * val,4,32) + this.randomOffset);
+        this.angle = -sin/2;
+        var angle2 = Math.PI*3/2+sin/2;
+        this.x = this.xStart + V2D.lengthDirX(angle2,300);
+        this.y = this.yStart + V2D.lengthDirY(angle2,300);
     }
 
     step() {
@@ -80,11 +95,7 @@ class SkyBuildPlayer extends EngineInstance {
         IN.debugDisplayKeyPress(true); // makes the engine log every key press
 
         if(!this.dropping) {
-            var sin = Math.sin($engine.getGlobalTimer()/EngineUtils.clamp(32-SkyMinigameController.score,4,32) + this.randomOffset);
-            this.angle = -sin/2;
-            var angle2 = Math.PI*3/2+sin/2;
-            this.x = this.xStart + V2D.lengthDirX(angle2,300);
-            this.y = this.yStart + V2D.lengthDirY(angle2,300);
+            this.swingMove();
         } else {
             this.angle = 0;
         }
@@ -134,7 +145,7 @@ class SkyBuildPlayer extends EngineInstance {
     onDestroy() {
         $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
         $engine.startFadeOut(30,false)
-        SceneManager.pop();
+        $engine.endGame();
     }
 
     draw(gui, camera) {

@@ -110,13 +110,17 @@ class IM {
     }
 
     static __doSimTick() {
-
-        IM.__cleanup();
-        IM.__deleteFromObjects();
-        IM.__step();
-        IM.__preDraw();
-        IM.__draw();
-        IM.__sort();
+        if(!$engine.isGamePaused()) {
+            IM.__cleanup();
+            IM.__deleteFromObjects();
+            IM.__step();
+            IM.__preDraw();
+            IM.__sort();
+            IM.__draw();
+        } else {
+            IM.__pause();
+            IM.__draw();
+        }
         
     }
 
@@ -124,7 +128,6 @@ class IM {
         for(const obj of IM.__cleanupList) {
             obj.onDestroy();
             $engine.__disposeHandles(obj);
-            //obj.__dispose();
         }
     }
 
@@ -153,15 +156,20 @@ class IM {
     }
 
     static __preDraw() {
-        for(const obj of IM.__objects) // this is where you can prepare for draw by checking collisions and such -- draw should only draw
+        for(const obj of IM.__objectsSorted) // this is where you can prepare for draw by checking collisions and such -- draw should only draw
             obj.preDraw();
     }
 
-    // DOES NOT ACTUALLY RENDER ANYTHING! (and therefore does not need to be sorted. Engine does the rendering.)
+    static __pause() {
+        for(const obj of IM.__objects)
+            obj.pause();
+    } 
+
+    // does not actually render anything to the canvas, and so does not need to be sorted. (sorting is done later)
     static __draw() {
         $engine.getCamera().getCameraGraphics().clear();
         $engine.__GUIgraphics.clear();
-        for(const obj of IM.__objects)
+        for(const obj of IM.__objectsSorted)
             obj.draw($engine.__GUIgraphics, $engine.getCamera().getCameraGraphics());
     } 
 
@@ -235,6 +243,10 @@ class IM {
         }
         for(const obj of IM.__objects) {
             obj.onGameEnd();
+        }
+        for(const obj of IM.__objects) {
+            obj.onDestroy();
+            $engine.__disposeHandles(obj);
         }
     }
 

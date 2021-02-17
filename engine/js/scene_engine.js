@@ -11,6 +11,9 @@ $__engineData.__cheatWriteBackValue = -1
 $__engineData.cheatWriteBackIndex = -1;
 $__engineData.loadRoom = "MenuIntro";
 
+$__engineData.__debugPreventReturn = false;
+$__engineData.__debugLogFrameTime = false;
+
 const ENGINE_RETURN = {};
 ENGINE_RETURN.LOSS = 0;
 ENGINE_RETURN.WIN = 1;
@@ -42,8 +45,12 @@ class Scene_Engine extends Scene_Base {
 
     create() {
         super.create();
+        this.__initEngine();
+    }
+
+    __initEngine() {
         $engine = this;
-        this.paused = false;
+        this.__gamePaused = false;
         this.__filters = [];
         this.filters = []; // PIXI
         this.__enabledCameras = [true,false];
@@ -52,44 +59,55 @@ class Scene_Engine extends Scene_Base {
         this.__shouldChangeRooms=false;
         this.__nextRoom="";
         this.__currentRoom = undefined;
-        this.__timer = 0;
+        this.__globalTimer = 0;
+        this.__gameTimer = 0;
         this.__instanceCreationSpecial = {}; // it doesn't matter what this is so long as it's an object.
-        this.__renderableDestroyOptions = {children:true};
+        
 
         this.debugLogFrameTime = false;
 
         this.__background = undefined;
         this.__backgroundColour = 0;
         this.__usingSolidColourBackground = true;
+        this.__autoDestroyBackground = false;
         this.__backgroundContainer = new PIXI.Container();
-        this.setBackground(new PIXI.Graphics())
+        this.setBackground(new PIXI.Graphics(), true)
 
         this.addChild(this.__backgroundContainer);
         this.addChild(this.__cameras[0]);
         this.addChild(this.__GUIgraphics)
         IM.__initializeVariables();
-        IN.__register();
     }
 
     start() {
+        this.__startEngine();
+    }
+
+    __startEngine() {
         this.__setRoom($__engineData.loadRoom);
         IN.__forceClear();
     }
 
     update() {
+        // RPG MAKER
         super.update();
+
+        if($__engineData.__haltAndReturn && ! this.isBusy())
+            this.__endAndReturn()
+
         if(this.isBusy() || SceneManager.isSceneChanging()) // fix for one frame SceneManager bug
             return;
+
+        // ENGINE
         if(this.__shouldChangeRooms)
             this.__setRoom(this.__nextRoom);
 
         IN.__update();
         this.__doSimTick();
-
-        if($__engineData.__haltAndReturn)
-            this.__endAndReturn()
         
-        this.__timer++;
+        if(!this.__gamePaused)
+            this.__gameTimer++;
+        this.__globalTimer++;
     }
 
     setRoom(newRoom) {
@@ -118,6 +136,10 @@ class Scene_Engine extends Scene_Base {
         return this.__cameras[0];
     }
 
+    getRenderer() { // for low level PIXI operations
+        return Graphics._renderer;
+    }
+
     endGame() {
         $__engineData.__haltAndReturn=true;
     }
@@ -130,17 +152,43 @@ class Scene_Engine extends Scene_Base {
         $__engineData.__cheatWriteBackValue=value;
     }
 
+    pauseGame() {
+        this.__gamePaused = true;
+    }
+
+    unpauseGame() {
+        this.__gamePaused = false;
+    }
+
+    isGamePaused() {
+        return this.__gamePaused;
+    }
+
+
     __endAndReturn() {
+        // for testing minigames.
+        if($__engineData.__debugPreventReturn) {
+            this.__cleanup();
+            this.removeChildren();
+            this.__initEngine();
+            this.__startEngine();
+            $__engineData.__haltAndReturn=false;
+            return;
+        }
         $__engineData.__haltAndReturn=false;
         SceneManager.pop();
     }
 
     // called exclusively by terminate, which is called from RPG maker.
     __cleanup() {
+        this.__GUIgraphics.removeChildren(); // prevent bug if you rendered to the GUI
         this.freeRenderable(this.__GUIgraphics)
-        IM.__endGame()
-        for(const camera of this.__cameras)
+        this.freeRenderable(this.__backgroundContainer);
+        IM.__endGame() // frees all renderables associated with instances
+        for(const camera of this.__cameras) {
             this.freeRenderable(camera);
+            this.freeRenderable(camera.getCameraGraphics());
+        }
     }
 
     __writeBack() {
@@ -176,7 +224,7 @@ class Scene_Engine extends Scene_Base {
         this.__prepareRenderToCameras();
 
         var time = window.performance.now()-start;
-        if(this.debugLogFrameTime)
+        if($__engineData.__debugLogFrameTime)
             console.log("Time taken for this frame: "+(time)+" ms")
     }
 
@@ -215,8 +263,12 @@ class Scene_Engine extends Scene_Base {
         return tex;
     }
 
+    getGameTimer() {
+        return this.__gameTimer;
+    }
+
     getGlobalTimer() {
-        return this.__timer;
+        return this.__globalTimer;
     }
 
     getWindowSizeX() {
@@ -231,6 +283,16 @@ class Scene_Engine extends Scene_Base {
         this.__enabledCameras[index] = enable;
     }
 
+    /**
+     * Attaches a renderable to an isntance and automatically renders it every frame. When the instance is destroyed, the engine will
+     * also destroy the renderable along with it.
+     * 
+     * The major difference between this and createRenderable is that createRenderable will also cause the engine to automatically render it, while
+     * this function will only tell the engine to keep track of it for you.
+     * @param {EngineInstance} parent The parent to attach the renderable to
+     * @param {PIXI.DisplayObject} renderable The renderable to auto dispose of
+     * @param {Boolean | false} align Whether or not to automatically move the renderable to match the parent instance's x, y, scale, and rotation
+     */
     createRenderable(parent, renderable, align = false) {
         renderable.__depth = parent.depth
         renderable.__parent = parent;
@@ -243,9 +305,22 @@ class Scene_Engine extends Scene_Base {
         return renderable;
     }
 
+    /**
+     * Attaches the lifetime of the specified renderable to the instance in question. When the instance is destroyed, the engine will
+     * also destroy the renderable along with it.
+     * 
+     * The major difference between this and createRenderable is that createRenderable will also cause the engine to automatically render it, while
+     * this function will only tell the engine to keep track of it for you.
+     * @param {EngineInstance} parent The parent to attach the renderable to
+     * @param {PIXI.DisplayObject} renderable The renderable to auto dispose of
+     */
+    createManagedRenderable(parent, renderable) {
+        parent.__pixiDestructables.push(renderable);
+    }
+
     // if you want to manage the renderable yourself, you may still use this function to free it in the same way a manged one would be freed.
     freeRenderable(renderable) {
-        renderable.destroy(this.__renderableDestroyOptions);
+        renderable.destroy();
     }
 
     removeRenderable(renderable) {
@@ -290,11 +365,16 @@ class Scene_Engine extends Scene_Base {
         return this.__background;
     }
 
-    setBackground(background) { // expects any PIXI renderable. renders first.
+    setBackground(background, autoDestroy) { // expects any PIXI renderable. renders first.
+        if(autoDestroy) {
+            for(const child of this.__backgroundContainer.children)
+                this.freeRenderable(child);
+        }
         this.__usingSolidColourBackground = false;
         this.__background = background;
         this.__backgroundContainer.removeChildren();
         this.__backgroundContainer.addChild(background)
+        this.__autoDestroyBackground = autoDestroy;
     }
     
     setBackgroundColour(col) {
@@ -356,10 +436,15 @@ class Scene_Engine extends Scene_Base {
         for(const renderable of instance.__renderables) {
             this.freeRenderable(renderable)
         }
+        for(const renderable of instance.__pixiDestructables) {
+            this.freeRenderable(renderable)
+        }
     }
 }
 
 ////////////////////////////////single time setup of engine///////////////////////
+
+IN.__register();
 
 __initalize = function() {
     var obj = {
