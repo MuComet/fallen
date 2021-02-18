@@ -123,7 +123,7 @@ class MinigameTimer extends EngineInstance {
             $engine.requestRenderOnGUI(this.timerText);
     }
 
-    onDestroy() {
+    cleanup() {
         $engine.freeRenderable(this.timerText);
     }
 

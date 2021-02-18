@@ -31,8 +31,9 @@ class SkyMinigameController extends MinigameController { // All classes that can
         SkyMinigameController.mingameTimer.addOnTimerStopped(this, function(parent, bool) {
             if(bool)
                 $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
-            else
+            else {
                 $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN);
+            }
             $engine.startFadeOut(30,false)
             $engine.endGame();
         })
@@ -126,7 +127,6 @@ class SkyBuildPlayer extends EngineInstance {
                         SkyMinigameController.timer=0;
                     }
                     if(SkyMinigameController.score>=SkyMinigameController.maxScore) {
-                        // RPG MAKER
                         SkyMinigameController.mingameTimer.setGameComplete();
                     }
 

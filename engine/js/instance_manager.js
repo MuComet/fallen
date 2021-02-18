@@ -127,6 +127,7 @@ class IM {
     static __cleanup() {
         for(const obj of IM.__cleanupList) {
             obj.onDestroy();
+            obj.cleanup();
             $engine.__disposeHandles(obj);
         }
     }
@@ -245,7 +246,7 @@ class IM {
             obj.onGameEnd();
         }
         for(const obj of IM.__objects) {
-            obj.onDestroy();
+            obj.cleanup();
             $engine.__disposeHandles(obj);
         }
     }

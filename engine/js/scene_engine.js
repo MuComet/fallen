@@ -5,6 +5,7 @@ var $__engineData = {}
 $__engineData.__textureCache = {};
 $__engineData.__haltAndReturn = false;
 $__engineData.__ready = false;
+$__engineData.__debugRequireTextures = false;
 $__engineData.__outcomeWriteBackValue = -1
 $__engineData.outcomeWriteBackIndex = -1;
 $__engineData.__cheatWriteBackValue = -1
@@ -91,7 +92,6 @@ class Scene_Engine extends Scene_Base {
     update() {
         // RPG MAKER
         super.update();
-
         if($__engineData.__haltAndReturn && ! this.isBusy())
             this.__endAndReturn()
 
@@ -259,7 +259,12 @@ class Scene_Engine extends Scene_Base {
 
     getTexture(name) {
         var tex = $__engineData.__textureCache[name];
-        if(!tex) console.error("Unable to find texture for name: "+String(name)+". Did you remember to include the texture in the manifest?")
+        if(!tex) {
+            var str = "Unable to find texture for name: "+String(name)+". Did you remember to include the texture in the manifest?"
+            if($__engineData.__debugRequireTextures)
+                throw new Error(str);
+            console.error(str)
+        }
         return tex;
     }
 
@@ -608,6 +613,7 @@ __readTextures = function(texture_file,obj) { // already sync
                 other.push(texObj);
         }
         for(const texObj of required) {
+            console.log(texObj)
             obj.textures++;
             obj.total++;
             const tex = __loadTexture(texObj, () => {
@@ -675,9 +681,9 @@ __parseTextureObject = function(texObj) {
         if(arg==="require") {
             argsParsed.push({key:"require",value:true});
         } else if(arg==="animate") {
-            __parseAnimation(argsParsed, args, i);
+            i=__parseAnimation(argsParsed, args, i);
         } else if(arg==="spritesheet") {
-            __parseSpritesheet(argsParsed,args,i)
+            i=__parseSpritesheet(argsParsed,args,i)
         }
     }
     texObj.texArgs = argsParsed;
@@ -696,11 +702,14 @@ __parseAnimation = function(argsParsed, args, i) {
             textues:texNames,
         }
     });
+    return i;
 }
 
 __parseSpritesheet = function(argsParsed, args, i) {
     var dimensionX = -1;
     var dimensionY = -1;
+    var columns = -1;
+    var rows = -1;
     var limit = [];
     var animations = [];
     i++;
@@ -709,9 +718,11 @@ __parseSpritesheet = function(argsParsed, args, i) {
         if(arg==="dimensions") {
             dimensionX = parseInt(args[++i]);
             dimensionY = parseInt(args[++i]);
+            columns = parseInt(args[++i]);
+            rows = parseInt(args[++i]);
         } else if(arg==="limit") {
-            if(dimensionY===-1) throw new Error("Cannot limit before supplying dimensions");
-            for(var k =0;k<dimensionY;k++) {
+            if(rows===-1) throw new Error("Cannot limit before supplying dimensions");
+            for(var k =0;k<rows;k++) {
                 limit.push(parseInt(args[++i]));
             }
         } else if(arg==="animate") {
@@ -735,11 +746,14 @@ __parseSpritesheet = function(argsParsed, args, i) {
         value: {
             xSize: dimensionX,
             ySize: dimensionY,
+            numColumns: columns,
+            numRows: rows,
             frameLimit: limit,
             anims: animations,
         }
 
     })
+    return i;
 }
 
 __queryTextureObject = function(texObj, key) {

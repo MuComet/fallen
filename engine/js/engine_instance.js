@@ -151,12 +151,17 @@ class EngineInstance {
     pause() {}
 
     /**
-     * onDestroy is called when this instance is destroyed for any reason.
+     * onDestroy is at the end of the frame called when this instance is destroyed for any using destroy().
+     */
+    onDestroy() {}
+
+    /**
+     * cleanup is always called before an isntance is removed from existence.
      * This includes:
      * The game ending, the room ending, or the instance being destroyed manually
      * Always clean up anything you have created here if applicable.
      */
-    onDestroy() {} // guaranteed to run every time an instance is destroyed for any reason, this includes destruction, game ending, etc.
+    cleanup() {}
 
     /**
      * Called as the first method when the room finishes loading
