@@ -182,6 +182,32 @@ class MinigameController extends EngineInstance { // TODO: startMinigame, pauseM
         this.onEngineCreate();
     }
 
+    step() {
+        if(!this.showingInstructions && this.cheatKeyActive && IN.keyCheckPressed(this.cheatKey)) {
+            this.cheat();
+        }
+        this._handleInstructionImage();
+        this._handleCheatImage();
+    }
+
+    pause() {
+        this.step(); // hehe
+    }
+
+    draw(gui, camera) {
+        if(this.showingInstructions) {
+            $engine.requestRenderOnGUI(this.instructionImage);
+        }
+
+        if(this.showingCheat) {
+            $engine.requestRenderOnGUI(this.cheatImage)
+        }
+    }
+
+    onDestroy() {
+        MinigameController.controller = undefined;
+    }
+
     setCheatButtonActive(bool) {
         this.cheatButtonActive = bool;
     }
@@ -226,14 +252,6 @@ class MinigameController extends EngineInstance { // TODO: startMinigame, pauseM
             func:callback,
             caller:parent
         });
-    }
-
-    step() {
-        if(!this.showingInstructions && this.cheatKeyActive && IN.keyCheckPressed(this.cheatKey)) {
-            this.cheat();
-        }
-        this._handleInstructionImage();
-        this._handleCheatImage();
     }
 
     _handleInstructionImage() {
@@ -308,24 +326,6 @@ class MinigameController extends EngineInstance { // TODO: startMinigame, pauseM
         this.cheatImage.anchor.x = 0.5;
         this.cheatImage.anchor.y = 0.5;
         $engine.createManagedRenderable(this,renderable);
-    }
-
-    draw(gui, camera) {
-        if(this.showingInstructions) {
-            $engine.requestRenderOnGUI(this.instructionImage);
-        }
-
-        if(this.showingCheat) {
-            $engine.requestRenderOnGUI(this.cheatImage)
-        }
-    }
-
-    pause() {
-        this.step(); // hehe
-    }
-
-    onDestroy() {
-        MinigameController.controller = undefined;
     }
 
     /**

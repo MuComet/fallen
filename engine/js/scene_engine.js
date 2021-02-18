@@ -318,11 +318,22 @@ class Scene_Engine extends Scene_Base {
         parent.__pixiDestructables.push(renderable);
     }
 
-    // if you want to manage the renderable yourself, you may still use this function to free it in the same way a manged one would be freed.
+    
+    /**
+     * Frees the resources associated with the specified renderable. If you registered the renderble using createRenderable
+     * or createManagedRenderable this will be called automicatcally by the engine when the parent instance is destroyed
+     * 
+     * Use this method only if you want to destroy a renderable that was not registered with the engine.
+     * @param {PIXI.DisplayObject} renderable The renderable to destroy
+     */
     freeRenderable(renderable) {
         renderable.destroy();
     }
 
+    /**
+     * Removes a renderable that was previsouly created with createRenderable() from it's parent and then destroys it.
+     * @param {PIXI.DisplayObject} renderable The renderable to remove
+     */
     removeRenderable(renderable) {
         renderable.__parent.__renderables.splice(renderable.__parent.__renderables.indexOf(renderable),1); // remove from parent
         renderable.__parent=null; // leave it to be cleaned up eventually
@@ -331,19 +342,15 @@ class Scene_Engine extends Scene_Base {
 
     /**
      * Requests that on this frame, the renderable be rendered to the GUI layer.
+     * 
+     * Renderables added to the GUI will render in the order they are added. As such, it recommended
+     * to only call this in draw since it is sorted.
      * @param {PIXI.Container} renderable 
      */
     requestRenderOnGUI(renderable) {
         this.__GUIgraphics.addChild(renderable);
     }
     
-    /**
-     * Requests that on this frame, the renderable be rendered to the Camera layer.
-     * @param {PIXI.Container} renderable 
-     */
-    requestRenderOnCamera(renderable) {
-        this.getCamera().addChild(renderable);
-    }
 
     //TODO: leave as deprecated until it's done
     /**@deprecated */
@@ -558,20 +565,54 @@ __readInstances = function(instance_file,obj) {
 __readTextures = function(texture_file,obj) { // already sync
     const callback = function(fileData) {
         var data = EngineUtils.strToArrNewline(fileData);
+        var texData = [];
+        // parse raw data into objects
         for (const d of data) {
             const arr = EngineUtils.strToArrWhitespace(d);
-            const name = arr[0];
-            let tdx = parseFloat(arr[2])
-            let tdy = parseFloat(arr[3])
-            const dx = tdx!==undefined ? tdx : 0.5;
-            const dy = tdy!==undefined ? tdy : 0.5;
+
+            const type = arr[0];
+            let len = arr.length;
+            let name = undefined;
+            let path = undefined;
+            let dx = undefined;
+            let dy = undefined;
+            if(type.toLowerCase()==="animate") {
+                name = arr[len-1];
+            } else {
+                name = arr[len-4];
+                path = arr[len-3]
+                dx = parseFloat(arr[len-2])
+                dy = parseFloat(arr[len-1])
+                arr.length = arr.length - 4 // remove the last 4 elements from the array
+            }
+
+            var texObj = {
+                texArgs: arr,
+                texName: name,
+                texPath: path,
+                texOrigX: dx,
+                texOrigY: dy
+            }
+
+            texData.push(texObj);
+        }
+
+        // parse the textObjs
+        var required = [];
+        var other = [];
+        for(const texObj of texData) {
+            __parseTextureObject(texObj)
+            if(__queryTextureObject(texObj,"require"))
+                required.push(texObj);
+            else
+                other.push(texObj);
+        }
+        for(const texObj of required) {
             obj.textures++;
             obj.total++;
-            const tex = PIXI.Texture.from(arr[1]);
-            tex.on('update',()=> { // the texture is loaded!
-                // support for centering and px measurements
-                let tdx = dx;
-                let tdy = dy;
+            const tex = __loadTexture(texObj, () => {
+                let tdx = texObj.texOrigX;
+                let tdy = texObj.texOrigX;
                 if(tdx===-1)
                     tdx = 0.5;
                 if(tdy===-1)
@@ -580,16 +621,133 @@ __readTextures = function(texture_file,obj) { // already sync
                     tdx = tdx/tex.width;
                 if(tdy>1)
                     tdy = dy/tex.height;
-                tex.defaultAnchor = new PIXI.Point(dx,dy);
+                tex.defaultAnchor = new PIXI.Point(tdy,tdy);
                 obj.onNextLoaded();
-            })
-            $__engineData.__textureCache[name]=tex;
+            });
+            $__engineData.__textureCache[texObj.texName]=tex;
         }
+        for(const texObj of other) {
+            obj.textures++; // don't increment total, we also won't notify the listener when it's ready...
+            const tex = __loadTexture(texObj, () => {
+                let tdx = texObj.texOrigX;
+                let tdy = texObj.texOrigY;
+                if(tdx===-1)
+                    tdx = 0.5;
+                if(tdy===-1)
+                    tdy=0.5;
+                if(tdx>1)
+                    tdx = tdx/tex.width;
+                if(tdy>1)
+                    tdy = dy/tex.height;
+                tex.defaultAnchor = new PIXI.Point(tdx,tdy);
+            });
+            $__engineData.__textureCache[texObj.texName] = tex;
+        }
+        
+        //$__engineData.__textureCache[name]=tex;
 
         obj.elements++;
         obj.testComplete(); // update the obj
     }
     EngineUtils.readLocalFileAsync(texture_file,callback);
+}
+
+__loadTexture = function(texObj, update) {
+    var spritesheet = __queryTextureObject(texObj,"spritesheet");
+    var animate = __queryTextureObject(texObj,"animate");
+    if(spritesheet) {
+
+    } else if(animate) {
+
+    } else {
+        const tex = PIXI.Texture.from(texObj.texPath);
+        tex.on('update',update);
+        return tex;
+
+    }
+}
+
+__parseTextureObject = function(texObj) {
+    var argsParsed = [];
+    var args = texObj.texArgs;
+    for(var i = 0;i<args.length;i++) {
+        var arg = args[i].toLowerCase();
+        if(arg==="require") {
+            argsParsed.push({key:"require",value:true});
+        } else if(arg==="animate") {
+            __parseAnimation(argsParsed, args, i);
+        } else if(arg==="spritesheet") {
+            __parseSpritesheet(argsParsed,args,i)
+        }
+    }
+    texObj.texArgs = argsParsed;
+
+}
+
+__parseAnimation = function(argsParsed, args, i) {
+    var texNames = [];
+    i++;
+    for(;i<args.length;i++) {
+        texNames.push(args[i]);
+    }
+    argsParsed.push({
+        key:"animate",
+        value:{
+            textues:texNames,
+        }
+    });
+}
+
+__parseSpritesheet = function(argsParsed, args, i) {
+    var dimensionX = -1;
+    var dimensionY = -1;
+    var limit = [];
+    var animations = [];
+    i++;
+    for(;i<args.length;i++) {
+        var arg = args[i].toLowerCase();
+        if(arg==="dimensions") {
+            dimensionX = parseInt(args[++i]);
+            dimensionY = parseInt(args[++i]);
+        } else if(arg==="limit") {
+            if(dimensionY===-1) throw new Error("Cannot limit before supplying dimensions");
+            for(var k =0;k<dimensionY;k++) {
+                limit.push(parseInt(args[++i]));
+            }
+        } else if(arg==="animate") {
+            var numAnimations = parseInt(args[++i]);
+            for(var k =0;k<numAnimations;k++) {
+                const animationName = args[++i];
+                const animationLength = parseInt(args[++i]);
+                const animationFrames = [];
+                for(var j =0;j<animationLength;j++) {
+                    animationFrames.push(parseInt(args[++i]));
+                }
+                animations.push({
+                    animName: animationName,
+                    animFrames: animationFrames,
+                });
+            }
+        }
+    }
+    argsParsed.push( {
+        key:"spritesheet",
+        value: {
+            xSize: dimensionX,
+            ySize: dimensionY,
+            frameLimit: limit,
+            anims: animations,
+        }
+
+    })
+}
+
+__queryTextureObject = function(texObj, key) {
+    for(var i =0;i<texObj.texArgs.length;i++) {
+        if(texObj.texArgs[i].key===key)
+            return texObj.texArgs[i].value;
+    }
+    return undefined;
 }
 
 ////////////////// begin overriding RPG maker /////////////////

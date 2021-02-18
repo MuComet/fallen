@@ -1,15 +1,22 @@
-intro_1 engine/textures/intro/intro_1.png 0.5 0.5
-intro_2 engine/textures/intro/intro_2.png 0.5 0.5
-intro_3 engine/textures/intro/intro_3.png 0.5 0.5
-intro_4 engine/textures/intro/intro_4.png 0.5 0.5
-intro_5 engine/textures/intro/intro_5.png 0.5 0.5
-intro_6 engine/textures/intro/intro_6.png 0.5 0.5
-cloud engine/textures/intro/cloud1.png 0.5 0.5
-introStart1 engine/textures/intro/start1.png 0.5 0.5
-introStart2 engine/textures/intro/start2.png 0.5 0.5
+require intro_1 engine/textures/intro/intro_1.png 0.5 0.5
+require intro_2 engine/textures/intro/intro_2.png 0.5 0.5
+require intro_3 engine/textures/intro/intro_3.png 0.5 0.5
+require intro_4 engine/textures/intro/intro_4.png 0.5 0.5
+require intro_5 engine/textures/intro/intro_5.png 0.5 0.5
+require intro_6 engine/textures/intro/intro_6.png 0.5 0.5
 
-title_card engine/textures/fallen/fallen.png
-gui_cheat_graphic engine/textures/minigames/minigame_cheat.png
+require cloud_generic_1 engine/textures/generic/cloud_generic_1.png 0.5 0.5
+require cloud_generic_2 engine/textures/generic/cloud_generic_2.png 0.5 0.5
+require cloud_generic_3 engine/textures/generic/cloud_generic_3.png 0.5 0.5
+require cloud_generic_4 engine/textures/generic/cloud_generic_4.png 0.5 0.5
+
+require introStart1 engine/textures/intro/start1.png 0.5 0.5
+require introStart2 engine/textures/intro/start2.png 0.5 0.5
+
+cloud engine/textures/intro/cloud1.png 0.5 0.5
+
+title_card engine/textures/fallen/fallen.png 0.5 0.5
+gui_cheat_graphic engine/textures/minigames/minigame_cheat.png 0.5 0.5
 
 ooi engine/textures/oof_ouchi_owie.png 0.5 0.5
 man engine/textures/man.png 0.5 1
