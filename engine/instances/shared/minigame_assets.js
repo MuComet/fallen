@@ -204,7 +204,7 @@ class MinigameController extends EngineInstance { // TODO: startMinigame, pauseM
         }
     }
 
-    onDestroy() {
+    cleanup() {
         MinigameController.controller = undefined;
     }
 

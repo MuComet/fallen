@@ -1,7 +1,17 @@
 class EngineInstance {
     /**
-     * DO NOT OVERRIDE THIS METHOD. USE ONCREATE()
+     * Do not override this method. Use onCreate instead.
      * @param  {...any} args The arguments to pass to onCreate()
+     * 
+     * ---
+     * onCreate():
+     *
+     * IMPORTANT: This method is only run automcatically when the engine DOES NOT create this instance via a room.
+     * 
+     * This method is called automatically whenever you create an instance using the 'new' syntax.
+     * This method has access to all arguments passed into 'new' it despite not being a constructor.
+     * 
+     * This means that if you say new EngineInstance(50,50,100) and have onCreate(x,y,z), then x = 50, y = 50, and z = 100.
      */
     constructor(...args) {
         this.depth = 0;

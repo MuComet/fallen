@@ -91,7 +91,7 @@ class EngineUtils {
     /**
      * Generates a random integer between low and high inclusive.
      * @param {Number} low The lowest allowed number, inclusive
-     * @param {Number} high The highest allowed number, includive
+     * @param {Number} high The highest allowed number, inclusive
      * @returns {Number} the random number
      */
     static irandomRange(low, high) {

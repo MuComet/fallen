@@ -1,3 +1,5 @@
+require spritesheet dimensions 800 400 4 2 leaf_particles engine/textures/generic/leaf_particles_sheet.png 0.5 0.5
+
 require intro_1 engine/textures/intro/intro_1.png 0.5 0.5
 require intro_2 engine/textures/intro/intro_2.png 0.5 0.5
 require intro_3 engine/textures/intro/intro_3.png 0.5 0.5

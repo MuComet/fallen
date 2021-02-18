@@ -18,6 +18,7 @@ class MenuIntroController extends EngineInstance {
         this.graphics = $engine.createRenderable(this,new PIXI.Graphics(),false)
         this.endTime = 300;
         this.nextCloud = 0;
+        this.nextLeaf = 0;
 
         this.isFading=false;
 
@@ -61,16 +62,24 @@ class MenuIntroController extends EngineInstance {
 
         this.nextCloud--;
         if(this.nextCloud<=0) {
-            let cloud = new Cloud(EngineUtils.random($engine.getWindowSizeX()))
+            let cloud = new RisingSprite(EngineUtils.random($engine.getWindowSizeX()),$engine.getTexture("cloud_generic_"+EngineUtils.irandomRange(1,4)))
             this.nextCloud = EngineUtils.irandomRange(60,120);
             if(this.timer<this.endTime) {
                 cloud.alpha = 0;
             }
         }
+        this.nextLeaf--;
+        if(this.nextLeaf<=0) {
+            let leaf = new RisingSprite(EngineUtils.random($engine.getWindowSizeX()),$engine.getRandomTextureFromSpritesheet("leaf_particles"))
+            this.nextLeaf = EngineUtils.irandomRange(12,24);
+            if(this.timer<this.endTime) {
+                leaf.alpha = 0;
+            }
+        }
 
         if(this.timer>this.endTime) {
             if(this.timer===this.endTime+1) {
-                IM.with(Cloud, function(cloud){cloud.alpha = 1});
+                IM.with(RisingSprite, function(cloud){cloud.alpha = 1});
                 IM.with(Letter, function(letter){
                     letter.f1.bloomScale = 0.25;
                     letter.f1.brightness = 1;
@@ -200,12 +209,11 @@ class Letter extends EngineInstance {
 
 }
 
-class Cloud extends EngineInstance {
+class RisingSprite extends EngineInstance {
     onEngineCreate() {
-        this.setSprite(new PIXI.Sprite($engine.getTexture("cloud")))
     }
 
-    onCreate(x) {
+    onCreate(x, texture) {
         this.x = x;
         this.y = $engine.getWindowSizeY()+120;
 
@@ -218,6 +226,8 @@ class Cloud extends EngineInstance {
         this.xScale = EngineUtils.irandom(1) ? sc : -sc
         this.yScale = sc
         this.onEngineCreate();
+
+        this.setSprite(new PIXI.Sprite(texture))
 
         this.randRot = EngineUtils.random(60)
 

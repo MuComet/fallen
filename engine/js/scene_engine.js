@@ -3,6 +3,7 @@ var $engine;
 
 var $__engineData = {}
 $__engineData.__textureCache = {};
+$__engineData.__spritesheets = {};
 $__engineData.__haltAndReturn = false;
 $__engineData.__ready = false;
 $__engineData.__debugRequireTextures = false;
@@ -266,6 +267,57 @@ class Scene_Engine extends Scene_Base {
             console.error(str)
         }
         return tex;
+    }
+
+    /**
+     * Returns a random texture from a spritesheet that was loaded using the spritesheet command
+     * in textures_manifest
+     * @param {String} name The name of the spritesheet
+     */
+    getRandomTextureFromSpritesheet(name) {
+        var sheetData = $__engineData.__spritesheets[name];
+        if(!sheetData) {
+            var str = "Unable to find spritesheet for name: "+String(name)+". Was this texture initalized as a spritesheet?"
+            if($__engineData.__debugRequireTextures)
+                throw new Error(str);
+            console.error(str)
+            return undefined;
+        }
+        var idx = EngineUtils.irandomRange(0,sheetData-1);
+        return this.getTexture(name+"_"+String(idx));
+    }
+
+    /**
+     * Returns the number of textures stored in this spritesheet. For this function to work, 'name' must refer
+     * to a texture loaded using the spritesheet command in textures_manifest
+     * 
+     * @param {String} name The name of the spritesheet
+     */
+    getSpriteSheetLength(name) {
+        var sheetData = $__engineData.__spritesheets[name];
+        if(!sheetData) {
+            var str = "Unable to find texture for name: "+String(name)+". Did you remember to include the texture in the manifest?"
+            if($__engineData.__debugRequireTextures)
+                throw new Error(str);
+            console.error(str)
+            return -1;
+        }
+        return sheetData;
+    }
+
+    /**
+     * Returns an array of textures from a spritesheet. For this function to work, you must
+     * load the texture using the spritesheet command in textures_manifest.
+     * @param {String} name The name of the spritesheet
+     * @param {Number} startIdx The first index, inclusive
+     * @param {Number} endIdx The last index, exclusive
+     */
+    getTexturesFromSpritesheet(name, startIdx, endIdx) {
+        var textures = [];
+        for(var i =startIdx;i<endIdx;i++) {
+            textures.push(this.getTexture(name+"_"+String(i)));
+        }
+        return textures;
     }
 
     getGameTimer() {
@@ -613,44 +665,14 @@ __readTextures = function(texture_file,obj) { // already sync
                 other.push(texObj);
         }
         for(const texObj of required) {
-            console.log(texObj)
-            obj.textures++;
-            obj.total++;
-            const tex = __loadTexture(texObj, () => {
-                let tdx = texObj.texOrigX;
-                let tdy = texObj.texOrigX;
-                if(tdx===-1)
-                    tdx = 0.5;
-                if(tdy===-1)
-                    tdy=0.5;
-                if(tdx>1)
-                    tdx = tdx/tex.width;
-                if(tdy>1)
-                    tdy = dy/tex.height;
-                tex.defaultAnchor = new PIXI.Point(tdy,tdy);
+            __loadTexture(obj, texObj, () => {
                 obj.onNextLoaded();
             });
-            $__engineData.__textureCache[texObj.texName]=tex;
         }
         for(const texObj of other) {
-            obj.textures++; // don't increment total, we also won't notify the listener when it's ready...
-            const tex = __loadTexture(texObj, () => {
-                let tdx = texObj.texOrigX;
-                let tdy = texObj.texOrigY;
-                if(tdx===-1)
-                    tdx = 0.5;
-                if(tdy===-1)
-                    tdy=0.5;
-                if(tdx>1)
-                    tdx = tdx/tex.width;
-                if(tdy>1)
-                    tdy = dy/tex.height;
-                tex.defaultAnchor = new PIXI.Point(tdx,tdy);
-            });
-            $__engineData.__textureCache[texObj.texName] = tex;
+            __loadTexture(obj, texObj, () => {});
+            obj.total--; // don't count the texture...
         }
-        
-        //$__engineData.__textureCache[name]=tex;
 
         obj.elements++;
         obj.testComplete(); // update the obj
@@ -658,19 +680,76 @@ __readTextures = function(texture_file,obj) { // already sync
     EngineUtils.readLocalFileAsync(texture_file,callback);
 }
 
-__loadTexture = function(texObj, update) {
+__setAnchor = function(tex, x,y) {
+    if(x===-1)
+        x = 0.5;
+    if(y===-1)
+        y=0.5;
+    if(x>1)
+        x = x/tex.width;
+    if(y>1)
+        y = y/tex.height;
+    tex.defaultAnchor = new PIXI.Point(x,y);
+}
+
+__loadTexture = function(obj, texObj, update) {
     var spritesheet = __queryTextureObject(texObj,"spritesheet");
     var animate = __queryTextureObject(texObj,"animate");
     if(spritesheet) {
+        obj.textures++;
+        obj.total++;
+        const tex = PIXI.Texture.from(texObj.texPath);
+        tex.on('update',() => {
+            __generateTexturesFromSheet(tex, texObj, spritesheet);
+            update();
+        });
 
     } else if(animate) {
+        var frames = [];
+        for(const tex of animate.textures) {
+            var frameTexture = $__engineData.__textureCache[tex]
+            if(!frameTexture)
+                throw new Error("Texture "+tex+" cannot be found! make sure the texture is referenced before the animation")
+            frames.push(frameTexture);
+        }
+
+        const anim = new PIXI.AnimatedSprite(frames); // loaded immediately.
+        $__engineData.__textureCache[texObj.texName]=anim;
 
     } else {
+        obj.textures++;
+        obj.total++;
         const tex = PIXI.Texture.from(texObj.texPath);
-        tex.on('update',update);
-        return tex;
-
+        tex.on('update',() =>{
+            __setAnchor(tex,texObj.texOrigX,texObj.texOrigY)
+            update();
+        });
+        $__engineData.__textureCache[texObj.texName]=tex;
     }
+    
+}
+
+__generateTexturesFromSheet = function(texture, texObj, spritesheet) { // replaces PIXI's internal spritesheet generator, which does more or less the same thing
+    // note: texture is guaranteed to have been loaded when this is called.
+    var cols = spritesheet.numColumns;
+    var rows = spritesheet.numRows;
+    var dx = spritesheet.xSize/spritesheet.numColumns; // normalized
+    var dy = spritesheet.ySize/spritesheet.numRows;
+    var baseName = texObj.texName + "_";
+    var idx = 0;
+    for(var y = 0;y<rows;y++) {
+        for(var x = 0;x<cols;x++) {
+            if(spritesheet.frameLimit[y] && x > spritesheet.frameLimit[y]) {
+                break;
+            }
+            let rect = new PIXI.Rectangle(dx*x,dy*y,dx,dy);
+            let tex = new PIXI.Texture(texture,rect);
+            __setAnchor(tex,texObj.texOrigX,texObj.texOrigY)
+            $__engineData.__textureCache[baseName+String(idx++)]=tex;
+            
+        }
+    }
+    $__engineData.__spritesheets[texObj.texName] = idx; // store the amount fo frames on a spritesheet
 }
 
 __parseTextureObject = function(texObj) {
@@ -699,7 +778,7 @@ __parseAnimation = function(argsParsed, args, i) {
     argsParsed.push({
         key:"animate",
         value:{
-            textues:texNames,
+            textures:texNames,
         }
     });
     return i;
