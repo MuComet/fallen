@@ -119,10 +119,15 @@ class MenuIntroController extends EngineInstance {
         SceneManager.goto(Scene_Map);
     }
 
+    preDraw() {
+        if(this.timer>this.endTime && this.timer <= this.endTime+36) {
+            this.depth = -10000;
+        }
+    }
+
     draw(gui, camera) {
         this.graphics.clear();
         if(this.timer>this.endTime && this.timer <= this.endTime+36) {
-            this.depth = -10000;
             this.graphics.beginFill(0xffffff);
             if(this.timer-this.endTime<12)
                 this.graphics.alpha=1;

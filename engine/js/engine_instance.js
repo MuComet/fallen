@@ -144,6 +144,9 @@ class EngineInstance {
      * renderable to be rendered on the GUI layer on this specific frame. The GUI layer renders 1:1 with the canvas. i.e.
      * 0,0 is the top left and $engine.getWindowSizeX(), $engine.getWindowSizeY() is the bottom right.
      * 
+     * Note that because sorting happens before this event is run, attempting to change the depth of this instance during
+     * this event will not change the depth until next frame
+     * 
      * This event is the last event to run.
      * 
      * @param {PIXI.Graphics} gui A graphics object which is drawn independently of the camera. All elements here are drawn 1:1
