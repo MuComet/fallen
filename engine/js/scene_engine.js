@@ -398,6 +398,15 @@ class Scene_Engine extends Scene_Base {
         return Graphics.boxHeight
     }
 
+    /**
+     * Creates and returns a new Object which may be passed in to a PIXI.Text as the style.
+     * 
+     * @returns {Object} Default text settings
+     */
+    getDefaultSubTextStyle() {
+        return { fontFamily: 'Helvetica', fontSize: 20, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 };
+    }
+
     setCameraEnabled(index, enable) {
         this.__enabledCameras[index] = enable;
     }

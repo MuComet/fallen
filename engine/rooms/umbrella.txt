@@ -1,7 +1,3 @@
 block instances
-	Umbrella 500 500 0 0 1 1
-endblock
-
-block room_load
-	new Man(400,600);
+	UmbrellaMinigameController 0 0 0 0 1 1
 endblock

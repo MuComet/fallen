@@ -1,3 +1,0 @@
-block instances
-	Umbrella 500 500 0 0 1 1
-endblock

@@ -29,7 +29,7 @@ gui_cheat_graphic engine/textures/minigames/minigame_cheat.png 0.5 0.5
 
 man engine/textures/man.png 0.5 1
 raindrop engine/textures/rain_drop.png 0 0.5
-umbrella engine/textures/umbrella.png 0.5 1
+umbrella engine/textures/umbrella.png 0.5 0.5
 drawing_minigame_1 engine/textures/drawing1.png 0.5 0.5
 drawing_minigame_2 engine/textures/drawing2.png 0.5 0.5
 drawing_minigame_3 engine/textures/drawing3.png 0.5 0.5

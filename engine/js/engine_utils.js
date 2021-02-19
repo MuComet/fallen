@@ -218,12 +218,20 @@ class EngineUtils {
                 return diff*(t*t*t+1) + min
             case(EngineUtils.INTERPOLATE_SMOOTH):
                 return diff*(3*val*val-2*val*val*val)+min
+            case(EngineUtils.INTERPOLATE_IN_QUAD):
+                return diff*val*val + min;
+            case(EngineUtils.INTERPOLATE_OUT_QUAD):
+                return diff*(val*(2-val)) + min
+            case(EngineUtils.INTERPOLATE_SMOOTH_QUAD):
+                return diff*(val < 0.5 ? 2*val*val : -1+(4-2*val))+min
             // functions written by Chriustian Figueroa
             // source: https://gist.github.com/gre/1650294#gistcomment-1892122
             case(EngineUtils.INTERPOLATE_IN_ELASTIC):
                 return diff*((.04 - .04 / val) * Math.sin(25 * val) + 1)+min
             case(EngineUtils.INTERPOLATE_OUT_ELASTIC):
-                 return diff*(.04 * val / (--val) * Math.sin(25 * val))+min
+                if(val===1)
+                    val = 0.99999999;
+                return diff*(.04 * val / (--val) * Math.sin(25 * val))+min
             case(EngineUtils.INTERPOLATE_SMOOTH_ELASTIC):
                 if(val===0.5) // prevent divide by zero
                     val = 0.50000001;
@@ -240,6 +248,9 @@ EngineUtils.INTERPOLATE_SMOOTH=3;
 EngineUtils.INTERPOLATE_IN_ELASTIC=4;
 EngineUtils.INTERPOLATE_OUT_ELASTIC=5;
 EngineUtils.INTERPOLATE_SMOOTH_ELASTIC=6;
+EngineUtils.INTERPOLATE_IN_QUAD=7;
+EngineUtils.INTERPOLATE_OUT_QUAD=8;
+EngineUtils.INTERPOLATE_SMOOTH_QUAD=9;
 
 class EngineDebugUtils {
 

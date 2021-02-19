@@ -18,8 +18,6 @@ class SkyMinigameController extends MinigameController { // All classes that can
         //$engine.setBackgroundColour(12067);
         $engine.setBackgroundColour(0xa58443);
         SkyMinigameController.iBuffer = new BufferedKeyInput('Space',2);
-        $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
-        $engine.setCheatWriteBackValue(ENGINE_RETURN.NO_CHEAT);
 
         SkyMinigameController.mingameTimer = new MinigameTimer(60*5);
         SkyMinigameController.mingameTimer.addOnTimerStopped(this, function(parent, bool) {
@@ -36,7 +34,6 @@ class SkyMinigameController extends MinigameController { // All classes that can
         new ParallaxingBackground();
 
         // audio
-        AudioManager.fadeOutBgm(1)
         this.audioReference = $engine.generateAudioReference("Minigame-001");
         AudioManager.playBgm(this.audioReference);
         AudioManager.fadeInBgm(1);

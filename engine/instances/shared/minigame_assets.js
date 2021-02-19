@@ -22,13 +22,16 @@ class MinigameTimer extends EngineInstance {
 
         this.timerTextPrepend = "TIME REMAINING: ";
 
+        this.survivalMode = false;
+
         this._updateText();
     }
 
     /**
+     * Registers a function with this timer that will be called when the timer is stopped for any reason.
      * 
-     * @param {EngineInstance} par 
-     * @param {Function} f 
+     * @param {EngineInstance} par The parent instance for variable access reasons
+     * @param {Function} f The function to call, with the first argument being par and the second being whether or not the timer expired (true) or if it was forced to stop by stopTimer() (false)
      */
     addOnTimerStopped(par, f) {
         this.onTimerUp.push({parent:par, func:f});
@@ -50,6 +53,19 @@ class MinigameTimer extends EngineInstance {
         this.gameCompleteText = text;
     }
 
+    getGameOverText() {
+        return this.gameOverText;
+    }
+
+    getGameCompleteText() {
+        return this.gameCompleteText;
+    }
+
+    // inverts the timer's behaviours. now when the timer expires, it is counted as a win.
+    setSurvivalMode() {
+        this.survivalMode = true;
+    }
+
     updateStyle(key, value) {
         this.timerText.style[key]=value;
         this.timerText.dirty = true;
@@ -67,10 +83,7 @@ class MinigameTimer extends EngineInstance {
 
     _checkIsTimeUp() {
         if(this.timer<0) {
-            for(const f of this.onTimerUp)
-                f.func(f.parent,true);
-            this.timerDone = true;
-            this.timerText.text = this.gameOverText;
+            this.expire();
         }
     }
 
@@ -82,14 +95,41 @@ class MinigameTimer extends EngineInstance {
         this.timer = frames;
     }
 
-    setGameComplete() {
+    /**
+     * Causes the timer to stop immediately and display either the gameComplete or gameOver text based on whether
+     * or not it is in survival mode. If the timer is asked to stop, it will consider it a loss in survival mode.
+     * 
+     * This will fire all onTimerStopped methods and input an argument of 'false'
+     */
+    stopTimer() {
         for(const f of this.onTimerUp)
             f.func(f.parent,false);
-        this.timerText.text = this.gameCompleteText;
         this.timerDone=true;
+
+        if(this.survivalMode)
+            this.timerText.text = this.gameOverText;
+        else
+            this.timerText.text = this.gameCompleteText;
     }
 
-    isDone() {
+    /**
+     * Expires the timer immediately. this is the same as setting the remaining time to zero.
+     * This will cause the timer to display either the gameComplete or gameOver text based on whether
+     * or not it is in survival mode.
+     * 
+     * This will fire all onTimerStopped methods and input an argument of 'true'
+     */
+    expire() {
+        for(const f of this.onTimerUp)
+                f.func(f.parent,true);
+        this.timerDone = true;
+        if(this.survivalMode)
+            this.timerText.text = this.gameCompleteText;
+        else
+            this.timerText.text = this.gameOverText;
+    }
+
+    stopped() {
         return this.timerDone;
     }
 
@@ -129,7 +169,7 @@ class MinigameTimer extends EngineInstance {
 
 }
 
-class MinigameController extends EngineInstance { // TODO: startMinigame, pauseMinigame, showInstructions, setInstructionImage
+class MinigameController extends EngineInstance {
     onEngineCreate() {
         if(this.__initalized)
             return;
@@ -167,6 +207,8 @@ class MinigameController extends EngineInstance { // TODO: startMinigame, pauseM
 
         $engine.getCamera().addFilter(this.blurFilter);
 
+        $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
+        $engine.setCheatWriteBackValue(ENGINE_RETURN.NO_CHEAT);
 
         this.cheatImage = undefined
         this.setCheatRenderable(new PIXI.Sprite($engine.getTexture("gui_cheat_graphic")))
@@ -223,17 +265,12 @@ class MinigameController extends EngineInstance { // TODO: startMinigame, pauseM
         for(const callback of this.onCheatCallbacks) {
             callback.func(callback.caller);
         }
-        this._startCheat();
+        $engine.pauseGame();
+        $engine.setCheatWriteBackValue(ENGINE_RETURN.CHEAT);
         this.blurFilter.blur = this.blurFilterStrength;
         $engine.getCamera().addFilter(this.blurFilter);
         this.cheated = true;
         this.showingCheat = true;
-    }
-
-    _startCheat() {
-        $engine.pauseGame();
-        $engine.setCheatWriteBackValue(ENGINE_RETURN.CHEAT);
-        // TODO: implement
     }
 
     hasCheated() {
