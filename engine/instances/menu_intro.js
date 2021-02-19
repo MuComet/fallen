@@ -66,7 +66,7 @@ class MenuIntroController extends EngineInstance {
             SceneManager.goto(Scene_Map);
         });
 
-        this.audioReference = $engine.generateAudioReference("prototype");
+        this.audioReference = $engine.generateAudioReference("Prototype");
         this.musicStarted = false;
         AudioManager.playBgm(this.audioReference)
     }
