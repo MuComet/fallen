@@ -2,6 +2,8 @@ MinigameTimer MinigameController ParallaxingBackground engine/instances/shared/m
 InstanceMover engine/instances/shared/minigame_instances.js
 BufferedKeyInput BufferedMouseInput EngineButton engine/instances/shared/minigame_utils.js
 
+CutsceneController engine/instances/cutscene.js
+
 TestInstance engine/instances/test_instance.js
 TestInstance2 engine/instances/test_instance2.js
 

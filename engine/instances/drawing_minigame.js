@@ -142,7 +142,7 @@ class DrawController extends EngineInstance { // controls the minigame
             RoomManager.changeRooms(RoomManager.currentRoom().name)
         }
 
-        if(!this.timer.isDone()) {
+        if(!this.timer.stopped()) {
             this.waitTimer++;
             if(this.waitTimer<150) {
                 if(this.waitTimer<=60) {
@@ -169,7 +169,7 @@ class DrawController extends EngineInstance { // controls the minigame
                 this.drawing = false;
                 this.nextDrawing();
                 if(this.done) {
-                    this.timer.setGameComplete();
+                    this.timer.stopTimer();
                 }
                 this.waitTimer=0;
             }

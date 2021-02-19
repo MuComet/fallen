@@ -223,7 +223,7 @@ class EngineUtils {
             case(EngineUtils.INTERPOLATE_OUT_QUAD):
                 return diff*(val*(2-val)) + min
             case(EngineUtils.INTERPOLATE_SMOOTH_QUAD):
-                return diff*(val < 0.5 ? 2*val*val : -1+(4-2*val))+min
+                return diff*(val < 0.5 ? 2*val*val : -1+(4-2*val)*val)+min
             // functions written by Chriustian Figueroa
             // source: https://gist.github.com/gre/1650294#gistcomment-1892122
             case(EngineUtils.INTERPOLATE_IN_ELASTIC):

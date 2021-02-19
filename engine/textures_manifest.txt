@@ -17,6 +17,8 @@ require introStart2 engine/textures/intro/start2.png 0.5 0.5
 
 spritesheet dimensions 6000 624 6 1 background_sheet engine/textures/generic/background_generic_sheet.png 0.5 0.5
 
+spritesheet dimensions 1632 624 2 1 intro_cutscene_sheet engine/textures/intro/intro_cutscene_sheet.png 0 0
+
 button_cheat_1 engine/textures/buttons/button_cheat.png 0.5 0.5
 button_cheat_2 engine/textures/buttons/button_cheat_down.png 0.5 0.5
 button_continue_1 engine/textures/buttons/button_continue.png 0.5 0.5

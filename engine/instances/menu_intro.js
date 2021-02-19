@@ -36,7 +36,11 @@ class MenuIntroController extends EngineInstance {
             })
             return true
         });
-        startButton.setScript(MenuIntroController.startNewGame);
+        startButton.setScript(function() {
+            CutsceneController.cutsceneSheet = "intro_cutscene_sheet";
+            CutsceneController.cutsceneComplete =  MenuIntroController.startNewGame;
+            $engine.setRoom("CutsceneRoom")
+        });
         
         var continueButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+120);
         continueButton.setTextures("button_continue_1","button_continue_1","button_continue_2")

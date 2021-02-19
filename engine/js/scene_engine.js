@@ -70,6 +70,13 @@ class Scene_Engine extends Scene_Base {
         this.__globalTimer = 0;
         this.__gameTimer = 0;
         this.__instanceCreationSpecial = {}; // it doesn't matter what this is so long as it's an object.
+
+        this.__RPGVariableTags = [];
+
+        this.__afterFade = undefined;
+        this.__fadeTime = undefined;
+        this.__fadeParent = undefined;
+        this.__isFading = false;
         
 
         this.debugLogFrameTime = false;
@@ -107,11 +114,8 @@ class Scene_Engine extends Scene_Base {
     update() {
         // RPG MAKER
         super.update();
-        if($__engineData.__haltAndReturn && ! this.isBusy())
+        if($__engineData.__haltAndReturn && !this.isBusy())
             this.__endAndReturn()
-
-        if(this.isBusy() || SceneManager.isSceneChanging()) // fix for one frame SceneManager bug
-            return;
 
         // ENGINE
         if(this.__shouldChangeRooms)
@@ -242,12 +246,31 @@ class Scene_Engine extends Scene_Base {
         }
     }
 
-    getRPGVariable(index) {
-        return $gameVariables.getValue(this.__correctRange(index));
+    getRPGVariable(index, tag=null) {
+        this.__ensureTag(index,tag);
+        return $gameVariables.value(this.__correctRange(index));
     }
 
-    setRPGVariable(index, value) {
-        return $gameVariables.setValue(this.__correctRange(index),value);
+    setRPGVariable(index, value, tag=null) {
+        this.__ensureTag(index,tag);
+        $gameVariables.setValue(this.__correctRange(index),value);
+    }
+
+    __ensureTag(index, tag) {
+        if(tag===null) {
+            throw new Error("Must supply tag.");
+        }
+        var val = this.__RPGVariableTags[index]
+
+        if(val===undefined) { // take ownership of this tag.
+            this.__RPGVariableTags[index] = tag;
+            return true;
+        }
+        
+        if(val!==tag) {
+            throw new Error("Error: Tag mismatch when attemting to access RPG variable at "+String(this.__correctRange(index)) 
+                            + "(source: "+String(val)+", provided: "+String(tag));
+        }
     }
 
     resetAllRPGVariables() {
@@ -396,6 +419,10 @@ class Scene_Engine extends Scene_Base {
 
     getWindowSizeY() {
         return Graphics.boxHeight
+    }
+
+    isFading() {
+        return this._fadeDuration > 0;
     }
 
     /**
