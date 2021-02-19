@@ -34,6 +34,7 @@ class MenuIntroController extends EngineInstance {
             IM.with(MainMenuButton,function(button) {
                 button.enabled = false;
             })
+            AudioManager.playSe($engine.generateAudioReference("GameStart"))
             return true
         });
         startButton.setScript(function() {

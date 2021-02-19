@@ -54,6 +54,10 @@ class SkyMinigameController extends MinigameController { // All classes that can
         this.progressText.y = $engine.getWindowSizeY()-30;
         this.updateProgressText();
 
+        this.seList = ["Bonk","Donk","Drill","Wobbly"];
+        this.nextSoundTimer = 0;
+        this.nextSoundRand = EngineUtils.irandomRange(60,150);
+
     }  
 
     updateProgressText() {
@@ -72,6 +76,13 @@ class SkyMinigameController extends MinigameController { // All classes that can
             $engine.getCamera().setY(EngineUtils.interpolate(timer/endTime,SkyMinigameController.pCamY,SkyMinigameController.nCamY,EngineUtils.INTERPOLATE_OUT));
         }
         SkyMinigameController.timer++;
+
+        this.nextSoundTimer++; 
+        if(this.nextSoundTimer>=this.nextSoundRand) {
+            AudioManager.playSe($engine.generateAudioReference(this.seList[EngineUtils.irandom(3)]));
+            this.nextSoundTimer=0;
+            this.nextSoundRand = EngineUtils.irandomRange(60,150);
+        }
     }
 
     draw(gui,camera) {
