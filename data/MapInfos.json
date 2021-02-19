@@ -1,10 +1,11 @@
 [
 null,
-{"id":1,"expanded":true,"name":"MAP001","order":1,"parentId":0,"scrollX":819,"scrollY":461},
-{"id":2,"expanded":true,"name":"Village","order":2,"parentId":1,"scrollX":811,"scrollY":461},
-{"id":3,"expanded":true,"name":"INN","order":3,"parentId":2,"scrollX":819,"scrollY":461},
-{"id":4,"expanded":true,"name":"INN2","order":4,"parentId":3,"scrollX":819,"scrollY":461},
-{"id":5,"expanded":true,"name":"Havoton","order":5,"parentId":4,"scrollX":811,"scrollY":461},
 null,
-{"id":7,"expanded":false,"name":"Item Shop","order":6,"parentId":0,"scrollX":819,"scrollY":461}
+null,
+null,
+null,
+null,
+{"id":6,"expanded":true,"name":"Havoton 1","order":1,"parentId":0,"scrollX":811,"scrollY":507},
+null,
+{"id":8,"expanded":false,"name":"Havoton Entrance","order":2,"parentId":0,"scrollX":811,"scrollY":979}
 ]
