@@ -1,3 +1,21 @@
+/**
+ * Variables list:
+ * x - The instance's x location in the room. Used for rendering and collisions
+ * 
+ * y - The instance's y location in the room. Used for rendering and collisions
+ * 
+ * xScale - The instance's x scale. Reflects on both the sprite and the hitbox.
+ * 
+ * yScale - The instance's y scale. Reflects on both the sprite and the hitbox.
+ * 
+ * alpha - The instance's alpha, reflects on the sprite.
+ * 
+ * angle - The instance's rotation in radians, reflects on the sprite and the hitbox.
+ * 
+ * depth - How far away the instance is from the camera. Larger numbers mean that the instance is farther away (and so gets rendered first).
+ * If two instances have the same depth, then the one created later will always render later
+ * 
+ */
 class EngineInstance {
     /**
      * Do not override this method. Use onCreate instead.

@@ -25,12 +25,12 @@ class DrawController extends MinigameController { // controls the minigame
                 parent.nextDrawing();
             }
             parent.calcWin();
-            var text = parent.win ? "Win! [Total score "+String(parent.ts).substring(0,4)+" > 0.750]" : "Loss :( [Total score "+String(parent.ts).substring(0,4)+" <= 0.750]"
+            var text = parent.win ? "Win! [Avg. score "+String(parent.ts).substring(0,4)+" > 0.750]" : "Loss :( [Avg. score "+String(parent.ts).substring(0,4)+" <= 0.750]"
             parent.timer.setGameCompleteText(text)
             parent.timer.setGameOverText(text)
         })
 
-        var text = new PIXI.Text("Click and hold to draw a line\nPress Enter to cheat!",{ fontFamily: 'Helvetica',
+        var text = new PIXI.Text("Click and hold to draw a line\nThere are 3 total drawings\n\nPress Enter to cheat!",{ fontFamily: 'Helvetica',
                         fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
         this.setInstructionRenderable(text)
 
@@ -96,6 +96,7 @@ class DrawController extends MinigameController { // controls the minigame
             if(IN.mouseCheckPressed(0) && this.waitTimer >=60) {
                 this.currentLine = new DrawableLine()
                 this.currentLine.startDrawing();
+                this.currentLine.drawing = this.drawings[this.drawingInd];
                 this.drawings[this.drawingInd].line = this.currentLine;
                 this.drawing = true;
             }
@@ -159,9 +160,6 @@ class DrawableLine extends EngineInstance {
         //this.distanceText.x = $engine.getWindowSizeX()/2;
         //this.distanceText.y = 80;
         this.show = true;
-
-        $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
-        $engine.setCheatWriteBackValue(ENGINE_RETURN.NO_CHEAT);
     }
 
     onCreate() {
@@ -171,6 +169,9 @@ class DrawableLine extends EngineInstance {
     step() {
         if(this.isDrawing) {
             var point = new Vertex(IN.getMouseX(),IN.getMouseY());
+            if(DrawController.getInstance().hasCheated()) {
+                point = this.nearestPositionOnDrawing(point)
+            }
             var dist = V2D.distance(point.x,point.y,this.lastPoint.x,this.lastPoint.y)
             if(dist>2) {// arbitrary to prevent mASSIVE overdraw
                 this.points.push(point);
@@ -179,6 +180,23 @@ class DrawableLine extends EngineInstance {
             }
         }
         //this.distanceText.text = 'TOTAL DIST: '+String(this.totalDist);
+    }
+
+    nearestPositionOnDrawing(point) {
+        var nDist = 99999;
+        var t = -1;
+        var p1 = point;
+        for(var i =0;i<this.drawing.pathData.path.length-1;i++) {
+            var l1 = new EngineLightweightPoint(this.drawing.pathData.path[i].x+this.drawing.x,this.drawing.pathData.path[i].y+this.drawing.y);
+            var l2 = new EngineLightweightPoint(this.drawing.pathData.path[i+1].x+this.drawing.x,this.drawing.pathData.path[i+1].y+this.drawing.y);
+            var nearest = EngineUtils.nearestPositionOnLine(point,l1,l2)
+            t = V2D.distanceSq(point.x,point.y,nearest.x,nearest.y)
+            if(t<nDist) {
+                nDist=t;
+                p1 = nearest;
+            }
+        }
+        return p1;
     }
 
     display(bool) {
@@ -235,6 +253,8 @@ class ShapeToDraw extends EngineInstance {
     }
 
     calculateScore() {
+        this.score = 0;
+        this.basePenalty = 0;
         if(!this.line) {
             return;
         }
