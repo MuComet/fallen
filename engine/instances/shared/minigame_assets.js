@@ -139,7 +139,7 @@ class MinigameController extends EngineInstance { // TODO: startMinigame, pauseM
         this.minigamePaused = false;
 
         this.instructionTimer = 0;
-        this.instructionTimerLength = 60*2; // 5 seconds
+        this.instructionTimerLength = 60*5; // 5 seconds
         this.showingInstructions = true;
 
         this.cheated = false;
@@ -337,3 +337,42 @@ class MinigameController extends EngineInstance { // TODO: startMinigame, pauseM
     }
 }
 MinigameController.controller = undefined;
+
+class ParallaxingBackground extends EngineInstance {
+
+    onEngineCreate() {
+        this.parallaxFactorX = 0.25;
+        this.parallaxFactorY = 0.25;
+        this.x = $engine.getWindowSizeX()/2;
+        this.y = $engine.getWindowSizeY()/2;
+        this.sprites = $engine.getTexturesFromSpritesheet("background_sheet",0,$engine.getSpriteSheetLength("background_sheet"));
+        for(var i =0;i<this.sprites.length;i++) {
+            this.sprites[i] = $engine.createRenderable(this,new PIXI.Sprite(this.sprites[i]),false);
+            this.sprites[i].x = this.x;
+            this.sprites[i].y = this.y;
+        }
+        this.depth = 9999999999;
+        $engine.setBackground(new PIXI.Graphics())
+        $engine.setBackgroundColour(0xe2d6b3);
+    }
+
+    onCreate() {
+        this.onEngineCreate()
+    }
+
+    draw() {
+        var dx = $engine.getCamera().getX()
+        var dy = $engine.getCamera().getY()
+        var cx = $engine.getWindowSizeX()/2 + dx;
+        var cy = $engine.getWindowSizeY()/2 + dy;
+        var facX = this.parallaxFactorX;
+        var facY = this.parallaxFactorY;
+        for(var i = this.sprites.length-1;i>=0;i--) {
+            this.sprites[i].x = cx+(-dx*facX);
+            this.sprites[i].y = cy+(-dy*facY);
+            facX/=2;
+            facY/=2;
+        }
+    }
+
+}

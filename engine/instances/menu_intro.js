@@ -28,12 +28,18 @@ class MenuIntroController extends EngineInstance {
         IN.__mouseY=120;
 
         var startButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2);
-        startButton.setTextures("introStart1","introStart1","introStart2")
-        startButton.setOnPressed(function(){return true});
+        startButton.setTextures("button_new_game_1","button_new_game_1","button_new_game_2")
+        startButton.setOnPressed(function(){
+            AudioManager.fadeOutBgm(1);
+            IM.with(MainMenuButton,function(button) {
+                button.enabled = false;
+            })
+            return true
+        });
         startButton.setScript(MenuIntroController.startNewGame);
         
         var continueButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+120);
-        continueButton.setTextures("introStart1","introStart1","introStart2")
+        continueButton.setTextures("button_continue_1","button_continue_1","button_continue_2")
         continueButton.setOnPressed(function(){
             if (DataManager.loadGame(1)) {
                 // reload map if applicable -- taken from rpg_scenes.js line 1770
@@ -41,6 +47,10 @@ class MenuIntroController extends EngineInstance {
                     $gamePlayer.reserveTransfer($gameMap.mapId(), $gamePlayer.x, $gamePlayer.y);
                     $gamePlayer.requestMapReload();
                 }
+                AudioManager.fadeOutBgm(1);
+                IM.with(MainMenuButton,function(button) {
+                    button.enabled = false;
+                })
                 return true;
             } else {
                 SoundManager.playBuzzer();
@@ -51,6 +61,10 @@ class MenuIntroController extends EngineInstance {
             $gameSystem.onAfterLoad();
             SceneManager.goto(Scene_Map);
         });
+
+        this.audioReference = $engine.generateAudioReference("prototype");
+        this.musicStarted = false;
+        AudioManager.playBgm(this.audioReference)
     }
 
     step() {
@@ -59,6 +73,19 @@ class MenuIntroController extends EngineInstance {
         }
 
         this.timer++;
+
+        var src = AudioManager._bgmBuffer._sourceNode;
+        // wait for context, when we get context, start the music.
+        if(src!==null && !this.musicStarted && IN.anyInputPressed() && !IN.keyCheck("Escape")) { // escape doesn't count?
+            AudioManager._bgmBuffer._sourceNode.context.resume();
+            this.musicStarted = true;
+        }
+
+        /*if(!AudioManager._bgmBuffer.isReady() && !this.musicStarted) {
+            console.log("started")
+            AudioManager._bgmBuffer.play()
+            this.musicStarted=true;
+        }*/
 
         this.nextCloud--;
         if(this.nextCloud<=0) {
@@ -80,10 +107,6 @@ class MenuIntroController extends EngineInstance {
         if(this.timer>this.endTime) {
             if(this.timer===this.endTime+1) {
                 IM.with(RisingSprite, function(cloud){cloud.alpha = 1});
-                IM.with(Letter, function(letter){
-                    letter.f1.bloomScale = 0.25;
-                    letter.f1.brightness = 1;
-                })
                 IM.with(MainMenuButton, function(button){button.enable()})
                 for(var i=0;i<6;i++) {
                     var letter = this.letters[i]
@@ -189,13 +212,6 @@ class Letter extends EngineInstance {
         this.onEngineCreate();
         this.random1 = EngineUtils.irandom(360);
         this.random2 = EngineUtils.irandomRange(2,3);
-
-        this.f1 = new PIXI.filters.AdvancedBloomFilter();
-        this.f1.bloomScale = 1;
-        this.f1.brightness = 0.5;
-        this.f1.blur = 2;
-        this.f1.quality = 9;
-        this.getSprite().filters = [this.f1];
     }
 
     step() {
@@ -236,15 +252,11 @@ class RisingSprite extends EngineInstance {
 
         this.randRot = EngineUtils.random(60)
 
-        var f1 = new PIXI.filters.AdvancedBloomFilter();
-        f1.blur = 2;
-        f1.brightness = 1;
-
-        var f2 = new PIXI.filters.BlurFilter();
-        f2.blur = EngineUtils.clamp(Math.abs(dist/600)*8,0,5);
-        if(f2.blur < 3)
-            f2.blur = 1;
-        this.getSprite().filters = [f1, f2]
+        var f1 = new PIXI.filters.BlurFilter();
+        f1.blur = EngineUtils.clamp(Math.abs(dist/600)*8,0,5);
+        if(f1.blur < 3)
+            f1.blur = 1;
+        this.getSprite().filters = [f1]
     }
 
     step() {
@@ -258,11 +270,13 @@ class RisingSprite extends EngineInstance {
 
 class MainMenuButton extends EngineInstance {
     onEngineCreate() {
-        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-64,-32,64,32));
+        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-368,-125,368,125));
         this.alpha = 0;
         this.enabled = false;
         this.script = undefined;
         this.onPressed = undefined;
+        this.xScale = 0.25;
+        this.yScale = 0.25;
     }
 
     setTextures(def, armed, fire) {
@@ -322,6 +336,7 @@ class MainMenuButton extends EngineInstance {
             this.getSprite().texture = this.tex1;
         }
     }
+
 
     enable() {
         this.enabled=true;

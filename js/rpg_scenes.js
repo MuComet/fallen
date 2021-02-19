@@ -524,7 +524,13 @@ Scene_Title.prototype.commandOptions = function() {
 };
 
 Scene_Title.prototype.playTitleMusic = function() {
-    AudioManager.playBgm($dataSystem.titleBgm);
+	var ref = {
+            name: "Minigame-001",
+            pan: 0,
+            pitch: 100,
+            volume: 100,
+        }
+    AudioManager.playBgm(ref);
     AudioManager.stopBgs();
     AudioManager.stopMe();
 };

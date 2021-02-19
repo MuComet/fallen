@@ -118,6 +118,7 @@ class IM {
             IM.__sort();
             IM.__draw();
         } else {
+            IM.__sort();
             IM.__pause();
             IM.__draw();
         }
@@ -265,9 +266,9 @@ class IM {
     }
 
     // possible optimization related to instantly breaking out if both are rectangle colliders (since PCS would be the same as an actual collision)
-    static __generatePCS(source,x,y, targets) {
+    static __generatePCS(source,x,y, targets, fastForward = true) {
         var lst = [];
-        if(source.hitbox.getType()==Hitbox.TYPE_RECTANGLE) { // fast mode.
+        if(source.hitbox.getType()==Hitbox.TYPE_RECTANGLE && fastForward) { // fast mode.
             for(var i = 0;i<targets.length;i++) {
                 var r = IM.__queryObjects(targets[i]).filter(obj=>obj !== source && source.hitbox.checkBoundingBox(obj.hitbox,x,y))
                 for(const e of r) {
@@ -383,7 +384,7 @@ class IM {
      * @returns {EngineInstance} A non null list of all instances that collide with source
      */
     static instanceCollisionList(source,x,y,...targets) {
-        var PCS = IM.__generatePCS(source,x,y,targets);
+        var PCS = IM.__generatePCS(source,x,y,targets,false);
 
         var lst = []
         for(const inst of PCS) {
@@ -434,7 +435,7 @@ class IM {
      * @returns {...EngineInstance} A non null list of all instances that collide with source
      */
     static instanceCollisionPointList(x,y, ...targets) {
-        var PCS = IM.__generatePCSFromPoint(x,y,...targets);
+        var PCS = IM.__generatePCSFromPoint(x,y,targets,false);
         var lst = [];
         for(const inst of PCS) {
             if(inst.hitbox.containsPoint(x,y));
@@ -542,7 +543,7 @@ class IM {
 
     /**
      * Runs the specified function as func(target,other) on all instances that match target.
-     * @param {EngineInstance, instance} target The target instance, or class.
+     * @param {EngineInstance} target The target instance, or class.
      * @param {Fucntion} script The script to execute
      * @param {EngineInstance} [other] the calling instance (this)
      */

@@ -1,18 +1,24 @@
 /** @type {Scene_Engine} */
 var $engine;
 
+/** @type {Object} */
 var $__engineData = {}
 $__engineData.__textureCache = {};
 $__engineData.__spritesheets = {};
 $__engineData.__haltAndReturn = false;
 $__engineData.__ready = false;
-$__engineData.__debugRequireTextures = false;
 $__engineData.__outcomeWriteBackValue = -1
 $__engineData.outcomeWriteBackIndex = -1;
 $__engineData.__cheatWriteBackValue = -1
 $__engineData.cheatWriteBackIndex = -1;
 $__engineData.loadRoom = "MenuIntro";
 
+
+// reserve data slots 100 to 200 for engine use.
+$__engineData.__maxRPGVariables = 100;
+$__engineData.__RPGVariableStart = 101;
+
+$__engineData.__debugRequireTextures = false;
 $__engineData.__debugPreventReturn = false;
 $__engineData.__debugLogFrameTime = false;
 
@@ -82,7 +88,15 @@ class Scene_Engine extends Scene_Base {
     }
 
     start() {
+        super.start();
+        this.__saveAudio();
         this.__startEngine();
+    }
+
+    __saveAudio() {
+        this.prevBgm = AudioManager.saveBgm();
+        this.prevBgs = AudioManager.saveBgs();
+        AudioManager.fadeOutBgm(1);
     }
 
     __startEngine() {
@@ -109,6 +123,21 @@ class Scene_Engine extends Scene_Base {
         if(!this.__gamePaused)
             this.__gameTimer++;
         this.__globalTimer++;
+    }
+
+    /**
+     * Creates and returns an AudioReference for use in AudioManager.
+     * @param {String} audioName the name of the file, excluding the extension.
+     */
+    generateAudioReference(audioName) {
+        var ref = {
+            name: audioName,
+            pan: 0,
+            pitch: 100,
+            volume: 100,
+            pos: 0,
+        }
+        return ref;
     }
 
     setRoom(newRoom) {
@@ -190,6 +219,10 @@ class Scene_Engine extends Scene_Base {
             this.freeRenderable(camera);
             this.freeRenderable(camera.getCameraGraphics());
         }
+        if(this.__autoDestroyBackground) {
+            for(const child of this.__backgroundContainer.children)
+                this.freeRenderable(child);
+        }
     }
 
     __writeBack() {
@@ -200,7 +233,7 @@ class Scene_Engine extends Scene_Base {
             $__engineData.outcomeWriteBackIndex=-1; // reset for next time
             $__engineData.__outcomeWriteBackValue=-1;
         }
-        if($__engineData.cheatWriteBackIndex!==-1) {
+        if($__engineData.cheatWriteBackIndex!==-1) { 
             if($__engineData.cheatWriteBackIndex<0)
                 throw new Error("Engine expects a non negative cheat write back value");
             $gameVariables.setValue($__engineData.cheatWriteBackIndex,$__engineData.__cheatWriteBackValue);
@@ -209,10 +242,39 @@ class Scene_Engine extends Scene_Base {
         }
     }
 
+    getRPGVariable(index) {
+        return $gameVariables.getValue(this.__correctRange(index));
+    }
+
+    setRPGVariable(index, value) {
+        return $gameVariables.setValue(this.__correctRange(index),value);
+    }
+
+    resetAllRPGVariables() {
+        for(var i = $__engineData.__RPGVariableStart;i<$__engineData.__RPGVariableStart+$__engineData.__maxRPGVariables;i++)
+            $gameVariables.setValue(i,-1);
+    }
+
+    __correctRange(index) {
+        if(index<0 || index > $__engineData.__maxRPGVariables)
+            throw new Error("Access to variable at "+index+" is not in engine range of [0 - "+String($__engineData.__maxRPGVariables-1)+"].");
+        return index + $__engineData.__RPGVariableStart;
+    }
+
     terminate() {
         super.terminate()
         this.__cleanup();
         this.__writeBack();
+        this.__resumeAudio();
+    }
+
+    __resumeAudio() {
+        if (this.prevBgm !== null) {
+            AudioManager.replayBgm(this.prevBgm);
+        }
+        if (this.prevBgs !== null) {
+            AudioManager.replayBgs(this.prevBgs);
+        }
     }
 
 
@@ -348,7 +410,7 @@ class Scene_Engine extends Scene_Base {
      * this function will only tell the engine to keep track of it for you.
      * @param {EngineInstance} parent The parent to attach the renderable to
      * @param {PIXI.DisplayObject} renderable The renderable to auto dispose of
-     * @param {Boolean | false} align Whether or not to automatically move the renderable to match the parent instance's x, y, scale, and rotation
+     * @param {Boolean | false} [align=false] Whether or not to automatically move the renderable to match the parent instance's x, y, scale, and rotation (default false)
      */
     createRenderable(parent, renderable, align = false) {
         renderable.__depth = parent.depth
@@ -384,7 +446,8 @@ class Scene_Engine extends Scene_Base {
      * @param {PIXI.DisplayObject} renderable The renderable to destroy
      */
     freeRenderable(renderable) {
-        renderable.destroy();
+        if(!renderable._destroyed)
+            renderable.destroy();
     }
 
     /**
@@ -430,7 +493,7 @@ class Scene_Engine extends Scene_Base {
     }
 
     setBackground(background, autoDestroy) { // expects any PIXI renderable. renders first.
-        if(autoDestroy) {
+        if(this.__autoDestroyBackground) {
             for(const child of this.__backgroundContainer.children)
                 this.freeRenderable(child);
         }
@@ -509,7 +572,8 @@ class Scene_Engine extends Scene_Base {
 ////////////////////////////////single time setup of engine///////////////////////
 
 IN.__register();
-
+// calling of this is defered until window.onLoad() is called in main.js
+// this is so that the engine won't delay the starting of RPG maker while it loads.
 __initalize = function() {
     var obj = {
         count : 0,
@@ -875,12 +939,9 @@ DataManager.maxSavefiles = function() {
     return 1;
 };
 
-
 // take over menu
 Scene_GameEnd.prototype.commandToTitle = function() {
     this.fadeOutAll();
     $__engineData.loadRoom = "MenuIntro";
     SceneManager.goto(Scene_Engine);
 };
-
-__initalize();

@@ -17,13 +17,7 @@ class SkyMinigameController extends MinigameController { // All classes that can
         this.timer = 0;
         //$engine.setBackgroundColour(12067);
         $engine.setBackgroundColour(0xa58443);
-        SkyMinigameController.iBuffer = new BufferedKeyInput('Space',8);
-        this.f1 = new PIXI.filters.AdvancedBloomFilter();
-        this.f1.bloomScale = 0.5;
-        this.f1.brightness = 1;
-        this.f1.blur = 3;
-        this.f1.quality = 9;
-        $engine.addFilter(this.f1);
+        SkyMinigameController.iBuffer = new BufferedKeyInput('Space',2);
         $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
         $engine.setCheatWriteBackValue(ENGINE_RETURN.NO_CHEAT);
 
@@ -34,11 +28,40 @@ class SkyMinigameController extends MinigameController { // All classes that can
             else {
                 $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN);
             }
+            AudioManager.fadeOutBgm(1)
             $engine.startFadeOut(30,false)
             $engine.endGame();
         })
 
+        new ParallaxingBackground();
+
+        // audio
+        AudioManager.fadeOutBgm(1)
+        this.audioReference = $engine.generateAudioReference("Minigame-001");
+        AudioManager.playBgm(this.audioReference);
+        AudioManager.fadeInBgm(1);
+
+        // instructions
+
+        var text = new PIXI.Text("Press Space to drop a block\nPress Enter to cheat!",{ fontFamily: 'Helvetica',
+                        fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
+
+        this.setInstructionRenderable(text)
+
+        // progress
+        this.progressText = new PIXI.Text("",{ fontFamily: 'Helvetica',
+                    fontSize: 20, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
+        $engine.createManagedRenderable(this,this.progressText);
+        this.progressText.anchor.set(0.5,0.5);
+        this.progressText.x = $engine.getWindowSizeX()/2;
+        this.progressText.y = $engine.getWindowSizeY()-30;
+        this.updateProgressText();
+
     }  
+
+    updateProgressText() {
+        this.progressText.text = "Progress: "+String(SkyMinigameController.score+" / "+String(SkyMinigameController.maxScore))
+    }
     onCreate() { // called when you construct the instance yourself
         this.onEngineCreate();
         super.onCreate();
@@ -52,6 +75,11 @@ class SkyMinigameController extends MinigameController { // All classes that can
             $engine.getCamera().setY(EngineUtils.interpolate(timer/endTime,SkyMinigameController.pCamY,SkyMinigameController.nCamY,EngineUtils.INTERPOLATE_OUT));
         }
         SkyMinigameController.timer++;
+    }
+
+    draw(gui,camera) {
+        super.draw(gui,camera)
+        $engine.requestRenderOnGUI(this.progressText);
     }
 
     onDestroy() {
@@ -114,6 +142,7 @@ class SkyBuildPlayer extends EngineInstance {
                 if(tower.activated == false){
                     SkyMinigameController.mingameTimer.setTimeRemaining(60*5)
                     SkyMinigameController.score+= 1;
+                    SkyMinigameController.getInstance().updateProgressText();
                     this.speed = 0;
                     this.activated = false;
                     SkyMinigameController.nextBlock += 1;
@@ -143,6 +172,7 @@ class SkyBuildPlayer extends EngineInstance {
     }
 
     onDestroy() {
+        AudioManager.fadeOutBgm(1)
         $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
         $engine.startFadeOut(30,false)
         $engine.endGame();
@@ -175,6 +205,7 @@ class FallingTowerPlatform extends SkyBuildPlayer {
                 if(tower.activated == true){
                     SkyMinigameController.mingameTimer.setTimeRemaining(60*5)
                     SkyMinigameController.score+= 1;
+                    SkyMinigameController.getInstance().updateProgressText();
                     tower.speed = 0;
                     tower.activated = false;
                     new SkyBuildPlayer($engine.getWindowSizeX()/2,64 - 100 * SkyMinigameController.score,0);

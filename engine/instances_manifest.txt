@@ -1,4 +1,4 @@
-MinigameTimer MinigameController engine/instances/shared/minigame_assets.js
+MinigameTimer MinigameController ParallaxingBackground engine/instances/shared/minigame_assets.js
 InstanceMover engine/instances/shared/minigame_instances.js
 BufferedKeyInput BufferedMouseInput EngineButton engine/instances/shared/minigame_utils.js
 
