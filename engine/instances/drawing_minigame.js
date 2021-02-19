@@ -1,3 +1,152 @@
+class DrawController extends MinigameController { // controls the minigame
+    onEngineCreate() {
+        super.onEngineCreate();
+        this.instructiontext = $engine.createRenderable(this,new PIXI.Text("WAIT! " + String(60), $engine.getDefaultSubTextStyle()),false);
+        this.instructiontext.anchor.x=0.5
+        this.instructiontext.x = $engine.getWindowSizeX()/2;
+        this.instructiontext.y = $engine.getWindowSizeY()-80;
+
+        this.currentLine = undefined;
+        this.drawings = [];
+        this.drawingInd = -1;
+        this.drawing = false;
+
+        this.gameOverTimer=0;
+
+        this.selectDrawings();
+        this.nextDrawing();
+        this.waitTimer = 0;
+
+        this.timer = new MinigameTimer(60*25);
+        this.timer.addOnTimerStopped(this, function(parent, bool) {
+            if(parent.currentLine)
+                parent.currentLine.endDrawing();
+            while(!parent.done) {
+                parent.nextDrawing();
+            }
+            parent.calcWin();
+            var text = parent.win ? "Win! [Total score "+String(parent.ts).substring(0,4)+" > 0.750]" : "Loss :( [Total score "+String(parent.ts).substring(0,4)+" <= 0.750]"
+            parent.timer.setGameCompleteText(text)
+            parent.timer.setGameOverText(text)
+        })
+
+        var text = new PIXI.Text("Click and hold to draw a line\nPress Enter to cheat!",{ fontFamily: 'Helvetica',
+                        fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
+        this.setInstructionRenderable(text)
+
+        this.audioReference = $engine.generateAudioReference("Minigame-001");
+        AudioManager.playBgm(this.audioReference);
+        AudioManager.fadeInBgm(1);
+    }
+
+    calcWin() {
+        this.ts = 0;
+        for(var i = 0;i<3;i++) {
+            this.ts+=this.drawings[i].score;
+        }
+        this.ts/=3;
+        this.win = false;
+        if(this.ts>0.75) {
+            this.win = true;
+            $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN);
+        }
+    }
+
+    onCreate() {
+        this.onEngineCreate();
+    }
+
+    selectDrawings() {
+        for(var i =0;i<3;i++) {
+            var ind = EngineUtils.irandomRange(1,3);
+            this.drawings.push(new ShapeToDraw(ind));
+        }
+    }
+
+    nextDrawing() {
+        this.drawingInd++;
+        if(this.drawingInd>0) {
+            this.drawings[this.drawingInd-1].alpha = 0;
+            this.drawings[this.drawingInd-1].calculateScore();
+        }
+        if(this.drawingInd>=3) {
+            this.done = true;
+            return;
+        }
+        this.drawings[this.drawingInd].alpha = 1;
+        this.waitTimer = -9999999;
+    }
+
+    step() {
+        super.step();
+
+        if(!this.timer.stopped()) {
+            this.waitTimer++;
+            if(this.waitTimer<150) {
+                if(this.waitTimer<=60) {
+                    this.instructiontext.alpha=1;
+                    this.instructiontext.text = "WAIT! " + String(60-this.waitTimer)
+                } else {
+                    this.instructiontext.text = "GO!!!!"
+                    this.instructiontext.alpha = 1-(this.waitTimer-60)/40 + Math.sin(this.waitTimer/2)/2
+                }
+            } else {
+                this.instructiontext.text = "";
+            }
+            if(IN.mouseCheckPressed(0) && this.waitTimer >=60) {
+                this.currentLine = new DrawableLine()
+                this.currentLine.startDrawing();
+                this.drawings[this.drawingInd].line = this.currentLine;
+                this.drawing = true;
+            }
+
+            if(IN.mouseCheckReleased(0) && this.drawing) {
+                this.currentLine.endDrawing();
+                this.currentLine.display(false);
+                //this.currentLine.distanceText.alpha = 0;
+                this.drawing = false;
+                this.nextDrawing();
+                if(this.done) {
+                    this.timer.stopTimer();
+                }
+                this.waitTimer=0;
+            }
+        
+        } else {
+            this.gameOverSummary();
+        }
+    }
+
+    gameOverSummary() {
+        this.gameOverTimer++;
+        for(const draw of this.drawings) {
+            draw.alpha = 0;
+            if(draw.line) {
+                draw.line.display(false);
+                //draw.line.distanceText.alpha = 0;
+            }
+        }
+        var ind = Math.floor(this.gameOverTimer/200)
+        if(ind>=3) {
+            ind = 2;
+            this.gameOverTimer=0;
+            $engine.startFadeOut(30,false)
+            $engine.endGame();
+            $engine.pauseGame();
+            AudioManager.fadeOutBgm(1)
+        }
+        var draw = this.drawings[ind];
+        draw.alpha = 1;
+        if(draw.line) {
+            draw.line.display(true);
+            //draw.line.distanceText.alpha = 1;
+        }
+        this.instructiontext.alpha=1;
+        this.instructiontext.text = "Summary: Drawing " + String(ind+1)+" -> Score = " +String(draw.score).substring(0,4) + "\n("+
+                            String(draw.baseScore).substring(0,4)+" accuracy - "+String(draw.basePenalty).substring(0,4) +" extra distance "+")";
+    }
+}
+
 class DrawableLine extends EngineInstance {
     onEngineCreate() {
         this.drawGraphics = $engine.createRenderable(this,new PIXI.Graphics(),false);
@@ -5,10 +154,10 @@ class DrawableLine extends EngineInstance {
         this.points = [];
         this.lastPoint = undefined;
         this.totalDist = 0;
-        this.distanceText = $engine.createRenderable(this,new PIXI.Text('TOTAL DIST: 0', { font: 'bold italic 20px Arvo', fill: '#ffffff', align: 'center', stroke: '#aaaaaa', strokeThickness: 4 }),false);
-        this.distanceText.anchor.x=0.5
-        this.distanceText.x = $engine.getWindowSizeX()/2;
-        this.distanceText.y = 80;
+        //this.distanceText = $engine.createRenderable(this,new PIXI.Text('TOTAL DIST: 0', { font: 'bold italic 20px Arvo', fill: '#ffffff', align: 'center', stroke: '#aaaaaa', strokeThickness: 4 }),false);
+        //this.distanceText.anchor.x=0.5
+        //this.distanceText.x = $engine.getWindowSizeX()/2;
+        //this.distanceText.y = 80;
         this.show = true;
 
         $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
@@ -29,7 +178,7 @@ class DrawableLine extends EngineInstance {
                 this.lastPoint=point;
             }
         }
-        this.distanceText.text = 'TOTAL DIST: '+String(this.totalDist);
+        //this.distanceText.text = 'TOTAL DIST: '+String(this.totalDist);
     }
 
     display(bool) {
@@ -71,140 +220,6 @@ class DrawableLine extends EngineInstance {
     }
 }
 
-class DrawController extends EngineInstance { // controls the minigame
-    onEngineCreate() {
-
-        this.instructiontext = $engine.createRenderable(this,new PIXI.Text('TIME REMAINING:', { font: 'bold italic 40px Arvo', fill: '#612669', align: 'center', stroke: '#410f49', strokeThickness: 4 }),false);
-        this.instructiontext.anchor.x=0.5
-        this.instructiontext.x = $engine.getWindowSizeX()/2;
-        this.instructiontext.y = $engine.getWindowSizeY()-80;
-
-        this.currentLine = undefined;
-        this.drawings = [];
-        this.drawingInd = -1;
-        this.drawing = false;
-
-        this.gameOverTimer=0;
-
-        this.selectDrawings();
-        this.nextDrawing();
-        this.waitTimer = 0;
-
-        this.timer = new MinigameTimer(60*25);
-        this.timer.addOnTimerStopped(this, function(parent, bool) {
-            if(parent.currentLine)
-                parent.currentLine.endDrawing();
-            while(!parent.done) {
-                parent.nextDrawing();
-            }
-            parent.calcWin();
-        })
-    }
-
-    calcWin() {
-        var ts = 0;
-        for(var i = 0;i<3;i++) {
-            ts+=this.drawings[i].score;
-        }
-        ts/=3;
-        if(ts>0.75) {
-            $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN);
-        }
-    }
-
-    onCreate() {
-        this.onEngineCreate();
-    }
-
-    selectDrawings() {
-        for(var i =0;i<3;i++) {
-            var ind = EngineUtils.irandomRange(1,3);
-            this.drawings.push(new ShapeToDraw(ind));
-        }
-    }
-
-    nextDrawing() {
-        this.drawingInd++;
-        if(this.drawingInd>0) {
-            this.drawings[this.drawingInd-1].alpha = 0;
-            this.drawings[this.drawingInd-1].calculateScore();
-        }
-        if(this.drawingInd>=3) {
-            this.done = true;
-            return;
-        }
-        this.drawings[this.drawingInd].alpha = 1;
-        this.waitTimer = -9999999;
-    }
-
-    step() {
-        if(IN.keyCheckPressed("KeyR")) {
-            RoomManager.changeRooms(RoomManager.currentRoom().name)
-        }
-
-        if(!this.timer.stopped()) {
-            this.waitTimer++;
-            if(this.waitTimer<150) {
-                if(this.waitTimer<=60) {
-                    this.instructiontext.alpha=1;
-                    this.instructiontext.text = "WAIT! " + String(60-this.waitTimer)
-                } else {
-                    this.instructiontext.text = "GO!!!!"
-                    this.instructiontext.alpha = 1-(this.waitTimer-60)/40 + Math.sin(this.waitTimer/2)/2
-                }
-            } else {
-                this.instructiontext.text = "";
-            }
-            if(IN.mouseCheckPressed(0) && this.waitTimer >=60) {
-                this.currentLine = new DrawableLine()
-                this.currentLine.startDrawing();
-                this.drawings[this.drawingInd].line = this.currentLine;
-                this.drawing = true;
-            }
-
-            if(IN.mouseCheckReleased(0) && this.drawing) {
-                this.currentLine.endDrawing();
-                this.currentLine.display(false);
-                this.currentLine.distanceText.alpha = 0;
-                this.drawing = false;
-                this.nextDrawing();
-                if(this.done) {
-                    this.timer.stopTimer();
-                }
-                this.waitTimer=0;
-            }
-        
-        } else {
-            this.gameOverSummary();
-        }
-    }
-
-    gameOverSummary() {
-        this.gameOverTimer++;
-        for(const draw of this.drawings) {
-            draw.alpha = 0;
-            if(draw.line) {
-                draw.line.display(false);
-                draw.line.distanceText.alpha = 0;
-            }
-        }
-        var ind = Math.floor(this.gameOverTimer/200)
-        if(ind>=3) {
-            ind = 2;
-            $engine.startFadeOut(30,false)
-            SceneManager.pop();
-        }
-        var draw = this.drawings[ind];
-        draw.alpha = 1;
-        if(draw.line) {
-            draw.line.display(true);
-            draw.line.distanceText.alpha = 1;
-        }
-        this.instructiontext.alpha=1;
-        this.instructiontext.text = "Summary: Drawing " + String(ind+1)+" -> Score = " +String(draw.score).substring(0,4);
-    }
-}
-
 class ShapeToDraw extends EngineInstance {
     onEngineCreate() {
     }
@@ -240,10 +255,18 @@ class ShapeToDraw extends EngineInstance {
 
         score /= this.pathData.path.length;
 
+        this.baseScore = score;
+
 
         var distDiff = this.line.totalDist - this.pathData.dist;
-        if(distDiff>25) {
-            score = EngineUtils.clamp(score-(distDiff-25)/75,0,1) // can be at most 100 px longer than the src line.
+        var maxExtra = 25;
+        var extraDiv = 75;
+        this.basePenalty = 0;
+        if(distDiff>maxExtra) {
+            var penalty = EngineUtils.clamp((distDiff-maxExtra)/extraDiv,0,1);
+            penalty = EngineUtils.clamp(penalty,0,score); // don't take away more than we have.
+            this.basePenalty = penalty;
+            score = EngineUtils.clamp(score-penalty,0,1)
         }
 
         console.log(score);

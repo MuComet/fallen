@@ -10,7 +10,7 @@ class SkyMinigameController extends MinigameController { // All classes that can
         SkyMinigameController.nCamY = 0;
         SkyMinigameController.iBuffer = undefined
         SkyMinigameController.mingameTimer = undefined
-        SkyMinigameController.maxScore = 32
+        SkyMinigameController.maxScore = 32;
 
         new SkyBuildPlayer($engine.getWindowSizeX()/2,0,0);
         new FallingTowerPlatform($engine.getWindowSizeX()/2,$engine.getWindowSizeY()-50);
@@ -143,7 +143,6 @@ class SkyBuildPlayer extends EngineInstance {
                     this.speed = 0;
                     this.activated = false;
                     SkyMinigameController.nextBlock += 1;
-                    new SkyBuildPlayer($engine.getWindowSizeX()/2,64 - 100 * SkyMinigameController.score,0);
                     this.y = tower.hitbox.getBoundingBoxTop()-100;
                     tower.getSprite().tint = 0x444444;
                     if(SkyMinigameController.score>=3){
@@ -153,7 +152,10 @@ class SkyBuildPlayer extends EngineInstance {
                         SkyMinigameController.timer=0;
                     }
                     if(SkyMinigameController.score>=SkyMinigameController.maxScore) {
-                        SkyMinigameController.mingameTimer.setGameComplete();
+                        SkyMinigameController.mingameTimer.stopTimer();
+                        SkyMinigameController.nCamY = SkyMinigameController.pCamY;
+                    } else {
+                        new SkyBuildPlayer($engine.getWindowSizeX()/2,64 - 100 * SkyMinigameController.score,0);
                     }
 
                     /*var bb1 = tower.hitbox.getBoundingBox();

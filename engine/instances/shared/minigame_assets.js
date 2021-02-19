@@ -225,6 +225,10 @@ class MinigameController extends EngineInstance {
     }
 
     step() {
+        this._minigameControllerTick();
+    }
+
+    _minigameControllerTick() {
         if(!this.showingInstructions && this.cheatKeyActive && IN.keyCheckPressed(this.cheatKey)) {
             this.cheat();
         }
@@ -233,7 +237,7 @@ class MinigameController extends EngineInstance {
     }
 
     pause() {
-        this.step(); // hehe
+        this._minigameControllerTick();
     }
 
     draw(gui, camera) {
@@ -277,14 +281,14 @@ class MinigameController extends EngineInstance {
         return this.cheated;
     }
 
-    addCheatCallback(callback, parent) {
+    addCheatCallback(parent,callback) {
         this.onCheatCallbacks.push({
             func:callback,
             caller:parent
         });
     }
 
-    addOnGameStartCallback(callback, parent) {
+    addOnGameStartCallback(parent,callback) {
         this.onGameStartCallbacks.push({
             func:callback,
             caller:parent
@@ -294,7 +298,8 @@ class MinigameController extends EngineInstance {
     _handleInstructionImage() {
         this.instructionTimer++;
         if(this.instructionTimer<this.instructionTimerLength) {
-            if(IN.keyCheckPressed("Space") && this.instructionTimer < this.instructionTimerLength-this.blurFadeTime) {
+            if(((IN.anyKeyPressed() && this.instructionTimer>18) || IN.keyCheckPressed("Space") || IN.keyCheckPressed("Enter")) 
+                            && this.instructionTimer < this.instructionTimerLength-this.blurFadeTime) {
                 this.instructionTimer = this.instructionTimerLength-this.blurFadeTime; // skip;
             }
             if(this.instructionTimer>=this.instructionTimerLength-this.blurFadeTime) {

@@ -33,12 +33,15 @@ class UmbrellaMinigameController extends MinigameController {
             AudioManager.fadeOutBgm(1)
             $engine.startFadeOut(30,false)
             $engine.endGame();
+            $engine.pauseGame();
         })
         this.timer.setSurvivalMode();
         $engine.setBackgroundColour(0x080820)
     }
 
     decrementScore() {
+        if(this.timer.stopped())
+            return;
         this.score--;
         if(this.score<=0) {
             this.score = 0;
