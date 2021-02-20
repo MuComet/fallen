@@ -1,4 +1,0 @@
-block instances
-	TestInstance 500 500 0 0 1 1
-	TestInstance2 300 500 0 0 1 1
-endblock
