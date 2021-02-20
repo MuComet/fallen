@@ -1,0 +1,3 @@
+block instances
+    MenuIntroController  300 350 0 0 1 1
+endblock
