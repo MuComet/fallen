@@ -7,7 +7,7 @@ class UmbrellaMinigameController extends MinigameController {
         AudioManager.playBgm(this.audioReference);
         AudioManager.fadeInBgm(1);
 
-        this.score = 750;
+        this.score = 7500;
         this.scoreText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         this.scoreText.anchor.set(0.5,0.5);
         this.scoreText.x = $engine.getWindowSizeX()/2;
@@ -278,6 +278,9 @@ class Raindrop extends EngineInstance {
     onEngineCreate() {
         this.dx = EngineUtils.randomRange(0.2,0.8);
         this.dy = EngineUtils.randomRange(20,24);
+        this.angle = V2D.calcDir(this.dx,this.dy)
+        var dist = V2D.calcMag(this.dx,this.dy);
+        this.xScale = EngineUtils.clamp(dist/6,0,2)
         this.hitbox = new Hitbox(this, new RectangeHitbox(this,0,-1,16,1))
         this.setSprite(new PIXI.Sprite($engine.getTexture("raindrop")))
     }
@@ -289,9 +292,6 @@ class Raindrop extends EngineInstance {
     }
 
     step() {
-        this.angle = V2D.calcDir(this.dx,this.dy)
-        var dist = V2D.calcMag(this.dx,this.dy);
-        this.xScale = EngineUtils.clamp(dist/6,0,2)
         this.x+=this.dx;
         this.y+=this.dy;
         if(this.y>=$engine.getWindowSizeY() || this.x<0 || this.x > 816 || IM.instanceCollision(this,this.x,this.y,Umbrella)) {

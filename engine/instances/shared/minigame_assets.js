@@ -4,8 +4,6 @@ class MinigameTimer extends EngineInstance {
     }
 
     onCreate(frames, style = { fontFamily: 'Helvetica', fontSize: 30, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 2 }) {
-        this.timer = frames;
-
         this.timerText = new PIXI.Text('TIME REMAINING:', style);
         this.timerText.anchor.x=0.5
         this.timerText.x = $engine.getWindowSizeX()/2;
@@ -13,7 +11,7 @@ class MinigameTimer extends EngineInstance {
 
         this.timerDone = false;
         this.isPaused = false;
-        this.visible=true;
+        this.visible = true;
 
         this.onTimerUp = [];
 
@@ -24,7 +22,7 @@ class MinigameTimer extends EngineInstance {
 
         this.survivalMode = false;
 
-        this._updateText();
+        this.restartTimer(frames);
     }
 
     /**
@@ -35,6 +33,10 @@ class MinigameTimer extends EngineInstance {
      */
     addOnTimerStopped(par, f) {
         this.onTimerUp.push({parent:par, func:f});
+    }
+
+    removeAllOnTimerStopped() {
+        this.onTimerUp = [];
     }
 
     step() {
@@ -76,6 +78,12 @@ class MinigameTimer extends EngineInstance {
         this.timerText.dirty = true;
     }
 
+    restartTimer(newTime) {
+        this.timerDone = false;
+        this.timer = newTime;
+        this._updateText();
+    }
+
     _updateText() {
         var strEnd = String(EngineUtils.roundMultiple((this.timer%60)/60,0.01))+"000"
         this.timerText.text = this.timerTextPrepend + String(Math.floor(this.timer/60) +":"+strEnd.substring(2,4))
@@ -97,7 +105,7 @@ class MinigameTimer extends EngineInstance {
 
     /**
      * Causes the timer to stop immediately and display either the gameComplete or gameOver text based on whether
-     * or not it is in survival mode. If the timer is asked to stop, it will consider it a loss in survival mode.
+     * or not it is in survival mode. The timer will consider this a loss in survival mode.
      * 
      * This will fire all onTimerStopped methods and input an argument of 'false'
      */
@@ -115,7 +123,7 @@ class MinigameTimer extends EngineInstance {
     /**
      * Expires the timer immediately. this is the same as setting the remaining time to zero.
      * This will cause the timer to display either the gameComplete or gameOver text based on whether
-     * or not it is in survival mode.
+     * or not it is in survival mode. The timer will consider this a win survival mode
      * 
      * This will fire all onTimerStopped methods and input an argument of 'true'
      */
@@ -196,6 +204,8 @@ class MinigameController extends EngineInstance {
         this.cheatKeyActive = true;
         this.cheatButtonActive = false;
 
+        this.allowActivateCheat = true;
+
         this.blurFadeTime = 60;
         this.blurFilterStrength = 9.6666; // making it a round number kinda messes with it
         this.blurFilter = new PIXI.filters.BlurFilter(8,4,3,15);
@@ -226,6 +236,10 @@ class MinigameController extends EngineInstance {
 
     step() {
         this._minigameControllerTick();
+    }
+
+    disableCheating() {
+        this.allowActivateCheat=false;
     }
 
     _minigameControllerTick() {

@@ -158,7 +158,7 @@ class IM {
     }
 
     static __preDraw() {
-        for(const obj of IM.__objectsSorted) // this is where you can prepare for draw by checking collisions and such -- draw should only draw
+        for(const obj of IM.__objects) // this is where you can prepare for draw by checking collisions and such -- draw should only draw
             obj.preDraw();
     }
 
@@ -167,7 +167,7 @@ class IM {
             obj.pause();
     } 
 
-    // does not actually render anything to the canvas, and so does not need to be sorted. (sorting is done later)
+    // does not actually render anything to the canvas, but is called in sorted order.
     static __draw() {
         $engine.getCamera().getCameraGraphics().clear();
         $engine.__GUIgraphics.clear();
@@ -190,7 +190,14 @@ class IM {
     }
 
     static __findAll(oid) {
-        return IM.__accessMap[oid];
+        if(IM.__childMap[oid].children===undefined)
+            return IM.__accessMap[oid];
+        var result = [];
+        result.push(...IM.__accessMap[oid])
+        for(const childOid of IM.__childMap[oid].children) {
+            result.push(...IM.__findAll(childOid));
+        }
+        return result;
     }
 
     static __findById(id) {
@@ -316,6 +323,11 @@ class IM {
         }
     }
 
+    /**
+     * @deprecated
+     * @param {*} source 
+     * @param {*} PCS 
+     */
     static __isCollidingWith(source, PCS) {
         for(const inst of PCS) {
             if(source.hitbox.doCollision(inst.hitbox))
@@ -532,6 +544,11 @@ class IM {
     /**
      * Queries the InstanceManager's internal list of objects and returns the nth instance of type obj.
      * This is a constant time operation.
+     * 
+     * NOTE: THIS FUNCTION IS NOT HIERARCY AWARE. Only instances of type obj will be returned, 
+     * sublcasses are ignored. This is because the engine makes no guarantees of order after the
+     * inital class is found. So finding subclasses would be useless.
+     * 
      * @param {EngineInstance} obj  the class to query
      * @param {Number} [ind=0] the nth instance to find.
      * @returns {EngineInstance} The requested instance, or undefined if unvailable.

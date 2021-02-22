@@ -76,7 +76,7 @@ class Room {
                 } else if(type==="room_load") {
                     room.__onLoad.push(blockData.join("\n"));
                 } else {
-                    throw "Unknown room key "+type;
+                    throw new Error("Unknown room key "+type);
                 }
             }
         }

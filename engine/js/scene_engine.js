@@ -73,14 +73,6 @@ class Scene_Engine extends Scene_Base {
 
         this.__RPGVariableTags = [];
 
-        this.__afterFade = undefined;
-        this.__fadeTime = undefined;
-        this.__fadeParent = undefined;
-        this.__isFading = false;
-        
-
-        this.debugLogFrameTime = false;
-
         this.__background = undefined;
         this.__backgroundColour = 0;
         this.__usingSolidColourBackground = true;
@@ -496,7 +488,7 @@ class Scene_Engine extends Scene_Base {
         this.freeRenderable(renderable)
     }
 
-    /**
+    /** 
      * Requests that on this frame, the renderable be rendered to the GUI layer.
      * 
      * Renderables added to the GUI will render in the order they are added. As such, it recommended
@@ -839,7 +831,7 @@ __generateTexturesFromSheet = function(texture, texObj, spritesheet) { // replac
     var idx = 0;
     for(var y = 0;y<rows;y++) {
         for(var x = 0;x<cols;x++) {
-            if(spritesheet.frameLimit[y] && x > spritesheet.frameLimit[y]) {
+            if(spritesheet.frameLimit[y]!==undefined && x >= spritesheet.frameLimit[y]) {
                 break;
             }
             let rect = new PIXI.Rectangle(dx*x,dy*y,dx,dy);
@@ -981,3 +973,160 @@ Scene_GameEnd.prototype.commandToTitle = function() {
     $__engineData.loadRoom = "MenuIntro";
     SceneManager.goto(Scene_Engine);
 };
+
+// hook a in a global update.
+SceneManager.updateManagers = function() {
+    ImageManager.update();
+    OwO.tick();
+}
+
+// Overworld Organizer
+// I hate myself too.
+class OwO {
+    constructor() {
+        throw new Error("Overworld Organizer cannot be instantiated")
+    }
+
+    static __getWorldSprites() {
+        var scene = SceneManager._scene;
+        var spriteset = scene._spriteset;
+        // this is a PIXI Object containing of all sprites which are being rendered to the screen currently.
+        var worldSprites = spriteset.children[0].children[2].children
+        return worldSprites;
+    }
+
+    // filterUpdate takes in 2 paramaeters, which are the filter followed by event
+    static addConditionalFilter(evId, rpgVar = -1, shader = OwO.__defaultOutlineShader, filterUpdate = OwO.__defaultUpdateFunc) {
+        var map = $gameMap._mapId;
+        OwO.__sceneShaderMap[map] = OwO.__sceneShaderMap[map] || [];
+        var arr = OwO.__sceneShaderMap[map];
+        var data = {
+            eventId: evId,
+            RPGVariable: rpgVar, // the corresponding GameVaraible is set to 1, do not apply the filter... if this var is -1, apply always.
+            filter:shader,
+            filterUpdateFunc: filterUpdate,
+        };
+        arr.push(data);
+    }
+
+    static removeConditionalFilters() {
+        var map = $gameMap._mapId;
+        OwO.__sceneShaderMap[map] = [];
+    }
+
+    static __getCurrentMapFilters() {
+        var map = $gameMap._mapId;
+        return OwO.__sceneShaderMap[map] || [];
+    }
+
+    static applyConditionalFilters() {
+        OwO.__clearUpdateFunctions();
+        var spriteMap = OwO.__buildSpriteMap();
+        for(const filterData of OwO.__getCurrentMapFilters()) {
+            var RPGVariable = filterData.RPGVariable;
+            // check fail, do not apply filter.
+            if(RPGVariable!==-1 && $gameVariables.value(RPGVariable)!==1)
+                continue;
+            var filter = filterData.filter;
+            var filterUpdate = filterData.filterUpdateFunc;
+
+            var eventId = filterData.eventId;
+            var pixiObj = spriteMap[eventId];
+            if(pixiObj===undefined)
+                throw new Error("Corresponding event ID did not match back to a valid Character.")
+
+            var newFilters = [filter];
+            if(pixiObj.filters && pixiObj.filters.length!==0) {
+                newFilters.push(...pixiObj.filters);
+            }
+            pixiObj.filters = newFilters;
+
+            OwO.__addUpdateFunction(filterUpdate,filter,OwO.getEvent(eventId));
+        }
+    }
+
+    static __addUpdateFunction(_func, _filter,_event) {
+        OwO.__updateFunctions.push({func: _func, filter: _filter, event:_event});
+    }
+
+    static __clearUpdateFunctions() {
+        OwO.__updateFunctions = [];
+    }
+
+    static __buildSpriteMap() { // returns an object where an eventId will map to a character.
+        if(OwO.__spriteMapValid)
+            return OwO.__spriteMap;
+        // reset event map
+        OwO.__spriteMap = {};
+        var worldSprites = OwO.__getWorldSprites();
+        for(const child of worldSprites) {
+            let character = child._character
+            if(character===undefined)
+                continue; // no event attached
+            //if(character._eventId===undefined)
+            //    throw new Error("No such event ID");
+            OwO.__spriteMap[character._eventId] = child;
+        }
+        // OwO.__eventMapValid = true; // disabled for testing!
+        return OwO.__spriteMap;
+
+    }
+
+    static debugDumpEvents() {
+        console.log(OwO.__buildSpriteMap())
+    }
+
+    static addPostRenderLayer(obj) {
+        throw "Not implemented."
+    }
+
+    static __applyUpdateFunctions() {
+        for(const obj of OwO.__updateFunctions) {
+            obj.func(obj.filter,obj.event);
+        }
+    }
+
+    static getGameTimer() {
+        return OwO.__RPGgameTimer;
+    }
+
+    // alias.
+    static getPlayer() {
+        return $gamePlayer;
+    }
+
+    // gets an event.
+    static getEvent(id) {
+        var event = OwO.__buildSpriteMap()[id]._character;
+        if(!event)
+            throw new Error("Attempting to find non existent event "+String(id));
+        return event;
+    }
+
+    static distanceToPlayer(event) {
+        var player = OwO.getPlayer(); // TODO: what does _realX / Y do?
+        return V2D.distance(event._x,event._y,player._x,player._y);
+    }
+
+
+    // this method runs once per frame no matter what
+    static tick() {
+        OwO.__applyUpdateFunctions();
+        OwO.__RPGgameTimer++;
+    }
+}
+
+OwO.__defaultUpdateFunc = function(filter, event) {
+    var dist = 4;
+    var strength = 6;
+    var newStrength = EngineUtils.interpolate((dist-EngineUtils.clamp(OwO.distanceToPlayer(event),0,dist))/dist,0,strength,EngineUtils.INTERPOLATE_OUT);
+    var correction = Math.sin(OwO.getGameTimer()/18)/4 + 0.75; // between 0.5 and 1
+    filter.thickness = newStrength * correction;
+    
+}
+OwO.__spriteMapValid = false;
+OwO.__spriteMap = {};
+OwO.__updateFunctions = [];
+OwO.__sceneShaderMap = {};
+OwO.__defaultOutlineShader = new PIXI.filters.OutlineFilter(4,0xffffff,5);
+OwO.__RPGgameTimer = 0;

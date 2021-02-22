@@ -131,6 +131,7 @@ class EngineInstance {
 
     /**
      * Step is a generic event that gets called once per frame (60 times per second). Use this event to run the main logic of your object (movement, collision, etc).
+     * 
      * Note that the order in which this event gets called is the same order as instances were created. The first instance to be created in the room will always run first
      * and the last instance to be created will always run last.
      * 
@@ -143,6 +144,7 @@ class EngineInstance {
      * this method must exist so that you can reliably set up your data.
      * 
      * This event is NOT sorted, so the order that it is called in may not be representative of the draw order.
+     * The order is the same as in step().
      * 
      * This event runs right after step(), and right before draw()
      */
@@ -174,10 +176,13 @@ class EngineInstance {
     draw(gui, camera) {}
 
     /**
-     * Event that gets called once per frame (60 times a second) if the game is currently paused.
+     * Event that gets called once per frame (60 times a second) if the game is currently paused. It is mutually
+     * exclusive with step() if step() runs, pause doesn't, if pause() runs, step doesn't.
      * This can be used to continue to update some visual functions while the game is paused in the background.
-     * DO NOT use this function to alter anything gameplay wise. This includes the depth of an instance. If the game is paused, the player should not
-     * be able to interact in any meaningful way.
+     * DO NOT use this function to alter anything gameplay wise.
+     * 
+     * Essentially, when the game is paused the engine is requesting that the *game state* does not change. This does not mean
+     * that what the player sees cannot change, only that the state of the game be constant.
      */
     pause() {}
 
@@ -216,5 +221,11 @@ class EngineInstance {
         IM.destroy(this);
     }
 }
-
+/**
+ * Although this is an engine variable, you *may* use this in very specific cases.
+ * This variable tells the engine to push this instance to the front of the list object list when created, not the end.
+ * 
+ * An example usage of this variable would be for a BufferedInput, where the input must be available to all
+ * instances this frame no matter at what point it's created.
+ */
 EngineInstance.__ENGINE_ORDER_FIRST = false;
