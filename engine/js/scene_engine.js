@@ -11,6 +11,7 @@ $__engineData.__outcomeWriteBackValue = -1
 $__engineData.outcomeWriteBackIndex = -1;
 $__engineData.__cheatWriteBackValue = -1
 $__engineData.cheatWriteBackIndex = -1;
+$__engineData.autoSetWriteBackIndex = -1;
 $__engineData.loadRoom = "MenuIntro";
 
 
@@ -32,9 +33,10 @@ const SET_ENGINE_ROOM = function(room) {
     $__engineData.loadRoom = room;
 }
 
-const SET_ENGINE_RETURN = function(indexOutcome, indexCheat) {
+const SET_ENGINE_RETURN = function(indexOutcome, indexCheat, indexWriteAutoSet = -1) {
     $__engineData.outcomeWriteBackIndex = indexOutcome;
     $__engineData.cheatWriteBackIndex = indexCheat;
+    $__engineData.autoSetWriteBackIndex = indexWriteAutoSet;
 }
 
 const ENGINE_START = function() {
@@ -235,6 +237,12 @@ class Scene_Engine extends Scene_Base {
             $gameVariables.setValue($__engineData.cheatWriteBackIndex,$__engineData.__cheatWriteBackValue);
             $__engineData.cheatWriteBackIndex=-1;
             $__engineData.__cheatWriteBackValue=-1;
+        }
+        // this is a special write back that the engine will always write 1 back to. This is useful
+        // to indicate whether or not the engine ran
+        if($__engineData.autoSetWriteBackIndex!==-1) { 
+            $gameVariables.setValue($__engineData.autoSetWriteBackIndex,1);
+            $__engineData.autoSetWriteBackIndex=-1;
         }
     }
 
@@ -980,6 +988,56 @@ SceneManager.updateManagers = function() {
     OwO.tick();
 }
 
+// Unwrap Utilities
+// A utility class that provides access to and hooks into low level RPG maker functions.
+// it "unwraps" RPG maker's internals. (also I wanted an excuse to have UwU after I made OwO i'm sorry.)
+class UwU {
+    constructor() {
+        throw new Error("Unwrap Utilities cannot be instantiated")
+    }
+
+    static onSceneStart(previousClass, scene) {
+        UwU.__lastMapId=UwU.__currentMapId;
+        UwU.__currentMapId = $gameMap.mapId();
+        UwU.__notifyListenersOfSceneChange(previousClass, scene);
+    }
+
+    static mapIdChanged() {
+        return UwU.__lastMapId !== UwU.__currentMapId;
+    }
+
+    static __notifyListenersOfSceneChange(previousClass, scene) {
+        for(const func of UwU.__onSceneChangeListeners)
+            func(previousClass,scene);
+    }
+
+    static lastSceneWasMenu() {
+        return SceneManager._previousClass === Scene_Menu;
+    }
+
+    static addSceneChangeListener(func) {
+        UwU.__onSceneChangeListeners.push(func);
+    }
+
+    static removeSceneChangeListener(func) {
+        UwU.__onSceneChangeListeners = UwU.__onSceneChangeListeners.filter(x=> x!==func);
+    }
+
+    static isInMenu() {
+        return SceneManager._scene ? SceneManager._scene.constructor === Scene_Menu : false;
+    }
+}
+
+var sceneManagerOnSceneStart = SceneManager.onSceneStart;
+SceneManager.onSceneStart = function() {
+    sceneManagerOnSceneStart.call(this);
+    UwU.onSceneStart(SceneManager._previousClass,SceneManager._scene)
+}
+
+UwU.__onSceneChangeListeners = [];
+UwU.__lastMapId = 0;
+UwU.__currentMapId = 0;
+
 // Overworld Organizer
 // I hate myself too.
 class OwO {
@@ -987,15 +1045,28 @@ class OwO {
         throw new Error("Overworld Organizer cannot be instantiated")
     }
 
+    static __init() {
+        UwU.addSceneChangeListener(function(lastClass, newScene) {
+            if(UwU.lastSceneWasMenu() && OwO.__renderLayer) {
+                OwO.__rebindRenderLayer();
+            }
+            if(!UwU.isInMenu() && UwU.mapIdChanged()) {
+                OwO.__deallocateRenderLayer();
+            }
+        })
+    }
+
     static __getWorldSprites() {
-        var scene = SceneManager._scene;
-        var spriteset = scene._spriteset;
-        // this is a PIXI Object containing of all sprites which are being rendered to the screen currently.
-        var worldSprites = spriteset.children[0].children[2].children
+        // this is an array of PIXI objects containing all of the rendered sprites on the world.
+        var worldSprites = OwO.getSpriteset().children[0].children[2].children
         return worldSprites;
     }
 
-    // filterUpdate takes in 2 paramaeters, which are the filter followed by event
+    static getSpriteset() {
+        return SceneManager._scene._spriteset;
+    }
+
+    // filterUpdate takes in 3 paramaeters, which are the variable to check against, the filter, and then by the update event
     static addConditionalFilter(evId, rpgVar = -1, shader = OwO.__defaultOutlineShader, filterUpdate = OwO.__defaultUpdateFunc) {
         var map = $gameMap._mapId;
         OwO.__sceneShaderMap[map] = OwO.__sceneShaderMap[map] || [];
@@ -1076,8 +1147,131 @@ class OwO {
         console.log(OwO.__buildSpriteMap())
     }
 
-    static addPostRenderLayer(obj) {
-        throw "Not implemented."
+    static initializeRenderLayer() {
+        OwO.__renderLayerIndex = 0;
+        OwO.__deallocateRenderLayer();
+        OwO.__renderLayer = new PIXI.Container();
+        OwO.getSpriteset().children[0].addChild(OwO.__renderLayer);
+    }
+
+    static __deallocateRenderLayer() {
+        if(OwO.__renderLayer) {
+            OwO.__destroyRenderLayer();
+            if(OwO.getSpriteset().children[0].children[3])
+                OwO.getSpriteset().children[0].removeChildAt(3);
+        }
+        OwO.__renderLayer=undefined;
+    }
+
+    static __rebindRenderLayer() {
+        OwO.getSpriteset().children[0].addChild(OwO.__renderLayer);
+    }
+
+    static __renderLayerTick() {
+        if(!OwO.__renderLayer || UwU.isInMenu())
+            return;
+
+        if(OwO.__renderLayerController)
+            OwO.__renderLayerController();
+
+        for(const child of OwO.__renderLayer.children) {
+            child.__updateFunction(child);
+        }
+        var children = [];
+        for(const child of OwO.__renderLayer.children)
+            children.push(child);
+
+        OwO.__renderLayer.removeChildren();
+        children = children.filter(child => !child._destroyed);
+        if(children.length!==0) {
+            children.sort( (x,y) => {
+                var d = (y.depth - x.depth);
+                if(d===0)
+                    return (x.__id-y.__id)
+                return d
+            });
+            OwO.__renderLayer.addChild(...children)
+        }
+        OwO.__renderLayer.x = -$gameMap._displayX*48;
+        OwO.__renderLayer.y = -$gameMap._displayY*48;
+    }
+
+    static addToRenderLayer(pixiObj, updateFunc = function(){}) {
+        pixiObj.__updateFunction = updateFunc;
+        OwO.__renderLayer.addChild(pixiObj);
+        pixiObj.depth = 0;
+        pixiObj.__id = OwO.__renderLayerIndex++;
+        return pixiObj;
+    }
+
+    static setRenderLayerController(func) {
+        OwO.__renderLayerController=func;
+    }
+
+    static leafParticleInit() {
+        var controller = function() {
+            if(OwO.getGameTimer()%3===0) {
+                var obj = OwO.addToRenderLayer(new PIXI.Sprite($engine.getRandomTextureFromSpritesheet("leaf_particles_small")),function(spr) {
+                    spr.x+=spr.randX;
+                    spr.y+=spr.randY;
+                    spr.randY+=spr.dy;
+                    spr.rotation = Math.sin(spr.randOffset+OwO.getGameTimer()/spr.randRotSpeed)+spr.randRotOffset;
+                    spr.scale.y = Math.sin(spr.randFlipOffset+OwO.getGameTimer()/spr.randFlipSpeed)*spr.origScaleY;
+                    if(Math.abs(spr.scale.y) < 0.1)
+                        spr.scale.y = 0.1*Math.sign(spr.scale.y);
+                    if(spr.x>=OwO.getRenderLayerRight()+512)
+                        OwO.destroyObject(spr);
+                })
+                obj.scale.x = EngineUtils.randomRange(0.5,1);
+                obj.origScaleY = EngineUtils.randomRange(0.5,1);
+                obj.randX = EngineUtils.randomRange(3,7);
+                obj.randY = EngineUtils.randomRange(-2,2);
+                obj.randOffset = EngineUtils.random(Math.PI);
+                obj.randRotSpeed = EngineUtils.randomRange(20,64);
+                obj.randRotOffset = EngineUtils.random(Math.PI*2);
+                obj.randFlipSpeed = EngineUtils.randomRange(10,24);
+                obj.randFlipOffset = EngineUtils.random(Math.PI*2);
+                obj.dy = EngineUtils.randomRange(-0.02,0.02);
+                obj.x = OwO.getRenderLayerLeft()-128;
+                obj.y = EngineUtils.randomRange(OwO.getRenderLayerTop()-512, OwO.getRenderLayerBottom()+512);
+                
+            }
+        }
+        OwO.setRenderLayerController(controller);
+    }
+
+    static destroyObject(obj) {
+        obj.destroy();
+        obj._destroyed=true;
+    }
+
+    static __destroyRenderLayer() {
+        OwO.__renderLayer.destroy({children:true}); // free the entire layer
+    }
+
+    static getBoxWidth() {
+        return Graphics.boxWidth;
+    }
+
+    static getRenderLayerLeft() {
+        return -OwO.__renderLayer.x;
+    }
+
+    static getRenderLayerTop() {
+        return -OwO.__renderLayer.y;
+    }
+
+    static getRenderLayerRight() {
+        return -OwO.__renderLayer.x+OwO.getBoxWidth();
+    }
+
+    static getRenderLayerBottom() {
+        return -OwO.__renderLayer.y+OwO.getBoxHeight();
+    }
+
+
+    static getBoxHeight() {
+        return Graphics.boxWidth;
     }
 
     static __applyUpdateFunctions() {
@@ -1112,7 +1306,9 @@ class OwO {
     // this method runs once per frame no matter what
     static tick() {
         OwO.__applyUpdateFunctions();
-        OwO.__RPGgameTimer++;
+        OwO.__renderLayerTick();
+        if(!UwU.isInMenu())
+            OwO.__RPGgameTimer++;
     }
 }
 
@@ -1124,6 +1320,10 @@ OwO.__defaultUpdateFunc = function(filter, event) {
     filter.thickness = newStrength * correction;
     
 }
+OwO.__init();
+OwO.__renderLayerIndex = 0;
+OwO.__renderLayer = undefined;
+OwO.__renderLayerController = undefined;
 OwO.__spriteMapValid = false;
 OwO.__spriteMap = {};
 OwO.__updateFunctions = [];

@@ -129,7 +129,6 @@ class SkyBuildPlayer extends EngineInstance {
         if(this.y>$engine.getWindowSizeY()+100) {
             this.destroy();
         }
-        IN.debugDisplayKeyPress(true); // makes the engine log every key press
 
         if(!this.dropping) {
             this.swingMove();
