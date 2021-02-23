@@ -340,7 +340,6 @@ class Scene_Engine extends Scene_Base {
         this.filters = filters;
 
         this.__filters.splice(index,1);
-        
     }
 
     getTexture(name) {
@@ -604,6 +603,8 @@ class Scene_Engine extends Scene_Base {
         }
     }
 }
+
+$engine = new Scene_Engine(); // create the engine at least once so that we have access to all engine functions.
 
 ////////////////////////////////single time setup of engine///////////////////////
 
@@ -1023,8 +1024,16 @@ class UwU {
         UwU.__onSceneChangeListeners = UwU.__onSceneChangeListeners.filter(x=> x!==func);
     }
 
-    static isInMenu() {
+    static sceneIsMenu() {
         return SceneManager._scene ? SceneManager._scene.constructor === Scene_Menu : false;
+    }
+
+    static sceneIsEngine() {
+        return SceneManager._scene ? SceneManager._scene.constructor === Scene_Engine : false; 
+    }
+
+    static sceneIsOverworld() {
+        return SceneManager._scene ? SceneManager._scene.constructor === Scene_Map : false; 
     }
 }
 
@@ -1050,8 +1059,10 @@ class OwO {
             if(UwU.lastSceneWasMenu() && OwO.__renderLayer) {
                 OwO.__rebindRenderLayer();
             }
-            if(!UwU.isInMenu() && UwU.mapIdChanged()) {
-                OwO.__deallocateRenderLayer();
+            if(UwU.sceneIsOverworld()) { // entered overworld.
+                OwO.__applyAllFilters(OwO.__gameFilters);
+                if(UwU.mapIdChanged()) // changed to a new map level
+                    OwO.__deallocateRenderLayer();
             }
         })
     }
@@ -1116,7 +1127,52 @@ class OwO {
         }
     }
 
-    static __addUpdateFunction(_func, _filter,_event) {
+    static getMapContainer() {
+        return SceneManager._scene.children[0];
+    }
+
+    static __applyAllFilters(filters) {
+        OwO.__applyMapFilters(filters);
+        OwO.__applyPortraitFilters(filters);
+    }
+
+    static __disableAllFilters() {
+        OwO.__disableyMapFilters();
+        OwO.__disablePortraitFilters();
+    }
+
+    static __applyMapFilters(filters) {
+        OwO.getMapContainer().filters = filters;
+    }
+
+    static __disableMapFilters() {
+        OwO.getMapContainer().filters = [];
+    }
+    /**@deprecated 
+    * doesn't work because HUD loads in late.
+    */
+    static __applyPortraitFilters(filters) {
+        OwO.getPortrait().filters = [filters]
+    }
+
+    static __disablePortraitFilters() {
+        OwO.getMapContainer().filters = [];
+    }
+
+    static setSaturation(value) {
+        OwO.__colourFilter.saturation = value;
+    }
+
+    static getHud() {
+        return SceneManager._scene._hud;
+    }
+
+    // WARN: THIS IS DETERMINED BY HUDMAKER.
+    static getPortrait() {
+        return OwO.getHud().children[6];
+    }
+
+    static __addUpdateFunction(_func, _filter, _event) {
         OwO.__updateFunctions.push({func: _func, filter: _filter, event:_event});
     }
 
@@ -1168,7 +1224,7 @@ class OwO {
     }
 
     static __renderLayerTick() {
-        if(!OwO.__renderLayer || UwU.isInMenu())
+        if(!OwO.__renderLayer || UwU.sceneIsMenu())
             return;
 
         if(OwO.__renderLayerController)
@@ -1307,7 +1363,7 @@ class OwO {
     static tick() {
         OwO.__applyUpdateFunctions();
         OwO.__renderLayerTick();
-        if(!UwU.isInMenu())
+        if(!UwU.sceneIsMenu())
             OwO.__RPGgameTimer++;
     }
 }
@@ -1330,3 +1386,5 @@ OwO.__updateFunctions = [];
 OwO.__sceneShaderMap = {};
 OwO.__defaultOutlineShader = new PIXI.filters.OutlineFilter(4,0xffffff,5);
 OwO.__RPGgameTimer = 0;
+OwO.__colourFilter = new PIXI.filters.AdjustmentFilter()
+OwO.__gameFilters = [OwO.__colourFilter];
