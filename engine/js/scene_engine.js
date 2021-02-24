@@ -1070,7 +1070,9 @@ class OwO {
                 if(UwU.mapIdChanged()) // changed to a new map level
                     OwO.__deallocateRenderLayer();
             }
-            OwO.__resetAutorunSwitch();
+            if(!UwU.lastSceneWasMenu() && !UwU.sceneIsMenu()) {
+                OwO.__resetAutorunSwitch();
+            }
         })
     }
 
@@ -1092,7 +1094,7 @@ class OwO {
     }
 
     // filterUpdate takes in 3 paramaeters, which are the variable to check against, the filter, and then by the update event
-    static addConditionalFilter(evId, rpgVar = -1, shader = OwO.__defaultOutlineShader, filterUpdate = OwO.__defaultUpdateFunc) {
+    static addConditionalFilter(evId, rpgVar = -1, shader = OwO.__getDefaultOutlineShader(), filterUpdate = OwO.__defaultUpdateFunc) {
         var map = $gameMap._mapId;
         OwO.__sceneShaderMap[map] = OwO.__sceneShaderMap[map] || [];
         var arr = OwO.__sceneShaderMap[map];
@@ -1121,6 +1123,7 @@ class OwO {
         for(const filterData of OwO.__getCurrentMapFilters()) {
             var RPGVariable = filterData.RPGVariable;
             // check fail, do not apply filter.
+            console.log(RPGVariable, $gameVariables.value(RPGVariable))
             if(RPGVariable!==-1 && $gameVariables.value(RPGVariable)!==1)
                 continue;
             var filter = filterData.filter;
@@ -1390,15 +1393,20 @@ class OwO {
         if(!UwU.sceneIsMenu())
             OwO.__RPGgameTimer++;
     }
-}
 
-OwO.__defaultUpdateFunc = function(filter, event) {
-    var dist = 4;
-    var strength = 6;
-    var newStrength = EngineUtils.interpolate((dist-EngineUtils.clamp(OwO.distanceToPlayer(event),0,dist))/dist,0,strength,EngineUtils.INTERPOLATE_OUT);
-    var correction = Math.sin(OwO.getGameTimer()/18)/4 + 0.75; // between 0.5 and 1
-    filter.thickness = newStrength * correction;
-    
+    static __defaultUpdateFunc(filter, event) {
+        var dist = 4;
+        var strength = 6;
+        var newStrength = EngineUtils.interpolate((dist-EngineUtils.clamp(OwO.distanceToPlayer(event),0,dist))/dist,0,strength,EngineUtils.INTERPOLATE_OUT);
+        var correction = Math.sin(OwO.getGameTimer()/18)/4 + 0.75; // between 0.5 and 1
+        filter.thickness = newStrength * correction;
+    }
+
+    static __getDefaultOutlineShader() {
+        return new PIXI.filters.OutlineFilter(4,0xffffff,5);
+    }
+
+
 }
 OwO.__init();
 OwO.__renderLayerIndex = 0;
@@ -1408,7 +1416,6 @@ OwO.__spriteMapValid = false;
 OwO.__spriteMap = {};
 OwO.__updateFunctions = [];
 OwO.__sceneShaderMap = {};
-OwO.__defaultOutlineShader = new PIXI.filters.OutlineFilter(4,0xffffff,5);
 OwO.__RPGgameTimer = 0;
 OwO.__colourFilter = new PIXI.filters.AdjustmentFilter()
 OwO.__gameFilters = [OwO.__colourFilter];
