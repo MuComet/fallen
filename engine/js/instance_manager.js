@@ -411,7 +411,7 @@ class IM {
      * @param {Number} x The x position to collide at
      * @param {Number} y the y position to collide at
      * @param  {...EngineInstance} targets N instances of EngineInstance or classes
-     * @returns {Boolean} The first EngineInstance that is collided with, or undefined if there are none.
+     * @returns {EngineInstance} The first EngineInstance that is collided with, or undefined if there is none.
      */
     static instancePosition(x,y, ...targets) {
         var PCS = IM.__generatePCSFromPoint(x,y,...targets);

@@ -404,10 +404,16 @@ class Scene_Engine extends Scene_Base {
         return textures;
     }
 
+    /**
+     * @returns {Number} The amount of frames the engine has been running, excluding time paused.
+     */
     getGameTimer() {
         return this.__gameTimer;
     }
 
+    /**
+     * @returns {Number} The amount of frames the engine has been running, including time paused.
+     */
     getGlobalTimer() {
         return this.__globalTimer;
     }
@@ -438,7 +444,7 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
-     * Attaches a renderable to an isntance and automatically renders it every frame. When the instance is destroyed, the engine will
+     * Attaches a renderable to an instance and automatically renders it every frame. When the instance is destroyed, the engine will
      * also destroy the renderable along with it.
      * 
      * The major difference between this and createRenderable is that createRenderable will also cause the engine to automatically render it, while
@@ -1056,7 +1062,7 @@ class OwO {
 
     static __init() {
         UwU.addSceneChangeListener(function(lastClass, newScene) {
-            if(UwU.lastSceneWasMenu() && OwO.__renderLayer) {
+            if(UwU.lastSceneWasMenu() && UwU.sceneIsOverworld() && OwO.__renderLayer) {
                 OwO.__rebindRenderLayer();
             }
             if(UwU.sceneIsOverworld()) { // entered overworld.
@@ -1064,7 +1070,15 @@ class OwO {
                 if(UwU.mapIdChanged()) // changed to a new map level
                     OwO.__deallocateRenderLayer();
             }
+            OwO.__resetAutorunSwitch();
         })
+    }
+
+    // in every room there exists an autorun script. this autorun will only run if variable #4 is set to 0 and it will set #4 back to 1
+    // every room change, we must reset this variable so that the autorun is prepared to run. This prevents the need to constantly reset the
+    // variable via RPG maker every time the room changes
+    static __resetAutorunSwitch() {
+        $gameSwitches.setValue(4,true);
     }
 
     static __getWorldSprites() {
@@ -1101,7 +1115,7 @@ class OwO {
         return OwO.__sceneShaderMap[map] || [];
     }
 
-    static applyConditionalFilters() {
+    static applyConditionalFilters() { // called from RPG maker.
         OwO.__clearUpdateFunctions();
         var spriteMap = OwO.__buildSpriteMap();
         for(const filterData of OwO.__getCurrentMapFilters()) {
@@ -1115,7 +1129,7 @@ class OwO {
             var eventId = filterData.eventId;
             var pixiObj = spriteMap[eventId];
             if(pixiObj===undefined)
-                throw new Error("Corresponding event ID did not match back to a valid Character.")
+                throw new Error("event ID "+String(eventId)+" did not match back to a valid Character.")
 
             var newFilters = [filter];
             if(pixiObj.filters && pixiObj.filters.length!==0) {
@@ -1265,33 +1279,43 @@ class OwO {
     }
 
     static leafParticleInit() {
+        var createLeaf = function(xx,yy) {
+            var obj = OwO.addToRenderLayer(new PIXI.Sprite($engine.getRandomTextureFromSpritesheet("leaf_particles_small")),function(spr) {
+                spr.x+=spr.randX;
+                spr.y+=spr.randY;
+                spr.randY+=spr.dy;
+                spr.rotation = Math.sin(spr.randOffset+OwO.getGameTimer()/spr.randRotSpeed)+spr.randRotOffset;
+                spr.scale.y = Math.sin(spr.randFlipOffset+OwO.getGameTimer()/spr.randFlipSpeed)*spr.origScaleY;
+                if(Math.abs(spr.scale.y) < 0.1)
+                    spr.scale.y = 0.1*Math.sign(spr.scale.y);
+                if(spr.x>=OwO.getRenderLayerRight()+512)
+                    OwO.destroyObject(spr);
+            })
+            obj.scale.x = EngineUtils.randomRange(0.5,1);
+            obj.origScaleY = EngineUtils.randomRange(0.5,1);
+            obj.randX = EngineUtils.randomRange(3,7);
+            obj.randY = EngineUtils.randomRange(-2,2);
+            obj.randOffset = EngineUtils.random(Math.PI);
+            obj.randRotSpeed = EngineUtils.randomRange(20,64);
+            obj.randRotOffset = EngineUtils.random(Math.PI*2);
+            obj.randFlipSpeed = EngineUtils.randomRange(10,24);
+            obj.randFlipOffset = EngineUtils.random(Math.PI*2);
+            obj.dy = EngineUtils.randomRange(-0.02,0.02);
+            obj.x = xx;
+            obj.y = yy;
+        }
         var controller = function() {
             if(OwO.getGameTimer()%3===0) {
-                var obj = OwO.addToRenderLayer(new PIXI.Sprite($engine.getRandomTextureFromSpritesheet("leaf_particles_small")),function(spr) {
-                    spr.x+=spr.randX;
-                    spr.y+=spr.randY;
-                    spr.randY+=spr.dy;
-                    spr.rotation = Math.sin(spr.randOffset+OwO.getGameTimer()/spr.randRotSpeed)+spr.randRotOffset;
-                    spr.scale.y = Math.sin(spr.randFlipOffset+OwO.getGameTimer()/spr.randFlipSpeed)*spr.origScaleY;
-                    if(Math.abs(spr.scale.y) < 0.1)
-                        spr.scale.y = 0.1*Math.sign(spr.scale.y);
-                    if(spr.x>=OwO.getRenderLayerRight()+512)
-                        OwO.destroyObject(spr);
-                })
-                obj.scale.x = EngineUtils.randomRange(0.5,1);
-                obj.origScaleY = EngineUtils.randomRange(0.5,1);
-                obj.randX = EngineUtils.randomRange(3,7);
-                obj.randY = EngineUtils.randomRange(-2,2);
-                obj.randOffset = EngineUtils.random(Math.PI);
-                obj.randRotSpeed = EngineUtils.randomRange(20,64);
-                obj.randRotOffset = EngineUtils.random(Math.PI*2);
-                obj.randFlipSpeed = EngineUtils.randomRange(10,24);
-                obj.randFlipOffset = EngineUtils.random(Math.PI*2);
-                obj.dy = EngineUtils.randomRange(-0.02,0.02);
-                obj.x = OwO.getRenderLayerLeft()-128;
-                obj.y = EngineUtils.randomRange(OwO.getRenderLayerTop()-512, OwO.getRenderLayerBottom()+512);
+                var xx = OwO.getRenderLayerLeft()-128;
+                var yy = EngineUtils.randomRange(OwO.getRenderLayerTop()-512, OwO.getRenderLayerBottom()+512)
+                createLeaf(xx,yy);
                 
             }
+        }
+        for(var i =0;i<100;i++) {
+                var xx = EngineUtils.randomRange(OwO.getRenderLayerLeft()-128, OwO.getRenderLayerRight()+512);
+                var yy = EngineUtils.randomRange(OwO.getRenderLayerTop()-512, OwO.getRenderLayerBottom()+512)
+                createLeaf(xx,yy);
         }
         OwO.setRenderLayerController(controller);
     }
