@@ -5,3 +5,4 @@ MenuIntro engine/rooms/menu_intro.txt
 RockRoom engine/rooms/rock.txt
 SkyRoom engine/rooms/sky.txt
 CutsceneRoom engine/rooms/cutscene_room.txt
+CardRoom engine/rooms/card_room.txt
