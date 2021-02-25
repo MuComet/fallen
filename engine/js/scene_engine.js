@@ -219,6 +219,7 @@ class Scene_Engine extends Scene_Base {
                 this.freeRenderable(child);
         }
         this.__GUIgraphics.removeChildren(); // prevent bug if you rendered to the GUI
+        this.getCamera().getCameraGraphics().removeChildren(); // prevent bug if you rendered to the Camera
         this.freeRenderable(this.__GUIgraphics)
         this.freeRenderable(this.__backgroundContainer);
     }
@@ -540,6 +541,20 @@ class Scene_Engine extends Scene_Base {
     requestRenderOnGUI(renderable) {
         this.__GUIgraphics.addChild(renderable);
     }
+
+    /** 
+     * Requests that on this frame, the renderable be rendered to the Camera layer.
+     * 
+     * This is useful because if the camera has a special renderer like a 2d projection renderer on it,
+     * you may still render in camera space as usual using this method.
+     * 
+     * Renderables added to the GUI will render in the order they are added. As such, it recommended
+     * to only call this in draw since it is sorted.
+     * @param {PIXI.Container} renderable 
+     */
+    requestRenderOnCamera(renderable) {
+        this.getCamera().getCameraGraphics().addChild(renderable);
+    }
     
 
     //TODO: leave as deprecated until it's done
@@ -604,10 +619,13 @@ class Scene_Engine extends Scene_Base {
                 continue;
             var camera = this.__cameras[i];
             camera.removeChildren();
-            
+
+            var container = camera.__getRenderContainer()
             var arr = this.__collectAllRenderables();
             if(arr.length!==0) // prevent null call
-                camera.addChild(...arr)
+                container.addChild(...arr)
+
+            camera.addChild(container);
             camera.addChild(camera.getCameraGraphics());
         }
     }

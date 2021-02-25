@@ -10,29 +10,7 @@ class Camera extends PIXI.Container {
         this.filters = [];
         this.__filters = [];
         this.__cameraGraphics = new PIXI.Graphics(); // shared graphics, always draws on top of everything.
-    }
-
-    /**@deprecated */
-    getBackground() {
-        console.error("Camera.getBackground -> USE THE ENGINE FUNCTION!")
-        return $engine.getBackground();
-    }
-    /**@deprecated */
-    setBackground(background) { // expects any PIXI renderable. renders first.
-        console.error("Camera.setBackground -> USE THE ENGINE FUNCTION!")
-        $engine.getBackground(background)
-    }
-    
-    /**@deprecated */
-    setBackgroundColour(col) {
-        console.error("Camera.setBackgroundColour -> USE THE ENGINE FUNCTION!")
-        $engine.setBackgroundColour(col)
-    }
-
-    /**@deprecated */
-    getBackgroundColour() {
-        console.error("Camera.getBackgroundColour -> USE THE ENGINE FUNCTION!")
-        return $engine.getBackgroundColour();
+        this.__renderContainer = new PIXI.Container();
     }
 
     addFilter(screenFilter, removeOnRoomChange = true, name = "ENGINE_DEFAULT_FILTER_NAME") {
@@ -66,6 +44,18 @@ class Camera extends PIXI.Container {
 
     getCameraGraphics() {
         return this.__cameraGraphics;
+    }
+
+    __getRenderContainer() {
+        return this.__renderContainer;
+    }
+
+    /**
+     * Sets the main container of this Camera. Useful for special rendering like PIXI.projection.Container2d.
+     * @param {PIXI.DisplayObject} renderable The new container
+     */
+    setRenderContainer(renderable) {
+        this.__renderContainer = renderable;
     }
 
     setLocation(x,y) { // x and y are negative so that they represent where the camera would physically be.
@@ -154,9 +144,9 @@ class Camera extends PIXI.Container {
     }
 
     __match() {
-        var len = this.children.length;
+        var len = this.__renderContainer.children.length;
         for(var i =0;i<len;i++) {
-            var child = this.children[i];
+            var child = this.__renderContainer.children[i];
             if(!child.__align)
                 continue;
             var parent = child.__parent;

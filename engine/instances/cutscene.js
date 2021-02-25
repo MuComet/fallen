@@ -76,11 +76,11 @@ class CutsceneController extends EngineInstance {
     draw(gui, camera) {
         gui.beginFill(0);
         if(this.out) {
-            gui.drawRect(-16,$engine.getWindowSizeY() + EngineUtils.interpolate(this.wipeTimer/this.transitionTime,0,-$engine.getWindowSizeY()-16,EngineUtils.INTERPOLATE_OUT),
-                        $engine.getWindowSizeX()+16,$engine.getWindowSizeY()+32)
+            gui.drawRect(-32,$engine.getWindowSizeY() + EngineUtils.interpolate(this.wipeTimer/this.transitionTime,0,-$engine.getWindowSizeY()-16,EngineUtils.INTERPOLATE_OUT),
+                        $engine.getWindowSizeX()+32,$engine.getWindowSizeY()+32)
         } else {
-            gui.drawRect(-16,EngineUtils.interpolate(this.wipeTimer/this.transitionTime,0,-$engine.getWindowSizeY()-64,EngineUtils.INTERPOLATE_IN)-16,
-                        $engine.getWindowSizeX()+16,$engine.getWindowSizeY()+32)
+            gui.drawRect(-32,EngineUtils.interpolate(this.wipeTimer/this.transitionTime,0,-$engine.getWindowSizeY()-64,EngineUtils.INTERPOLATE_IN)-16,
+                        $engine.getWindowSizeX()+32,$engine.getWindowSizeY()+32)
         }
         
         gui.endFill();
