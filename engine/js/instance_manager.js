@@ -424,7 +424,6 @@ class IM {
 
     /**
      * Performs a collision at the specified location using exact hitboxes and determines if any instance of targets contains that point
-     * When you call this function, you are asking the engine to move source to x, y, then check if it's colliding with any objects, then move it back
      * @param {Number} x The x position to collide at
      * @param {Number} y the y position to collide at
      * @param  {...EngineInstance} targets N instances of EngineInstance or classes

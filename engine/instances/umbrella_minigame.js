@@ -16,7 +16,7 @@ class UmbrellaMinigameController extends MinigameController {
         this.updateScoreText();
 
         // instructions
-        var text = new PIXI.Text("Left and Right arrow keys to move,\n don't touch the rain!\n\nPress Enter to cheat!",{fontFamily: 'Helvetica',
+        var text = new PIXI.Text("Left and Right arrow keys to move,\n don't touch the rain!\n\nPress Enter to cheat!",{fontFamily: 'GameFont',
                         fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
         this.setInstructionRenderable(text)
 

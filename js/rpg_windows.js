@@ -4559,7 +4559,8 @@ Window_Message.prototype.startWait = function(count) {
 };
 
 Window_Message.prototype.startPause = function() {
-    this.startWait(10);
+    //this.startWait(10);
+	this.startWait(0);
     this.pause = true;
 };
 

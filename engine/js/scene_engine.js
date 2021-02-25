@@ -22,6 +22,7 @@ $__engineData.__RPGVariableStart = 101;
 $__engineData.__debugRequireTextures = false;
 $__engineData.__debugPreventReturn = false;
 $__engineData.__debugLogFrameTime = false;
+$__engineData.__debugLRequireAllTextures = false;
 
 const ENGINE_RETURN = {};
 ENGINE_RETURN.LOSS = 0;
@@ -452,7 +453,7 @@ class Scene_Engine extends Scene_Base {
      * @returns {Object} Default text settings
      */
     getDefaultSubTextStyle() {
-        return { fontFamily: 'Helvetica', fontSize: 20, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 };
+        return { fontFamily: 'GameFont', fontSize: 20, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 };
     }
 
     setCameraEnabled(index, enable) {
@@ -813,7 +814,7 @@ __readTextures = function(texture_file,obj) { // already sync
         var other = [];
         for(const texObj of texData) {
             __parseTextureObject(texObj)
-            if(__queryTextureObject(texObj,"require"))
+            if(__queryTextureObject(texObj,"require") || $__engineData.__debugLRequireAllTextures)
                 required.push(texObj);
             else
                 other.push(texObj);
@@ -1036,6 +1037,13 @@ Scene_GameEnd.prototype.commandToTitle = function() {
     SceneManager.goto(Scene_Engine);
 };
 
+
+// 10 frames is 10 frames too many.
+Window_Message.prototype.startPause = function() {
+    this.startWait(0); // this.startWait(10);
+    this.pause = true;
+};
+
 // hook a in a global update.
 SceneManager.updateManagers = function() {
     ImageManager.update();
@@ -1244,7 +1252,8 @@ class OwO {
     static __disableMapFilters() {
         OwO.getMapContainer().filters = [];
     }
-    /**@deprecated 
+    /**
+     * @deprecated 
     * doesn't work because HUD loads in late.
     */
     static __applyPortraitFilters(filters) {
