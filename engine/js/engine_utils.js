@@ -155,6 +155,7 @@ class EngineUtils {
      * @param {EnginePoint} point The point to check
      * @param {EnginePoint} l1 The first vertex of the line
      * @param {EnginePoint} l2 The second vertex of the line
+     * @return {EngineLightweightPoint} The nearest point on the line
      */
     static nearestPositionOnLine(point, l1, l2)
 	{
@@ -163,7 +164,7 @@ class EngineUtils {
 			return l1; //if the line is 0 length
 		
 		var t=EngineUtils.clamp(((point.x-l1.x)*(l2.x-l1.x)+((point.y-l1.y)*(l2.y-l1.y)))/length,0, 1);
-		return new Vertex(l1.x+t*(l2.x-l1.x), l1.y+t*(l2.y-l1.y));
+		return new EngineLightweightPoint(l1.x+t*(l2.x-l1.x), l1.y+t*(l2.y-l1.y));
     }
 
     /**
@@ -177,7 +178,8 @@ class EngineUtils {
     static distanceBetweenLines(l1,l2,l3,l4) {
         if(EngineUtils.linesCollide(l1,l2,l3,l4))
             return 0;
-        return Math.sqrt(Math.min(EngineUtils.distanceToLineSq(l1,l3,l4),EngineUtils.distanceToLineSq(l2,l3,l4)));
+        return Math.sqrt(Math.min(  EngineUtils.distanceToLineSq(l1,l3,l4),EngineUtils.distanceToLineSq(l2,l3,l4),
+                                    EngineUtils.distanceToLineSq(l3,l1,l2),EngineUtils.distanceToLineSq(l4,l1,l2)));
     }
     
     /**
@@ -194,9 +196,15 @@ class EngineUtils {
 
     /**
      * Interpolates between min and max given a certain interpolation fuction and an input value.
-     * example usage: interpolate(0.5,0,100,EngineUtils.INTERPOLATE_LINEAR) -> returns 50
+     * 
+     * example usage: 
+     * 
+     * interpolate(0.5,0,100,EngineUtils.INTERPOLATE_LINEAR) -> returns 50
+     * 
      * interpolate(0.25, 0, 500, EngineUtils.INTERPOLATE_SMOOTH) -> returns 78.125
+     * 
      * interpolate(0, 0, 500, EngineUtils.INTERPOLATE_SMOOTH) -> returns 0
+     * 
      * @param {Number} val A normalized value represeting the value position along the interpolation curve to sample.
      * @param {Number} min The begin value to interpolate to
      * @param {Number} max The end value to interpolate to

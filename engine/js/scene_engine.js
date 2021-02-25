@@ -209,9 +209,6 @@ class Scene_Engine extends Scene_Base {
 
     // called exclusively by terminate, which is called from RPG maker.
     __cleanup() {
-        this.__GUIgraphics.removeChildren(); // prevent bug if you rendered to the GUI
-        this.freeRenderable(this.__GUIgraphics)
-        this.freeRenderable(this.__backgroundContainer);
         IM.__endGame() // frees all renderables associated with instances
         for(const camera of this.__cameras) {
             this.freeRenderable(camera);
@@ -221,6 +218,9 @@ class Scene_Engine extends Scene_Base {
             for(const child of this.__backgroundContainer.children)
                 this.freeRenderable(child);
         }
+        this.__GUIgraphics.removeChildren(); // prevent bug if you rendered to the GUI
+        this.freeRenderable(this.__GUIgraphics)
+        this.freeRenderable(this.__backgroundContainer);
     }
 
     __writeBack() {
@@ -269,7 +269,7 @@ class Scene_Engine extends Scene_Base {
         
         if(val!==tag) {
             throw new Error("Error: Tag mismatch when attemting to access RPG variable at "+String(this.__correctRange(index)) 
-                            + "(source: "+String(val)+", provided: "+String(tag));
+                            + "(source: "+String(val)+", provided: "+String(tag)+")");
         }
     }
 
@@ -314,6 +314,12 @@ class Scene_Engine extends Scene_Base {
             console.log("Time taken for this frame: "+(time)+" ms")
     }
 
+    /**
+     * Adds a filter to the game which applies in screen space
+     * @param {PIXI.filter} screenFilter The filter to add
+     * @param {Boolean | true} [removeOnRoomChange=true] Whether or not to automatically remove this filter when the engine changes rooms
+     * @param {String} name A unique identifier for this filter, which may be used later to find it.
+     */
     addFilter(screenFilter, removeOnRoomChange = true, name = "ENGINE_DEFAULT_FILTER_NAME") {
         this.__filters.push({filter:screenFilter,remove:removeOnRoomChange,filterName: name});
         var filters = this.filters // PIXI requires reassignment
@@ -321,6 +327,10 @@ class Scene_Engine extends Scene_Base {
         this.filters = filters;
     }
 
+    /**
+     * Removes the specified filter from the screen.
+     * @param {PIXI.filter | String} filter The filter or string id of filter to remove
+     */
     removeFilter(filter) {
         var index = -1;
         for(var i = 0;i<this.__filters.length;i++) {
@@ -342,6 +352,11 @@ class Scene_Engine extends Scene_Base {
         this.__filters.splice(index,1);
     }
 
+    /**
+     * Finds and returns the texture with the specified name from the texture cache. To access individual frames of a spritesheet directly
+     * use the name in textures manifest followed by _n where n is the 0 based index of the frame you want.
+     * @param {String} name The name of the texture as defined in textures_manifest.txt
+     */
     getTexture(name) {
         var tex = $__engineData.__textureCache[name];
         if(!tex) {
@@ -447,6 +462,8 @@ class Scene_Engine extends Scene_Base {
      * Attaches a renderable to an instance and automatically renders it every frame. When the instance is destroyed, the engine will
      * also destroy the renderable along with it.
      * 
+     * This function also applies the default anchor of the texture as defined in the manifest.
+     * 
      * The major difference between this and createRenderable is that createRenderable will also cause the engine to automatically render it, while
      * this function will only tell the engine to keep track of it for you.
      * @param {EngineInstance} parent The parent to attach the renderable to
@@ -459,15 +476,27 @@ class Scene_Engine extends Scene_Base {
         renderable.__align = align;
         renderable.dx=0;
         renderable.dy=0;
+        this.applyRenderableSettings(renderable);
+        parent.__renderables.push(renderable);
+        return renderable;
+    }
+
+    /**
+     * Applies settings to a renderable object if available. Some texture settings may be defined in the manifest such as the anchor of the sprite.
+     * @param {PIXI.DisplayObject} renderable The renderable
+     * @returns {PIXI.DisplayObject} The input, useful for chaining.
+     */
+    applyRenderableSettings(renderable) {
         if(renderable.texture && renderable.texture.defaultAnchor)
             renderable.anchor.set(renderable.texture.defaultAnchor.x,renderable.texture.defaultAnchor.y)
-        parent.__renderables.push(renderable);
         return renderable;
     }
 
     /**
      * Attaches the lifetime of the specified renderable to the instance in question. When the instance is destroyed, the engine will
      * also destroy the renderable along with it.
+     * 
+     * This function does NOT apply the default origin of the texture as defined in the textures manifest. For that you should call applyRenderableSettings()
      * 
      * The major difference between this and createRenderable is that createRenderable will also cause the engine to automatically render it, while
      * this function will only tell the engine to keep track of it for you.
@@ -1019,7 +1048,10 @@ class UwU {
     }
 
     static lastSceneWasMenu() {
-        return SceneManager._previousClass === Scene_Menu;
+        // .prototype returns the object from the constructor (_previousClass).
+        if(!SceneManager._previousClass)
+            return false;
+        return SceneManager._previousClass.prototype instanceof Scene_MenuBase;
     }
 
     static addSceneChangeListener(func) {
@@ -1031,15 +1063,15 @@ class UwU {
     }
 
     static sceneIsMenu() {
-        return SceneManager._scene ? SceneManager._scene.constructor === Scene_Menu : false;
+        return SceneManager._scene instanceof Scene_MenuBase;
     }
 
     static sceneIsEngine() {
-        return SceneManager._scene ? SceneManager._scene.constructor === Scene_Engine : false; 
+        return SceneManager._scene.constructor === Scene_Engine; 
     }
 
     static sceneIsOverworld() {
-        return SceneManager._scene ? SceneManager._scene.constructor === Scene_Map : false; 
+        return SceneManager._scene.constructor === Scene_Map; 
     }
 }
 
@@ -1062,16 +1094,23 @@ class OwO {
 
     static __init() {
         UwU.addSceneChangeListener(function(lastClass, newScene) {
-            if(UwU.lastSceneWasMenu() && UwU.sceneIsOverworld() && OwO.__renderLayer) {
-                OwO.__rebindRenderLayer();
+            // these are stupidly verbose but i don't know what RPG maker might throw at me, so i'd rather write extra code here than assume.
+            OwO.__spriteMapValid=false;
+            if(UwU.lastSceneWasMenu() && UwU.sceneIsOverworld()) { // transition out of menu to overworld.
+                if(OwO.__renderLayer)
+                    OwO.__rebindRenderLayer();
+                OwO.applyConditionalFilters();
             }
-            if(UwU.sceneIsOverworld()) { // entered overworld.
+            if(UwU.sceneIsOverworld()) { // any transition into overworld, from any other scene.
                 OwO.__applyAllFilters(OwO.__gameFilters);
                 if(UwU.mapIdChanged()) // changed to a new map level
                     OwO.__deallocateRenderLayer();
             }
-            if(!UwU.lastSceneWasMenu() && !UwU.sceneIsMenu()) {
+            if(!UwU.lastSceneWasMenu() && !UwU.sceneIsMenu()) { // if true, the last change had nothing to do with menu (could be overworld to engine)
                 OwO.__resetAutorunSwitch();
+            }
+            if(OwO.__renderLayer) {
+                OwO.__syncRenderLayer();
             }
         })
     }
@@ -1081,6 +1120,12 @@ class OwO {
     // variable via RPG maker every time the room changes
     static __resetAutorunSwitch() {
         $gameSwitches.setValue(4,true);
+    }
+
+    // continually calls func with data as the arg until it returns true, then removes it from it's list
+    // mapOnly will cause it to be removed on map change if it wasn't resolved in time.
+    static applyUntil(func, data, mapOnly = true) {
+
     }
 
     static __getWorldSprites() {
@@ -1123,8 +1168,7 @@ class OwO {
         for(const filterData of OwO.__getCurrentMapFilters()) {
             var RPGVariable = filterData.RPGVariable;
             // check fail, do not apply filter.
-            console.log(RPGVariable, $gameVariables.value(RPGVariable))
-            if(RPGVariable!==-1 && $gameVariables.value(RPGVariable)!==1)
+            if(RPGVariable!==-1 && $gameVariables.value(RPGVariable)===1)
                 continue;
             var filter = filterData.filter;
             var filterUpdate = filterData.filterUpdateFunc;
@@ -1142,6 +1186,23 @@ class OwO {
 
             OwO.__addUpdateFunction(filterUpdate,filter,OwO.getEvent(eventId));
         }
+    }
+
+    static discardConditionalFilters() { // discards ALL filters associated with a sprite. Assumed that only conditional filters were applied...
+        OwO.__clearUpdateFunctions();
+        var spriteMap = OwO.__buildSpriteMap();
+        for(const filterData of OwO.__getCurrentMapFilters()) {
+            var eventId = filterData.eventId;
+            var pixiObj = spriteMap[eventId];
+            if(pixiObj===undefined)
+                throw new Error("event ID "+String(eventId)+" did not match back to a valid Character.")
+            pixiObj.filters = [];
+        }
+    }
+
+    static reApplyConditionalFilters() {
+        OwO.discardConditionalFilters();
+        OwO.applyConditionalFilters();
     }
 
     static getMapContainer() {
@@ -1211,7 +1272,7 @@ class OwO {
             //    throw new Error("No such event ID");
             OwO.__spriteMap[character._eventId] = child;
         }
-        // OwO.__eventMapValid = true; // disabled for testing!
+        OwO.__spriteMapValid = true;
         return OwO.__spriteMap;
 
     }
@@ -1225,6 +1286,7 @@ class OwO {
         OwO.__deallocateRenderLayer();
         OwO.__renderLayer = new PIXI.Container();
         OwO.getSpriteset().children[0].addChild(OwO.__renderLayer);
+        OwO.__syncRenderLayer();
     }
 
     static __deallocateRenderLayer() {
@@ -1265,8 +1327,12 @@ class OwO {
             });
             OwO.__renderLayer.addChild(...children)
         }
-        OwO.__renderLayer.x = -$gameMap._displayX*48;
-        OwO.__renderLayer.y = -$gameMap._displayY*48;
+        OwO.__syncRenderLayer()
+    }
+
+    static __syncRenderLayer() {
+        OwO.__renderLayer.x = -$gameMap.displayX()*48;
+        OwO.__renderLayer.y = -$gameMap.displayY()*48;
     }
 
     static addToRenderLayer(pixiObj, updateFunc = function(){}) {
@@ -1396,14 +1462,14 @@ class OwO {
 
     static __defaultUpdateFunc(filter, event) {
         var dist = 4;
-        var strength = 6;
+        var strength = 4;
         var newStrength = EngineUtils.interpolate((dist-EngineUtils.clamp(OwO.distanceToPlayer(event),0,dist))/dist,0,strength,EngineUtils.INTERPOLATE_OUT);
-        var correction = Math.sin(OwO.getGameTimer()/18)/4 + 0.75; // between 0.5 and 1
+        var correction = Math.sin(OwO.getGameTimer()/18)*0.25 + 0.75; // between 0.5 and 1
         filter.thickness = newStrength * correction;
     }
 
     static __getDefaultOutlineShader() {
-        return new PIXI.filters.OutlineFilter(4,0xffffff,5);
+        return new PIXI.filters.OutlineFilter(4,0xffffff);
     }
 
 

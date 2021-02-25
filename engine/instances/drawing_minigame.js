@@ -183,7 +183,7 @@ class DrawableLine extends EngineInstance {
     }
 
     nearestPositionOnDrawing(point) {
-        var nDist = 99999;
+        var nDist = 9999999;
         var t = -1;
         var p1 = point;
         for(var i =0;i<this.drawing.pathData.path.length-1;i++) {
@@ -273,7 +273,7 @@ class ShapeToDraw extends EngineInstance {
             }
         }
 
-        score /= this.pathData.path.length;
+        score /= (this.pathData.path.length-1);
 
         this.baseScore = score;
 
