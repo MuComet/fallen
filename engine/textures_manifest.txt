@@ -23,10 +23,10 @@ spritesheet dimensions 300 100 3 1 dust_particles engine/textures/particle/dust_
 
 button_cheat_1 engine/textures/buttons/button_cheat.png 0.5 0.5
 button_cheat_2 engine/textures/buttons/button_cheat_down.png 0.5 0.5
-button_continue_1 engine/textures/buttons/button_continue.png 0.5 0.5
-button_continue_2 engine/textures/buttons/button_continue_down.png 0.5 0.5
-button_new_game_1 engine/textures/buttons/button_new_game.png 0.5 0.5
-button_new_game_2 engine/textures/buttons/button_new_game_down.png 0.5 0.5
+require button_continue_1 engine/textures/buttons/button_continue.png 0.5 0.5
+require button_continue_2 engine/textures/buttons/button_continue_down.png 0.5 0.5
+require button_new_game_1 engine/textures/buttons/button_new_game.png 0.5 0.5
+require button_new_game_2 engine/textures/buttons/button_new_game_down.png 0.5 0.5
 
 title_card engine/textures/fallen/fallen.png 0.5 0.5
 gui_cheat_graphic engine/textures/minigames/minigame_cheat.png 0.5 0.5

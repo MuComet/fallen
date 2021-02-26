@@ -16,7 +16,7 @@ class UmbrellaMinigameController extends MinigameController {
         this.updateScoreText();
 
         // instructions
-        var text = new PIXI.Text("Left and Right arrow keys to move,\n don't touch the rain!\n\nPress Enter to cheat!",{fontFamily: 'Helvetica',
+        var text = new PIXI.Text("Left and Right arrow keys to move,\n don't touch the rain!\n\nPress Enter to cheat!",{fontFamily: 'GameFont',
                         fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
         this.setInstructionRenderable(text)
 
@@ -115,6 +115,9 @@ class Man extends InstanceMover {
 
         this.lmx = IN.getMouseXGUI();
         this.lmy = IN.getMouseYGUI();
+
+        //console.log(IN.getMouseX(),IN.getMouseY());
+        console.log(IM.instanceCollisionPoint(IN.getMouseX(),IN.getMouseY(),this))
 
         //console.log(IN.getMouseX(),IN.getMouseY(), $engine.getCamera().getX(), $engine.getCamera().getY());
     }
