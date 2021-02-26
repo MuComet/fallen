@@ -22,7 +22,7 @@ $__engineData.__RPGVariableStart = 101;
 $__engineData.__debugRequireTextures = false;
 $__engineData.__debugPreventReturn = false;
 $__engineData.__debugLogFrameTime = false;
-$__engineData.__debugLRequireAllTextures = false;
+$__engineData.__debugRequireAllTextures = false;
 
 const ENGINE_RETURN = {};
 ENGINE_RETURN.LOSS = 0;
@@ -814,7 +814,7 @@ __readTextures = function(texture_file,obj) { // already sync
         var other = [];
         for(const texObj of texData) {
             __parseTextureObject(texObj)
-            if(__queryTextureObject(texObj,"require") || $__engineData.__debugLRequireAllTextures)
+            if(__queryTextureObject(texObj,"require") || $__engineData.__debugRequireAllTextures)
                 required.push(texObj);
             else
                 other.push(texObj);
