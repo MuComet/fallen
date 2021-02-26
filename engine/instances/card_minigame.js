@@ -4,16 +4,16 @@ class CardMinigameController extends MinigameController {
         super.onEngineCreate();
         $engine.setBackgroundColour(0xa58443);
 
-        var card_texture = ["card_1", "card_2", "card_3"];  // expand to 9 in final, or wtv needed
-        
-        for(var i = 0; i < card_texture.length*3; i++){
-            var index = card_texture[EngineUtils.irandom(card_texture.length - 1)];
-            new CardBoard(50+100*i,$engine.getWindowSizeY()/2, index, i);
+        var card_texture = ["card_1", "card_2", "card_3","card_1", "card_2", "card_3","card_1", "card_2", "card_3"];  // expand to 9 in final, or wtv needed
+        EngineUtils.shuffleArray(card_texture);
+        for(var i = 0; i < card_texture.length; i++){
+            var index = card_texture[i];
+            new CardBoard(50+85*i, $engine.getWindowSizeY()/2, index);
         }
 
         this.timer = 0;
         this.attempts = 3;
-        this.goal_index = card_texture[EngineUtils.irandom(card_texture.length - 1)];      
+        this.goal_index = card_texture[EngineUtils.irandom(2)];      
         this.goal_card = new PIXI.Sprite($engine.getTexture(this.goal_index));
 
         this.goal_card.x = $engine.getWindowSizeX()/2;
@@ -21,16 +21,16 @@ class CardMinigameController extends MinigameController {
         $engine.createManagedRenderable(this, this.goal_card); 
     }
 
-
     onCreate() { 
         super.onCreate();
         this.onEngineCreate();
     }
 
+
     step() {
         super.step();
         this.timer++;
-        if(this.timer == 120){
+        if(this.timer == 80){
             IM.with(CardBoard, function(instance){
                 instance.getSprite().texture = $engine.getTexture("yugioh");    
             })
@@ -49,8 +49,8 @@ class CardMinigameController extends MinigameController {
 
 class CardBoard extends EngineInstance {
 
-    onCreate(x,y,index, order) {
-        this.order = order;
+    onCreate(x,y,index) {
+
         this.x = x;
         this.y = y;
         this.group = index;
@@ -61,16 +61,19 @@ class CardBoard extends EngineInstance {
     }
 
     step() {
-        if(IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){
-            CardMinigameController.getInstance().attempts--;
-            if(this.group == CardMinigameController.getInstance().goal_index){
-                this.clicked = true;
-                //this.getSprite().tint = (0xaaaa43); 
+        if(CardMinigameController.getInstance().timer > 80){
+            if(IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){
+                CardMinigameController.getInstance().attempts--;
+                    this.clicked = true;
             }
-        }
-        if(CardMinigameController.getInstance().attempts == 0 && this.clicked){
-            this.getSprite().tint = (0xaaaa43);
-            this.getSprite().texture = $engine.getTexture(this.group); 
+            if(CardMinigameController.getInstance().attempts == 0 && this.clicked){
+                if(this.group == CardMinigameController.getInstance().goal_index){
+                    this.getSprite().tint = (0x11fa4f);  // correct choice 0xaaaa43
+                }else{
+                    this.getSprite().tint = (0xab1101);  //WRONG  0xab1101
+                }
+                this.getSprite().texture = $engine.getTexture(this.group);
+            }
         }
 
     }
