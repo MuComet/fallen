@@ -43,3 +43,6 @@ falling_rock_rocky_1 engine/textures/rock_falling_man.png 0.5 1
 
 falling_tower_1 engine/textures/tower_1.png 0.5 0
 sky_platform engine/textures/sky_platform.png 0.5 0
+
+require card_1 engine/textures/card_1.png 0.5 0.5
+require card_2 engine/textures/card_2.png 0.5 0.5
