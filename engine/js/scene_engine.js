@@ -83,6 +83,8 @@ class Scene_Engine extends Scene_Base {
         this.__backgroundContainer = new PIXI.Container();
         this.setBackground(new PIXI.Graphics(), true)
 
+        this.__physicsEngine = undefined;
+
         this.addChild(this.__backgroundContainer);
         this.addChild(this.__cameras[0]);
         this.addChild(this.__GUIgraphics)
@@ -104,6 +106,22 @@ class Scene_Engine extends Scene_Base {
     __startEngine() {
         this.__setRoom($__engineData.loadRoom);
         IN.__forceClear();
+    }
+
+    /**
+     * Enables matter.js physics engine. After calling this method, all EnginePhysicsInstances will be physically simulated.
+     */
+    enablePhysics() {
+        if(!this.__physicsEngine)
+            this.__physicsEngine = new Matter.Engine.create();
+    }
+
+    physicsAddBodyToWorld(...bodies) {
+        Matter.World.add(this.__physicsEngine.world,bodies)
+    }
+
+    physicsRemoveBodyFromWorld(body) {
+        Matter.World.remove(this.__physicsEngine.world,body)
     }
 
     update() {
@@ -307,6 +325,7 @@ class Scene_Engine extends Scene_Base {
         var start = window.performance.now();
 
         this.__clearGraphics();
+        this.__doPhysicsTick();
         IM.__doSimTick();
         this.__updateBackground();
         this.__prepareRenderToCameras();
@@ -314,6 +333,12 @@ class Scene_Engine extends Scene_Base {
         var time = window.performance.now()-start;
         if($__engineData.__debugLogFrameTime)
             console.log("Time taken for this frame: "+(time)+" ms")
+    }
+
+    __doPhysicsTick() {
+        if(this.__physicsEngine === undefined)
+            return;
+        Matter.Engine.update(this.__physicsEngine);
     }
 
     /**
@@ -507,6 +532,7 @@ class Scene_Engine extends Scene_Base {
      */
     createManagedRenderable(parent, renderable) {
         parent.__pixiDestructables.push(renderable);
+        return renderable;
     }
 
     

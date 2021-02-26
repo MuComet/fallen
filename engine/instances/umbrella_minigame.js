@@ -37,6 +37,18 @@ class UmbrellaMinigameController extends MinigameController {
         })
         this.timer.setSurvivalMode();
         $engine.setBackgroundColour(0x080820)
+
+        $engine.enablePhysics();
+
+        this.physicsFloor = Matter.Bodies.rectangle($engine.getWindowSizeX()/2,$engine.getWindowSizeY(),$engine.getWindowSizeX(),64,{isStatic:true});
+        $engine.physicsAddBodyToWorld(this.physicsFloor);
+    }
+
+    step() {
+        super.step();
+        if(IN.mouseCheckPressed(0)) {
+            new Test(IN.getMouseX(), IN.getMouseY());
+        }
     }
 
     decrementScore() {
@@ -62,8 +74,34 @@ class UmbrellaMinigameController extends MinigameController {
     draw(gui,camera) {
         super.draw(gui,camera);
         $engine.requestRenderOnGUI(this.scoreText);
+        EngineDebugUtils.drawPhysicsObject(camera,this.physicsFloor)
     }
 
+}
+
+class Test extends EnginePhysicsInstance {
+    onCreate(x,y) {
+        this.x = x;
+        this.y = y;
+        const phys = Matter.Bodies.rectangle(x,y,64,64, { restitution: 0.8 });
+        this.setHitbox(new Hitbox(this, new RectangeHitbox(this,-32,-32,32,32)))
+        this.attachPhysicsObject(phys);
+        this.setSprite(new PIXI.Sprite($engine.getTexture("introStart1")))
+    }
+
+    step() {
+        if(IN.mouseCheckPressed(2) && IM.instanceCollisionPoint(IN.getMouseX(),IN.getMouseY(),this))
+            this.destroy();
+    }
+
+    cleanup() {
+        this.detachPhysicsObject();
+    }
+
+    draw(gui, camera) {
+        EngineDebugUtils.drawPhysicsHitbox(camera,this)
+        //EngineDebugUtils.drawHitbox(camera,this)
+    }
 }
 
 class Man extends InstanceMover {
@@ -117,7 +155,6 @@ class Man extends InstanceMover {
         this.lmy = IN.getMouseYGUI();
 
         //console.log(IN.getMouseX(),IN.getMouseY());
-        console.log(IM.instanceCollisionPoint(IN.getMouseX(),IN.getMouseY(),this))
 
         //console.log(IN.getMouseX(),IN.getMouseY(), $engine.getCamera().getX(), $engine.getCamera().getY());
     }

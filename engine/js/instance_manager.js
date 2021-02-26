@@ -113,6 +113,7 @@ class IM {
         if(!$engine.isGamePaused()) {
             IM.__cleanup();
             IM.__deleteFromObjects();
+            IM.__implicit();
             IM.__step();
             IM.__preDraw();
             IM.__sort();
@@ -150,6 +151,11 @@ class IM {
                 IM.__alteredLists[i] = false;
             }
         }
+    }
+
+    static __implicit() {
+        for(const obj of IM.__objects)
+            obj.__implicit();
     }
 
     static __step() {

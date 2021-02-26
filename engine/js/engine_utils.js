@@ -195,6 +195,22 @@ class EngineUtils {
     }
 
     /**
+     * Shuffles an array in place. Also returns the array.
+     * @param {Array} array The array to shuffle
+     * @returns {Array} The passed in array.
+     */
+    static shuffleArray(array) {
+        var len = array.length;
+        for(var i = 0;i<len;i++) {
+            var i2 = EngineUtils.irandom(len-1);
+            var t = array[i];
+            array[i] = array[i2];
+            array[i2] = t;
+        }
+        return array;
+    }
+
+    /**
      * Interpolates between min and max given a certain interpolation fuction and an input value.
      * 
      * example usage: 
@@ -292,5 +308,34 @@ class EngineDebugUtils {
     static drawBoundingBox(graphics, inst) {
         var bb = inst.hitbox.getBoundingBox();
         graphics.lineStyle(1,0xe74c3c).moveTo(bb.x1,bb.y1).lineTo(bb.x2,bb.y1).lineTo(bb.x2,bb.y2).lineTo(bb.x1,bb.y2).lineTo(bb.x1,bb.y1);
+    }
+
+    /**
+     * Draws the physics hitbox of the specified EngineInstance
+     * @param {PIXI.graphics} graphics The grapics instance to use
+     * @param {EngineInstance} inst The engine instance to draw the hitbox of
+     */
+    static drawPhysicsHitbox(graphics, inst) {
+        if(!inst.__physicsObject)
+            return;
+        EngineDebugUtils.drawPhysicsObject(graphics, inst.__physicsObject);
+        
+    }
+
+    static drawPhysicsObject(graphics, physicsObject) {
+        var vertices = physicsObject.vertices;
+        var len = vertices.length;
+        var p2 = new PIXI.Polygon();
+        var v;
+        for(var i =0;i<len;i++) {
+            v = vertices[i]
+            p2.points.push(new PIXI.Point(v.x,v.y));
+        }
+        v = vertices[0];
+        p2.points.push(new PIXI.Point(v.x,v.y));
+        graphics.lineStyle(2,0xe74c3c);
+        graphics.beginFill(0xe74c3c,0.5);
+        graphics.drawPolygon(p2)
+        graphics.endFill();
     }
 }

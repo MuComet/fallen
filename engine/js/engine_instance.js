@@ -151,6 +151,11 @@ class EngineInstance {
     preDraw() {}
 
     /**
+     * Engine functions. Do not override.
+     */
+    __implicit() {}
+
+    /**
      * Draw contract: Do not edit any variables in this method, only read them.
      * 
      * This event is sorted, unlike other events, it will be called in the same order that objects will be rendered in.
