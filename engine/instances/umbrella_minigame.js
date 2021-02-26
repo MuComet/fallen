@@ -116,6 +116,9 @@ class Man extends InstanceMover {
         this.lmx = IN.getMouseXGUI();
         this.lmy = IN.getMouseYGUI();
 
+        //console.log(IN.getMouseX(),IN.getMouseY());
+        console.log(IM.instanceCollisionPoint(IN.getMouseX(),IN.getMouseY(),this))
+
         //console.log(IN.getMouseX(),IN.getMouseY(), $engine.getCamera().getX(), $engine.getCamera().getY());
     }
 

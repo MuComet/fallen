@@ -414,7 +414,7 @@ class IM {
      * @returns {EngineInstance} The first EngineInstance that is collided with, or undefined if there is none.
      */
     static instancePosition(x,y, ...targets) {
-        var PCS = IM.__generatePCSFromPoint(x,y,...targets);
+        var PCS = IM.__generatePCSFromPoint(x,y,targets);
         for(const inst of PCS) {
             if(inst.hitbox.containsPoint(x,y));
                 return inst;
@@ -430,7 +430,7 @@ class IM {
      * @returns {Boolean} True if any instance collides with the point, false otherwise
      */
     static instanceCollisionPoint(x,y, ...targets) {
-        var PCS = IM.__generatePCSFromPoint(x,y,...targets);
+        var PCS = IM.__generatePCSFromPoint(x,y,targets);
         for(const inst of PCS) {
             if(inst.hitbox.containsPoint(x,y));
                 return true;
