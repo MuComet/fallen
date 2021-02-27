@@ -1,4 +1,4 @@
-$__engineData.loadRoom = "SkyRoom"
+$__engineData.loadRoom = "FallingObjectsRoom"
 $__engineData.__debugPreventReturn=true;
 $__engineData.__debugRequireAllTextures = true;
 IN.debugDisplayKeyPress(true)

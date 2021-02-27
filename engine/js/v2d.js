@@ -90,6 +90,5 @@ class V2D extends EnginePoint {
 
     static calcDir(x,y) {
         return Math.atan2(y,x);
-        
     }
 }

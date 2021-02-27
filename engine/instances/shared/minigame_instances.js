@@ -1,3 +1,18 @@
+/**
+ * Overwrites:
+ * 
+ * **onEngineCreate** / onCreate
+ * 
+ * step
+ * 
+ * usage: 
+ * 
+ * implement collisionCheck(x,y)
+ * 
+ * implement canControl()
+ * 
+ * call move([2]<accel>, this.vel)
+ */
 class InstanceMover extends EngineInstance {
 
     onEngineCreate() {
@@ -10,6 +25,7 @@ class InstanceMover extends EngineInstance {
         this.turnLag = 4; // how long if accel in other dir
         this.turnLagStop=8; // how long if no accel
         this.drag = 0.01;
+        this.acceleration =2;
 
         // don't touch
         this.vel = [0,0]
@@ -18,7 +34,35 @@ class InstanceMover extends EngineInstance {
         this.turnLagFramesControl = [0,0];
         this.turnLagInterruptable = [false,false];
         this.frictionCoeff = 0.1;
+
+        this._controlButtons =[[],[],[],[]];
     }
+
+    addControlButtons(up, left, down, right) {
+        this._controlButtons[0].push(up);
+        this._controlButtons[1].push(left);
+        this._controlButtons[2].push(down);
+        this._controlButtons[3].push(right);
+    }
+
+     getAccelVector() {
+         var up = 0, left = 0, down = 0, right = 0;
+         for(var i =0;i<this._controlButtons[0].length;i++) {
+             up = IN.keyCheck(this._controlButtons[0][i]) || up;
+             left = IN.keyCheck(this._controlButtons[1][i]) || left;
+             down = IN.keyCheck(this._controlButtons[2][i]) || down;
+             right = IN.keyCheck(this._controlButtons[3][i]) || right;
+         }
+         var horiz = right - left;
+         var vert = down-up;
+         if(horiz!==0 && vert!==0) {
+             horiz*=0.7071;
+             vert*=0.7071;
+         }
+         horiz*=this.acceleration;
+         vert*=this.acceleration;
+         return [horiz,vert];
+     }
 
     onCreate() {
         this.onEngineCreate();

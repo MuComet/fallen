@@ -1,3 +1,8 @@
+/**
+ * Creates a new minigame timer which will count down to zero. When it reaches zero it will call onTimerStopped.
+ * 
+ * 
+ */
 class MinigameTimer extends EngineInstance {
     onEngineCreate() {
         throw new Error("Do not instantiate the MinigameTimer with rooms.")
@@ -100,6 +105,9 @@ class MinigameTimer extends EngineInstance {
     }
 
     setTimeRemaining(frames) {
+        if(this.timerDone) {
+            throw new Error("Timer must be running to set the time remaining");
+        }
         this.timer = frames;
     }
 
@@ -177,6 +185,25 @@ class MinigameTimer extends EngineInstance {
 
 }
 
+/**
+ * Overwrites:
+ * 
+ * **onEngineCreate** / onCreate
+ * 
+ * step
+ * 
+ * pause
+ * 
+ * draw
+ * 
+ * cleanup
+ * 
+ * This class automatically handles the start and cheating with minigames. Simply tell it what to render using setInstructionRenderable and
+ * setCheatRenderable and it does the rest.
+ * 
+ * Can call hasCheated() to know if the user has cheated. or can can use addCheatCallback to get a function callback when cheat is pressed.
+ * Additionally addOnGameStartCallback will call the specified function when the instructions go away.
+ */
 class MinigameController extends EngineInstance {
     onEngineCreate() {
         if(this.__initalized)
@@ -187,7 +214,7 @@ class MinigameController extends EngineInstance {
         this.minigamePaused = false;
 
         this.instructionTimer = 0;
-        this.instructionTimerLength = 60*5; // 5 seconds
+        this.instructionTimerLength = 60*30; // 30 seconds at most
         this.showingInstructions = true;
 
         this.cheated = false;

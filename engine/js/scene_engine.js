@@ -641,7 +641,7 @@ class Scene_Engine extends Scene_Base {
     }
 
     __prepareRenderToCameras() {
-        for(var i =0;i<1;i++) { // this is probably ultra slow
+        for(var i =0;i<1;i++) { // this is horribly slow (addChild), but it's not worth optimizing since we're so far from frame budget
             if(!this.__enabledCameras[i])
                 continue;
             var camera = this.__cameras[i];
@@ -1068,6 +1068,28 @@ Scene_GameEnd.prototype.commandToTitle = function() {
 Window_Message.prototype.startPause = function() {
     this.startWait(0); // this.startWait(10);
     this.pause = true;
+};
+
+// NOTE: RS_GraphicsMenu was modified to make these work again.
+Scene_Menu.prototype.commandSave = function() {
+    Scene_File.prototype.onSavefileOk.call(this);
+    $gameSystem.onBeforeSave();
+    if (DataManager.saveGame(1)) {
+        this.onSaveSuccess();
+    } else {
+        this.onSaveFailure();
+    }
+    
+};
+
+Scene_Menu.prototype.onSaveSuccess = function() {
+    SoundManager.playSave();
+	StorageManager.cleanBackup(1);
+    SceneManager.pop();
+};
+
+Scene_Menu.prototype.onSaveFailure = function() {
+    SoundManager.playBuzzer();
 };
 
 // hook a in a global update.

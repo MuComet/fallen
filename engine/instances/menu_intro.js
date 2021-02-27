@@ -42,17 +42,19 @@ class MenuIntroController extends EngineInstance {
             CutsceneController.cutsceneComplete =  MenuIntroController.startNewGame;
             $engine.setRoom("CutsceneRoom")
         });
+        startButton.setSelected();
         
         var continueButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+120);
         continueButton.setTextures("button_continue_1","button_continue_1","button_continue_2")
         continueButton.setOnPressed(function(){
             if (DataManager.loadGame(1)) {
-                // reload map if applicable -- taken from rpg_scenes.js line 1770
+                // reload map if updated -- taken from rpg_scenes.js line 1770
                 if ($gameSystem.versionId() !== $dataSystem.versionId) {
                     $gamePlayer.reserveTransfer($gameMap.mapId(), $gamePlayer.x, $gamePlayer.y);
                     $gamePlayer.requestMapReload();
                 }
-                AudioManager.fadeOutBgm(1);
+                SoundManager.playLoad();
+                $engine.fadeOutAll(1);
                 IM.with(MainMenuButton,function(button) {
                     button.enabled = false;
                 })
@@ -63,8 +65,13 @@ class MenuIntroController extends EngineInstance {
             }
         });
         continueButton.setScript(function() {
-            $gameSystem.onAfterLoad();
             SceneManager.goto(Scene_Map);
+            var oldFunc = $engine.terminate;
+            $engine.terminate = function() { // hijack... myself?
+                oldFunc.call(this);
+                $gameSystem.onAfterLoad();
+            }
+            
         });
 
         this.audioReference = $engine.generateAudioReference("Prototype");
@@ -282,6 +289,7 @@ class MainMenuButton extends EngineInstance {
         this.onPressed = undefined;
         this.xScale = 0.25;
         this.yScale = 0.25;
+        this.active = false;
     }
 
     setTextures(def, armed, fire) {
@@ -302,6 +310,8 @@ class MainMenuButton extends EngineInstance {
         this.rand2 = EngineUtils.irandom(128);
         this.rand3 = EngineUtils.irandom(128);
         this.rand4 = EngineUtils.irandomRange(64,128);
+        this.outlineFilter = new PIXI.filters.OutlineFilter(4,0xffffff);
+        this.fitlers = [];
         this.onEngineCreate();
     }
 
@@ -313,6 +323,26 @@ class MainMenuButton extends EngineInstance {
         this.script = scr;
     }
 
+    outlineTick() {
+        var strength = 4;
+        var correction = Math.sin($engine.getGameTimer()/18)*0.25 + 0.75; // between 0.5 and 1
+        this.outlineFilter.thickness = strength * correction;
+    }
+
+    setSelected() {
+        IM.with(MainMenuButton, function(self) {
+            self.active = false;
+            self.getSprite().filters = [];
+        })
+        this.active=true;
+        this.getSprite().filters = [this.outlineFilter];
+    }
+
+    select() {
+        this.setSelected();
+        SoundManager.playCursor();
+    }
+
     step() {
         this.angle = Math.sin(($engine.getGameTimer()+this.rand3)/this.rand4)/16
         var diffX = (this.ox - (IN.getMouseX()-this.x)/8)
@@ -321,24 +351,45 @@ class MainMenuButton extends EngineInstance {
         this.oy -= diffY/60;
         this.x = this.xStart + 10 * Math.sin(($engine.getGameTimer()+this.x+this.rand2)/64) + this.ox;
         this.y = this.yStart + 10 *  Math.cos(($engine.getGameTimer()+this.y+this.rand1)/64) + this.oy;
+        this.outlineTick();
+
+
+        // this is the literal definition of spaghetti haha
         if(!this.enabled)
             return;
-        //this.removeSprite();
+        
+        var mouseOnSelf = this.hitbox.containsPoint(IN.getMouseX(),IN.getMouseY());
+        if(mouseOnSelf && !this.active) {
+            this.select();
+        }
+
         if(this.pressed) {
             this.getSprite().texture = this.tex3; // pressed
-        } else if(this.hitbox.containsPoint(IN.getMouseX(),IN.getMouseY())) {
+        } else if(mouseOnSelf) {
             this.getSprite().texture = this.tex2; // armed
             if(IN.mouseCheck(0)) {
                 this.getSprite().texture = this.tex3; // pressed
-            } else if(IN.mouseCheckReleased(0)) {
-                this.getSprite().texture = this.tex3; // pressed
-                if(this.onPressed()) {
-                    IM.find(MenuIntroController,0).beginFade(this.script);
-                    this.pressed = true;
-                }
+            }
+            if(IN.mouseCheckReleased(0)) {       // released
+                this.getSprite().texture = this.tex3;
+                this.testPressed();
             }
         } else {
             this.getSprite().texture = this.tex1;
+        }
+
+        // i hate this -- fix same frame skip and start...
+        var controller = IM.find(MenuIntroController);
+        if(controller.timer-1>controller.endTime && this.active && (IN.keyCheckPressed("Enter") || IN.keyCheckPressed("Space"))) {
+            this.testPressed();
+        }
+    }
+
+    testPressed() {
+        if(this.onPressed()) {
+            IM.find(MenuIntroController,0).beginFade(this.script);
+            this.pressed = true;
+            this.getSprite().texture = this.tex3; // pressed
         }
     }
 

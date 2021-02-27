@@ -7,13 +7,18 @@ class UmbrellaMinigameController extends MinigameController {
         AudioManager.playBgm(this.audioReference);
         AudioManager.fadeInBgm(1);
 
-        this.score = 7500;
+        this.score = 750;
         this.scoreText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         this.scoreText.anchor.set(0.5,0.5);
         this.scoreText.x = $engine.getWindowSizeX()/2;
         this.scoreText.y = $engine.getWindowSizeY()-30;
         $engine.createManagedRenderable(this,this.scoreText);
         this.updateScoreText();
+
+        this.fakeOutTimes = [];
+        for(var i =0;i<10;i++) { // TODO -----------------------------------------------------------------
+            this.fakeOutTimes.push(EngineUtils.irandomRange(i * 6 * 60,(i+1) * 6 * 60));
+        }
 
         // instructions
         var text = new PIXI.Text("Left and Right arrow keys to move,\n don't touch the rain!\n\nPress Enter to cheat!",{fontFamily: 'GameFont',
@@ -74,7 +79,7 @@ class UmbrellaMinigameController extends MinigameController {
     draw(gui,camera) {
         super.draw(gui,camera);
         $engine.requestRenderOnGUI(this.scoreText);
-        EngineDebugUtils.drawPhysicsObject(camera,this.physicsFloor)
+        //EngineDebugUtils.drawPhysicsObject(camera,this.physicsFloor)
     }
 
 }
@@ -83,10 +88,13 @@ class Test extends EnginePhysicsInstance {
     onCreate(x,y) {
         this.x = x;
         this.y = y;
-        const phys = Matter.Bodies.rectangle(x,y,64,64, { restitution: 0.8 });
-        this.setHitbox(new Hitbox(this, new RectangeHitbox(this,-32,-32,32,32)))
-        this.attachPhysicsObject(phys);
-        this.setSprite(new PIXI.Sprite($engine.getTexture("introStart1")))
+        const phys = Matter.Bodies.rectangle(x,y,128,64, { restitution: 0.8 });
+        this.setHitbox(new Hitbox(this, new RectangeHitbox(this,-64,-32,64,32)))
+        this.attachPhysicsObject(this.physicsObjectFromHitbox({ restitution: 0.8 }));
+        this.setHitbox(new Hitbox(this, new RectangeHitbox(this,-734/2,-245/2,734/2,245/2)))
+        this.setSprite(new PIXI.Sprite($engine.getTexture("button_new_game_1")))
+        this.xScale = 0.1743869;
+        this.yScale = 0.5224489/2;
     }
 
     step() {
@@ -99,7 +107,7 @@ class Test extends EnginePhysicsInstance {
     }
 
     draw(gui, camera) {
-        EngineDebugUtils.drawPhysicsHitbox(camera,this)
+        //EngineDebugUtils.drawPhysicsHitbox(camera,this)
         //EngineDebugUtils.drawHitbox(camera,this)
     }
 }
@@ -298,6 +306,9 @@ class Umbrella extends EngineInstance {
 
             this.dx = this.x - lx;
             this.dy = this.y - ly;
+        } else {
+            this.dx = 0;
+            this.dy = 0;
         }
         var controller = UmbrellaMinigameController.getInstance();
         if(controller.hasCheated() && this.wideTimer<=this.endWideTime) {
@@ -317,7 +328,9 @@ class Raindrop extends EngineInstance {
 
     onEngineCreate() {
         this.dx = EngineUtils.randomRange(0.2,0.8);
-        this.dy = EngineUtils.randomRange(20,24);
+        this.maxDy = EngineUtils.randomRange(20,24)
+        this.dy = this.maxDy;
+        this.grav = 0.25;
         this.angle = V2D.calcDir(this.dx,this.dy)
         var dist = V2D.calcMag(this.dx,this.dy);
         this.xScale = EngineUtils.clamp(dist/6,0,2)
@@ -334,7 +347,32 @@ class Raindrop extends EngineInstance {
     step() {
         this.x+=this.dx;
         this.y+=this.dy;
-        if(this.y>=$engine.getWindowSizeY() || this.x<0 || this.x > 816 || IM.instanceCollision(this,this.x,this.y,Umbrella)) {
+        if(this.dy < this.maxDy)
+            this.dy+=this.grav;
+        this.angle = V2D.calcDir(this.dx,this.dy)
+        var dist = V2D.calcMag(this.dx,this.dy);
+        this.xScale = EngineUtils.clamp(dist/12,0.25,2)
+        if(this.y>=$engine.getWindowSizeY() || this.x<0 || this.x > 816) {
+            this.destroy();
+        }
+        var inst = IM.instancePlace(this,this.x,this.y,Umbrella)
+        if(inst) {
+            var spd = V2D.calcMag(this.dx,this.dy);
+            var angle = V2D.calcDir(this.x-inst.x,inst.y-this.y);
+            spd/=8
+            var diff = this.x-inst.x;
+            var dxAdd = inst.dx
+            if(Math.sign(diff) !== Math.sign(inst.dx) || Math.abs(diff)<60)
+                dxAdd=0;
+            if(inst.dx === 0) {
+                dxAdd = EngineUtils.clamp(diff/32,-2.5,2.5)
+            }
+            if(spd<0.5)
+                spd=0;
+            this.dx = V2D.lengthDirX(angle,spd) +dxAdd;
+            this.dy = V2D.lengthDirY(angle,spd);
+        }
+        if(IM.instanceCollision(this,this.x,this.y,Test)) {
             this.destroy();
         }
         if(IM.instanceCollision(this,this.x,this.y,Man)) {

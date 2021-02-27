@@ -192,7 +192,7 @@ class EngineInstance {
     pause() {}
 
     /**
-     * onDestroy is at the end of the frame called when this instance is destroyed for any using destroy().
+     * onDestroy is called immediately when this instance is destroyed using destroy().
      */
     onDestroy() {}
 

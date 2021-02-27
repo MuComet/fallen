@@ -364,7 +364,7 @@ RS.Utils = RS.Utils || {};
     this.initialize.apply(this, arguments);
   };
 
-  Scene_LinearMenu.prototype = Object.create(Scene_MenuBase.prototype);
+  Scene_LinearMenu.prototype = Object.create(Scene_Menu.prototype); // MODIFIED! Object.create(Scene_MenuBase.prototype);
   Scene_LinearMenu.prototype.constructor = Scene_LinearMenu;
 
   Scene_LinearMenu.INDEX = 0;
@@ -506,11 +506,21 @@ RS.Utils = RS.Utils || {};
         console.warn(e);
       }
     }
-    if(typeof window[sceneObject] === 'function') {
-      // push : 현재 메뉴 씬을 메뉴 스택에 누적
-      this._touched = false;
-      SceneManager.push(window[sceneObject]);
-      SoundManager.playOk();
+    if(typeof window[sceneObject] === 'function') { // MODIFIED!
+	  var scene = window[sceneObject];
+      if(scene===Scene_Item) {
+		  Scene_Menu.prototype.commandItem.call(this);
+	  } else if (scene===Scene_Options) {
+		  Scene_Menu.prototype.commandOptions.call(this);
+	  } else if (scene===Scene_Save) {
+		  Scene_Menu.prototype.commandSave.call(this);
+	  } else if (scene===Scene_GameEnd) {
+		  Scene_Menu.prototype.commandGameEnd.call(this);
+	  } else {
+		  SceneManager.push(scene);
+	  }
+	  this._touched = false;
+	  SoundManager.playOk();
     }
   };
 

@@ -24,6 +24,7 @@ class IM {
         IM.__accessMap = [[],];
         IM.__accessMap[1] = [];
         EngineInstance.__oid=1;
+        IM.__childMap = [undefined,]
         IM.__childMap[1] = IM.__childTree;
         var id=2;
         for(const x of instances) {
@@ -31,25 +32,7 @@ class IM {
             x.__oid=id++;
         };
 
-        var BFS = function(target) {
-            var stack = [IM.__childTree];
-            if(IM.__childTree.__children!==undefined)
-                IM.__childTree.__children.forEach(x => stack.push(x));
-
-            while(stack.length!==0) {
-                var len = stack.length;
-                for(var i = 0;i<len;i++) {
-                    var tree = stack.shift(); // pop(0)
-                    if(target.prototype instanceof tree.__oid) // is the current instance a parent of the target instance?
-                        return tree;
-                    if(tree.__children!==undefined) { // are there more elements?
-                        tree.__children.forEach(x=>stack.push(x));
-                    }
-                }
-            }
-            return undefined;
-        }
-
+        // find the deepest instance in the tree that is a parent of target
         var returnDeepest = function(target, result) {
             if(result.__children===undefined) {
                 return result;
@@ -62,6 +45,8 @@ class IM {
             return result;
         }
 
+        // check if any child in children is a subclass of newParent, if it is, bind it to the
+        // newParent instead of it's previous parent (ensure only direct subclasses are in __children)
         var rebind = function(newParent, children) {
             for(let i =0;i<children.length;i++) {
                 if(children[i].__oid.prototype instanceof newParent.__oid) {
@@ -75,10 +60,8 @@ class IM {
         }
 
         instances.forEach(x => { // manage children
-            //perform BFS
-            var result = BFS(x);
-            if(result!==undefined) { // result is at some point a superclass of x
-                result = returnDeepest(x,result); // result is the lowest superclass of x
+            if(x.prototype instanceof EngineInstance) {
+                var result = returnDeepest(x,IM.__childTree); // result is the lowest superclass of x
                 
                 var r = {
                     __oid:x,
@@ -88,12 +71,13 @@ class IM {
                 if(result.__children===undefined) {
                     result.__children = [];
                 } else {
+                    // check if any children on this level are children of us.
                     rebind(r,result.__children);
                 }
                 result.__children.push(r);
                 IM.__childMap[IM.__oidFrom(x)] = r;
             } else {
-                throw "Attemping to add non Instance subclass("+String(x)+") to IM";
+                throw new Error("Attemping to add non EngineInstance subclass("+String(x)+") to IM");
             }
         });
         // final step, replace classes with their OID for faster lookup
@@ -128,7 +112,7 @@ class IM {
 
     static __cleanup() {
         for(const obj of IM.__cleanupList) {
-            obj.onDestroy();
+            //obj.onDestroy();
             obj.cleanup();
             $engine.__disposeHandles(obj);
         }
@@ -343,13 +327,17 @@ class IM {
     }
 
     /**
-     * Queries all targets instanes and then marks them for deletion.
+     * Queries all targets instanes and then marks them for deletion. Also calls the onDestroy() method immediately.
      * @param  {...EngineInstance} targets N instances of EngineInstance or classes
      */
     static destroy(...targets) {
         for(const input of targets)
-            for(const inst of IM.__queryObjects(input))
-                inst.__alive = false;
+            for(const inst of IM.__queryObjects(input)) {
+                if(inst.__alive) {
+                    inst.__alive = false;
+                    inst.onDestroy();
+                }
+            }
                 
     }
 
@@ -579,7 +567,7 @@ class IM {
 
 IM.__accessMap = [];        // indexes every single instance with oid being the key and an array of all those instances being the value
 IM.__alteredLists = [];     // whether or not this specific OID has had instances removed (lets us skip filtering objects which haven't been touched)
-IM.__childMap = {};         // maps each oid to a tree containting all children oid
+IM.__childMap = [];         // maps each oid to a tree containting all children oid
 IM.__childTree = {
     __oid:EngineInstance,
     __children:undefined
