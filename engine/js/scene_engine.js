@@ -61,9 +61,11 @@ class Scene_Engine extends Scene_Base {
 
     __initEngine() {
         $engine = this;
-        this.__gamePaused = false;
+        this.__pauseMode = 0; // 0 = not paused, 1 = paused, 2 = pause special.
+        this.__pauseSpecialInstance = undefined;
         this.__filters = [];
-        this.filters = []; // PIXI
+        this.__gameCanvas = new PIXI.Container();
+        this.__gameCanvas.filters = []; // PIXI
         this.__enabledCameras = [true,false];
         this.__cameras=[new Camera(0,0,Graphics.boxWidth,Graphics.boxHeight,0)];
         this.__GUIgraphics = new PIXI.Graphics();
@@ -85,9 +87,11 @@ class Scene_Engine extends Scene_Base {
 
         this.__physicsEngine = undefined;
 
-        this.addChild(this.__backgroundContainer);
-        this.addChild(this.__cameras[0]);
-        this.addChild(this.__GUIgraphics)
+        // place everything into a container so that the GUIScreen is not effected by game effects.
+        this.addChild(this.__gameCanvas);
+        this.__gameCanvas.addChild(this.__backgroundContainer);
+        this.__gameCanvas.addChild(this.__cameras[0]);
+        this.__gameCanvas.addChild(this.__GUIgraphics)
         IM.__initializeVariables();
     }
 
@@ -137,7 +141,7 @@ class Scene_Engine extends Scene_Base {
         IN.__update();
         this.__doSimTick();
         
-        if(!this.__gamePaused)
+        if(this.__pauseMode !==1)
             this.__gameTimer++;
         this.__globalTimer++;
     }
@@ -200,17 +204,40 @@ class Scene_Engine extends Scene_Base {
     }
 
     pauseGame() {
-        this.__gamePaused = true;
+        this.__pauseMode = 1;
     }
 
     unpauseGame() {
-        this.__gamePaused = false;
+        this.__pauseMode = 0;
     }
 
     isGamePaused() {
-        return this.__gamePaused;
+        return this.__pauseMode===1;
     }
 
+    pauseGameSpecial(instance) {
+        if(!instance) {
+            throw new Error("PauseGameSpecial requires a target instance to keep running");
+        }
+        this.__pauseSpecialInstance = instance;
+        this.__pauseMode = 1;
+    }
+
+    unpauseGameSpecial() {
+        this.__pauseMode = 0;
+    }
+
+    isGamePaused() {
+        return this.__pauseMode===1;
+    }
+
+    isGamePausedSpecial() {
+        return this.__pauseMode===2;
+    }
+
+    __getPauseMode() {
+        return this.__pauseMode;
+    }
 
     __endAndReturn() {
         // for testing minigames.
@@ -241,6 +268,7 @@ class Scene_Engine extends Scene_Base {
         this.getCamera().getCameraGraphics().removeChildren(); // prevent bug if you rendered to the Camera
         this.freeRenderable(this.__GUIgraphics)
         this.freeRenderable(this.__backgroundContainer);
+        this.freeRenderable(this.__gameCanvas)
     }
 
     __writeBack() {
@@ -336,7 +364,7 @@ class Scene_Engine extends Scene_Base {
     }
 
     __doPhysicsTick() {
-        if(this.__physicsEngine === undefined)
+        if(this.__physicsEngine === undefined || this.__pauseMode!==0)
             return;
         Matter.Engine.update(this.__physicsEngine);
     }
@@ -349,9 +377,9 @@ class Scene_Engine extends Scene_Base {
      */
     addFilter(screenFilter, removeOnRoomChange = true, name = "ENGINE_DEFAULT_FILTER_NAME") {
         this.__filters.push({filter:screenFilter,remove:removeOnRoomChange,filterName: name});
-        var filters = this.filters // PIXI requires reassignment
+        var filters = this.__gameCanvas.filters // PIXI requires reassignment
         filters.push(screenFilter);
-        this.filters = filters;
+        this.__gameCanvas.filters = filters;
     }
 
     /**
@@ -372,9 +400,9 @@ class Scene_Engine extends Scene_Base {
         }
         var filterObj = this.__filters[i]
 
-        var filters = this.filters; // PIXI requirments.
-        filters.splice(this.filters.indexOf(filterObj.filter),1);
-        this.filters = filters;
+        var filters = this.__gameCanvas.filters; // PIXI requirments.
+        filters.splice(this.__gameCanvas.filters.indexOf(filterObj.filter),1);
+        this.__gameCanvas.filters = filters;
 
         this.__filters.splice(index,1);
     }
@@ -447,7 +475,7 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
-     * @returns {Number} The amount of frames the engine has been running, excluding time paused.
+     * @returns {Number} The amount of frames the engine has been running, excluding time paused, and including special time paused.
      */
     getGameTimer() {
         return this.__gameTimer;
@@ -1095,7 +1123,7 @@ Scene_Menu.prototype.onSaveFailure = function() {
 // hook a in a global update.
 SceneManager.updateManagers = function() {
     ImageManager.update();
-    OwO.tick();
+    UwU.tick();
 }
 
 // Unwrap Utilities
@@ -1147,6 +1175,11 @@ class UwU {
     static sceneIsOverworld() {
         return SceneManager._scene.constructor === Scene_Map; 
     }
+
+    static tick() {
+        OwO.tick();
+        GUIScreen.tick();
+    }
 }
 
 var sceneManagerOnSceneStart = SceneManager.onSceneStart;
@@ -1177,8 +1210,10 @@ class OwO {
             }
             if(UwU.sceneIsOverworld()) { // any transition into overworld, from any other scene.
                 OwO.__applyAllFilters(OwO.__gameFilters);
-                if(UwU.mapIdChanged()) // changed to a new map level
+                if(UwU.mapIdChanged()) { // changed to a new map level
                     OwO.__deallocateRenderLayer();
+                    OwO.__executeMapScript();
+                }
             }
             if(!UwU.lastSceneWasMenu() && !UwU.sceneIsMenu()) { // if true, the last change had nothing to do with menu (could be overworld to engine)
                 OwO.__resetAutorunSwitch();
@@ -1187,6 +1222,20 @@ class OwO {
                 OwO.__syncRenderLayer();
             }
         })
+    }
+
+    static __executeMapScript() {
+        var scr = OwO.__mapScripts[$gameMap._mapId];
+        if(scr) {
+            scr();
+        }
+    }
+
+    static registerMapScript(scr) {
+        if(OwO.__mapScripts[$gameMap._mapId]) // already registered, ignore.
+            return;
+        OwO.__mapScripts[$gameMap._mapId] = scr;
+        OwO.__executeMapScript();
     }
 
     // in every room there exists an autorun script. this autorun will only run if variable #4 is set to 0 and it will set #4 back to 1
@@ -1560,3 +1609,80 @@ OwO.__sceneShaderMap = {};
 OwO.__RPGgameTimer = 0;
 OwO.__colourFilter = new PIXI.filters.AdjustmentFilter()
 OwO.__gameFilters = [OwO.__colourFilter];
+OwO.__mapScripts = {};
+
+class GUIScreen { // static class for stuff like the custom cursor. always running.
+
+    static tick() {
+        GUIScreen.__updateMouseLocation();
+        GUIScreen.__renderMouse();
+    }
+
+    static __sceneChanged(previousClass, scene) {
+        GUIScreen.__bindContainer();
+    }
+
+    static __bindContainer() {
+        SceneManager._scene.addChild(GUIScreen.__graphics); // bind directly to the scene
+    }
+
+    static __initGraphics() {
+        GUIScreen.__graphics.filters = [new PIXI.filters.OutlineFilter(1,0xffffff)]
+    }
+
+    static __renderMouse() {
+        var graphics = GUIScreen.__graphics
+        var locations = GUIScreen.__mousePoints;
+        var length = GUIScreen.__mousePoints.length;
+        if(length===0)
+            return;
+        //graphics.cursor = undefined
+        graphics.clear();
+        graphics.moveTo(locations[0].x,locations[0].y)
+        var size = length;
+        var points = [];
+        // code by Homan, https://stackoverflow.com/users/793454/homan
+        // source: https://stackoverflow.com/a/7058606
+        for(var i =0;i<length-1;i++) {
+            graphics.lineStyle(size - i,0);
+            var xc = (locations[i].x + locations[i + 1].x) / 2;
+            var yc = (locations[i].y + locations[i + 1].y) / 2;
+            points.push(new EngineLightweightPoint(xc,yc))
+            graphics.quadraticCurveTo(locations[i].x, locations[i].y, xc, yc);
+        }
+        graphics.lineStyle(0);
+        for(var i =0;i<length-1;i++) {
+            graphics.beginFill(0);
+            graphics.drawCircle(points[i].x,points[i].y,(size - i)/2)
+        }
+        graphics.endFill()
+
+    }
+
+    static __mouseMoveHandler(event) {
+        if(!Graphics._renderer)
+            return;
+        var loc = new EngineLightweightPoint(event.clientX,GUIScreen.clientY);
+        var locCorrected = Graphics._renderer.plugins.interaction.mouse.getLocalPosition(GUIScreen.__graphics,loc);
+        GUIScreen.__mouse = locCorrected;
+
+    }
+
+    static __updateMouseLocation() {
+        if(!GUIScreen.__mouse)
+            return;
+        GUIScreen.__mousePoints.unshift(new EngineLightweightPoint(GUIScreen.__mouse.x,GUIScreen.__mouse.y))
+        if(GUIScreen.__mousePoints.length > GUIScreen.__maxMousePoints)
+            GUIScreen.__mousePoints.pop(); // pop(0)
+    }
+}
+
+GUIScreen.__graphics = new PIXI.Graphics();
+GUIScreen.__mouse = undefined;
+GUIScreen.__updateMouseLocation();
+GUIScreen.__mousePoints = [];
+GUIScreen.__maxMousePoints = 10;
+GUIScreen.__maxMouseTrailLength = 10;
+GUIScreen.__initGraphics();
+document.addEventListener("mousemove", GUIScreen.__mouseMoveHandler); // fix one frame lag.
+UwU.addSceneChangeListener(GUIScreen.__sceneChanged);

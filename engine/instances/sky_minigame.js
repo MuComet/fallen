@@ -111,6 +111,13 @@ class SkyBuildPlayer extends EngineInstance {
         this.dropping=false;
         this.randomOffset = EngineUtils.irandom(120);
         this.swingMove();
+        this.shakeTimer = 0;
+        this.shakeTime = 12;
+        this.dropX = 0;
+        this.dropY = 0;
+        this.dropAngle = 0;
+        this.dropTimer=0;
+        this.dropFadeTime = 24;
     }
 
     swingMove() {
@@ -124,8 +131,6 @@ class SkyBuildPlayer extends EngineInstance {
     }
 
     step() {
-        this.y+=this.speed;
-        
         if(this.y>$engine.getWindowSizeY()+100) {
             this.destroy();
         }
@@ -133,13 +138,27 @@ class SkyBuildPlayer extends EngineInstance {
         if(!this.dropping) {
             this.swingMove();
         } else {
-            this.angle = 0;
+            if(this.shakeTimer>this.shakeTime) {
+                this.dropTimer = EngineUtils.clamp(this.dropTimer+1,0,this.dropFadeTime);
+                this.angle = 0;
+                this.y+=EngineUtils.interpolate(this.dropTimer/this.dropFadeTime,0,this.speed,EngineUtils.INTERPOLATE_OUT);
+            } else {
+                var fac = this.shakeTimer/this.shakeTime; // % way through shake.
+                this.angle = EngineUtils.interpolate(fac,this.dropAngle,0,EngineUtils.INTERPOLATE_OUT) + EngineUtils.randomRange(-0.125,0.125)*(1-fac);
+                this.x = this.dropX + EngineUtils.randomRange(-18,18) * (1-fac)
+                this.y = this.dropY + EngineUtils.randomRange(-18,18) * (1-fac)
+                this.shakeTimer++;
+            }
         }
         var consume = SkyMinigameController.iBuffer.consume()
 
         if(this.activated == true && !this.dropping && consume) {
             this.dropping = true;
-            this.speed+=5 + SkyMinigameController.score;
+            this.speed+=20 + SkyMinigameController.score/8;
+            this.dropX = this.x;
+            this.dropY = this.y;
+            this.dropAngle = this.angle
+            SkyMinigameController.mingameTimer.pauseTimer();
         }
 
 
@@ -148,6 +167,7 @@ class SkyBuildPlayer extends EngineInstance {
             for(const tower of towers) { // don't use 'in', use 'of'
                 if(tower.activated == false){
                     SkyMinigameController.mingameTimer.setTimeRemaining(60*5)
+                    SkyMinigameController.mingameTimer.unpauseTimer();
                     SkyMinigameController.score+= 1;
                     SkyMinigameController.getInstance().updateProgressText();
                     this.speed = 0;
@@ -156,7 +176,7 @@ class SkyBuildPlayer extends EngineInstance {
                     this.y = tower.hitbox.getBoundingBoxTop()-100;
                     tower.getSprite().tint = 0x444444;
                     if(SkyMinigameController.score>=3){
-                        SkyMinigameController.endTime = EngineUtils.clamp(SkyMinigameController.endTime-1,5,20);
+                        SkyMinigameController.endTime = EngineUtils.clamp(SkyMinigameController.endTime-1,10,20);
                         SkyMinigameController.pCamY=$engine.getCamera().getY();
                         SkyMinigameController.nCamY = -100 * (SkyMinigameController.score-3)-100;
                         SkyMinigameController.timer=0;
@@ -213,6 +233,7 @@ class FallingTowerPlatform extends SkyBuildPlayer {
             for(const tower of towers) { // don't use 'in', use 'of'
                 if(tower.activated == true){
                     SkyMinigameController.mingameTimer.setTimeRemaining(60*5)
+                    SkyMinigameController.mingameTimer.unpauseTimer();
                     SkyMinigameController.score+= 1;
                     SkyMinigameController.getInstance().updateProgressText();
                     tower.speed = 0;

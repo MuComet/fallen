@@ -94,7 +94,8 @@ class IM {
     }
 
     static __doSimTick() {
-        if(!$engine.isGamePaused()) {
+        var mode = $engine.__getPauseMode();
+        if(mode===0) {
             IM.__cleanup();
             IM.__deleteFromObjects();
             IM.__implicit();
@@ -102,9 +103,14 @@ class IM {
             IM.__preDraw();
             IM.__sort();
             IM.__draw();
+        } else if(mode===1) {
+            IM.__sort();
+            IM.__pause();
+            IM.__draw();
         } else {
             IM.__sort();
             IM.__pause();
+            $engine.__pauseSpecialInstance.step(); // run the special instance's step.
             IM.__draw();
         }
         
