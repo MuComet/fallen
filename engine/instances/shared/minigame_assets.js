@@ -145,7 +145,7 @@ class MinigameTimer extends EngineInstance {
             this.timerText.text = this.gameOverText;
     }
 
-    stopped() {
+    isTimerDone() {
         return this.timerDone;
     }
 

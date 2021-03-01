@@ -80,7 +80,7 @@ class DrawController extends MinigameController { // controls the minigame
     step() {
         super.step();
 
-        if(!this.timer.stopped()) {
+        if(!this.timer.isTimerDone()) {
             this.waitTimer++;
             if(this.waitTimer<150) {
                 if(this.waitTimer<=60) {
@@ -219,14 +219,20 @@ class DrawableLine extends EngineInstance {
             return;
         var graphics = this.drawGraphics;
         graphics.lineStyle(3+Math.abs(Math.sin($engine.getGameTimer()/60)*7),0xffffff).moveTo(this.points[0].x,this.points[0].y);
-        for(var i =1;i<this.points.length;i++) {
-            graphics.lineTo(this.points[i].x,this.points[i].y)
+        for(var i =1;i<this.points.length-1;i++) {
+            var xc = (this.points[i].x + this.points[i + 1].x) / 2;
+            var yc = (this.points[i].y + this.points[i + 1].y) / 2;
+            graphics.quadraticCurveTo(this.points[i].x, this.points[i].y, xc, yc);
         }
+        graphics.lineTo(this.points[this.points.length-1].x,this.points[this.points.length-1].y)
 
         graphics.lineStyle(Math.abs(Math.sin($engine.getGameTimer()/60)*2),0xaaaaaa).moveTo(this.points[0].x,this.points[0].y);
-        for(var i =1;i<this.points.length;i++) {
-            graphics.lineTo(this.points[i].x,this.points[i].y)
+        for(var i =1;i<this.points.length-1;i++) {
+            var xc = (this.points[i].x + this.points[i + 1].x) / 2;
+            var yc = (this.points[i].y + this.points[i + 1].y) / 2;
+            graphics.quadraticCurveTo(this.points[i].x, this.points[i].y, xc, yc);
         }
+        graphics.lineTo(this.points[this.points.length-1].x,this.points[this.points.length-1].y)
 
         graphics.lineStyle(0,0xffffff)
         graphics.beginFill(0xffffff);

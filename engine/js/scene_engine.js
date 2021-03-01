@@ -506,7 +506,16 @@ class Scene_Engine extends Scene_Base {
      * @returns {Object} Default text settings
      */
     getDefaultSubTextStyle() {
-        return { fontFamily: 'GameFont', fontSize: 20, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 };
+        return { fontFamily: 'GameFont', fontSize: 20, fontVariant: 'bold', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 };
+    }
+
+    /**
+     * Creates and returns a new Object which may be passed in to a PIXI.Text as the style.
+     * 
+     * @returns {Object} Default text settings
+     */
+    getDefaultTextStyle() {
+        return { fontFamily: 'GameFont', fontSize: 40, fontVariant: 'bold', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 };
     }
 
     setCameraEnabled(index, enable) {
@@ -531,27 +540,13 @@ class Scene_Engine extends Scene_Base {
         renderable.__align = align;
         renderable.dx=0;
         renderable.dy=0;
-        this.applyRenderableSettings(renderable);
         parent.__renderables.push(renderable);
-        return renderable;
-    }
-
-    /**
-     * Applies settings to a renderable object if available. Some texture settings may be defined in the manifest such as the anchor of the sprite.
-     * @param {PIXI.DisplayObject} renderable The renderable
-     * @returns {PIXI.DisplayObject} The input, useful for chaining.
-     */
-    applyRenderableSettings(renderable) {
-        if(renderable.texture && renderable.texture.defaultAnchor)
-            renderable.anchor.set(renderable.texture.defaultAnchor.x,renderable.texture.defaultAnchor.y)
         return renderable;
     }
 
     /**
      * Attaches the lifetime of the specified renderable to the instance in question. When the instance is destroyed, the engine will
      * also destroy the renderable along with it.
-     * 
-     * This function does NOT apply the default origin of the texture as defined in the textures manifest. For that you should call applyRenderableSettings()
      * 
      * The major difference between this and createRenderable is that createRenderable will also cause the engine to automatically render it, while
      * this function will only tell the engine to keep track of it for you.
@@ -1132,6 +1127,8 @@ SceneManager.updateManagers = function() {
     ImageManager.update();
     UwU.tick();
 }
+
+////////////////// end overriding RPG maker /////////////////
 
 // Unwrap Utilities
 // A utility class that provides access to and hooks into low level RPG maker functions.

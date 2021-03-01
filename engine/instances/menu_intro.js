@@ -174,8 +174,8 @@ class MenuIntroController extends EngineInstance {
         if(this.timer<=this.endTime) {
             var fac = EngineUtils.clamp(this.timer/60,0,1);
             var r = Math.round(this.interp(fac,0,0x8));
-            var g = Math.round(this.interp(fac,0,0x8));;
-            var b = Math.round(this.interp(fac,0,0x20));;
+            var g = Math.round(this.interp(fac,0,0x8));
+            var b = Math.round(this.interp(fac,0,0x20));
             
             this.graphics.beginFill((r<<16) | (g<<8) | b);
             this.graphics.alpha=1;

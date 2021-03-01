@@ -211,6 +211,14 @@ class EngineUtils {
     }
 
     /**
+     * Returns a random element from the array.
+     * @param {Array} array The array
+     */
+    static randomFromArray(array) {
+        return array[EngineUtils.irandom(array.length-1)];
+    }
+
+    /**
      * Interpolates between min and max given a certain interpolation fuction and an input value.
      * 
      * example usage: 

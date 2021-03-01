@@ -53,7 +53,7 @@ class FallingObjectsController extends MinigameController {
     }
 
     changeScore(delta) {
-        if(this.minigameTimer.stopped())
+        if(this.minigameTimer.isTimerDone())
             return;
         this.score+=delta;
         this.updateScoreText();

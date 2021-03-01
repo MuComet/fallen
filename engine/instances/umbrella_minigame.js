@@ -57,12 +57,12 @@ class UmbrellaMinigameController extends MinigameController {
     }
 
     decrementScore() {
-        if(this.timer.stopped())
+        if(this.timer.isTimerDone())
             return;
         this.score--;
         if(this.score<=0) {
             this.score = 0;
-            if(!this.timer.stopped())
+            if(!this.timer.isTimerDone())
                 this.timer.stopTimer();
         }
         this.updateScoreText();
