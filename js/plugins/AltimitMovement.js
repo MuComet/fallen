@@ -1428,7 +1428,7 @@
         return Input.dir8;
       };
 
-      Game_Player.prototype.moveByInput = function() {
+      Game_Player.prototype.moveByInput = function() { // MODIFIED
         if ( $gameSystem._staticEnableTouchMouse != INPUT_CONFIG.ENABLE_TOUCH_MOUSE ) {
           $gameSystem._staticEnableTouchMouse = INPUT_CONFIG.ENABLE_TOUCH_MOUSE;
           $gameSystem._enableTouchMouse = INPUT_CONFIG.ENABLE_TOUCH_MOUSE;
@@ -1512,7 +1512,7 @@
 					touchedCharacters.push(...targets);
 			}
 			
-			touchedCharacters.filter(filterFunc)
+			touchedChacters = touchedCharacters.filter(filterFunc)
             if ( this.isInVehicle() ) {
               // In vehicle
               if ( touchedCharacters.contains( $gamePlayer.vehicle() ) ) {

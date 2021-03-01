@@ -102,6 +102,7 @@ class WallBuilderController extends MinigameController {
 
     updateText() {
         this.letterText.text = this.currentKey.substring(3);
+        this.letterText.visible=true;
     }
 
     spawnFadingLetter(valid) {
@@ -124,11 +125,12 @@ class WallBuilderController extends MinigameController {
         if(this.progress % this.width===0) {
             this.gritRopes.push(this.createRope());
         }
+        this.letterText.visible = false;
     }
 
     keyIncorrect() {
         this.spawnBrick(false);
-        this.spawnFadingLetter(false);
+        //this.spawnFadingLetter(false);
         this.delayToNext=0;
         this.errorTimer=0;
         this.flipTimer=0;
@@ -239,6 +241,10 @@ class WallBuilderController extends MinigameController {
         this.letterText.tint = this.graphicsTint
         $engine.requestRenderOnCamera(this.backdropImage)
         $engine.requestRenderOnCamera(this.letterText)
+    }
+
+    notifyFramesSkipped(frames) {
+        this.minigameTimer.tickDown(frames);
     }
 }
 

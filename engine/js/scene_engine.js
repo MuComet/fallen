@@ -74,6 +74,7 @@ class Scene_Engine extends Scene_Base {
         this.__currentRoom = undefined;
         this.__globalTimer = 0;
         this.__gameTimer = 0;
+        this.__lastKnownTime = -1;
         this.__instanceCreationSpecial = {}; // it doesn't matter what this is so long as it's an object.
 
         this.__RPGVariableTags = [];
@@ -337,6 +338,7 @@ class Scene_Engine extends Scene_Base {
         this.__cleanup();
         this.__writeBack();
         this.__resumeAudio();
+        this.setBackgroundColour(0);
     }
 
     __resumeAudio() {
@@ -355,7 +357,6 @@ class Scene_Engine extends Scene_Base {
         this.__clearGraphics();
         this.__doPhysicsTick();
         IM.__doSimTick();
-        this.__updateBackground();
         this.__prepareRenderToCameras();
 
         var time = window.performance.now()-start;
@@ -515,7 +516,7 @@ class Scene_Engine extends Scene_Base {
      * @returns {Object} Default text settings
      */
     getDefaultTextStyle() {
-        return { fontFamily: 'GameFont', fontSize: 40, fontVariant: 'bold', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 };
+        return { fontFamily: 'GameFont', fontSize: 30, fontVariant: 'bold', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 };
     }
 
     setCameraEnabled(index, enable) {
@@ -640,27 +641,11 @@ class Scene_Engine extends Scene_Base {
     }
     
     setBackgroundColour(col) {
-        if(!(this.__background instanceof PIXI.Graphics)) {
-            throw new Error("Cannot set background colour of non graphics background. current type = " +  typeof(this.__background));
-            //this.setBackgroud(new PIXI.Graphics());
-        }
-        this.__backgroundColour = col;
-        this.__usingSolidColourBackground = true;
+        this.getRenderer().backgroundColor = col;
     }
 
     getBackgroundColour() {
-        if(!this.__usingSolidColourBackground)
-            throw new Error("Background is not a colour");
-        return this.__backgroundColour;
-    }
-
-    __updateBackground() {
-        if(!this.__usingSolidColourBackground)
-            return;
-        this.__background.clear();
-        this.__background.beginFill(this.__backgroundColour);
-        this.__background.drawRect(-128,-128,this.getWindowSizeX()+128,this.getWindowSizeY()+128)
-        this.__background.endFill()
+        return this.getRenderer().backgroundColor
     }
 
     __prepareRenderToCameras() {
@@ -674,6 +659,9 @@ class Scene_Engine extends Scene_Base {
             var arr = this.__collectAllRenderables();
             if(arr.length!==0) // prevent null call
                 container.addChild(...arr)
+
+            // STOP: The following code ONLY works because it was checked against PIXIJS containers.
+            // There are no guarantees it will work with other container types such as Graphics.
 
             camera.addChild(container);
             camera.addChild(camera.getCameraGraphics());
@@ -705,9 +693,27 @@ class Scene_Engine extends Scene_Base {
             this.freeRenderable(renderable)
         }
     }
+
+    __notifyVisibilityChanged(event) {
+        if(document.visibilityState==="visible") {
+            if(this.__lastKnownTime===-1) // we don't have a record... ignore.
+                return;
+            var frames = Math.floor((event.timeStamp - this.__lastKnownTime)/16.666666)
+            var controller = MinigameController.getInstance();
+            if(controller) {
+                controller.notifyFramesSkipped(frames);
+            }
+        } else { // user hid the game
+            this.__lastKnownTime=event.timeStamp;
+        }
+    }
 }
 
 $engine = new Scene_Engine(); // create the engine at least once so that we have access to all engine functions.
+
+document.addEventListener("visibilitychange", function(event) {
+    $engine.__notifyVisibilityChanged(event);
+})
 
 ////////////////////////////////single time setup of engine///////////////////////
 
@@ -1128,6 +1134,12 @@ SceneManager.updateManagers = function() {
     UwU.tick();
 }
 
+let oldFunc = SceneManager.renderScene;
+SceneManager.renderScene = function() {
+    UwU.onBeforeRenderScene();
+    oldFunc.call(this);
+}
+
 ////////////////// end overriding RPG maker /////////////////
 
 // Unwrap Utilities
@@ -1188,9 +1200,12 @@ class UwU {
         GUIScreen.onAfterSnap(scene);
     }
 
+    static onBeforeRenderScene() {
+        GUIScreen.onBeforeRenderScene();
+    }
+
     static tick() {
         OwO.tick();
-        GUIScreen.tick();
     }
 }
 
@@ -1626,7 +1641,7 @@ OwO.__mapScripts = {};
 
 class GUIScreen { // static class for stuff like the custom cursor. always running.
 
-    static tick() {
+    static onBeforeRenderScene() {
         GUIScreen.__updateMouseLocation();
         GUIScreen.__renderMouse();
     }
@@ -1674,20 +1689,20 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
     }
 
     static __mouseMoveHandler(event) {
-        if(!Graphics._renderer)
-            return;
-        var loc = new EngineLightweightPoint(event.clientX,GUIScreen.clientY);
-        var locCorrected = Graphics._renderer.plugins.interaction.mouse.getLocalPosition(GUIScreen.__graphics,loc);
-        GUIScreen.__mouse = locCorrected;
-
+        GUIScreen.__mouseDirect = new EngineLightweightPoint(event.clientX,event.clientY)
     }
 
     static __updateMouseLocation() {
-        if(!GUIScreen.__mouse)
+        if(!GUIScreen.__mouseDirect)
             return;
+        if(!Graphics._renderer)
+            return;
+        var locCorrected = Graphics._renderer.plugins.interaction.mouse.getLocalPosition(GUIScreen.__graphics,GUIScreen.__mouseDirect);
+        GUIScreen.__mouse = locCorrected;
+
         GUIScreen.__mousePoints.unshift(new EngineLightweightPoint(GUIScreen.__mouse.x,GUIScreen.__mouse.y))
         if(GUIScreen.__mousePoints.length > GUIScreen.__maxMousePoints)
-            GUIScreen.__mousePoints.pop(); // pop(0)
+            GUIScreen.__mousePoints.pop();
     }
 
     static onBeforeSnap(scene) {
@@ -1706,5 +1721,5 @@ GUIScreen.__mousePoints = [];
 GUIScreen.__maxMousePoints = 10;
 GUIScreen.__maxMouseTrailLength = 10;
 GUIScreen.__initGraphics();
-document.addEventListener("mousemove", GUIScreen.__mouseMoveHandler); // fix one frame lag.
+document.addEventListener("pointerrawupdate", GUIScreen.__mouseMoveHandler); // fix one frame lag.
 UwU.addSceneChangeListener(GUIScreen.__sceneChanged);

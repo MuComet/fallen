@@ -82,6 +82,10 @@ class UmbrellaMinigameController extends MinigameController {
         //EngineDebugUtils.drawPhysicsObject(camera,this.physicsFloor)
     }
 
+    notifyFramesSkipped(frames) {
+        // do nothing
+    }
+
 }
 
 class Test extends EnginePhysicsInstance {

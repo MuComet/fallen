@@ -57,7 +57,11 @@ class SkyMinigameController extends MinigameController { // All classes that can
         this.nextSoundTimer = 0;
         this.nextSoundRand = EngineUtils.irandomRange(60,150);
 
-    }  
+    } 
+
+    notifyFramesSkipped(frames) {
+        SkyMinigameController.mingameTimer.tickDown(frames)
+    }
 
     updateProgressText() {
         this.progressText.text = "Progress: "+String(SkyMinigameController.score+" / "+String(SkyMinigameController.maxScore))

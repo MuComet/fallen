@@ -112,6 +112,16 @@ class MinigameTimer extends EngineInstance {
     }
 
     /**
+     * Skips the specified number of frames on the timer.
+     * @param {Number} frames The amount of frames to skip
+     */
+    tickDown(frames) {
+        this.timer -= frames;
+        if(this.timer-frames<0)
+            this.timer = 0;
+    }
+
+    /**
      * Causes the timer to stop immediately and display either the gameComplete or gameOver text based on whether
      * or not it is in survival mode. The timer will consider this a loss in survival mode.
      * 
@@ -267,6 +277,16 @@ class MinigameController extends EngineInstance {
 
     disableCheating() {
         this.allowActivateCheat=false;
+    }
+
+    /**
+     * Fires if the window loses visibility and causes the game to stop.
+     * 
+     * When the user returns to the game, this event will fire with how many frames would have passed had they not hidden the game.
+     * @param {Number} frames The amount of frames that were missed
+     */
+    notifyFramesSkipped(frames) {
+        console.error("Notify Frames Skipped should always be implemenetd! -- "+String(frames)+" frames skipped...")
     }
 
     _minigameControllerTick() {

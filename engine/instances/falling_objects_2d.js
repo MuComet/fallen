@@ -68,6 +68,9 @@ class FallingObjectsController extends MinigameController {
         $engine.requestRenderOnGUI(this.scoreText);
     }
 
+    notifyFramesSkipped(frames) {
+        this.minigameTimer.tickDown(frames);
+    }
     
 }
 

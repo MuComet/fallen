@@ -146,6 +146,10 @@ class DrawController extends MinigameController { // controls the minigame
         this.instructiontext.text = "Summary: Drawing " + String(ind+1)+" -> Score = " +String(draw.score).substring(0,4) + "\n("+
                             String(draw.baseScore).substring(0,4)+" accuracy - "+String(draw.basePenalty).substring(0,4) +" extra distance "+")";
     }
+
+    notifyFramesSkipped(frames) {
+        this.timer.tickDown(frames);
+    }
 }
 
 class DrawableLine extends EngineInstance {
