@@ -47,7 +47,7 @@ const ENGINE_START = function() {
 //PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST; // set PIXI to render as nearest neighbour
 
 /*DEBUG CODE MANIFEST (REMOVE ALL BEFORE LAUNCH):
-IN: keydown listener will put you into engine on "ctrl + enter" press
+IN: keydown listener will put you into engine on "ctrl + enter" press [ REMOVED ]
 IN: log key press code
 Scene_Engine - debug_log_frame_time (create, doSimTick)
 */
@@ -1120,6 +1120,13 @@ Scene_Menu.prototype.onSaveFailure = function() {
     SoundManager.playBuzzer();
 };
 
+SceneManager.snap = function() {
+    UwU.onBeforeSnap(this._scene);
+    var snap = Bitmap.snap(this._scene);
+    UwU.onAfterSnap(this._scene);
+    return snap;
+}
+
 // hook a in a global update.
 SceneManager.updateManagers = function() {
     ImageManager.update();
@@ -1176,6 +1183,14 @@ class UwU {
         return SceneManager._scene.constructor === Scene_Map; 
     }
 
+    static onBeforeSnap(scene) {
+        GUIScreen.onBeforeSnap(scene);
+    }
+
+    static onAfterSnap(scene) {
+        GUIScreen.onAfterSnap(scene);
+    }
+
     static tick() {
         OwO.tick();
         GUIScreen.tick();
@@ -1213,6 +1228,7 @@ class OwO {
                 if(UwU.mapIdChanged()) { // changed to a new map level
                     OwO.__deallocateRenderLayer();
                     OwO.__executeMapScript();
+                    $gamePlayer._touchTarget = null // reset the target why doesn't altimit do this like really.
                 }
             }
             if(!UwU.lastSceneWasMenu() && !UwU.sceneIsMenu()) { // if true, the last change had nothing to do with menu (could be overworld to engine)
@@ -1427,7 +1443,7 @@ class OwO {
     }
 
     static __renderLayerTick() {
-        if(!OwO.__renderLayer || UwU.sceneIsMenu())
+        if(!OwO.__renderLayer || UwU.sceneIsMenu() || UwU.sceneIsEngine())
             return;
 
         if(OwO.__renderLayerController)
@@ -1651,8 +1667,9 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
             graphics.quadraticCurveTo(locations[i].x, locations[i].y, xc, yc);
         }
         graphics.lineStyle(0);
+        graphics.beginFill(0);
+        graphics.drawCircle(locations[0].x,locations[0].y,(size-1)/2)
         for(var i =0;i<length-1;i++) {
-            graphics.beginFill(0);
             graphics.drawCircle(points[i].x,points[i].y,(size - i)/2)
         }
         graphics.endFill()
@@ -1674,6 +1691,14 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
         GUIScreen.__mousePoints.unshift(new EngineLightweightPoint(GUIScreen.__mouse.x,GUIScreen.__mouse.y))
         if(GUIScreen.__mousePoints.length > GUIScreen.__maxMousePoints)
             GUIScreen.__mousePoints.pop(); // pop(0)
+    }
+
+    static onBeforeSnap(scene) {
+        scene.removeChild(GUIScreen.__graphics);
+    }
+
+    static onAfterSnap(scene) {
+        GUIScreen.__bindContainer();
     }
 }
 

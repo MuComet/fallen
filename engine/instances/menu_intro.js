@@ -74,7 +74,7 @@ class MenuIntroController extends EngineInstance {
             
         });
 
-        this.audioReference = $engine.generateAudioReference("Prototype");
+        this.audioReference = $engine.generateAudioReference("Menu");
         this.musicStarted = false;
         AudioManager.playBgm(this.audioReference)
     }

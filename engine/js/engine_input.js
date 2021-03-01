@@ -12,11 +12,6 @@ class IN {
                 IN.__pressedKeysCarry.push(e.code);
                 if(IN.__debugRecordKeyPress) 
                     console.log(e.code);
-
-                //DEBUG, REMOVE BEFORE RELEASE!
-                if(e.ctrlKey && e.code==="Enter" && $__engineData.__ready) {
-                    SceneManager.push(Scene_Engine)
-                }
             }
             e.__handled = true;
         });
