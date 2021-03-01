@@ -16,5 +16,9 @@ var $plugins =
 {"name":"GALV_MessageSoundEffects","status":true,"description":"Play sound effects when during Show Text event commands.","parameters":{"Delay Time":"5","Default Talk SE":"","Default Confirm SE":"","-----------":"","Quick SE 1":"Wind4,30,150","Quick SE 2":"","Quick SE 3":"","Quick SE 4":""}},
 {"name":"SRD_SuperToolsEngine","status":true,"description":"The heart of all maker-style plugins; it adds a playtesting editor that can be opened with F12.","parameters":{"Connect Editor":"true","Auto Open Window":"false","Auto Move Window":"true","Menu Editor Exempt List":"[\"Window_BattleLog\",\"Window_MapName\"]"}},
 {"name":"SRD_HUDMaker","status":true,"description":"Allows developers to create their own map-based HUD through an in-game GUI window!","parameters":{"Active Updating":"false","Show During Events":"hide","Map Global Condition":"","Battle Global Condition":"","Disable Delete Key":"true"}},
-{"name":"ShazLargeSpriteFix","status":true,"description":"Fixes issue with large sprites appearing over ☆ passability tiles","parameters":{"Terrain Id":"1","Apply to Followers":"N","Apply to Vehicles":"Y","Apply to All Events":"N"}}
+{"name":"ShazLargeSpriteFix","status":true,"description":"Fixes issue with large sprites appearing over ☆ passability tiles","parameters":{"Terrain Id":"1","Apply to Followers":"N","Apply to Vehicles":"Y","Apply to All Events":"N"}},
+{"name":"KhasCore","status":true,"description":"[2.0] Required by Khas plugins.","parameters":{}},
+{"name":"KhasGraphics","status":true,"description":"[1.1] Required by Khas graphics plugins.","parameters":{}},
+{"name":"KhasAdvancedFog","status":true,"description":"[3.0] Adds procedural fog to your game.","parameters":{"Variable Fog Density":"ON","Zoom Compatibility":"OFF","MBS Zoom":"OFF","Transfer Reset":"OFF","Auto Battle Fog":"ON"}},
+{"name":"KhasUltraLighting","status":true,"description":"[4.2] Adds lighting and real-time shadows to your game.","parameters":{"Custom Blending":"ON","Transfer Reset":"OFF","Auto Battle Lighting":"ON"}}
 ];
