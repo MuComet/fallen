@@ -192,7 +192,7 @@ class EngineInstance {
     pause() {}
 
     /**
-     * onDestroy is called immediately when this instance is destroyed using destroy().
+     * onDestroy is called immediately when this instance is destroyed using destroy(). Also called when the current room ends.
      */
     onDestroy() {}
 

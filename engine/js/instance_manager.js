@@ -265,6 +265,13 @@ class IM {
         for(const obj of IM.__objects) {
             obj.onRoomEnd();
         }
+        for(const obj of IM.__objects) {
+            obj.onDestroy();
+        }
+        for(const obj of IM.__objects) {
+            obj.cleanup();
+            $engine.__disposeHandles(obj)
+        }
         this.__initializeVariables() // clear IM
     }
 

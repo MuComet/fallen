@@ -1,5 +1,14 @@
 class MenuIntroController extends EngineInstance {
     onEngineCreate() {
+
+        // please never do this in actual minigame code -- hook into minigamecontroller
+        MinigameController.controller = this;
+
+        this.frames = 0;
+        this.startTime = window.performance.now();
+        this.timeCorrection=0; // in case they minimize...
+        UwU.addRenderListener(this.nextFrame);
+
         this.letters = [];
         //var locX = [37,159,308,451,522,671];
         var locX = [25,142,306,453,532,685];
@@ -77,6 +86,10 @@ class MenuIntroController extends EngineInstance {
         this.audioReference = $engine.generateAudioReference("Menu");
         this.musicStarted = false;
         AudioManager.playBgm(this.audioReference)
+    }
+
+    nextFrame() {
+        MinigameController.controller.frames++;
     }
 
     step() {
@@ -200,6 +213,29 @@ class MenuIntroController extends EngineInstance {
         this.endFadeTime = 60;
         this.afterFade=func;
         this.afterFadeArgs=args;
+    }
+
+    cleanup() {
+        UwU.removeRenderListener(this.nextFrame);
+        MinigameController.controller=undefined;
+    }
+
+    notifyFramesSkipped(frames) {
+        this.timeCorrection+=frames*16.66666;
+    }
+
+    onRoomEnd() {
+        var time = window.performance.now();
+        var diff = time - this.startTime - this.timeCorrection;
+        var frameTime = diff/this.frames;
+        if(frameTime > 17.25) {
+            if(!$engine.isLow()) {
+                console.warn("It looks like you're playing on a low spec system... The game will automatically lower render quality to account for this.")
+                console.warn("Average frame time: "+String(frameTime)+"ms")
+            }
+            $engine.setLowPerformanceMode(true)
+        }
+
     }
 }
 

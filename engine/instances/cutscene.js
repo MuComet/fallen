@@ -15,12 +15,14 @@ class CutsceneController extends EngineInstance {
         this.blurFilter.blur = this.blurFilterStrength
         this.blurFilter.repeatEdgePixels=true;
 
-        $engine.addFilter(this.blurFilter);
+        if(!$engine.isLow())
+            $engine.addFilter(this.blurFilter);
 
         this.bloomFilterStrength = 1.75;
         this.bloomFilter = new PIXI.filters.AdvancedBloomFilter(8,4,3,15);
 
-        $engine.addFilter(this.bloomFilter);
+        if(!$engine.isLow())
+            $engine.addFilter(this.bloomFilter);
 
         this.wipeTimer = -1;
 
@@ -54,8 +56,8 @@ class CutsceneController extends EngineInstance {
             }
         } else {
             if(this.timer <= this.transitionTime)
-                this.blurFilter.blur = EngineUtils.interpolate(this.timer/this.transitionTime,this.blurFilterStrength,0,EngineUtils.INTERPOLATE_IN);
-                this.bloomFilter.brightness = EngineUtils.interpolate(this.timer/this.transitionTime,this.bloomFilterStrength,1,EngineUtils.INTERPOLATE_IN);
+                this.blurFilter.blur = EngineUtils.interpolate(this.timer/this.transitionTime,this.blurFilterStrength,0,EngineUtils.INTERPOLATE_OUT);
+                this.bloomFilter.brightness = EngineUtils.interpolate(this.timer/this.transitionTime,this.bloomFilterStrength,1,EngineUtils.INTERPOLATE_OUT);
             if(this.frameLength-this.timer <= this.transitionTime) {
                 this.blurFilter.blur = EngineUtils.interpolate((this.frameLength-this.timer)/this.transitionTime,this.blurFilterStrength,0,EngineUtils.INTERPOLATE_OUT);
                 this.bloomFilter.brightness = EngineUtils.interpolate((this.frameLength-this.timer)/this.transitionTime,this.bloomFilterStrength,1,EngineUtils.INTERPOLATE_OUT);
@@ -74,6 +76,20 @@ class CutsceneController extends EngineInstance {
     }
 
     draw(gui, camera) {
+
+        if($engine.isLow()) {
+            var fac = 0;
+            if(this.timer <= this.transitionTime)
+                fac = EngineUtils.interpolate(this.timer/this.transitionTime,this.blurFilterStrength,0,EngineUtils.INTERPOLATE_OUT);
+            else if(this.frameLength-this.timer <= this.transitionTime)
+                fac = EngineUtils.interpolate((this.frameLength-this.timer)/this.transitionTime,this.blurFilterStrength,0,EngineUtils.INTERPOLATE_OUT);
+            if(fac!==0) {
+                gui.beginFill(0xffffff,fac);
+                gui.drawRect(-64,-64,$engine.getWindowSizeX()+64,$engine.getWindowSizeY()+64)
+                gui.endFill();
+            }
+        }
+
         gui.beginFill(0);
         if(this.out) {
             gui.drawRect(-64,$engine.getWindowSizeY() + EngineUtils.interpolate(this.wipeTimer/this.transitionTime,0,-$engine.getWindowSizeY()-16,EngineUtils.INTERPOLATE_OUT),
@@ -82,8 +98,6 @@ class CutsceneController extends EngineInstance {
             gui.drawRect(-64,EngineUtils.interpolate(this.wipeTimer/this.transitionTime,0,-$engine.getWindowSizeY()-64,EngineUtils.INTERPOLATE_IN)-16,
                         $engine.getWindowSizeX()+64,$engine.getWindowSizeY()+16)
         }
-        
         gui.endFill();
-        
     }
 }

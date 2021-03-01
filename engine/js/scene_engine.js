@@ -13,6 +13,7 @@ $__engineData.__cheatWriteBackValue = -1
 $__engineData.cheatWriteBackIndex = -1;
 $__engineData.autoSetWriteBackIndex = -1;
 $__engineData.loadRoom = "MenuIntro";
+$__engineData.__lowPerformanceMode = false;
 
 
 // reserve data slots 100 to 200 for engine use.
@@ -234,6 +235,14 @@ class Scene_Engine extends Scene_Base {
 
     isGamePausedSpecial() {
         return this.__pauseMode===2;
+    }
+
+    setLowPerformanceMode(bool) {
+        $__engineData.__lowPerformanceMode = bool;
+    }
+
+    isLow() {
+        return $__engineData.__lowPerformanceMode;
     }
 
     __getPauseMode() {
@@ -1201,7 +1210,19 @@ class UwU {
     }
 
     static onBeforeRenderScene() {
-        GUIScreen.onBeforeRenderScene();
+        for(const listener of UwU.__onBeforeRenderListeners)
+            listener()
+    }
+
+    static addRenderListener(func) {
+        UwU.__onBeforeRenderListeners.push(func)
+    }
+
+    static removeRenderListener(func) {
+        var idx = UwU.__onBeforeRenderListeners.indexOf(func);
+        if(idx===-1)
+            throw new Error("Cannot remove listener that was not added.")
+        UwU.__onBeforeRenderListeners.splice(idx,1);
     }
 
     static tick() {
@@ -1218,6 +1239,7 @@ SceneManager.onSceneStart = function() {
 UwU.__onSceneChangeListeners = [];
 UwU.__lastMapId = 0;
 UwU.__currentMapId = 0;
+UwU.__onBeforeRenderListeners = [];
 
 // Overworld Organizer
 // I hate myself too.
@@ -1437,7 +1459,7 @@ class OwO {
         OwO.__renderLayerIndex = 0;
         OwO.__deallocateRenderLayer();
         OwO.__renderLayer = new PIXI.Container();
-        OwO.getSpriteset().children[0].addChild(OwO.__renderLayer);
+        OwO.__rebindRenderLayer();
         OwO.__syncRenderLayer();
     }
 
@@ -1451,7 +1473,8 @@ class OwO {
     }
 
     static __rebindRenderLayer() {
-        OwO.getSpriteset().children[0].addChild(OwO.__renderLayer);
+        if(!$engine.isLow())
+            OwO.getSpriteset().children[0].addChild(OwO.__renderLayer);
     }
 
     static __renderLayerTick() {
@@ -1607,7 +1630,8 @@ class OwO {
     // this method runs once per frame no matter what
     static tick() {
         OwO.__applyUpdateFunctions();
-        OwO.__renderLayerTick();
+        if(!$engine.isLow())
+            OwO.__renderLayerTick();
         if(!UwU.sceneIsMenu())
             OwO.__RPGgameTimer++;
     }
@@ -1652,10 +1676,16 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
 
     static __bindContainer() {
         SceneManager._scene.addChild(GUIScreen.__graphics); // bind directly to the scene
+        if($engine.isLow()) {
+            GUIScreen.__graphics.filters = []
+        } else {
+            GUIScreen.__graphics.filters = [GUIScreen.__filter]
+        }
     }
 
     static __initGraphics() {
-        GUIScreen.__graphics.filters = [new PIXI.filters.OutlineFilter(1,0xffffff)]
+        GUIScreen.__filter = new PIXI.filters.OutlineFilter(1,0xffffff)
+        GUIScreen.__graphics.filters = [GUIScreen.__filter]
     }
 
     static __renderMouse() {
@@ -1721,5 +1751,6 @@ GUIScreen.__mousePoints = [];
 GUIScreen.__maxMousePoints = 10;
 GUIScreen.__maxMouseTrailLength = 10;
 GUIScreen.__initGraphics();
+UwU.addRenderListener(GUIScreen.onBeforeRenderScene);
 document.addEventListener("pointerrawupdate", GUIScreen.__mouseMoveHandler); // fix one frame lag.
 UwU.addSceneChangeListener(GUIScreen.__sceneChanged);

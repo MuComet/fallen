@@ -222,21 +222,28 @@ class DrawableLine extends EngineInstance {
         if(!this.show) 
             return;
         var graphics = this.drawGraphics;
-        graphics.lineStyle(3+Math.abs(Math.sin($engine.getGameTimer()/60)*7),0xffffff).moveTo(this.points[0].x,this.points[0].y);
-        for(var i =1;i<this.points.length-1;i++) {
-            var xc = (this.points[i].x + this.points[i + 1].x) / 2;
-            var yc = (this.points[i].y + this.points[i + 1].y) / 2;
-            graphics.quadraticCurveTo(this.points[i].x, this.points[i].y, xc, yc);
-        }
-        graphics.lineTo(this.points[this.points.length-1].x,this.points[this.points.length-1].y)
+        if(!$engine.isLow()) {
+            graphics.lineStyle(3+Math.abs(Math.sin($engine.getGameTimer()/60)*7),0xffffff).moveTo(this.points[0].x,this.points[0].y);
+            for(var i =1;i<this.points.length-1;i++) {
+                var xc = (this.points[i].x + this.points[i + 1].x) / 2;
+                var yc = (this.points[i].y + this.points[i + 1].y) / 2;
+                graphics.quadraticCurveTo(this.points[i].x, this.points[i].y, xc, yc);
+            }
+            graphics.lineTo(this.points[this.points.length-1].x,this.points[this.points.length-1].y)
 
-        graphics.lineStyle(Math.abs(Math.sin($engine.getGameTimer()/60)*2),0xaaaaaa).moveTo(this.points[0].x,this.points[0].y);
-        for(var i =1;i<this.points.length-1;i++) {
-            var xc = (this.points[i].x + this.points[i + 1].x) / 2;
-            var yc = (this.points[i].y + this.points[i + 1].y) / 2;
-            graphics.quadraticCurveTo(this.points[i].x, this.points[i].y, xc, yc);
+            graphics.lineStyle(Math.abs(Math.sin($engine.getGameTimer()/60)*2),0xaaaaaa).moveTo(this.points[0].x,this.points[0].y);
+            for(var i =1;i<this.points.length-1;i++) {
+                var xc = (this.points[i].x + this.points[i + 1].x) / 2;
+                var yc = (this.points[i].y + this.points[i + 1].y) / 2;
+                graphics.quadraticCurveTo(this.points[i].x, this.points[i].y, xc, yc);
+            }
+            graphics.lineTo(this.points[this.points.length-1].x,this.points[this.points.length-1].y)
+        } else {
+            graphics.lineStyle(5,0xffffff).moveTo(this.points[0].x,this.points[0].y);
+            for(var i =1;i<this.points.length-1;i++) {
+                graphics.lineTo(this.points[i].x, this.points[i].y, xc, yc);
+            }
         }
-        graphics.lineTo(this.points[this.points.length-1].x,this.points[this.points.length-1].y)
 
         graphics.lineStyle(0,0xffffff)
         graphics.beginFill(0xffffff);

@@ -252,7 +252,8 @@ class MinigameController extends EngineInstance {
         this.blurFilterInstruction.blur = 0
         this.blurFilterInstruction.repeatEdgePixels=true;
 
-        $engine.getCamera().addFilter(this.blurFilter);
+        if(!$engine.isLow())
+            $engine.getCamera().addFilter(this.blurFilter);
 
         $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
         $engine.setCheatWriteBackValue(ENGINE_RETURN.NO_CHEAT);
@@ -333,7 +334,8 @@ class MinigameController extends EngineInstance {
         $engine.pauseGame();
         $engine.setCheatWriteBackValue(ENGINE_RETURN.CHEAT);
         this.blurFilter.blur = this.blurFilterStrength;
-        $engine.getCamera().addFilter(this.blurFilter);
+        if(!$engine.isLow())
+            $engine.getCamera().addFilter(this.blurFilter);
         this.cheated = true;
         this.showingCheat = true;
     }
@@ -373,7 +375,8 @@ class MinigameController extends EngineInstance {
         }
         if(this.instructionTimer===this.instructionTimerLength) {
             this.showingInstructions=false;
-            $engine.getCamera().removeFilter(this.blurFilter);
+            if(!$engine.isLow())
+                $engine.getCamera().removeFilter(this.blurFilter);
             this._onGameStart();
             $engine.unpauseGame();
         }
@@ -386,7 +389,8 @@ class MinigameController extends EngineInstance {
         this.cheatTimer++;
         if(this.cheatTimer===this.cheatTimerLength) {
             this.showingCheat=false;
-            $engine.getCamera().removeFilter(this.blurFilter);
+            if(!$engine.isLow())
+                $engine.getCamera().removeFilter(this.blurFilter);
             $engine.unpauseGame();
         }
     }
