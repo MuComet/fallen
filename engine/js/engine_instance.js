@@ -32,6 +32,7 @@ class EngineInstance {
      * This means that if you say new EngineInstance(50,50,100) and have onCreate(x,y,z), then x = 50, y = 50, and z = 100.
      */
     constructor(...args) {
+
         this.depth = 0;
         this.x=0;
         this.y=0;
@@ -57,6 +58,9 @@ class EngineInstance {
             this.onEngineCreate(); // called when the instance is first created
         } else
             this.onCreate.apply(this,args); // calls on create of calling inst with args
+
+        if($engine.isTimeScaled())
+            this.__timescaleImplicit();
     }
 
     /**
@@ -140,6 +144,13 @@ class EngineInstance {
     step() {}
 
     /**
+     * timescaleImmuneStep is run only when the engine timescale is non standard. When the timescale is different, this event becomes will run the same as step()
+     * 
+     * This event runs after all other events are completed.
+     */
+    timescaleImmuneStep() {};
+
+    /**
      * preDraw is called once per frame (60 times per second) and may be used to set up variables for draw(). Becuase of the draw contract,
      * this method must exist so that you can reliably set up your data.
      * 
@@ -154,6 +165,18 @@ class EngineInstance {
      * Engine functions. Do not override.
      */
     __implicit() {}
+
+    /**
+     * Engine functions. Do not override.
+     */
+    __timescaleImplicit() {
+        this.__lx = this.x;
+        this.__ly = this.y;
+        this.__lxScale = this.xScale;
+        this.__lyScale = this.yScale;
+        this.__lalpha = this.alpha;
+        this.__langle = this.angle;
+    }
 
     /**
      * Draw contract: Do not edit any variables in this method, only read them.

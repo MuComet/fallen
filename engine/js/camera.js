@@ -165,19 +165,37 @@ class Camera extends PIXI.Container {
 
     __match() {
         var len = this.__renderContainer.children.length;
-        for(var i =0;i<len;i++) {
-            var child = this.__renderContainer.children[i];
-            if(!child.__align)
-                continue;
-            var parent = child.__parent;
-            child.x = parent.x;
-            child.y = parent.y;
-            child.x+=child.dx;
-            child.y+=child.dy;
-            child.rotation = parent.angle;
-            child.scale.x = parent.xScale;
-            child.scale.y = parent.yScale;
-            child.alpha = parent.alpha
+        if(!$engine.isTimeScaled()) {
+            for(var i =0;i<len;i++) {
+                var child = this.__renderContainer.children[i];
+                if(!child.__align)
+                    continue;
+                var parent = child.__parent;
+                child.x = parent.x;
+                child.y = parent.y;
+                child.x+=child.dx;
+                child.y+=child.dy;
+                child.rotation = parent.angle;
+                child.scale.x = parent.xScale;
+                child.scale.y = parent.yScale;
+                child.alpha = parent.alpha
+            }
+        } else {
+            var fraction = $engine.getTimescaleFraction();
+            for(var i =0;i<len;i++) {
+                var child = this.__renderContainer.children[i];
+                if(!child.__align)
+                    continue;
+                var parent = child.__parent;
+                child.x = parent.__lx + (parent.x-parent.__lx)*fraction;
+                child.y = parent.__ly + (parent.y-parent.__ly)*fraction;
+                child.x+=child.dx;
+                child.y+=child.dy;
+                child.rotation = parent.__langle + (parent.angle-parent.__langle)*fraction;
+                child.scale.x = parent.__lxScale + (parent.xScale-parent.__lxScale)*fraction;
+                child.scale.y = parent.__lyScale + (parent.yScale-parent.__lyScale)*fraction;
+                child.alpha = parent.__lalpha + (parent.alpha-parent.__lalpha)*fraction
+            }
         }
     }
 

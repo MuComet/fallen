@@ -35,10 +35,10 @@ class UmbrellaMinigameController extends MinigameController {
             else   
                 $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN)
 
-            AudioManager.fadeOutBgm(1)
+            /*AudioManager.fadeOutBgm(1)
             $engine.startFadeOut(30,false)
             $engine.endGame();
-            $engine.pauseGame();
+            $engine.pauseGame();*/
         })
         this.timer.setSurvivalMode();
         $engine.setBackgroundColour(0x080820)
@@ -62,8 +62,11 @@ class UmbrellaMinigameController extends MinigameController {
         this.score--;
         if(this.score<=0) {
             this.score = 0;
-            if(!this.timer.isTimerDone())
-                this.timer.stopTimer();
+            //if(!this.timer.isTimerDone())
+            //    this.timer.stopTimer();
+            this.timer.removeAllOnTimerStopped();
+            this.timer.preventExpire();
+            this.gameLoss();
         }
         this.updateScoreText();
     }

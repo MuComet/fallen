@@ -19,6 +19,7 @@ $__engineData.__lowPerformanceMode = false;
 // reserve data slots 100 to 200 for engine use.
 $__engineData.__maxRPGVariables = 100;
 $__engineData.__RPGVariableStart = 101;
+$__engineData.__advanceGameInterpreter=false
 
 $__engineData.__debugRequireTextures = false;
 $__engineData.__debugPreventReturn = false;
@@ -57,6 +58,10 @@ class Scene_Engine extends Scene_Base {
 
     create() {
         super.create();
+        if($__engineData.__overworldMode) {
+            $__engineData.__overworldMode=false;
+            $engine.endOverworld(); // still refers to old engine at this point
+        }
         this.__initEngine();
     }
 
@@ -77,6 +82,8 @@ class Scene_Engine extends Scene_Base {
         this.__gameTimer = 0;
         this.__lastKnownTime = -1;
         this.__instanceCreationSpecial = {}; // it doesn't matter what this is so long as it's an object.
+        this.__timescale = 1;
+        this.__timescaleFraction = 0;
 
         this.__RPGVariableTags = [];
 
@@ -95,6 +102,42 @@ class Scene_Engine extends Scene_Base {
         this.__gameCanvas.addChild(this.__cameras[0]);
         this.__gameCanvas.addChild(this.__GUIgraphics)
         IM.__initializeVariables();
+    }
+
+    startOverworld() { // interestingly enough, RPG maker sprites and scenes share a common "update" method
+        // so if you add a scene as a child of another scene, it runs like normal.
+        $__engineData.__overworldMode = true;
+        $engine.alpha = 1;
+        this.removeChildren();
+        this.__initEngine();
+        this.__startEngine();
+        this.__bindEngine();
+        this.__sceneChangeListener = function() { // undeclared in create.
+            if(UwU.sceneIsOverworld())
+                $engine.__bindEngine();
+        }
+        UwU.addSceneChangeListener(this.__sceneChangeListener)
+    }
+
+    __bindEngine() {
+        if($__engineData.__overworldMode)
+            SceneManager._scene.addChildAt(this,1);
+    }
+
+    endOverworld() {
+        $__engineData.__overworldMode = false;
+        this.__cleanup();
+        this.setBackgroundColour(0);
+        SceneManager._scene.removeChild(this);
+        UwU.removeSceneChangeListener(this.__sceneChangeListener)
+    }
+
+    advanceGameInterpreter() {
+        $__engineData.__advanceGameInterpreter = true;
+    }
+
+    isOverworld() {
+        return $__engineData.__overworldMode; // true if the engine is in overworld mode *and* running.
     }
 
     start() {
@@ -130,6 +173,29 @@ class Scene_Engine extends Scene_Base {
         Matter.World.remove(this.__physicsEngine.world,body)
     }
 
+    setTimescale(scale) {
+        this.__timescale=scale;
+        if(scale===1)
+            this.resetTimescale();
+    }
+
+    resetTimescale() {
+        this.__timescale = 1;
+        this.__timescaleFraction = 0;
+    }
+
+    isTimeScaled() {
+        return this.__timescale!==1;
+    }
+
+    getTimescaleFraction() {
+        return this.__timescaleFraction%1;
+    }
+
+    getTimescale() {
+        return this.__timescale;
+    }
+
     update() {
         // RPG MAKER
         super.update();
@@ -140,12 +206,9 @@ class Scene_Engine extends Scene_Base {
         if(this.__shouldChangeRooms)
             this.__setRoom(this.__nextRoom);
 
-        IN.__update();
+        this.__timescaleFraction+=this.__timescale;
+
         this.__doSimTick();
-        
-        if(this.__pauseMode !==1)
-            this.__gameTimer++;
-        this.__globalTimer++;
     }
 
     /**
@@ -259,8 +322,7 @@ class Scene_Engine extends Scene_Base {
             $__engineData.__haltAndReturn=false;
             return;
         }
-        $__engineData.__haltAndReturn=false;
-        SceneManager.pop();
+        SceneManager.pop(); // calls terminate
     }
 
     // called exclusively by terminate, which is called from RPG maker.
@@ -348,6 +410,7 @@ class Scene_Engine extends Scene_Base {
         this.__writeBack();
         this.__resumeAudio();
         this.setBackgroundColour(0);
+        $__engineData.__haltAndReturn=false;
     }
 
     __resumeAudio() {
@@ -363,11 +426,28 @@ class Scene_Engine extends Scene_Base {
     __doSimTick() {
         var start = window.performance.now();
 
-        this.__clearGraphics();
-        this.__doPhysicsTick();
-        IM.__doSimTick();
-        this.__prepareRenderToCameras();
+        IN.__update();
 
+        while(this.__timescaleFraction-1>=0) {
+            this.__timescaleFraction--;
+
+            IM.__timescaleImplicit();
+
+            this.__clearGraphics();
+            this.__doPhysicsTick();
+            IM.__doSimTick(this.__timescaleFraction-1 < 0); // true if this is the last frame of simluation
+
+            if(this.__pauseMode !==1)
+                this.__gameTimer++;
+            this.__globalTimer++;
+        }
+
+        if(this.isTimeScaled())
+            IM.__timescaleImmuneStep();
+
+        this.__prepareRenderToCameras();
+       
+        
         var time = window.performance.now()-start;
         if($__engineData.__debugLogFrameTime)
             console.log("Time taken for this frame: "+(time)+" ms")
@@ -685,13 +765,14 @@ class Scene_Engine extends Scene_Base {
                 const y = b.__parent;
                 var d = (y.depth - x.depth);
                 if(d===0) {
-                    var d2 = (x.id-y.id);
-                    if(d2===0)
-                        return x.__idx - y.__idx;
+                    var d2 = (y.id-x.id);
+
                     return d2;
                 }
                 return d
             })
+
+            renderContainer.children = children;
 
             camera.addChild(renderContainer);
             camera.addChild(camera.getCameraGraphics());
@@ -1164,10 +1245,82 @@ SceneManager.updateManagers = function() {
     UwU.tick();
 }
 
-let oldFunc = SceneManager.renderScene;
-SceneManager.renderScene = function() {
-    UwU.onBeforeRenderScene();
-    oldFunc.call(this);
+// place in block so that the local variables don't pollute the global namespace
+{
+    let oldFunc = SceneManager.renderScene;
+    SceneManager.renderScene = function() {
+        UwU.onBeforeRenderScene();
+        oldFunc.call(this);
+    }
+
+    /*
+    // Some info about GameInterpreter:
+    // found in RPG objects, line 8765
+    // will constantly execute commands, between each command it must wait for "updateWaitMode" to return true
+    let giUpdateWaitMode = Game_Interpreter.prototype.updateWaitMode;
+    Game_Interpreter.prototype.updateWaitMode = function() {
+        if (this._waitMode === "engine") {
+            if($__engineData.__advanceGameInterpreter) {
+                $__engineData.__advanceGameInterpreter=false;
+            } else {
+                return true; // true = waiting
+            }
+        }
+        return giUpdateWaitMode.call(this);
+    };
+
+    Game_Interpreter.prototype.command101 = function() {
+        if(!$engine.isOverworld()) { // start engine!
+            $__engineData.loadRoom = "OverworldTextRoom"
+            $engine.startOverworld();
+        }
+        var msg = [];
+        while (this.nextEventCode() === 401) {  // Text data
+            this._index++;
+            msg.push(this.currentCommand().parameters[0]);
+        }
+        OverworldTextController.instance.setTextArray(msg);
+        OverworldTextController.instance.setMode(OverworldTextController.MODE_TEXT);
+        this._index++;
+
+        this.setWaitMode("engine")
+        return false;
+
+        // REF:
+        if (!$gameMessage.isBusy()) {
+            $gameMessage.setFaceImage(this._params[0], this._params[1]);
+            $gameMessage.setBackground(this._params[2]);
+            $gameMessage.setPositionType(this._params[3]);
+            while (this.nextEventCode() === 401) {  // Text data
+                this._index++;
+                $gameMessage.add(this.currentCommand().parameters[0]);
+            }
+            switch (this.nextEventCode()) {
+            case 102:  // Show Choices
+                this._index++;
+                this.setupChoices(this.currentCommand().parameters);
+                break;
+            case 103:  // Input Number
+                this._index++;
+                this.setupNumInput(this.currentCommand().parameters);
+                break;
+            case 104:  // Select Item
+                this._index++;
+                this.setupItemChoice(this.currentCommand().parameters);
+                break;
+            }
+            this._index++;
+            this.setWaitMode('message');
+        }
+        return false;
+        // END REF
+    };
+
+    /*let giTerminate = Game_Interpreter.prototype.terminate;
+    Game_Interpreter.prototype.terminate = function() {
+        giTerminate.call(this);
+        $engine.endOverworld();
+    }*/
 }
 
 ////////////////// end overriding RPG maker /////////////////
@@ -1692,7 +1845,7 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
     }
 
     static __sceneChanged(previousClass, scene) {
-        GUIScreen.__bindContainer();
+        //GUIScreen.__bindContainer();
     }
 
     static __bindContainer() {

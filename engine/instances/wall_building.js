@@ -6,7 +6,7 @@ class WallBuilderController extends MinigameController {
         for(var i =0;i<26;i++) {
             this.possibleLetters.push("Key"+String.fromCharCode(i+65))
         }
-        this.minigameTimer = new MinigameTimer(60*60);
+        this.minigameTimer = new MinigameTimer(5*60);
         this.delayToNext = 999;
         this.maxDelayToNext = 60; // if you mess up
         this.currentKey = "";
@@ -14,6 +14,7 @@ class WallBuilderController extends MinigameController {
         this.progress = 0;
         this.width = 10;
         this.height = 6;
+
         this.total = this.width*this.height;
 
         this.imgWidth = 64;
@@ -55,6 +56,10 @@ class WallBuilderController extends MinigameController {
 
         this.next();
         this.updateText();
+
+        this.minigameTimer.addOnTimerStopped(this, function(parent) {
+            parent.gameLoss()
+        })
     }
 
     landed(dy) {
@@ -239,8 +244,6 @@ class WallBuilderController extends MinigameController {
         this.letterText.x = this.graphicsLocationX + this.graphicsOffsetX
         this.letterText.y = this.graphicsLocationY + this.graphicsOffsetY
         this.letterText.tint = this.graphicsTint
-        $engine.requestRenderOnCamera(this.backdropImage)
-        $engine.requestRenderOnCamera(this.letterText)
     }
 
     notifyFramesSkipped(frames) {

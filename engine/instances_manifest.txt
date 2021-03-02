@@ -4,6 +4,7 @@ BufferedKeyInput BufferedMouseInput EngineButton engine/instances/shared/minigam
 EnginePhysicsInstance engine/instances/shared/physics_instance.js
 
 CutsceneController engine/instances/cutscene.js
+OverworldTextController engine/instances/overworld_text.js
 
 TestInstance engine/instances/test_instance.js
 TestInstance2 engine/instances/test_instance2.js

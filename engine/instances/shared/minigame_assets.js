@@ -27,6 +27,8 @@ class MinigameTimer extends EngineInstance {
 
         this.survivalMode = false;
 
+        this.canExpire = true;
+
         this.restartTimer(frames);
     }
 
@@ -42,6 +44,10 @@ class MinigameTimer extends EngineInstance {
 
     removeAllOnTimerStopped() {
         this.onTimerUp = [];
+    }
+
+    preventExpire() {
+        this.canExpire = false;
     }
 
     step() {
@@ -146,6 +152,8 @@ class MinigameTimer extends EngineInstance {
      * This will fire all onTimerStopped methods and input an argument of 'true'
      */
     expire() {
+        if(!this.canExpire)
+            return;
         for(const f of this.onTimerUp)
                 f.func(f.parent,true);
         this.timerDone = true;
@@ -223,6 +231,13 @@ class MinigameController extends EngineInstance {
         this.__initalized = true;
         this.minigamePaused = false;
 
+        this.failed = false;
+        this.gameStopped = false;
+        this.stopTimer = 0;
+        this.stopTime = 75;
+
+        this.won = false;
+
         this.instructionTimer = 0;
         this.instructionTimerLength = 60*30; // 30 seconds at most
         this.showingInstructions = true;
@@ -252,8 +267,12 @@ class MinigameController extends EngineInstance {
         this.blurFilterInstruction.blur = 0
         this.blurFilterInstruction.repeatEdgePixels=true;
 
-        if(!$engine.isLow())
+        if(!$engine.isLow()) {
             $engine.getCamera().addFilter(this.blurFilter);
+
+        }
+        this.adjustmentFilter = new PIXI.filters.AdjustmentFilter();
+        $engine.getCamera().addFilter(this.adjustmentFilter);
 
         $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
         $engine.setCheatWriteBackValue(ENGINE_RETURN.NO_CHEAT);
@@ -291,11 +310,45 @@ class MinigameController extends EngineInstance {
     }
 
     _minigameControllerTick() {
-        if(!this.showingInstructions && this.cheatKeyActive && IN.keyCheckPressed(this.cheatKey)) {
+        if(!this.failed && ! this.won && !this.showingInstructions && this.cheatKeyActive && IN.keyCheckPressed(this.cheatKey)) {
             this.cheat();
         }
         this._handleInstructionImage();
         this._handleCheatImage();
+    }
+
+    gameWin() {
+        if(this.failed || this.won)
+            return;
+        throw new Error("To be implemented")
+    }
+
+    gameLoss() {
+        if(this.failed || this.won)
+            return;
+        this.failed = true;
+        $engine.setTimescale(0.9999);
+    }
+
+    _winLossTick() {
+        if(!this.failed) {
+            return;
+        }
+
+        if(!this.gameStopped) {
+            var fac = EngineUtils.interpolate(this.stopTimer/this.stopTime,0.9999,0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+            this.adjustmentFilter.saturation = fac;
+            $engine.setTimescale(fac)
+            this.stopTimer++;
+            if(this.stopTimer>this.stopTime)
+                this.gameStopped=true;
+        } else {
+
+        }
+    }
+
+    timescaleImmuneStep() {
+        this._winLossTick();
     }
 
     pause() {

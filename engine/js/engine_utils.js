@@ -244,7 +244,7 @@ class EngineUtils {
             case(EngineUtils.INTERPOLATE_LINEAR):
                 return diff*val + min;
             case(EngineUtils.INTERPOLATE_IN):
-                return diff*val*val*val + min;
+                return diff*(val*val*val) + min;
             case(EngineUtils.INTERPOLATE_OUT):
                 var t = val-1;
                 return diff*(t*t*t+1) + min
@@ -269,7 +269,7 @@ class EngineUtils {
                     val = 0.50000001;
                 return  diff*((val -= .5) < 0 ?     (.02 + .01 / val) * Math.sin(50 * val) 
                                                 :   (.02 - .01 / val) * Math.sin(50 * val) + 1) + min
-            // following 3 functions written sourced at https://gist.github.com/girish3/11167208
+            // following 6 functions written sourced at https://gist.github.com/girish3/11167208
             case(EngineUtils.INTERPOLATE_IN_BACK):
                 var s = 1.70158;
                 return diff * ((val)*val*((s+1)*val - s)) + min;
@@ -281,6 +281,15 @@ class EngineUtils {
                 if ((val/=1/2) < 1) 
                     return diff * (1/2*(val*val*(((s*=(1.525))+1)*val - s))) + min;
                 return diff * (1/2*((val-=2)*val*(((s*=(1.525))+1)*val + s) + 2)) + min;
+            case(EngineUtils.INTERPOLATE_IN_EXPONENTIAL):
+                return (val===0) ? max : diff*(Math.pow(2, 10 * (val - 1))) + min;
+            case(EngineUtils.INTERPOLATE_OUT_EXPONENTIAL):
+                return (val===1) ? max : diff*(-Math.pow(2, -10 * val) + 1) + min;
+            case(EngineUtils.INTERPOLATE_SMOOTH_EXPONENTIAL):
+                if (val===0) return 0;
+                if (val===1) return 1;
+                if ((val/=1/2) < 1) return 1/2 * Math.pow(2, 10 * (val - 1));
+                return 1/2 * (-Math.pow(2, -10 * --val) + 2);
         }
     }
 }
@@ -298,6 +307,9 @@ EngineUtils.INTERPOLATE_SMOOTH_QUAD=9;
 EngineUtils.INTERPOLATE_IN_BACK=10;
 EngineUtils.INTERPOLATE_OUT_BACK=11;
 EngineUtils.INTERPOLATE_SMOOTH_BACK=12;
+EngineUtils.INTERPOLATE_IN_EXPONENTIAL=13;
+EngineUtils.INTERPOLATE_OUT_EXPONENTIAL=14;
+EngineUtils.INTERPOLATE_SMOOTH_EXPONENTIAL=14;
 
 class EngineDebugUtils {
 

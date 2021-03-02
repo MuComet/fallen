@@ -93,25 +93,33 @@ class IM {
         IM.__childTree.__oid=1;
     }
 
-    static __doSimTick() {
+    static __doSimTick(lastFrame) {
         var mode = $engine.__getPauseMode();
-        if(mode===0) {
-            IM.__cleanup();
-            IM.__deleteFromObjects();
-            IM.__implicit();
-            IM.__step();
-            IM.__preDraw();
-            IM.__sort();
-            IM.__draw();
-        } else if(mode===1) {
-            IM.__sort();
-            IM.__pause();
-            IM.__draw();
+        if(lastFrame) {
+            if(mode===0) {
+                IM.__cleanup();
+                IM.__deleteFromObjects();
+                IM.__implicit();
+                IM.__step();
+                IM.__preDraw();
+                IM.__sort();
+                IM.__draw();
+            } else if(mode===1) {
+                IM.__sort();
+                IM.__pause();
+                IM.__draw();
+            } else { // special pause (mode===2)
+                IM.__sort();
+                IM.__pause();
+                $engine.__pauseSpecialInstance.step(); // run the special instance's step.
+                IM.__draw();
+            }
         } else {
-            IM.__sort();
-            IM.__pause();
-            $engine.__pauseSpecialInstance.step(); // run the special instance's step.
-            IM.__draw();
+            if(mode===0) {
+                IM.__cleanup();
+                IM.__deleteFromObjects();
+                IM.__step();
+            }
         }
         
     }
@@ -181,6 +189,18 @@ class IM {
         })
     }
 
+    static __timescaleImplicit() {
+        for(const obj of IM.__objects) {
+            obj.__timescaleImplicit();
+        }
+    }
+
+    static __timescaleImmuneStep() {
+        for(const obj of IM.__objects) {
+            obj.timescaleImmuneStep();
+        }
+    }
+
     static __getMatrixFor(inst) { //TODO: unnecessary? camera does this?
         return PIXI.Matrix().rotate(inst.angle).scale(inst.xScale,inst.yScale).translate(inst.x,inst.y);
     }
@@ -248,6 +268,9 @@ class IM {
         }
         for(const obj of IM.__objects) {
             obj.onGameEnd();
+        }
+        for(const obj of IM.__objects) {
+            obj.onDestroy();
         }
         for(const obj of IM.__objects) {
             obj.cleanup();
