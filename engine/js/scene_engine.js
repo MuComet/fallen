@@ -550,7 +550,9 @@ class Scene_Engine extends Scene_Base {
         renderable.__align = align;
         renderable.dx=0;
         renderable.dy=0;
+        renderable.__idx = parent.__renderables.length;
         parent.__renderables.push(renderable);
+        this.getCamera().__getRenderContainer().addChild(renderable);
         return renderable;
     }
 
@@ -664,15 +666,34 @@ class Scene_Engine extends Scene_Base {
             var camera = this.__cameras[i];
             camera.removeChildren();
 
-            var container = camera.__getRenderContainer()
-            var arr = this.__collectAllRenderables();
-            if(arr.length!==0) // prevent null call
-                container.addChild(...arr)
 
             // STOP: The following code ONLY works because it was checked against PIXIJS containers.
             // There are no guarantees it will work with other container types such as Graphics.
+            var renderContainer = camera.__getRenderContainer()
+            var children = renderContainer.children;
 
-            camera.addChild(container);
+            // remove destroyed graphics.
+            for(var k = children.length-1;k>=0;k--) {
+                var child = children[k];
+                if(child._destroyed)
+                    renderContainer.removeChildAt(k);
+            }
+
+            // sort our array.
+            children.sort((a,b) => {
+                const x = a.__parent;
+                const y = b.__parent;
+                var d = (y.depth - x.depth);
+                if(d===0) {
+                    var d2 = (x.id-y.id);
+                    if(d2===0)
+                        return x.__idx - y.__idx;
+                    return d2;
+                }
+                return d
+            })
+
+            camera.addChild(renderContainer);
             camera.addChild(camera.getCameraGraphics());
         }
     }
@@ -1676,11 +1697,12 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
 
     static __bindContainer() {
         SceneManager._scene.addChild(GUIScreen.__graphics); // bind directly to the scene
-        if($engine.isLow()) {
+        GUIScreen.__graphics.filters = [GUIScreen.__filter]
+        /*if($engine.isLow()) {
             GUIScreen.__graphics.filters = []
         } else {
             GUIScreen.__graphics.filters = [GUIScreen.__filter]
-        }
+        }*/
     }
 
     static __initGraphics() {

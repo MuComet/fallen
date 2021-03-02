@@ -56,6 +56,8 @@ class MenuIntroController extends EngineInstance {
         var continueButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+120);
         continueButton.setTextures("button_continue_1","button_continue_1","button_continue_2")
         continueButton.setOnPressed(function(){
+            var time = window.performance.now();
+            var ret = false;
             if (DataManager.loadGame(1)) {
                 // reload map if updated -- taken from rpg_scenes.js line 1770
                 if ($gameSystem.versionId() !== $dataSystem.versionId) {
@@ -67,11 +69,13 @@ class MenuIntroController extends EngineInstance {
                 IM.with(MainMenuButton,function(button) {
                     button.enabled = false;
                 })
-                return true;
+                ret =  true;
             } else {
                 SoundManager.playBuzzer();
-                return false;
+                ret = false;
             }
+            MinigameController.controller.timeCorrection+=window.performance.now()-time;
+            return ret;
         });
         continueButton.setScript(function() {
             SceneManager.goto(Scene_Map);
@@ -228,7 +232,7 @@ class MenuIntroController extends EngineInstance {
         var time = window.performance.now();
         var diff = time - this.startTime - this.timeCorrection;
         var frameTime = diff/this.frames;
-        if(frameTime > 17.25) {
+        if(frameTime >= 17) {
             if(!$engine.isLow()) {
                 console.warn("It looks like you're playing on a low spec system... The game will automatically lower render quality to account for this.")
                 console.warn("Average frame time: "+String(frameTime)+"ms")
@@ -398,7 +402,6 @@ class MainMenuButton extends EngineInstance {
         if(mouseOnSelf && !this.active) {
             this.select();
         }
-
         if(this.pressed) {
             this.getSprite().texture = this.tex3; // pressed
         } else if(mouseOnSelf) {

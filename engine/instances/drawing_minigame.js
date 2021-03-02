@@ -240,7 +240,7 @@ class DrawableLine extends EngineInstance {
             graphics.lineTo(this.points[this.points.length-1].x,this.points[this.points.length-1].y)
         } else {
             graphics.lineStyle(5,0xffffff).moveTo(this.points[0].x,this.points[0].y);
-            for(var i =1;i<this.points.length-1;i++) {
+            for(var i =1;i<this.points.length;i++) {
                 graphics.lineTo(this.points[i].x, this.points[i].y, xc, yc);
             }
         }

@@ -91,7 +91,7 @@ class IN {
 
         IN.__releasedButtons = IN.__releasedButtonsCarry;
         IN.__pressedButtons = IN.__pressedButtonsCarry;
-        for(const key in IN.__releasedButtons) {
+        for(const key of IN.__releasedButtons) {
             IN.__heldButtons.splice(IN.__heldButtons.indexOf(key),1);
         }
 
