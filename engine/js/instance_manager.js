@@ -11,7 +11,7 @@ class IM {
 
     static __initializeVariables() {
         IM.__objects = [];
-        IM.__objectsSorted = []
+        //IM.__objectsSorted = []
         for(var i = 1;i<=IM.__numRegisteredClasses;i++)
             IM.__accessMap[i] = [];
             IM.__alteredLists[i] = false;
@@ -102,14 +102,11 @@ class IM {
                 IM.__implicit();
                 IM.__step();
                 IM.__preDraw();
-                IM.__sort();
                 IM.__draw();
             } else if(mode===1) {
-                IM.__sort();
                 IM.__pause();
                 IM.__draw();
             } else { // special pause (mode===2)
-                IM.__sort();
                 IM.__pause();
                 $engine.__pauseSpecialInstance.step(); // run the special instance's step.
                 IM.__draw();
@@ -142,7 +139,7 @@ class IM {
         }
         if(IM.__cleanupList.length!==0) { // don't waste CPU if there's nothing to update...
             IM.__objects=IM.__objects.filter(x=>x.__alive);
-            IM.__objectsSorted=IM.__objectsSorted.filter(x=>x.__alive);
+            //IM.__objectsSorted=IM.__objectsSorted.filter(x=>x.__alive);
             for(var i =1;i<=IM.__numRegisteredClasses;i++) { // only filter lists that were changed
                 if(IM.__alteredLists[i])
                     IM.__accessMap[i] = IM.__accessMap[i].filter(x => x.__alive)
@@ -175,7 +172,7 @@ class IM {
     static __draw() {
         $engine.getCamera().getCameraGraphics().clear();
         $engine.__GUIgraphics.clear();
-        for(const obj of IM.__objectsSorted)
+        for(const obj of IM.__objects)
             obj.draw($engine.__GUIgraphics, $engine.getCamera().getCameraGraphics());
     } 
 
@@ -258,7 +255,7 @@ class IM {
             IM.__objects.unshift(inst);
         else
             IM.__objects.push(inst);
-        IM.__objectsSorted.push(inst);
+        //IM.__objectsSorted.push(inst);
         IM.__accessMap[inst.oid].push(inst);
     }
 

@@ -1329,6 +1329,55 @@ SceneManager.updateManagers = function() {
     }*/
 }
 
+// jank support for 1x1 spritesheet characters -- doesn't work with anything but characters facing down.
+// Doesn't work with anims. (prefix with ~):
+ImageManager.isObjectCharacter = function(filename) {
+    var sign = filename.match(/^[\!\$\~]+/);
+    return sign && sign[0].contains('!');
+};
+
+ImageManager.isBigCharacter = function(filename) {
+    var sign = filename.match(/^[\!\$\~]+/);
+    return sign && sign[0].contains('$');
+};
+
+ImageManager.isReallyBigCharacter = function(filename) {
+    var sign = filename.match(/^[\!\$\~]+/);
+    return sign && sign[0].contains('~');
+};
+
+Sprite_Character.prototype.patternWidth = function() {
+    if (this._tileId > 0) {
+        return $gameMap.tileWidth();
+    } else if(this._isReallyBigCharacter) {
+		return this.bitmap.width
+	} else if (this._isBigCharacter) {
+        return this.bitmap.width / 3;
+    } else {
+        return this.bitmap.width / 12;
+    }
+};
+
+Sprite_Character.prototype.patternHeight = function() {
+    if (this._tileId > 0) {
+        return $gameMap.tileHeight();
+    } else if (this._isReallyBigCharacter) {
+		return this.bitmap.height
+	} else if (this._isBigCharacter) {
+        return this.bitmap.height / 4;
+    } else {
+        return this.bitmap.height / 8;
+    }
+};
+
+Sprite_Character.prototype.setCharacterBitmap = function() {
+    this.bitmap = ImageManager.loadCharacter(this._characterName);
+    this._isBigCharacter = ImageManager.isBigCharacter(this._characterName);
+    this._isReallyBigCharacter = ImageManager.isReallyBigCharacter(this._characterName);
+};
+
+
+
 ////////////////// end overriding RPG maker /////////////////
 
 // Unwrap Utilities

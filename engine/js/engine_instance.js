@@ -144,7 +144,8 @@ class EngineInstance {
     step() {}
 
     /**
-     * timescaleImmuneStep is run only when the engine timescale is non standard. When the timescale is different, this event becomes will run the same as step()
+     * timescaleImmuneStep is run only when the engine timescale is non standard. When the timescale is different, this event is called once per
+     * frame (60 times a second). Use this event to control the game logic while the timescale is different or possibly zero.
      * 
      * This event runs after all other events are completed.
      */
@@ -153,9 +154,6 @@ class EngineInstance {
     /**
      * preDraw is called once per frame (60 times per second) and may be used to set up variables for draw(). Becuase of the draw contract,
      * this method must exist so that you can reliably set up your data.
-     * 
-     * This event is NOT sorted, so the order that it is called in may not be representative of the draw order.
-     * The order is the same as in step().
      * 
      * This event runs right after step(), and right before draw()
      */
@@ -180,8 +178,6 @@ class EngineInstance {
 
     /**
      * Draw contract: Do not edit any variables in this method, only read them.
-     * 
-     * This event is sorted, unlike other events, it will be called in the same order that objects will be rendered in.
      * 
      * Draw is the method that you can use to render more advanced objects to the screen. It is called once per frame (60 times per second) reguardless of
      * whether or not the game is currently paused. Note that anything created using $engine.createRenderable() is
