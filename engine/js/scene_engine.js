@@ -15,6 +15,9 @@ $__engineData.autoSetWriteBackIndex = -1;
 $__engineData.loadRoom = "MenuIntro";
 $__engineData.__lowPerformanceMode = false;
 
+// things to unbork:
+// re-comment out YEP speech core at 645
+// re-enable custom cursor
 
 // reserve data slots 100 to 200 for engine use.
 $__engineData.__maxRPGVariables = 100;
@@ -618,11 +621,12 @@ class Scene_Engine extends Scene_Base {
      * 
      * This function also applies the default anchor of the texture as defined in the manifest.
      * 
-     * The major difference between this and createRenderable is that createRenderable will also cause the engine to automatically render it, while
-     * this function will only tell the engine to keep track of it for you.
+     * The major difference between this and createManagedRenderable is that this will also cause the engine to automatically render it, createManagedRenderable
+     * will only tell the engine to keep track of it for you.
      * @param {EngineInstance} parent The parent to attach the renderable to
      * @param {PIXI.DisplayObject} renderable The renderable to auto dispose of
      * @param {Boolean | false} [align=false] Whether or not to automatically move the renderable to match the parent instance's x, y, scale, and rotation (default false)
+     * @returns {PIXI.DisplayObject} The passed in renderable
      */
     createRenderable(parent, renderable, align = false) {
         renderable.__depth = parent.depth
@@ -644,6 +648,7 @@ class Scene_Engine extends Scene_Base {
      * this function will only tell the engine to keep track of it for you.
      * @param {EngineInstance} parent The parent to attach the renderable to
      * @param {PIXI.DisplayObject} renderable The renderable to auto dispose of
+     * @returns {PIXI.DisplayObject} The passed in renderable
      */
     createManagedRenderable(parent, renderable) {
         parent.__pixiDestructables.push(renderable);
@@ -670,6 +675,7 @@ class Scene_Engine extends Scene_Base {
     removeRenderable(renderable) {
         renderable.__parent.__renderables.splice(renderable.__parent.__renderables.indexOf(renderable),1); // remove from parent
         renderable.__parent=null; // leave it to be cleaned up eventually
+        this.getCamera().__getRenderContainer().removeChild(renderable);
         this.freeRenderable(renderable)
     }
 
@@ -740,11 +746,11 @@ class Scene_Engine extends Scene_Base {
     }
 
     __prepareRenderToCameras() {
-        for(var i =0;i<1;i++) { // this is horribly slow (addChild), but it's not worth optimizing since we're so far from frame budget
+        for(var i =0;i<1;i++) { // a relic from a time long gone. more than one camera wouldn't work like this, you'd have to call the renderer directly.
             if(!this.__enabledCameras[i])
                 continue;
             var camera = this.__cameras[i];
-            camera.removeChildren();
+            camera.removeChildren(); // old code, can clean up
 
 
             // STOP: The following code ONLY works because it was checked against PIXIJS containers.
@@ -763,16 +769,16 @@ class Scene_Engine extends Scene_Base {
             children.sort((a,b) => {
                 const x = a.__parent;
                 const y = b.__parent;
-                var d = (y.depth - x.depth);
+                var d = (y.depth - x.depth); // first, try depth
                 if(d===0) {
-                    var d2 = (y.id-x.id);
-
+                    var d2 = (x.id-y.id); // next, try instance creation order
+                    if(d2===0) {
+                        return a.__idx - b.__idx; // finally, the renderable creation order
+                    }
                     return d2;
                 }
                 return d
             })
-
-            renderContainer.children = children;
 
             camera.addChild(renderContainer);
             camera.addChild(camera.getCameraGraphics());

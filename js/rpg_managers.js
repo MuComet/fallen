@@ -2081,7 +2081,6 @@ SceneManager.push = function(sceneClass) {
 };
 
 SceneManager.pop = function() {
-	console.trace();
     if (this._stack.length > 0) {
         this.goto(this._stack.pop());
     } else {

@@ -24,7 +24,7 @@ class MenuIntroController extends EngineInstance {
         }
         this.timer = 0;
         $engine.setBackgroundColour(0x65ceeb)
-        this.graphics = $engine.createRenderable(this,new PIXI.Graphics(),false)
+        this.graphics = $engine.createRenderable(this,new PIXI.Graphics())
         this.endTime = 300;
         this.nextCloud = 0;
         this.nextLeaf = 0;

@@ -199,8 +199,8 @@ class Camera extends PIXI.Container {
         }
     }
 
-    __reportMouse() {
-        return Graphics._renderer.plugins.interaction.mouse.getLocalPosition(this);
+    __reportMouse(point,global) {
+        return Graphics._renderer.plugins.interaction.mouse.getLocalPosition(this,point,global);
     }
 
 
