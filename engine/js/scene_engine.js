@@ -87,6 +87,7 @@ class Scene_Engine extends Scene_Base {
         this.__instanceCreationSpecial = {}; // it doesn't matter what this is so long as it's an object.
         this.__timescale = 1;
         this.__timescaleFraction = 0;
+        this.__sounds = [];
 
         this.__RPGVariableTags = [];
 
@@ -229,6 +230,151 @@ class Scene_Engine extends Scene_Base {
         return ref;
     }
 
+    async audioPlaySound(snd, loop=false, start = 0, end = 0) {
+        if(typeof(snd)==="string")
+            snd = this.audioGetSound(snd);
+        var retSnd = undefined;
+        if(end) {
+            retSnd = snd.play({
+                loop: loop,
+                start: start,
+                end: end,
+                complete:function() {
+                    snd.__isComplete = true;
+                }
+            });
+        } else {
+            retSnd = snd.play({
+                loop: loop,
+                complete:function() {
+                    snd.__isComplete = true;
+                }
+            });
+        }
+        snd.__tick = function(self){}; // nothing for now
+        this.__sounds.push(snd);
+        retSnd.sourceAudio = snd;
+        return retSnd;
+    }
+
+    audioGetSound(path, type="SE", volume=1) {
+        var vol = this.__getVolume(type)
+        const snd = new PIXI.sound.Sound.from({
+            url:path,
+            volume:vol*volume,
+        });
+        snd.originalVolume = vol;
+        snd.__isComplete = false
+        snd.__type = type;
+        return snd;
+    }
+
+    audioStopSound(snd) {
+        for(const sound of this.__lookupSounds(snd)) {
+            this.__destroySound(sound);
+        }
+    }
+
+    audioStopAll() {
+        this.__audioCleanup();
+    }
+
+    audioStopType(type) {
+        for(const sound of this.__sounds) {
+            if(sound.__type === __type)
+                sound.destroy();
+        }
+    }
+
+    __lookupSounds(snd) {
+        var sounds = [];
+        if(typeof(snd) === "string") {
+            for(const sound of this.__sounds) {
+                if(sound.url === snd)
+                    sounds.push(sound);
+            }
+        } else {
+            sounds.push(snd);
+        }
+        return sounds;
+    }
+
+    audioGetSoundsOfType(type) {
+        var sounds = [];
+        for(const sound of this.__sounds) {
+            if(sound.__type === type)
+                sounds.push(sound);
+        }
+        return sounds;
+    }
+
+    audioPauseSound(snd) {
+        for(const sound of this.__lookupSounds(snd)) {
+            sound.pause()
+        }
+    }
+
+    audioResumeSound(snd) {
+        for(const sound of this.__lookupSounds(snd)) {
+            sound.resume()
+        }
+    }
+
+    audioIsSoundPlaying(snd) {
+        return this.__lookupSounds(snd).length!==0;
+    }
+
+    audioGetProgress(snd) { // TODO: doesn't work right now.
+        var snd = this.__lookupSounds(snd);
+        return snd[0].progress
+    }
+
+    audioFadeSound(snd, time) {
+        snd.__timeToFade = time;
+        snd.__timer = 0;
+        snd.__vol = snd.volume;
+        snd.__tick = function(self) {
+            self.volume = (1-(self.__timer/ self.__timeToFade))*self.__vol
+            if(self.__timer>=self.__timeToFade)
+                $engine.__destroySound(self)
+            self.__timer++;
+        }
+    }
+
+    audioFadeAll(time) {
+        for(const sound of this.__sounds) {
+            this.audioFadeSound(sound,time)
+        }
+    }
+
+    __getVolume(type) {
+        return 1;
+    }
+
+    __audioTick() {
+        for(const sound of this.__sounds) {
+            if(sound.__isComplete === true)
+                this.__destroySound(sound);
+            sound.__tick(sound);
+        }
+        this.__sounds = this.__sounds.filter( x=> !x.__destroyed);
+    }
+
+    __destroySound(sound) {
+        if(sound.__destroyed)
+            return;
+        sound.stop();
+        sound.destroy();
+        sound.__destroyed=true;
+    }
+
+    __audioCleanup() { // at the end of the game, delete all sounds.
+        for(const sound of this.__sounds) {
+            this.__destroySound(sound);
+        }
+        this.__sounds = [];
+    }
+
     setRoom(newRoom) {
         if(!RoomManager.roomExists(newRoom))
             throw new Error("Attemping to change to non existent room "+newRoom);
@@ -344,6 +490,7 @@ class Scene_Engine extends Scene_Base {
         this.freeRenderable(this.__GUIgraphics)
         this.freeRenderable(this.__backgroundContainer);
         this.freeRenderable(this.__gameCanvas)
+        this.__audioCleanup();
     }
 
     __writeBack() {
@@ -449,6 +596,7 @@ class Scene_Engine extends Scene_Base {
             IM.__timescaleImmuneStep();
 
         this.__prepareRenderToCameras();
+        this.__audioTick();
        
         
         var time = window.performance.now()-start;
@@ -817,8 +965,8 @@ class Scene_Engine extends Scene_Base {
                 return;
             var frames = Math.floor((event.timeStamp - this.__lastKnownTime)/16.666666)
             var controller = MinigameController.getInstance();
-            if(controller) {
-                controller.notifyFramesSkipped(frames);
+            if(controller!==undefined) {
+                controller.__notifyFramesSkipped(frames);
             }
         } else { // user hid the game
             this.__lastKnownTime=event.timeStamp;

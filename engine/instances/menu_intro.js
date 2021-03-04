@@ -39,7 +39,7 @@ class MenuIntroController extends EngineInstance {
         var startButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2);
         startButton.setTextures("button_new_game_1","button_new_game_1","button_new_game_2")
         startButton.setOnPressed(function(){
-            AudioManager.fadeOutBgm(1);
+            $engine.audioFadeSound(MinigameController.getInstance().menuMusic,30);
             IM.with(MainMenuButton,function(button) {
                 button.enabled = false;
             })
@@ -66,6 +66,7 @@ class MenuIntroController extends EngineInstance {
                 }
                 SoundManager.playLoad();
                 $engine.fadeOutAll(1);
+                $engine.audioFadeSound(MinigameController.getInstance().menuMusic,30);
                 IM.with(MainMenuButton,function(button) {
                     button.enabled = false;
                 })
@@ -84,12 +85,16 @@ class MenuIntroController extends EngineInstance {
                 oldFunc.call(this);
                 $gameSystem.onAfterLoad();
             }
-            
         });
 
-        this.audioReference = $engine.generateAudioReference("Menu");
-        this.musicStarted = false;
-        AudioManager.playBgm(this.audioReference)
+        //this.audioReference = $engine.generateAudioReference("Menu");
+        //this.musicStarted = false;
+        //AudioManager.playBgm(this.audioReference)
+
+        this.menuMusic = $engine.audioGetSound("audio/bgm/Menu.ogg","SE",1)
+        $engine.audioPlaySound(this.menuMusic,true).then(result => {
+            this.audioRef=result;
+        })
     }
 
     nextFrame() {
@@ -103,10 +108,9 @@ class MenuIntroController extends EngineInstance {
 
         this.timer++;
 
-        var src = AudioManager._bgmBuffer._sourceNode;
         // wait for context, when we get context, start the music.
-        if(src!==null && !this.musicStarted && IN.anyInputPressed() && !IN.keyCheck("Escape")) { // escape doesn't count?
-            AudioManager._bgmBuffer._sourceNode.context.resume();
+        if(this.audioRef && !this.musicStarted && IN.anyInputPressed() && !IN.keyCheck("Escape")) { // escape doesn't count?
+            this.audioRef._source.context.resume();
             this.musicStarted = true;
         }
 

@@ -6,14 +6,13 @@ class WallBuilderController extends MinigameController {
         for(var i =0;i<26;i++) {
             this.possibleLetters.push("Key"+String.fromCharCode(i+65))
         }
-        this.minigameTimer = new MinigameTimer(60*60);
         this.delayToNext = 999;
         this.maxDelayToNext = 60; // if you mess up
         this.currentKey = "";
 
         this.progress = 0;
-        this.width = 10;
-        this.height = 6;
+        this.width = 5;
+        this.height = 2;
 
         this.total = this.width*this.height;
 
@@ -57,9 +56,10 @@ class WallBuilderController extends MinigameController {
         this.next();
         this.updateText();
 
-        this.minigameTimer.addOnTimerStopped(this, function(parent) {
-            parent.gameLoss()
-        })
+        this.endWaitTimer = 0;
+        this.waiting = false;
+
+        this.startTimer(60*60)
     }
 
     landed(dy) {
@@ -68,6 +68,7 @@ class WallBuilderController extends MinigameController {
     }
 
     createRope() {
+        $engine.audioPlaySound("audio/se/Layer.ogg")
         var tex = $engine.getTexture("wall_building_grit")
         tex.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT; // doesn't work??
 
@@ -94,6 +95,10 @@ class WallBuilderController extends MinigameController {
         rope.texture.frame.width = xRight-xLeft;
         rope.texture._updateUvs()
         return rope;
+    }
+
+    onMinigameComplete(frames) {
+        console.log(frames);
     }
 
     onCreate() {
@@ -127,10 +132,14 @@ class WallBuilderController extends MinigameController {
         this.progress++;
         this.flipTimer=this.flipTime;
         this.next();
+        this.letterText.visible = false;
+        if(this.progress===this.total) {
+            this.getTimer().stopTimer();
+            return;
+        }
         if(this.progress % this.width===0) {
             this.gritRopes.push(this.createRope());
         }
-        this.letterText.visible = false;
     }
 
     keyIncorrect() {
@@ -194,7 +203,7 @@ class WallBuilderController extends MinigameController {
 
         $engine.getCamera().setRotation(EngineUtils.randomRange(-this.rotateFactor,this.rotateFactor));
 
-        if(this.minigameTimer.isTimerDone())
+        if(this.getTimer().isTimerDone())
             return;
         this.delayToNext++;
 
@@ -247,7 +256,7 @@ class WallBuilderController extends MinigameController {
     }
 
     notifyFramesSkipped(frames) {
-        this.minigameTimer.tickDown(frames);
+        this.getTimer().tickDown(frames);
     }
 }
 
@@ -265,6 +274,8 @@ class Brick extends EngineInstance {
         this.correct = correct
         this.phase = 0; // 0 = falling, 1 = dactivated, 2 = bOrked
         this.setSprite(new PIXI.Sprite($engine.getTexture("wall_building_brick_1")));
+
+        this.landedOnce = false;
 
         this.lifeTimer = 0;
         this.life = EngineUtils.irandomRange(30,60);
@@ -303,12 +314,20 @@ class Brick extends EngineInstance {
                 this.dx = EngineUtils.randomRange(-3,3);
                 this.dr = EngineUtils.randomRange(0.05,0.05)
                 this.depth = -1;
+                if(!this.landedOnce)
+                    $engine.audioPlaySound("audio/se/Miss.ogg")
             } else {
                 if(this.dy < 2)
                     this.phase = 1;
                 
                 this.dy = -this.dy*0.3333;
+                if(!this.landedOnce) {
+                    var snd = $engine.audioGetSound("audio/se/Hit.ogg");
+                    snd.speed = EngineUtils.randomRange(0.75,1.5);
+                    $engine.audioPlaySound(snd)
+                }
             }
+            this.landedOnce=true;
         }
     }
 

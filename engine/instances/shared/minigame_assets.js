@@ -56,6 +56,7 @@ class MinigameTimer extends EngineInstance {
             this._checkIsTimeUp();
             this.timer--;
         }
+        this.timerText.alpha = this.alpha
     }
 
     setGameOverText(text) {
@@ -77,6 +78,10 @@ class MinigameTimer extends EngineInstance {
     // inverts the timer's behaviours. now when the timer expires, it is counted as a win.
     setSurvivalMode() {
         this.survivalMode = true;
+    }
+
+    isSurvivalMode() {
+        return this.survivalMode
     }
 
     updateStyle(key, value) {
@@ -152,7 +157,7 @@ class MinigameTimer extends EngineInstance {
      * This will fire all onTimerStopped methods and input an argument of 'true'
      */
     expire() {
-        if(!this.canExpire)
+        if(!this.canExpire || this.timerDone)
             return;
         for(const f of this.onTimerUp)
                 f.func(f.parent,true);
@@ -216,8 +221,13 @@ class MinigameTimer extends EngineInstance {
  * 
  * cleanup
  * 
+ * timescaleImmuneStep
+ * 
  * This class automatically handles the start and cheating with minigames. Simply tell it what to render using setInstructionRenderable and
  * setCheatRenderable and it does the rest.
+ * 
+ * Additionally, when the game over is several methods will be automatically called. One of which is onMinigameComplete(frames), which will be called once
+ * per frame with the argument being how many frames the minigame has been over. Use this method for summaries.
  * 
  * Can call hasCheated() to know if the user has cheated. or can can use addCheatCallback to get a function callback when cheat is pressed.
  * Additionally addOnGameStartCallback will call the specified function when the instructions go away.
@@ -231,12 +241,16 @@ class MinigameController extends EngineInstance {
         this.__initalized = true;
         this.minigamePaused = false;
 
-        this.failed = false;
+        this.failedMinigame = false;
         this.gameStopped = false;
         this.stopTimer = 0;
         this.stopTime = 75;
+        this.gameStoppedFrameTimer = 0;
+        this.winLossTimer = 0;
 
-        this.won = false;
+        this._timer = undefined;
+
+        this.wonMinigame = false;
 
         this.instructionTimer = 0;
         this.instructionTimerLength = 60*30; // 30 seconds at most
@@ -244,7 +258,7 @@ class MinigameController extends EngineInstance {
 
         this.cheated = false;
         this.cheatTimer = 0;
-        this.cheatTimerLength = 60*2;
+        this.cheatTimerLength = 60*4;
         this.showingCheat = false;
 
         this.onCheatCallbacks  = [];
@@ -258,6 +272,12 @@ class MinigameController extends EngineInstance {
 
         this.allowActivateCheat = true;
 
+        this.musicStandard = undefined;
+        this.musicStandardReference = undefined;
+
+        this.musicCheat = undefined;
+        this.musicCheatReference = undefined;
+
         this.blurFadeTime = 60;
         this.blurFilterStrength = 9.6666; // making it a round number kinda messes with it
         this.blurFilter = new PIXI.filters.BlurFilter(8,4,3,15);
@@ -266,6 +286,9 @@ class MinigameController extends EngineInstance {
         this.blurFilterInstruction = new PIXI.filters.BlurFilter(8,4,3,15);
         this.blurFilterInstruction.blur = 0
         this.blurFilterInstruction.repeatEdgePixels=true;
+        this.blurFilterCheat = new PIXI.filters.BlurFilter(8,4,3,15);
+        this.blurFilterCheat.blur = 0
+        this.blurFilterCheat.repeatEdgePixels=true;
 
         if(!$engine.isLow()) {
             $engine.getCamera().addFilter(this.blurFilter);
@@ -281,6 +304,12 @@ class MinigameController extends EngineInstance {
         this.setCheatRenderable(new PIXI.Sprite($engine.getTexture("gui_cheat_graphic")))
         this.instructionImage = undefined;
         this.setInstructionRenderable(new PIXI.Sprite($engine.getTexture("title_card")));
+
+        this._initMusic();
+
+        this.addCheatCallback(this,function(self) {
+            $engine.audioPlaySound("audio/se/Cheat.ogg")
+        })
 
         MinigameController.controller = this;
 
@@ -299,6 +328,57 @@ class MinigameController extends EngineInstance {
         this.allowActivateCheat=false;
     }
 
+    _initMusic() {
+        this.musicStandard = $engine.audioGetSound("audio/bgm/Minigame.ogg","BGM",1)
+        $engine.audioPlaySound(this.musicStandard,true).then(result => {
+            this.musicStandardReference=result;
+            result._source.loopStart = 6
+            result._source.loopEnd = result._duration
+            $engine.audioPauseSound(this.musicStandard)
+        })
+
+        this.musicCheat = $engine.audioGetSound("audio/bgm/MinigameCheat.ogg","BGM",0)
+        $engine.audioPlaySound(this.musicCheat,true).then(result => {
+            this.musicCheatReference=result;
+            result._source.loopStart = 6
+            result._source.loopEnd = result._duration
+            $engine.audioPauseSound(this.musicCheat)
+        })
+    }
+
+    _startMusic() {
+        $engine.audioResumeSound(this.musicStandard)
+        $engine.audioResumeSound(this.musicCheat)
+    }
+
+    /**
+     * Creates and starts a new MinigameTimer. This timer becomes accessible via getTimer()
+     * @param {Number} frames The amount of frames
+     */
+    startTimer(frames) {
+        this._timer = new MinigameTimer(frames);
+        this._timer.addOnTimerStopped(this,function(self,expired) {
+            if((expired && self._timer.isSurvivalMode()) || (!expired && !self._timer.isSurvivalMode())) {
+                self.gameWin();
+            } else {
+                self.gameLoss();
+            }
+        })
+        this._timer.addOnTimerStopped(this,function(self, expired) {
+            if(self.hasCheated())
+                $engine.audioPlaySound("audio/se/GameEndCheat.ogg")
+            else
+                $engine.audioPlaySound("audio/se/GameEnd.ogg")
+        })
+        this._timer.addOnTimerStopped(this,function(self, expired) {
+            $engine.getCamera().addFilter(self.blurFilter)
+        })
+    }
+
+    getTimer() {
+        return this._timer;
+    }
+
     /**
      * Fires if the window loses visibility and causes the game to stop.
      * 
@@ -309,43 +389,79 @@ class MinigameController extends EngineInstance {
         console.error("Notify Frames Skipped should always be implemenetd! -- "+String(frames)+" frames skipped...")
     }
 
+    __notifyFramesSkipped(frames) {
+        if(this.showingCheat || this.showingInstructions)
+            return;
+        this.notifyFramesSkipped(frames);
+    }
+
     _minigameControllerTick() {
-        if(!this.failed && ! this.won && !this.showingInstructions && this.cheatKeyActive && IN.keyCheckPressed(this.cheatKey)) {
+        if(!this.failedMinigame && ! this.wonMinigame && !this.showingInstructions && this.cheatKeyActive && this.allowActivateCheat && IN.keyCheckPressed(this.cheatKey)) {
             this.cheat();
         }
-        this._handleInstructionImage();
-        this._handleCheatImage();
+        this._handleInstruction();
+        this._handleCheat();
+        if(this.wonMinigame || this.failedMinigame && ! $engine.isTimeScaled())
+            this._winLossTick();
     }
 
     gameWin() {
-        if(this.failed || this.won)
+        if(this.failedMinigame || this.wonMinigame)
             return;
-        throw new Error("To be implemented")
+        this.wonMinigame = true;
     }
 
     gameLoss() {
-        if(this.failed || this.won)
+        if(this.failedMinigame || this.wonMinigame)
             return;
-        this.failed = true;
+        this.failedMinigame = true;
         $engine.setTimescale(0.9999);
     }
 
     _winLossTick() {
-        if(!this.failed) {
+        if(!this.failedMinigame && ! this.wonMinigame) {
             return;
         }
 
         if(!this.gameStopped) {
             var fac = EngineUtils.interpolate(this.stopTimer/this.stopTime,0.9999,0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
-            this.adjustmentFilter.saturation = fac;
-            $engine.setTimescale(fac)
+            if(this.failedMinigame) {
+                this.adjustmentFilter.saturation = fac;
+                $engine.setTimescale(fac)
+            }
+            if(this._timer)
+                this._timer.alpha = fac
             this.stopTimer++;
+            this.setMusicVolume(fac);
             if(this.stopTimer>this.stopTime)
                 this.gameStopped=true;
         } else {
+            this.onMinigameComplete(this.gameStoppedFrameTimer)
+            if(this.gameStoppedFrameTimer===90) {
+                var snd = undefined;
 
+                if(this.hasCheated())
+                    snd = $engine.audioGetSound("audio/bgm/VictoryAtaCost.ogg","BGM")
+                else
+                    snd = $engine.audioGetSound("audio/bgm/Victory.ogg","BGM")
+                    
+                $engine.audioPlaySound(snd,true).then(result=> {
+                    result._source.loopStart = 5.75;
+                    result._source.loopEnd = result._duration-0.8;
+                })
+            }
+            this.gameStoppedFrameTimer++;
         }
     }
+
+    setMusicVolume(volume) {
+        if(this.hasCheated())
+            this.musicCheat.volume=volume;
+        else
+            this.musicStandard.volume=volume;
+    }
+
+    onMinigameComplete(frames) {};
 
     timescaleImmuneStep() {
         this._winLossTick();
@@ -387,6 +503,7 @@ class MinigameController extends EngineInstance {
         $engine.pauseGame();
         $engine.setCheatWriteBackValue(ENGINE_RETURN.CHEAT);
         this.blurFilter.blur = this.blurFilterStrength;
+        this.disableCheating();
         if(!$engine.isLow())
             $engine.getCamera().addFilter(this.blurFilter);
         this.cheated = true;
@@ -411,7 +528,7 @@ class MinigameController extends EngineInstance {
         });
     }
 
-    _handleInstructionImage() {
+    _handleInstruction() {
         this.instructionTimer++;
         if(this.instructionTimer<this.instructionTimerLength) {
             if(((IN.anyKeyPressed() && this.instructionTimer>18) || IN.keyCheckPressed("Space") || IN.keyCheckPressed("Enter")) 
@@ -424,6 +541,11 @@ class MinigameController extends EngineInstance {
                 this.blurFilter.blur = stren
                 this.instructionImage.alpha = stren/this.blurFilterStrength
                 this.blurFilterInstruction.blur = (1-(stren/this.blurFilterStrength))*40;
+                $engine.audioResumeSound(this.musicStandard)
+                $engine.audioResumeSound(this.musicCheat)
+                var musicFac = EngineUtils.interpolate((this.instructionTimer-this.instructionTimerLength+this.blurFadeTime)/this.blurFadeTime,
+                        0,1,EngineUtils.INTERPOLATE_OUT)
+                this.setMusicVolume(musicFac)
             }
         }
         if(this.instructionTimer===this.instructionTimerLength) {
@@ -435,17 +557,45 @@ class MinigameController extends EngineInstance {
         }
     }
 
-    _handleCheatImage() {
-        if(!this.cheated) {
+    _handleCheat() {
+        if(!this.cheated || (this._timer && this._timer.isTimerDone())) {
             return;
         }
         this.cheatTimer++;
+        var fadeTime = this.blurFadeTime/3;
+        var f1 = EngineUtils.interpolate(this.cheatTimer / fadeTime,1,0, EngineUtils.INTERPOLATE_OUT)
+        var f2 = EngineUtils.interpolate((this.cheatTimer-(this.cheatTimerLength-fadeTime))/fadeTime,0,1, EngineUtils.INTERPOLATE_IN)
+        var fac = Math.max(f1,f2)
+
+        this.blurFilter.blur = (1-fac) * this.blurFilterStrength
+
+        if(this.cheatTimer < this.cheatTimerLength-fadeTime) {
+            this.blurFilterCheat.blur = 0
+            var scaleFac = EngineUtils.interpolate(this.cheatTimer/fadeTime,0,1,EngineUtils.INTERPOLATE_OUT_BACK);
+            var scaleFac2 = EngineUtils.interpolate(this.cheatTimer/(fadeTime+24),0,1,EngineUtils.INTERPOLATE_IN_ELASTIC);
+            this.cheatImage.scale.y = scaleFac;
+            this.cheatImage.scale.x = scaleFac2;
+            this.cheatImage.y = scaleFac*$engine.getWindowSizeY()/2
+        } else {
+            this.cheatImage.alpha = 1-fac
+            var scaleFac = EngineUtils.interpolate((this.cheatTimer-(this.cheatTimerLength-fadeTime))/fadeTime,0,1,EngineUtils.INTERPOLATE_IN_BACK);
+            this.cheatImage.scale.x = 1+scaleFac*5
+            this.cheatImage.scale.y = 1-scaleFac*2
+            this.blurFilterCheat.blur = fac * this.blurFilterStrength
+        }
+        this.cheatImage.rotation = Math.sin($engine.getGlobalTimer()/16)/48
         if(this.cheatTimer===this.cheatTimerLength) {
             this.showingCheat=false;
             if(!$engine.isLow())
                 $engine.getCamera().removeFilter(this.blurFilter);
             $engine.unpauseGame();
         }
+        var len = (this.cheatTimerLength+60)
+        var fac2 = EngineUtils.interpolate(Math.abs((this.cheatTimer / (len/2))-1),0.075,1,EngineUtils.INTERPOLATE_IN)
+        var fac = EngineUtils.interpolate(this.cheatTimer / len,0,1,EngineUtils.INTERPOLATE_SMOOTH);
+        this.musicCheat.volume = fac*fac2;
+        this.musicStandard.volume = (1-fac)*fac2;
+        
     }
 
     _onGameStart() {
@@ -481,6 +631,7 @@ class MinigameController extends EngineInstance {
      */
     setCheatRenderable(renderable) {
         this.cheatImage = renderable;
+        this.cheatImage.filters = [this.blurFilterCheat];
         this.cheatImage.x = $engine.getWindowSizeX()/2;
         this.cheatImage.y = $engine.getWindowSizeY()/2;
         this.cheatImage.anchor.x = 0.5;
