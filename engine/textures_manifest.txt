@@ -68,6 +68,9 @@ letter_backdrop engine/textures/wall/board.png 0.5 0.5
 wall_building_grit engine/textures/grit.png 0.5 0.5
 
 bar_standard engine/textures/bars/bar.png  0.5 1
-bar_standard_top engine/textures/bars/bar_top.png 0.5 1
+bar_standard_top engine/textures/bars/bar_top.png 0.5 0
 bar_health engine/textures/bars/bar_health.png 0.5 1
 bar_time engine/textures/bars/bar_time.png 0.5 1
+
+drawing_mingiame_background_1 engine/textures/drawing/wall.png 0 0
+drawing_mingiame_background_2 engine/textures/drawing/wall_bush.png 0 0

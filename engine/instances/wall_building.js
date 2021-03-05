@@ -127,23 +127,39 @@ class WallBuilderController extends MinigameController {
     }
 
     keyCorrect() {
-        this.spawnBrick(true);
         this.spawnFadingLetter(true);
-        this.progress++;
-        this.flipTimer=this.flipTime;
-        this.next();
-        this.letterText.visible = false;
-        if(this.progress===this.total) {
-            this.getTimer().stopTimer();
-            return;
+        var times = 1;
+        if(this.hasCheated()) {
+            times = 3;
         }
-        if(this.progress % this.width===0) {
-            this.gritRopes.push(this.createRope());
+        for(var i =0;i<times;i++) {
+            this.spawnBrick(true);
+            this.progress++;
+            this.flipTimer=this.flipTime;
+            this.next();
+            this.letterText.visible = false;
+            if(this.progress===this.total) {
+                this.getTimer().stopTimer();
+                return;
+            }
+            if(this.progress % this.width===0) {
+                this.gritRopes.push(this.createRope());
+            }
         }
     }
 
     keyIncorrect() {
-        this.spawnBrick(false);
+        var times = 1;
+        if(this.hasCheated()) {
+            times = 3;
+        }
+        for(var i =0;i<times;i++) {
+            this.spawnBrick(false);
+            this.progress++;
+        }
+        for(var i =0;i<times;i++) {
+            this.progress--;
+        }
         //this.spawnFadingLetter(false);
         this.delayToNext=0;
         this.errorTimer=0;
