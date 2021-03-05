@@ -324,10 +324,12 @@ class MinigameController extends EngineInstance {
 
         this.resultGraphicWon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_win_graphic")));
         this.resultGraphicLoss = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_loss_graphic")));
-        this.MouseIcon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_key_icon")));
-        this.KeyIcon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_mouse_icon")));
-        this.KeyIcon.x = $engine.getWindowSizeX()/2 + 250;
+        this.KeyIcon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_key_icon")));
+        this.MouseIcon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_mouse_icon")));
+        this.KeyIcon.x = $engine.getWindowSizeX()/2 + 275;
         this.KeyIcon.y = 400;
+        this.MouseIcon.x = $engine.getWindowSizeX()/2 + 275;
+        this.MouseIcon.y = 400;
 
         this.onCheatCallbacks  = [];
         this.onGameStartCallbacks = [];
