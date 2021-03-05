@@ -21,6 +21,7 @@ class CardMinigameController extends MinigameController {
         $engine.createManagedRenderable(this, this.goal_card); 
     }
 
+
     onCreate() { 
         super.onCreate();
         this.onEngineCreate();
@@ -40,7 +41,7 @@ class CardMinigameController extends MinigameController {
     
     draw(gui, camera) {
         super.draw(gui, camera);
-        $engine.requestRenderOnGUI(this.goal_card)
+        $engine.requestRenderOnCamera(this.goal_card)
     }
 
 }
@@ -62,6 +63,12 @@ class CardBoard extends EngineInstance {
 
     step() {
         if(CardMinigameController.getInstance().timer > 80){
+            if(IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){
+                this.getSprite().tint = (0xaaaa43);
+            }else{
+                this.getSprite().tint = 0;
+            }
+
             if(IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){
                 CardMinigameController.getInstance().attempts--;
                     this.clicked = true;
