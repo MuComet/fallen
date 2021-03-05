@@ -131,8 +131,10 @@ class EngineUtils {
         
         var s1_x, s1_y, s2_x, s2_y;
 
-        s1_x = v2.x - v1.x;     s1_y = v2.y - v1.y;
-        s2_x = v4.x - v3.x;     s2_y = v4.y - v3.y;
+        s1_x = v2.x - v1.x;
+        s1_y = v2.y - v1.y;
+        s2_x = v4.x - v3.x;
+        s2_y = v4.y - v3.y;
 
         var s, t;
         s = (-s1_y * (v1.x - v3.x) + s1_x * (v1.y - v3.y)) / (-s2_x * s1_y + s1_x * s2_y);

@@ -263,7 +263,7 @@ class Scene_Engine extends Scene_Base {
     }
 
     audioGetSound(path, type="SE", volume=1) {
-        var vol = this.__getVolume(type)
+        var vol = this.audioGetVolume(type)
         const snd = new PIXI.sound.Sound.from({
             url:path,
             volume:vol*volume,
@@ -329,7 +329,7 @@ class Scene_Engine extends Scene_Base {
         return this.__lookupSounds(snd).length!==0;
     }
 
-    audioFadeSound(snd, time) {
+    audioFadeSound(snd, time=30) {
         snd.__timeToFade = time;
         snd.__timer = 0;
         snd.__vol = snd.volume;
@@ -341,7 +341,7 @@ class Scene_Engine extends Scene_Base {
         }
     }
 
-    audioFadeInSound(snd, time) {
+    audioFadeInSound(snd, time=30) {
         snd.__timeToFade = time;
         snd.__timer = 0;
         snd.__vol = snd.volume;
@@ -366,7 +366,18 @@ class Scene_Engine extends Scene_Base {
         }
     }
 
-    __getVolume(type) {
+    audioGetVolume(type) {
+        switch(type) {
+            case "BGM":
+                return AudioManager.bgmVolume/100;
+            case "BGS":
+                return AudioManager.bgsVolume/100;
+            case "ME":
+                return AudioManager.meVolume/100;
+            case "SE":
+                return AudioManager.seVolume/100;
+        }
+        console.error("Audio type "+type+" is not defined, please use one of: BGM, BGS, ME, SE");
         return 1;
     }
 

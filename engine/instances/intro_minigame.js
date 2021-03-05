@@ -70,6 +70,16 @@ class IntroMinigameController extends MinigameController {
         this.zoneTime = 32;
         this.zoneTimer = -this.zoneTime;
 
+        this.sound1 = $engine.audioGetSound("audio/se/Stream.ogg","BGS",0.25);
+        $engine.audioPlaySound(this.sound1,true);
+        this.sound2 = $engine.audioGetSound("audio/se/Drop.ogg","BGS",0.25);
+        $engine.audioPlaySound(this.sound2,true);
+
+        this.addOnGameEndCallback(this,function(self) {
+            $engine.audioFadeSound(self.sound1);
+            $engine.audioFadeSound(self.sound2);
+        })
+
         this.disableCheating();
     }
 

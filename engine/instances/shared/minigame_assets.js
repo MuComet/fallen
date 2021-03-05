@@ -346,6 +346,7 @@ class MinigameController extends EngineInstance {
 
         this.onCheatCallbacks  = [];
         this.onGameStartCallbacks = [];
+        this.onGameEndCallbacks = [];
 
         this.cheatKey = "Enter"
         this.cheatButton = undefined; // TODO: make into engineButton later
@@ -505,6 +506,7 @@ class MinigameController extends EngineInstance {
         if(this._timer) {
             this._timer.pause();
         }
+        this._onGameEnd();
     }
 
     getTimer() {
@@ -620,9 +622,8 @@ class MinigameController extends EngineInstance {
             this.pressAnyKeyToContinue.y = -120 + fac2*160;
             this.pressAnyKeyToContinue.rotation = Math.sin($engine.getGlobalTimer()/16)/64
         }
-        if(frame > 90 && !$engine.isBusy() && IN.anyInputPressed())
-            frame=6000;
-        if(frame===6000) {
+
+        if((frame > 90 && !$engine.isBusy() && IN.anyInputPressed())) {
             $engine.audioFadeAll();
             $engine.fadeOutAll();
             $engine.endGame();
@@ -721,6 +722,13 @@ class MinigameController extends EngineInstance {
         });
     }
 
+    addOnGameEndCallback(parent,callback) {
+        this.onGameEndCallbacks.push({
+            func:callback,
+            caller:parent
+        });
+    }
+
     _handleInstruction() {
         this.instructionTimer++;
         if(this.instructionTimer<this.instructionTimerLength) {
@@ -792,6 +800,12 @@ class MinigameController extends EngineInstance {
 
     _onGameStart() {
         for(const callback of this.onGameStartCallbacks) {
+            callback.func(callback.caller);
+        }
+    }
+
+    _onGameEnd() {
+        for(const callback of this.onGameEndCallbacks) {
             callback.func(callback.caller);
         }
     }

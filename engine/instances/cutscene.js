@@ -5,7 +5,7 @@ class CutsceneController extends EngineInstance {
         this.setSprite(new PIXI.Sprite(this.textures[0]));
         this.frames = this.textures.length;
         this.currentFrame = 0;
-        this.frameLength = [5*60,7*60,10*60,15*60,9*60,4*60,5*60,5*60,10*60,8*60,9*60,12*60,3*60,5*60]
+        this.frameLength = [3*60,4*60,6*60,7*60,4*60,3*60,4*60,4*60,6*60,5*60,6*60,7*60,3*60,4*60]
         this.timer = 0;
 
         this.transitionTime = 36;
@@ -30,6 +30,22 @@ class CutsceneController extends EngineInstance {
 
         this.wipeStarted=false;
         this.out = false;
+
+        this.musicIndices = [0,3,6,10];
+        this.musicIndex = 0;
+
+        this.sounds = ["audio/bgm/Intro1.ogg","audio/bgm/Intro2.ogg","audio/bgm/Intro3.ogg","audio/bgm/Intro4.ogg"];
+        this.music = undefined;
+        this.getNextMusic();
+    }
+
+    getNextMusic() {
+        if(this.music)
+            $engine.audioFadeSound(this.music);
+        this.music = $engine.audioGetSound(this.sounds[this.musicIndex],"BGM",0.5);
+        $engine.audioPlaySound(this.music,true);
+        $engine.audioFadeInSound(this.music);
+        this.musicIndex++;
     }
 
     onCreate() {
@@ -38,6 +54,9 @@ class CutsceneController extends EngineInstance {
 
     updateImage() {
         this.getSprite().texture = this.textures[this.currentFrame];
+        if(this.currentFrame===this.musicIndices[this.musicIndex]) {
+            this.getNextMusic();
+        }
     }
 
     step() {
@@ -55,6 +74,8 @@ class CutsceneController extends EngineInstance {
                 this.currentFrame++;
                 this.timer = 0;
                 this.updateImage();
+            } else {
+                $engine.audioFadeAll(15);
             }
         } else {
             if(this.timer <= this.transitionTime)
@@ -70,7 +91,7 @@ class CutsceneController extends EngineInstance {
                 }
             }
             if(this.frameLength[this.currentFrame]-this.timer===this.transitionTime/2 && this.currentFrame < this.frames-1) {
-                var snd = $engine.audioGetSound("audio/se/Paper.ogg");
+                var snd = $engine.audioGetSound("audio/se/Paper.ogg","SE",3);
                 snd.speed = EngineUtils.randomRange(0.9,1.1);
                 $engine.audioPlaySound(snd)
             }
