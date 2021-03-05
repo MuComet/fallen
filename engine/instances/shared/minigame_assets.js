@@ -325,6 +325,18 @@ class MinigameController extends EngineInstance {
 
         this.resultGraphicWon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_win_graphic")));
         this.resultGraphicLoss = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_loss_graphic")));
+        this.resultGraphicWon.x = $engine.getWindowSizeX()/2;
+        this.resultGraphicWon.y = $engine.getWindowSizeY()/2;
+        this.resultGraphicLoss.x = $engine.getWindowSizeX()/2;
+        this.resultGraphicLoss.y = $engine.getWindowSizeY()/2;
+
+        this.pressAnyKeyToContinue = $engine.createManagedRenderable(this, new PIXI.Text("Press any key to continue",$engine.getDefaultTextStyle()));
+        this.pressAnyKeyToContinue.x = $engine.getWindowSizeX()/2;
+        this.pressAnyKeyToContinue.anchor.x = 0.5;
+        this.pressAnyKeyToContinue.anchor.y = 1;
+
+
+
         this.KeyIcon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_key_icon")));
         this.MouseIcon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_mouse_icon")));
         this.KeyIcon.x = $engine.getWindowSizeX()/2 + 275;
@@ -594,7 +606,27 @@ class MinigameController extends EngineInstance {
     }
 
     prepareResultGraphic(frame) {
-        $engine.endGame();
+        var fac = frame/45;
+        var graphic = this.getResultRenderable();
+        var facX = EngineUtils.interpolate(fac,0,1,EngineUtils.INTERPOLATE_OUT_BACK);
+        var facY = EngineUtils.interpolate(fac/2,0,1,EngineUtils.INTERPOLATE_IN_ELASTIC);
+        graphic.scale.x = facX;
+        graphic.scale.y = facY;
+
+        this.pressAnyKeyToContinue.y = -120;
+
+        if(frame > 90) {
+            var fac2 = EngineUtils.interpolate((frame-90)/60,0,1,EngineUtils.INTERPOLATE_OUT_BACK);
+            this.pressAnyKeyToContinue.y = -120 + fac2*160;
+            this.pressAnyKeyToContinue.rotation = Math.sin($engine.getGlobalTimer()/16)/64
+        }
+        if(frame > 90 && !$engine.isBusy() && IN.anyInputPressed())
+            frame=6000;
+        if(frame===6000) {
+            $engine.audioFadeAll();
+            $engine.fadeOutAll();
+            $engine.endGame();
+        }
     }
 
     setMusicVolume(volume) {
@@ -633,8 +665,13 @@ class MinigameController extends EngineInstance {
         }
 
         if(this.showingResult) {
-            $engine.requestRenderOnGUI(this.wonMinigame ? this.resultGraphicWon : this.resultGraphicLoss)
+            $engine.requestRenderOnGUI(this.getResultRenderable())
+            $engine.requestRenderOnGUI(this.pressAnyKeyToContinue)
         }
+    }
+
+    getResultRenderable() {
+        return this.wonMinigame ? this.resultGraphicWon : this.resultGraphicLoss;
     }
 
     cleanup() {
@@ -687,7 +724,7 @@ class MinigameController extends EngineInstance {
     _handleInstruction() {
         this.instructionTimer++;
         if(this.instructionTimer<this.instructionTimerLength) {
-            if(((IN.anyKeyPressed() && this.instructionTimer>18) || IN.keyCheckPressed("Space") || IN.keyCheckPressed("Enter")) 
+            if(((IN.anyInputPressed() && this.instructionTimer>18) || IN.keyCheckPressed("Space") || IN.keyCheckPressed("Enter")) 
                             && this.instructionTimer < this.instructionTimerLength-this.blurFadeTime) {
                 this.instructionTimer = this.instructionTimerLength-this.blurFadeTime; // skip;
             }

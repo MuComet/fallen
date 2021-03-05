@@ -286,7 +286,7 @@ class Scene_Engine extends Scene_Base {
 
     audioStopType(type) {
         for(const sound of this.__sounds) {
-            if(sound.__type === __type)
+            if(sound.__type === type)
                 sound.destroy();
         }
     }
@@ -359,6 +359,13 @@ class Scene_Engine extends Scene_Base {
         }
     }
 
+    audioFadeAllOfType(type = "SE",time=30) {
+        for(const sound of this.__sounds) {
+            if(sound.__type === type)
+                this.audioFadeSound(sound,time)
+        }
+    }
+
     __getVolume(type) {
         return 1;
     }
@@ -376,10 +383,10 @@ class Scene_Engine extends Scene_Base {
         if(sound.__destroyed)
             return;
         sound.stop();
-        if(sound.__sourceSound) // fix for async load bug
+        /*if(sound.__sourceSound) // fix for async load bug
             sound.destroy();
         else
-            this.__soundsToDestroy.push(sound)
+            this.__soundsToDestroy.push(sound)*/
         sound.__destroyed=true;
     }
 
@@ -602,6 +609,7 @@ class Scene_Engine extends Scene_Base {
         var start = window.performance.now();
 
         IN.__update();
+        var renderedOnce = this.__timescaleFraction-1>=0;
 
         while(this.__timescaleFraction-1>=0) {
             this.__timescaleFraction--;
@@ -619,6 +627,10 @@ class Scene_Engine extends Scene_Base {
 
         if(this.isTimeScaled())
             IM.__timescaleImmuneStep();
+
+        if(!renderedOnce) {
+            IM.__draw();
+        }
 
         this.__prepareRenderToCameras();
         this.__audioTick();
@@ -1776,6 +1788,11 @@ class OwO {
 
             OwO.__addUpdateFunction(filterUpdate,filter,OwO.getEvent(eventId));
         }
+    }
+
+    static refreshConditionalFilters() {
+        OwO.discardConditionalFilters();
+        OwO.applyConditionalFilters();
     }
 
     static discardConditionalFilters() { // discards ALL filters associated with a sprite. Assumed that only conditional filters were applied...

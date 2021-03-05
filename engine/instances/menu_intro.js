@@ -185,9 +185,9 @@ class MenuIntroController extends EngineInstance {
         if(this.timer>this.endTime && this.timer <= this.endTime+36) {
             this.depth = -10000;
         }
-        if(this.timer===this.endTime+1) {
+        /*if(this.timer===this.endTime+1) {
             $engine.audioPlaySound("audio/se/Snap.ogg");
-        }
+        }*/
     }
 
     draw(gui, camera) {

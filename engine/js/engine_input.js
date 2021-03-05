@@ -233,7 +233,7 @@ class IN {
 
     static mouseInBounds() {
         var mx = this.__mouseXGUI;
-        var my = this.__mouseXGUI;
+        var my = this.__mouseYGUI;
         return mx>=0 && mx<=816 && my>=0 && my<=624
     }
 

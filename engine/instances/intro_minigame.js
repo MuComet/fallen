@@ -130,7 +130,7 @@ class IntroMinigameController extends MinigameController {
 
         var v1 = new EngineLightweightPoint(this.lastMouseX,this.lastMouseY);
         var v2 = new EngineLightweightPoint(this.mouseX,this.mouseY);
-        if(this.valid && (this.hitbox1.checkLineCollision(v1,v2) || this.hitbox2.checkLineCollision(v1,v2))) {
+        if(this.valid && (this.hitbox1.checkLineCollision(v1,v2) || this.hitbox2.checkLineCollision(v1,v2) || !IN.mouseInBounds())) {
             this.valid = false;
             this.lastKnownLocation = new EngineLightweightPoint(this.mouseX,this.mouseY)
             this.hitTimer = this.hitTime;
