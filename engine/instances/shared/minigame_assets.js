@@ -10,7 +10,7 @@ class MinigameTimer extends EngineInstance {
 
     onCreate(frames, graphicIndex = 0) {
         this.timerGraphic = undefined;
-        var textures = ["bar_standard_top", "bar_standard","bar_health","bar_time"]
+        var textures = ["bar_standard_top","bar_standard_top","bar_standard_top", "bar_standard","bar_health","bar_time"]
         this.timerGraphic = new PIXI.Sprite(); // container
         this.timerBar = $engine.createManagedRenderable(this,new PIXI.Sprite($engine.getTexture(textures[graphicIndex])))
         this.fillGraphics = $engine.createManagedRenderable(this,new PIXI.Graphics());
@@ -21,8 +21,8 @@ class MinigameTimer extends EngineInstance {
         this.timerGraphic.addChild(this.fillGraphics);
         this.timerGraphic.addChild(this.timerBar)
         this.timerGraphic.x = $engine.getWindowSizeX()/2;
-        if(graphicIndex == 0) {
-            this.timerGraphic.y = 90;
+        if(graphicIndex <=2) {
+            this.timerGraphic.y = 0;
         }else{
             this.timerGraphic.y = $engine.getWindowSizeY();
         }
@@ -262,9 +262,12 @@ class MinigameTimer extends EngineInstance {
     }
 
 }
-MinigameTimer.GRAPHIC_STANDARD = 0;
-MinigameTimer.GRAPHIC_HEALTH = 1;
-MinigameTimer.GRAPHIC_TIME = 2;
+MinigameTimer.GRAPHIC_STANDARD_TOP = 0;
+MinigameTimer.GRAPHIC_HEALTH_TOP = 1;
+MinigameTimer.GRAPHIC_TIME_TOP = 2;
+MinigameTimer.GRAPHIC_STANDARD = 3;
+MinigameTimer.GRAPHIC_HEALTH = 4;
+MinigameTimer.GRAPHIC_TIME = 5;
 
 /**
  * Overwrites:
