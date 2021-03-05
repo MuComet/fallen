@@ -257,7 +257,7 @@ class MinigameTimer extends EngineInstance {
 
     draw(gui, camera) {
         if(this.visible) {
-            $engine.requestRenderOnCameraGUI(this.timerGraphic);
+            $engine.requestRenderOnGUI(this.timerGraphic);
         }
     }
 
@@ -443,6 +443,7 @@ class MinigameController extends EngineInstance {
             throw new Error("Timer already exists, use getTimer() to adjust the timer!");
         this._timer = new MinigameTimer(frames,graphic);
         this._timer.addOnTimerStopped(this,this._onMinigameEnd)
+        this._timer.setTextMode()
     }
 
     _onMinigameEnd(self, expired) {
