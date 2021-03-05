@@ -59,6 +59,7 @@ class MinigameTimer extends EngineInstance {
             this.timerText.x = $engine.getWindowSizeX()/2;
             this.timerText.y = 40;
             this.timerGraphic = this.timerText
+            this._updateText();
         }
         this.textMode = true;
     }
@@ -449,7 +450,7 @@ class MinigameController extends EngineInstance {
             throw new Error("Timer already exists, use getTimer() to adjust the timer!");
         this._timer = new MinigameTimer(frames,graphic);
         this._timer.addOnTimerStopped(this,this._onMinigameEnd)
-        this._timer.setTextMode()
+        this._timer.setTextMode();
     }
 
     _onMinigameEnd(self, expired) {
