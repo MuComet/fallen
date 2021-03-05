@@ -10,7 +10,7 @@ class MinigameTimer extends EngineInstance {
 
     onCreate(frames, graphicIndex = 0) {
         this.timerGraphic = undefined;
-        var textures = ["bar_standard","bar_health","bar_time"]
+        var textures = ["bar_standard_top", "bar_standard","bar_health","bar_time"]
         this.timerGraphic = new PIXI.Sprite(); // container
         this.timerBar = $engine.createManagedRenderable(this,new PIXI.Sprite($engine.getTexture(textures[graphicIndex])))
         this.fillGraphics = $engine.createManagedRenderable(this,new PIXI.Graphics());
@@ -21,7 +21,11 @@ class MinigameTimer extends EngineInstance {
         this.timerGraphic.addChild(this.fillGraphics);
         this.timerGraphic.addChild(this.timerBar)
         this.timerGraphic.x = $engine.getWindowSizeX()/2;
-        this.timerGraphic.y = $engine.getWindowSizeY();
+        if(graphicIndex == 0) {
+            this.timerGraphic.y = 90;
+        }else{
+            this.timerGraphic.y = $engine.getWindowSizeY();
+        }
 
         this.timerDone = false;
         this.isPaused = false;
