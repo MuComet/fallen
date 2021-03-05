@@ -71,3 +71,6 @@ bar_standard engine/textures/bars/bar.png  0.5 1
 bar_standard_top engine/textures/bars/bar_top.png 0.5 1
 bar_health engine/textures/bars/bar_health.png 0.5 1
 bar_time engine/textures/bars/bar_time.png 0.5 1
+
+minigame_key_icon engine/textures/minigames/minigame_icon_start2.png 0.5 0.5
+minigame_mouse_icon engine/textures/minigames/minigame_icon_start1.png 0.5 0.5
