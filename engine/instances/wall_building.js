@@ -20,7 +20,7 @@ class WallBuilderController extends MinigameController {
         this.imgHeight = 32;
         new ParallaxingBackground(); // make the background
 
-        var text = new PIXI.Text("Press the keys displayed on the tile\nlay down block with correct keys\nbe fast and accurate\nstack 60 bricks\n\nPress Enter to cheat!",$engine.getDefaultTextStyle())
+        var text = new PIXI.Text("Press the keys displayed on the tile\nlay down block with correct keys\nbe fast and accurate\nwrong keys cause delay\n\nPress Enter to cheat!",$engine.getDefaultTextStyle())
         this.setInstructionRenderable(text);
         this.controllsUseKeyBoard(true);
 

@@ -244,7 +244,7 @@ class SkyBuildPlayer extends EngineInstance {
     }
 
     draw(gui, camera) {     
-        EngineDebugUtils.drawHitbox(camera,this)
+        //EngineDebugUtils.drawHitbox(camera,this)
         if(this.activated && !this.dropping)
             camera.lineStyle(5,0x00).moveTo(this.x,this.y).lineTo($engine.getWindowSizeX()/2,this.yStart);
 
