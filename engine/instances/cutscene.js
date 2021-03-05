@@ -77,6 +77,9 @@ class CutsceneController extends EngineInstance {
             } else {
                 $engine.audioFadeAll(15);
             }
+            if(this.currentFrame===12) {
+                $engine.audioPlaySound("audio/se/Snap.ogg");
+            }
         } else {
             if(this.timer <= this.transitionTime)
                 this.blurFilter.blur = EngineUtils.interpolate(this.timer/this.transitionTime,this.blurFilterStrength,0,EngineUtils.INTERPOLATE_OUT);
