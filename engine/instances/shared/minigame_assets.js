@@ -386,16 +386,16 @@ class MinigameController extends EngineInstance {
         this.musicStandard = $engine.audioGetSound("audio/bgm/Minigame.ogg","BGM",1)
         $engine.audioPlaySound(this.musicStandard,true).then(result => {
             this.musicStandardReference=result;
-            result._source.loopStart = 6
-            result._source.loopEnd = result._duration
+            result._source.loopStart = 8
+            result._source.loopEnd = 56
             $engine.audioPauseSound(this.musicStandard)
         })
 
         this.musicCheat = $engine.audioGetSound("audio/bgm/MinigameCheat.ogg","BGM",0)
         $engine.audioPlaySound(this.musicCheat,true).then(result => {
             this.musicCheatReference=result;
-            result._source.loopStart = 6
-            result._source.loopEnd = result._duration
+            result._source.loopStart = 8
+            result._source.loopEnd = 56
             $engine.audioPauseSound(this.musicCheat)
         })
     }
@@ -440,6 +440,10 @@ class MinigameController extends EngineInstance {
         $engine.getCamera().addFilter(this.blurFilter)
     }
 
+    /**
+     * Ends this minigame immediately.
+     * @param {Boolean} won Whether or not to count this as a victory (true) or a loss (false)
+     */
     endMinigame(won) {
         this._onMinigameEndNoTimer(won);
         if(this._timer) {

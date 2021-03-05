@@ -2,6 +2,8 @@ class IntroMinigameController extends MinigameController {
     onEngineCreate() {
         super.onEngineCreate();
 
+        new IntroMinigameJunk(740,505);
+
         this.hitbox1 = new Hitbox(this,new PolygonHitbox(this,new Vertex(0,0),new Vertex(13,0),new Vertex(18,30),new Vertex(41,63),new Vertex(64,83),
         new Vertex(71,92),new Vertex(74,125),new Vertex(80,301),new Vertex(91,318),new Vertex(109,327),new Vertex(138,333),new Vertex(239,332),
         new Vertex(264,329),new Vertex(289,319),new Vertex(302,303),new Vertex(313,270),new Vertex(316,219),new Vertex(321,207),new Vertex(331,201),
@@ -53,6 +55,8 @@ class IntroMinigameController extends MinigameController {
 
         this.valid = false;
 
+        this.hasGoal = false;
+
         this.hitTimer = 0;
         this.hitTime = 50;
 
@@ -94,6 +98,9 @@ class IntroMinigameController extends MinigameController {
         } else {
             this.samplingMouse = true;
             this.trailColour= 0;
+            if(this.mouseInResetBounds() && this.hasGoal) {
+                
+            }
         }
 
         if(!this.valid && this.resetTimer<0) {
@@ -204,5 +211,72 @@ class IntroMinigameController extends MinigameController {
         this.renderTrail();
         this.renderHit(camera);
         this.renderRestartZone(camera);
+    }
+}
+
+class IntroMinigameJunk extends EngineInstance {
+    onCreate(x,y) {
+        this.startX = x;
+        this.startY = y;
+        this.x = x;
+        this.y = y;
+
+        this.targetX = this.x;
+        this.targetY = this.y;
+
+        this.isFollowingPlayer = false;
+
+        this.returnTimer=0;
+        this.returnTime=45;
+
+        this.grabbedTimer = 0;
+
+        this.setSprite(new PIXI.Sprite($engine.getTexture("tutorial_junk")));
+        this.setHitbox(new Hitbox(this, new RectangeHitbox(this,-65,-65,65,65)))
+        this.wobble();
+    }
+
+    wobble() {
+        this.xScale = 0.85+Math.sin($engine.getGameTimer()/13)/12-this.grabbedTimer/180;
+        this.yScale = 0.85+Math.sin($engine.getGameTimer()/13+10)/12-this.grabbedTimer/180;
+        this.angle = Math.cos($engine.getGameTimer()/16)/24;
+    }
+
+    step() {
+        this.wobble();
+        var controller = IntroMinigameController.getInstance();
+        
+        if(this.returnTimer < 0 && controller.valid && IM.instanceCollisionPoint(IN.getMouseXGUI(),IN.getMouseYGUI(),this)) {
+            this.isFollowingPlayer = true;
+            controller.hasGoal = true;
+        }
+        if(!controller.valid && this.isFollowingPlayer) {
+            this.returnTimer = this.returnTime;
+            this.isFollowingPlayer = false;
+            controller.hasGoal = false;
+        }
+
+        this.grabbedTimer = EngineUtils.clamp(this.grabbedTimer + (this.isFollowingPlayer ? 1 : -1), 0, 60);
+
+        if(!this.isFollowingPlayer && this.returnTimer<0) {
+            this.targetX = this.startX;
+            this.targetY = this.startY;
+        } else if(this.isFollowingPlayer) {
+            this.targetX = IN.getMouseXGUI();
+            this.targetY = IN.getMouseYGUI();
+        }
+
+        this.returnTimer--;
+
+        var dx = this.targetX - this.x;
+        var dy = this.targetY - this.y;
+        this.x+=dx/5;
+        this.y+=dy/5;
+
+        console.log(this.getHitbox().doCollision(controller.hitbox2,this.x,this.y))
+    }
+
+    draw(gui, camera) {
+        EngineDebugUtils.drawHitbox(camera,this)
     }
 }
