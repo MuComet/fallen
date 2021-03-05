@@ -771,9 +771,11 @@ class MinigameController extends EngineInstance {
         this.instructionImage.x = $engine.getWindowSizeX()/2;
         this.instructionImage.y = $engine.getWindowSizeY()/2;
         this.instructionImage.anchor.x = 0.5;
-        this.instructionImage.anchor.y = 0.5;
+        this.instructionImage.anchor.y = 0.5; 
         //this.instructionImage.addChild(this.KeyIcon, this.MouseIcon);
         $engine.createManagedRenderable(this,renderable);
+        this.KeyIcon.filters = [this.blurFilterInstruction];
+        this.MouseIcon.filters = [this.blurFilterInstruction];
     }
 
     /**
