@@ -116,6 +116,9 @@ class EngineUtils {
         return Math.round(Math.random()*high);
     }
  
+
+    // The following code is written by Gavin, https://stackoverflow.com/users/78216/gavin
+    // https://stackoverflow.com/a/1968345
     /**
      * Calculates the intersection between two lines.
      * @param {EnginePoint} v1 The first vertex of the first line
@@ -125,17 +128,19 @@ class EngineUtils {
      * @returns {EnginePoint} The point in which they collide, or undefined if they don't
      */
     static linesCollisionPoint(v1,v2,v3,v4) { // point in which they collide
-        var d= (v2.x-v1.x) * (v4.y-v3.y) - (v2.y-v1.y) * (v4.x-v3.x);
-		var n1=(v1.y-v3.y) * (v4.x-v3.x) - (v1.x-v3.x) * (v4.y-v3.y);
-		var n2=(v1.y-v3.y) * (v2.x-v1.x) - (v1.x-v3.x) * (v2.y-v1.y);
-		
-		if(d===0 && n1===0 && n2===0)
-			return v1;
-		var r = n1/d;
-		var s=n2/d;
-		if((r>=0 && r<=1) &&(s>=0 && s<=1))
-			return new EnginePoint(v1.x+(v2.x-v1.x)*r,v3.y+(v4.y-v3.y)*s);
-		return undefined;
+        
+        var s1_x, s1_y, s2_x, s2_y;
+
+        s1_x = v2.x - v1.x;     s1_y = v2.y - v1.y;
+        s2_x = v4.x - v3.x;     s2_y = v4.y - v3.y;
+
+        var s, t;
+        s = (-s1_y * (v1.x - v3.x) + s1_x * (v1.y - v3.y)) / (-s2_x * s1_y + s1_x * s2_y);
+        t = ( s2_x * (v1.y - v3.y) - s2_y * (v1.x - v3.x)) / (-s2_x * s1_y + s1_x * s2_y);
+
+        if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+            return new EngineLightweightPoint(v1.x + (t * s1_x),v1.y + (t * s1_y))
+        return undefined; // No collision
     }
 
     /**

@@ -95,7 +95,11 @@ class MenuIntroController extends EngineInstance {
 
         this.menuMusic = $engine.audioGetSound("audio/bgm/Title.ogg","SE",1)
         $engine.audioPlaySound(this.menuMusic,true).then(result => {
+            if(!result)
+                return;
             this.audioRef=result;
+            result._source.loopStart = 10;
+            result._source.loopEnd = 50;
         })
     }
 
