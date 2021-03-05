@@ -38,8 +38,12 @@ class IntroMinigameController extends MinigameController {
             this.sprites[2].filters = [filter];
         }
 
+        this.arrowGraphic = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("arrow")))
+
         this.zoneSprite = $engine.createRenderable(this, new PIXI.extras.TilingSprite($engine.getTexture("zone_restart"),175,50))
         this.zoneSprite.x = 120;
+
+        this.tintColour = 0xff1222
 
         this.trailGraphics = $engine.createRenderable(this,new PIXI.Graphics());
         this.points = [];
@@ -60,8 +64,8 @@ class IntroMinigameController extends MinigameController {
         this.hitTimer = 0;
         this.hitTime = 50;
 
-        this.resetTime = 32;
-        this.resetTimer = -this.resetTime;
+        this.zoneTime = 32;
+        this.zoneTimer = -this.zoneTime;
 
         this.disableCheating();
     }
@@ -77,6 +81,8 @@ class IntroMinigameController extends MinigameController {
     step() {
         super.step();
         this.parallax();
+        if(this.minigameOver())
+            return;
         this.handleMouse();
         this.handleValid();
         this.hitTimer--;
@@ -91,23 +97,29 @@ class IntroMinigameController extends MinigameController {
         if(!this.valid) {
             this.samplingMouse = false;
             this.trailColour= 0xff1222;
-            if(this.mouseInResetBounds()) {
+            if(this.mouseInZoneBounds()) {
                 this.points=[];
                 this.valid=true;
             }
         } else {
             this.samplingMouse = true;
             this.trailColour= 0;
-            if(this.mouseInResetBounds() && this.hasGoal) {
-                
+            if(this.mouseInZoneBounds() && this.hasGoal) {
+                this.endMinigame(true)
             }
         }
 
-        if(!this.valid && this.resetTimer<0) {
-            this.resetTimer++;
-        } else if(this.valid){
-            this.resetTimer++;
+        if(this.hasGoal) {
+            if(this.zoneTimer<0)
+                this.zoneTimer++
+        } else {
+            if(!this.valid && this.zoneTimer<0) {
+                this.zoneTimer++;
+            } else if(this.valid){
+                this.zoneTimer++;
+            }
         }
+        
     }
 
     handleMouse() {
@@ -122,7 +134,8 @@ class IntroMinigameController extends MinigameController {
             this.valid = false;
             this.lastKnownLocation = new EngineLightweightPoint(this.lastMouseX,this.lastMouseY)
             this.hitTimer = this.hitTime;
-            this.resetTimer = -this.resetTime;
+            this.zoneTimer = -this.zoneTime;
+            this.tintColour = 0xff1222;
         }
 
         if(this.samplingMouse) {
@@ -171,18 +184,18 @@ class IntroMinigameController extends MinigameController {
         camera.beginFill(0xff1222,alpha)
         camera.drawCircle(this.lastKnownLocation.x,this.lastKnownLocation.y,16 + Math.abs(Math.sin($engine.getGameTimer()/8))*8)
         camera.endFill();
-
     }
 
     renderRestartZone(camera) {
 
-        var fac = EngineUtils.interpolate(Math.abs(this.resetTimer/this.resetTime),1,0,EngineUtils.INTERPOLATE_SMOOTH);
+        var fac = EngineUtils.interpolate(Math.abs(this.zoneTimer/this.zoneTime),1,0,EngineUtils.INTERPOLATE_SMOOTH);
         this.zoneSprite.alpha = fac;
         this.zoneSprite.tilePosition.x+=0.1;
         this.zoneSprite.tilePosition.y+=0.1;
+        this.zoneSprite.tint = this.tintColour;
         var zone = this.zoneSprite;
         var thickness = 3 + Math.abs(Math.sin($engine.getGameTimer()/32))*5
-        camera.lineStyle(thickness,0xff1222,fac);
+        camera.lineStyle(thickness,this.tintColour,fac);
         camera.moveTo(zone.x-zone.width/2,zone.y)
                 .lineTo(zone.x+zone.width/2,zone.y)
                 .lineTo(zone.x+zone.width/2,zone.y+zone.height)
@@ -190,7 +203,7 @@ class IntroMinigameController extends MinigameController {
                 .lineTo(zone.x-zone.width/2,zone.y)
     }
 
-    mouseInResetBounds() {
+    mouseInZoneBounds() {
         var mx = IN.getMouseXGUI();
         var my = IN.getMouseYGUI();
         var zone = this.zoneSprite;
@@ -206,11 +219,33 @@ class IntroMinigameController extends MinigameController {
         this.sprites[0].y = $engine.getWindowSizeY()/2+diffY/8
     }
 
+    drawArrow() {
+        var dir = 0;
+        var goal = IM.find(IntroMinigameJunk);
+        if(!this.valid || this.hasGoal) {
+            dir = V2D.calcDir(this.zoneSprite.x-IN.getMouseXGUI(),this.zoneSprite.y-IN.getMouseYGUI())
+        } else {
+            dir = V2D.calcDir(goal.x-IN.getMouseXGUI(),goal.y-IN.getMouseYGUI())
+        }
+        var fac = Math.abs(Math.sin($engine.getGameTimer()/16))/8 + 0.25
+        this.arrowGraphic.scale.set(fac)
+        this.arrowGraphic.x = IN.getMouseXGUI() + V2D.lengthDirX(dir,8+fac*30);
+        this.arrowGraphic.y = IN.getMouseYGUI() - V2D.lengthDirY(dir,8+fac*30);
+        this.arrowGraphic.rotation = dir;
+        $engine.requestRenderOnCameraGUI(this.arrowGraphic)
+    }
+
     draw(gui, camera) {
         super.draw()
+        if(this.minigameOver()) {
+            this.renderRestartZone(camera);
+            this.trailGraphics.clear();
+            return;
+        }
         this.renderTrail();
         this.renderHit(camera);
         this.renderRestartZone(camera);
+        this.drawArrow();
     }
 }
 
@@ -245,10 +280,17 @@ class IntroMinigameJunk extends EngineInstance {
     step() {
         this.wobble();
         var controller = IntroMinigameController.getInstance();
+
+        if(controller.minigameOver()) {
+            this.y-=5;
+            return;
+        }
         
-        if(this.returnTimer < 0 && controller.valid && IM.instanceCollisionPoint(IN.getMouseXGUI(),IN.getMouseYGUI(),this)) {
+        if(this.returnTimer < 0 && !controller.hasGoal && controller.valid && IM.instanceCollisionPoint(IN.getMouseXGUI(),IN.getMouseYGUI(),this)) {
             this.isFollowingPlayer = true;
             controller.hasGoal = true;
+            controller.tintColour = 0x12ff22;
+            controller.zoneTimer = -controller.zoneTime;
         }
         if(!controller.valid && this.isFollowingPlayer) {
             this.returnTimer = this.returnTime;
@@ -272,11 +314,5 @@ class IntroMinigameJunk extends EngineInstance {
         var dy = this.targetY - this.y;
         this.x+=dx/5;
         this.y+=dy/5;
-
-        console.log(this.getHitbox().doCollision(controller.hitbox2,this.x,this.y))
-    }
-
-    draw(gui, camera) {
-        EngineDebugUtils.drawHitbox(camera,this)
     }
 }

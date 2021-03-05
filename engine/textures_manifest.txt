@@ -29,6 +29,14 @@ require button_new_game_2 engine/textures/buttons/button_new_game_down.png 0.5 0
 title_card engine/textures/fallen/fallen.png 0.5 0.5
 gui_cheat_graphic engine/textures/minigames/minigame_cheat.png 0.5 0.5
 
+minigame_loss_graphic engine/textures/minigames/minigame_loss.png 0.5 0.5
+minigame_win_graphic engine/textures/minigames/minigame_win.png 0.5 0.5
+
+minigame_mouse_graphic engine/textures/minigames/minigame_icon_start1.png 0.5 0.5
+minigame_keyboard_graphic engine/textures/minigames/minigame_icon_start2.png 0.5 0.5
+
+arrow engine/textures/generic/arrow.png 0 0.5
+
 man engine/textures/man.png 0.5 1
 raindrop engine/textures/rain_drop.png 0 0.5
 umbrella engine/textures/umbrella.png 0.5 0.5

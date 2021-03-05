@@ -315,6 +315,9 @@ class MinigameController extends EngineInstance {
         this.cheatTimerLength = 60*4;
         this.showingCheat = false;
 
+        this.resultGraphicWon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_win_graphic")));
+        this.resultGraphicLoss = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_loss_graphic")));
+
         this.onCheatCallbacks  = [];
         this.onGameStartCallbacks = [];
 
@@ -385,6 +388,8 @@ class MinigameController extends EngineInstance {
     _initMusic() {
         this.musicStandard = $engine.audioGetSound("audio/bgm/Minigame.ogg","BGM",1)
         $engine.audioPlaySound(this.musicStandard,true).then(result => {
+            if(!result)
+                return;
             this.musicStandardReference=result;
             result._source.loopStart = 8
             result._source.loopEnd = 56
@@ -393,6 +398,8 @@ class MinigameController extends EngineInstance {
 
         this.musicCheat = $engine.audioGetSound("audio/bgm/MinigameCheat.ogg","BGM",0)
         $engine.audioPlaySound(this.musicCheat,true).then(result => {
+            if(!result)
+                return;
             this.musicCheatReference=result;
             result._source.loopStart = 8
             result._source.loopEnd = 56
@@ -403,6 +410,21 @@ class MinigameController extends EngineInstance {
     _startMusic() {
         $engine.audioResumeSound(this.musicStandard)
         $engine.audioResumeSound(this.musicCheat)
+        if(this.musicStandardReference) { // TODO: move to engine function ApplyUntil
+            this.musicStandardReference._source.loopStart = 8
+            this.musicStandardReference._source.loopEnd = 56
+        }
+        if(this.musicCheatReference) {
+            this.musicCheatReference._source.loopStart = 8
+            this.musicCheatReference._source.loopEnd = 56
+        }
+    }
+
+    /**
+     * @returns Whether or not the minigame is over
+     */
+    minigameOver() {
+        return this.wonMinigame || this.failedMinigame;
     }
 
     /**
@@ -428,14 +450,19 @@ class MinigameController extends EngineInstance {
     _onMinigameEndNoTimer(won) {
         if(won) {
             this.gameWin();
+            $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN)
         } else {
             this.gameLoss();
+            $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS)
         }
 
-        if(this.hasCheated())
+        if(this.hasCheated()) {
             $engine.audioPlaySound("audio/se/GameEndCheat.ogg")
-        else
+            $engine.setCheatWriteBackValue(ENGINE_RETURN.CHEAT)
+        } else {
             $engine.audioPlaySound("audio/se/GameEnd.ogg")
+            $engine.setCheatWriteBackValue(ENGINE_RETURN.NO_CHEAT)
+        }
         
         $engine.getCamera().addFilter(this.blurFilter)
     }
@@ -445,6 +472,8 @@ class MinigameController extends EngineInstance {
      * @param {Boolean} won Whether or not to count this as a victory (true) or a loss (false)
      */
     endMinigame(won) {
+        if(this.failedMinigame || this.wonMinigame)
+            return;
         this._onMinigameEndNoTimer(won);
         if(this._timer) {
             this._timer.pause();
@@ -495,7 +524,7 @@ class MinigameController extends EngineInstance {
     }
 
     _winLossTick() {
-        if(!this.failedMinigame && ! this.wonMinigame) {
+        if(!this.failedMinigame && !this.wonMinigame) {
             return;
         }
 
@@ -513,8 +542,18 @@ class MinigameController extends EngineInstance {
                 this.gameStopped=true;
         } else {
             this.onMinigameComplete(this.gameStoppedFrameTimer)
+
+            var fac = EngineUtils.interpolate(this.gameStoppedFrameTimer/this.blurFadeTime,0,1,EngineUtils.INTERPOLATE_SMOOTH)
+            this.blurFilter.blur = fac*this.blurFilterStrength
+
+            if(this.gameStoppedFrameTimer >= 90) {
+                this.prepareResultGraphic(this.gameStoppedFrameTimer-90)
+            }
+
             if(this.gameStoppedFrameTimer===90) {
                 var snd = undefined;
+
+                this.showingResult = true;
 
                 if(this.wonMinigame) {
                     if(this.hasCheated())
@@ -529,12 +568,18 @@ class MinigameController extends EngineInstance {
                 }
                     
                 $engine.audioPlaySound(snd,true).then(result=> {
+                    if(!result)
+                        return;
                     result._source.loopStart = 6;
                     result._source.loopEnd = 22;
                 })
             }
             this.gameStoppedFrameTimer++;
         }
+    }
+
+    prepareResultGraphic(frame) {
+        $engine.endGame();
     }
 
     setMusicVolume(volume) {
@@ -561,6 +606,10 @@ class MinigameController extends EngineInstance {
 
         if(this.showingCheat) {
             $engine.requestRenderOnGUI(this.cheatImage)
+        }
+
+        if(this.showingResult) {
+            $engine.requestRenderOnGUI(this.wonMinigame ? this.resultGraphicWon : this.resultGraphicLoss)
         }
     }
 
@@ -624,8 +673,7 @@ class MinigameController extends EngineInstance {
                 this.blurFilter.blur = stren
                 this.instructionImage.alpha = stren/this.blurFilterStrength
                 this.blurFilterInstruction.blur = (1-(stren/this.blurFilterStrength))*40;
-                $engine.audioResumeSound(this.musicStandard)
-                $engine.audioResumeSound(this.musicCheat)
+                this._startMusic();
                 var musicFac = EngineUtils.interpolate((this.instructionTimer-this.instructionTimerLength+this.blurFadeTime)/this.blurFadeTime,
                         0,1,EngineUtils.INTERPOLATE_OUT)
                 this.setMusicVolume(musicFac)

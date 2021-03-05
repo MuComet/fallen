@@ -69,6 +69,7 @@ class Scene_Engine extends Scene_Base {
     }
 
     __initEngine() {
+        $engine.__cleanupOldSounds(this);
         $engine = this;
         this.__pauseMode = 0; // 0 = not paused, 1 = paused, 2 = pause special.
         this.__pauseSpecialInstance = undefined;
@@ -88,6 +89,7 @@ class Scene_Engine extends Scene_Base {
         this.__timescale = 1;
         this.__timescaleFraction = 0;
         this.__sounds = [];
+        this.__soundsToDestroy = [];
 
         this.__RPGVariableTags = [];
 
@@ -254,7 +256,10 @@ class Scene_Engine extends Scene_Base {
         snd.__tick = function(self){}; // nothing for now
         this.__sounds.push(snd);
         retSnd.sourceAudio = snd;
-        return retSnd;
+        return retSnd.then(result => {
+            snd.__sourceSound = result;
+            return result;
+        });
     }
 
     audioGetSound(path, type="SE", volume=1) {
@@ -371,8 +376,21 @@ class Scene_Engine extends Scene_Base {
         if(sound.__destroyed)
             return;
         sound.stop();
-        sound.destroy();
+        if(sound.__sourceSound) // fix for async load bug
+            sound.destroy();
+        else
+            this.__soundsToDestroy.push(sound)
         sound.__destroyed=true;
+    }
+
+    // PIXI sounds load async. As a result if the engine stops while a sound is still loading, then destryoing it will
+    // result in a crash. To work around this, we will pass the sound forward to new copies of the engine until one cleans it up.
+    __cleanupOldSounds(newEngine) {
+        if(!this.__soundsToDestroy)
+            return;
+        for(const sound of this.__soundsToDestroy) {
+            newEngine.__destroySound(sound); // continually pass the sound forward until eventually some engine is able to destroy it.
+        }
     }
 
     __audioCleanup() { // at the end of the game, delete all sounds.

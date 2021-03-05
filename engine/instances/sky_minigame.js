@@ -166,6 +166,7 @@ class SkyBuildPlayer extends EngineInstance {
 
         if(this.activated && this.y > $engine.getCamera().getY()+$engine.getWindowSizeY() && ! this.fallPlayed) {
             $engine.audioPlaySound("audio/se/Falling.ogg")
+            this.fallPlayed = true;
         }
 
         if(!this.dropping) {

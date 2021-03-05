@@ -11,8 +11,8 @@ class WallBuilderController extends MinigameController {
         this.currentKey = "";
 
         this.progress = 0;
-        this.width = 5;
-        this.height = 2;
+        this.width = 10;
+        this.height = 6;
 
         this.total = this.width*this.height;
 
