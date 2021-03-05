@@ -1500,22 +1500,20 @@ SceneManager.updateManagers = function() {
 }
 
 // jank support for 1x1 spritesheet characters.
-// Doesn't work with anims. Must select top left of sprite. (prefix with $$):
+// Doesn't work with anims. Must select top left of sprite. (prefix with _):
 ImageManager.isObjectCharacter = function(filename) {
-    var sign = filename.match(/^[\!\$]+/);
+    var sign = filename.match(/^[\!\$\_]+/);
     return sign && sign[0].contains('!');
 };
 
 ImageManager.isBigCharacter = function(filename) {
-    var sign = filename.match(/^[\!\$]+/);
-    return sign && sign[0].contains('$') && ! sign[0].contains('$$');
+    var sign = filename.match(/^[\!\$\_]+/);
+    return sign && sign[0].contains('$');
 };
 
-// for some reason the linux webserver keeps having a stroke with other characters.
-// so i'm just going to use $$ because $ works.
 ImageManager.isReallyBigCharacter = function(filename) {
-    var sign = filename.match(/^[\!\$]+/);
-    return sign && sign[0].contains('$$');
+    var sign = filename.match(/^[\!\$\_]+/);
+    return sign && sign[0].contains('_');
 };
 
 Sprite_Character.prototype.patternWidth = function() {
