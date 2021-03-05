@@ -15,10 +15,14 @@ class WallBuilderController extends MinigameController {
         this.height = 6;
 
         this.total = this.width*this.height;
-
+ 
         this.imgWidth = 64;
         this.imgHeight = 32;
         new ParallaxingBackground(); // make the background
+
+        var text = new PIXI.Text("Press the keys displayed on the tile\nlay down block with correct keys\nbe fast and accurate\nstack 60 bricks\n\nPress Enter to cheat!",$engine.getDefaultTextStyle())
+        this.setInstructionRenderable(text);
+        this.controllsUseKeyBoard(true);
 
         this.graphicsLocationX = $engine.getWindowSizeX()/2;
         this.graphicsLocationY = 128;
