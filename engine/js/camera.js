@@ -14,6 +14,7 @@ class Camera extends PIXI.Container {
         this.__filters = [];
         this.__cameraGraphics = new PIXI.Graphics(); // shared graphics, always draws on top of everything.
         this.__renderContainer = new PIXI.Container();
+        this.__cameraGUI = new PIXI.Container(); // bit of a dumb fix for GUI elements that should blur with the minigame.
     }
 
     addFilter(screenFilter, removeOnRoomChange = true, name = "ENGINE_DEFAULT_FILTER_NAME") {

@@ -319,7 +319,11 @@ class EngineDebugUtils {
      * @param {EngineInstance} inst The engine instance to draw the hitbox of
      */
     static drawHitbox(graphics, inst) {
-        var poly = inst.hitbox.getPolygonHitbox()
+        EngineDebugUtils.drawHitboxDirect(graphics,inst.hitbox)
+    }
+
+    static drawHitboxDirect(graphics,hitbox) {
+        var poly = hitbox.getPolygonHitbox()
         var len = poly.__getNumPoints();
         var p2 = new PIXI.Polygon();
         var v;

@@ -13,7 +13,8 @@ require cloud_generic_3 engine/textures/generic/cloud_generic_3.png 0.5 0.5
 require cloud_generic_4 engine/textures/generic/cloud_generic_4.png 0.5 0.5
 
 spritesheet dimensions 6000 624 6 1 background_sheet engine/textures/generic/background_generic_sheet.png 0.5 0.5
-spritesheet dimensions 1632 624 2 1 intro_cutscene_sheet engine/textures/intro/intro_cutscene_sheet.png 0 0
+spritesheet dimensions 6000 624 6 1 background_sheet_ground engine/textures/generic/background_generic_sheet_2.png 0.5 0.5
+spritesheet dimensions 11424 624 14 1 intro_cutscene_sheet engine/textures/intro/intro_cutscene_sheet.jpg 0 0
 
 spritesheet dimensions 48 24 4 2 leaf_particles_small engine/textures/generic/leaf_particles_smol_sheet.png 0.5 0.5
 spritesheet dimensions 300 100 3 1 dust_particles engine/textures/particle/dust_particle_sheet.png 0.5 0.5
@@ -38,8 +39,12 @@ drawing_minigame_3 engine/textures/drawing3.png 0.5 0.5
 falling_rock_1 engine/textures/rock_falling.png 0.5 0.5
 falling_rock_rocky_1 engine/textures/rock_falling_man.png 0.5 1
 
-falling_tower_1 engine/textures/tower_1.png 0.5 0
-sky_platform engine/textures/sky_platform.png 0.5 0
+falling_tower_1 engine/textures/skybuild/sandtower.png 0.5 0
+sky_platform engine/textures/skybuild/sandbottom.png 0.5 0
+
+tutorial_junk engine/textures/tutorial/junk.png 0.5 0.5
+spritesheet dimensions 2448 624 3 1 tutorial_sheet engine/textures/tutorial/tutorial_sheet.png 0.5 0.5
+zone_restart engine/textures/tutorial/zone.png 0.5 0
 
 card_1 engine/textures/card_1.png 0.5 0.5
 card_2 engine/textures/card_2.png 0.5 0.5
@@ -50,6 +55,10 @@ falling_object_spike engine/textures/falling_object/spike.png 0.5 0.5
 falling_object_flower engine/textures/falling_object/flower.png 0.5 0.5
 falling_object_shadow engine/textures/falling_object/shadow.png 0.5 0.5
 
-wall_building_brick_1 engine/textures/brick.png 0.5 1
-letter_backdrop engine/textures/letter_backdrop.png 0.5 0.5
+wall_building_brick_1 engine/textures/wall/brick.png 0.5 1
+letter_backdrop engine/textures/wall/board.png 0.5 0.5
 wall_building_grit engine/textures/grit.png 0.5 0.5
+
+bar_standard engine/textures/bars/bar.png  0.5 1
+bar_health engine/textures/bars/bar_health.png 0.5 1
+bar_time engine/textures/bars/bar_time.png 0.5 1

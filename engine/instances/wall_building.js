@@ -59,7 +59,7 @@ class WallBuilderController extends MinigameController {
         this.endWaitTimer = 0;
         this.waiting = false;
 
-        this.startTimer(60*60)
+        this.startTimer(60*60,MinigameTimer.GRAPHIC_TIME)
     }
 
     landed(dy) {
@@ -70,7 +70,7 @@ class WallBuilderController extends MinigameController {
     createRope() {
         $engine.audioPlaySound("audio/se/Layer.ogg")
         var tex = $engine.getTexture("wall_building_grit")
-        tex.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT; // doesn't work??
+        tex.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT;
 
         var numPoints = 75;
 
@@ -98,7 +98,7 @@ class WallBuilderController extends MinigameController {
     }
 
     onMinigameComplete(frames) {
-        console.log(frames);
+        //console.log(frames);
     }
 
     onCreate() {

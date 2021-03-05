@@ -258,7 +258,7 @@ class FallingTowerPlatform extends SkyBuildPlayer {
         this.y = y;
         
         this.setSprite(new PIXI.Sprite($engine.getTexture("sky_platform")));
-        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-150,0,150,50));
+        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-150,0,150,35));
     }
 
     step() {

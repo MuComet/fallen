@@ -44,6 +44,7 @@ class MenuIntroController extends EngineInstance {
                 button.enabled = false;
             })
             AudioManager.playSe($engine.generateAudioReference("GameStart"))
+            $engine.audioFadeAll();
             return true
         });
         startButton.setScript(function() {
@@ -66,6 +67,7 @@ class MenuIntroController extends EngineInstance {
                 }
                 SoundManager.playLoad();
                 $engine.fadeOutAll(1);
+                $engine.audioFadeAll();
                 $engine.audioFadeSound(MinigameController.getInstance().menuMusic,30);
                 IM.with(MainMenuButton,function(button) {
                     button.enabled = false;
@@ -91,7 +93,7 @@ class MenuIntroController extends EngineInstance {
         //this.musicStarted = false;
         //AudioManager.playBgm(this.audioReference)
 
-        this.menuMusic = $engine.audioGetSound("audio/bgm/Menu.ogg","SE",1)
+        this.menuMusic = $engine.audioGetSound("audio/bgm/Title.ogg","SE",1)
         $engine.audioPlaySound(this.menuMusic,true).then(result => {
             this.audioRef=result;
         })
@@ -179,6 +181,9 @@ class MenuIntroController extends EngineInstance {
         if(this.timer>this.endTime && this.timer <= this.endTime+36) {
             this.depth = -10000;
         }
+        if(this.timer===this.endTime+1) {
+            $engine.audioPlaySound("audio/se/Snap.ogg");
+        }
     }
 
     draw(gui, camera) {
@@ -228,7 +233,7 @@ class MenuIntroController extends EngineInstance {
         MinigameController.controller=undefined;
     }
 
-    notifyFramesSkipped(frames) {
+    __notifyFramesSkipped(frames) {
         this.timeCorrection+=frames*16.66666;
     }
 

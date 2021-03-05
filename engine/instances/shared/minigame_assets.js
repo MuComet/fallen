@@ -8,11 +8,20 @@ class MinigameTimer extends EngineInstance {
         throw new Error("Do not instantiate the MinigameTimer with rooms.")
     }
 
-    onCreate(frames, style = { fontFamily: 'Helvetica', fontSize: 30, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 2 }) {
-        this.timerText = new PIXI.Text('TIME REMAINING:', style);
-        this.timerText.anchor.x=0.5
-        this.timerText.x = $engine.getWindowSizeX()/2;
-        this.timerText.y = 40;
+    onCreate(frames, graphicIndex = 0) {
+        this.timerGraphic = undefined;
+        var textures = ["bar_standard","bar_health","bar_time"]
+        this.timerGraphic = new PIXI.Sprite(); // container
+        this.timerBar = $engine.createManagedRenderable(this,new PIXI.Sprite($engine.getTexture(textures[graphicIndex])))
+        this.fillGraphics = $engine.createManagedRenderable(this,new PIXI.Graphics());
+        this.fillGraphics.beginFill(0xff0000);
+        this.fillGraphics.drawRect(-16,-16,32,32)
+        this.fillGraphics.endFill();
+
+        this.timerGraphic.addChild(this.fillGraphics);
+        this.timerGraphic.addChild(this.timerBar)
+        this.timerGraphic.x = $engine.getWindowSizeX()/2;
+        this.timerGraphic.y = $engine.getWindowSizeY();
 
         this.timerDone = false;
         this.isPaused = false;
@@ -29,7 +38,25 @@ class MinigameTimer extends EngineInstance {
 
         this.canExpire = true;
 
+        this.textMode = false;
+
+        this.creationTimer = 0;
+        this.creationTime = 30;
+
+        this.maxFrames = undefined;
+
         this.restartTimer(frames);
+    }
+
+    setTextMode() {
+        if(!this.textMode) {
+            this.timerText = $engine.createManagedRenderable(this,new PIXI.Text('TIME REMAINING:', $engine.getDefaultTextStyle()));
+            this.timerText.anchor.x=0.5
+            this.timerText.x = $engine.getWindowSizeX()/2;
+            this.timerText.y = 40;
+            this.timerGraphic = this.timerText
+        }
+        this.textMode = true;
     }
 
     /**
@@ -46,17 +73,28 @@ class MinigameTimer extends EngineInstance {
         this.onTimerUp = [];
     }
 
+    /**
+     * Prevents the timer from stopping. This means the timer will continue to tick down below zero.
+     */
     preventExpire() {
         this.canExpire = false;
     }
 
     step() {
         if(!this.timerDone && !this.isPaused) {
-            this._updateText();
+            this._updateGraphic();
             this._checkIsTimeUp();
             this.timer--;
         }
-        this.timerText.alpha = this.alpha
+        this.timerGraphic.alpha = this.alpha
+        this._handleCreationAnimation();
+    }
+
+    _handleCreationAnimation() {
+        if(this.creationTimer<=this.creationTime) {
+
+        }
+        this.creationTimer++;
     }
 
     setGameOverText(text) {
@@ -97,7 +135,19 @@ class MinigameTimer extends EngineInstance {
     restartTimer(newTime) {
         this.timerDone = false;
         this.timer = newTime;
-        this._updateText();
+        this.maxFrames = newTime;
+        this._updateGraphic();
+    }
+
+    _updateGraphic() {
+        if(this.textMode)
+            this._updateText();
+        else
+            this._updateSprite();
+    }
+
+    _updateSprite() {
+
     }
 
     _updateText() {
@@ -143,10 +193,12 @@ class MinigameTimer extends EngineInstance {
             f.func(f.parent,false);
         this.timerDone=true;
 
-        if(this.survivalMode)
-            this.timerText.text = this.gameOverText;
-        else
-            this.timerText.text = this.gameCompleteText;
+        if(this.textMode) {
+            if(this.survivalMode)
+                this.timerText.text = this.gameOverText;
+            else
+                this.timerText.text = this.gameCompleteText;
+        }
     }
 
     /**
@@ -162,10 +214,12 @@ class MinigameTimer extends EngineInstance {
         for(const f of this.onTimerUp)
                 f.func(f.parent,true);
         this.timerDone = true;
-        if(this.survivalMode)
-            this.timerText.text = this.gameCompleteText;
-        else
-            this.timerText.text = this.gameOverText;
+        if(this.textMode) {
+            if(this.survivalMode)
+                this.timerText.text = this.gameCompleteText;
+            else
+                this.timerText.text = this.gameOverText;
+        }
     }
 
     isTimerDone() {
@@ -198,15 +252,15 @@ class MinigameTimer extends EngineInstance {
     }
 
     draw(gui, camera) {
-        if(this.visible)
-            $engine.requestRenderOnGUI(this.timerText);
-    }
-
-    cleanup() {
-        $engine.freeRenderable(this.timerText);
+        if(this.visible) {
+            $engine.requestRenderOnCameraGUI(this.timerGraphic);
+        }
     }
 
 }
+MinigameTimer.GRAPHIC_STANDARD = 0;
+MinigameTimer.GRAPHIC_HEALTH = 1;
+MinigameTimer.GRAPHIC_TIME = 2;
 
 /**
  * Overwrites:
@@ -355,24 +409,42 @@ class MinigameController extends EngineInstance {
      * Creates and starts a new MinigameTimer. This timer becomes accessible via getTimer()
      * @param {Number} frames The amount of frames
      */
-    startTimer(frames) {
-        this._timer = new MinigameTimer(frames);
-        this._timer.addOnTimerStopped(this,function(self,expired) {
-            if((expired && self._timer.isSurvivalMode()) || (!expired && !self._timer.isSurvivalMode())) {
-                self.gameWin();
-            } else {
-                self.gameLoss();
-            }
-        })
-        this._timer.addOnTimerStopped(this,function(self, expired) {
-            if(self.hasCheated())
-                $engine.audioPlaySound("audio/se/GameEndCheat.ogg")
-            else
-                $engine.audioPlaySound("audio/se/GameEnd.ogg")
-        })
-        this._timer.addOnTimerStopped(this,function(self, expired) {
-            $engine.getCamera().addFilter(self.blurFilter)
-        })
+    startTimer(frames, graphic = 0) {
+        if(this._timer)
+            throw new Error("Timer already exists, use getTimer() to adjust the timer!");
+        this._timer = new MinigameTimer(frames,graphic);
+        this._timer.addOnTimerStopped(this,this._onMinigameEnd)
+    }
+
+    _onMinigameEnd(self, expired) {
+        if((expired && self._timer.isSurvivalMode()) || (!expired && !self._timer.isSurvivalMode())) {
+            self._onMinigameEndNoTimer(true);
+        } else {
+            self._onMinigameEndNoTimer(false);
+        }
+        
+    }
+
+    _onMinigameEndNoTimer(won) {
+        if(won) {
+            this.gameWin();
+        } else {
+            this.gameLoss();
+        }
+
+        if(this.hasCheated())
+            $engine.audioPlaySound("audio/se/GameEndCheat.ogg")
+        else
+            $engine.audioPlaySound("audio/se/GameEnd.ogg")
+        
+        $engine.getCamera().addFilter(this.blurFilter)
+    }
+
+    endMinigame(won) {
+        this._onMinigameEndNoTimer(won);
+        if(this._timer) {
+            this._timer.pause();
+        }
     }
 
     getTimer() {
@@ -386,11 +458,11 @@ class MinigameController extends EngineInstance {
      * @param {Number} frames The amount of frames that were missed
      */
     notifyFramesSkipped(frames) {
-        console.error("Notify Frames Skipped should always be implemenetd! -- "+String(frames)+" frames skipped...")
+        console.error("Notify Frames Skipped should always be implemented! -- "+String(frames)+" frames skipped...")
     }
 
     __notifyFramesSkipped(frames) {
-        if(this.showingCheat || this.showingInstructions)
+        if($engine.isGamePaused() || $engine.isGamePausedSpecial())
             return;
         this.notifyFramesSkipped(frames);
     }
@@ -430,7 +502,7 @@ class MinigameController extends EngineInstance {
                 $engine.setTimescale(fac)
             }
             if(this._timer)
-                this._timer.alpha = fac
+                this._timer.timerGraphic.alpha = fac // set directly because timescale.
             this.stopTimer++;
             this.setMusicVolume(fac);
             if(this.stopTimer>this.stopTime)
@@ -440,14 +512,21 @@ class MinigameController extends EngineInstance {
             if(this.gameStoppedFrameTimer===90) {
                 var snd = undefined;
 
-                if(this.hasCheated())
-                    snd = $engine.audioGetSound("audio/bgm/VictoryAtaCost.ogg","BGM")
-                else
-                    snd = $engine.audioGetSound("audio/bgm/Victory.ogg","BGM")
+                if(this.wonMinigame) {
+                    if(this.hasCheated())
+                        snd = $engine.audioGetSound("audio/bgm/VictoryAtaCost.ogg","BGM")
+                    else
+                        snd = $engine.audioGetSound("audio/bgm/Victory.ogg","BGM")
+                } else {
+                    if(this.hasCheated())
+                        snd = $engine.audioGetSound("audio/bgm/LossCheat.ogg","BGM")
+                    else
+                        snd = $engine.audioGetSound("audio/bgm/Loss.ogg","BGM")
+                }
                     
                 $engine.audioPlaySound(snd,true).then(result=> {
-                    result._source.loopStart = 5.75;
-                    result._source.loopEnd = result._duration-0.8;
+                    result._source.loopStart = 6;
+                    result._source.loopEnd = 22;
                 })
             }
             this.gameStoppedFrameTimer++;

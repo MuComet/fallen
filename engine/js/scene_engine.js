@@ -324,11 +324,6 @@ class Scene_Engine extends Scene_Base {
         return this.__lookupSounds(snd).length!==0;
     }
 
-    audioGetProgress(snd) { // TODO: doesn't work right now.
-        var snd = this.__lookupSounds(snd);
-        return snd[0].progress
-    }
-
     audioFadeSound(snd, time) {
         snd.__timeToFade = time;
         snd.__timer = 0;
@@ -341,7 +336,19 @@ class Scene_Engine extends Scene_Base {
         }
     }
 
-    audioFadeAll(time) {
+    audioFadeInSound(snd, time) {
+        snd.__timeToFade = time;
+        snd.__timer = 0;
+        snd.__vol = snd.volume;
+        snd.__tick = function(self) {
+            if(self.__timer>=self.__timeToFade)
+                return;
+            self.volume = (self.__timer/ self.__timeToFade)*self.__vol
+            self.__timer++;
+        }
+    }
+
+    audioFadeAll(time=30) {
         for(const sound of this.__sounds) {
             this.audioFadeSound(sound,time)
         }
@@ -844,12 +851,24 @@ class Scene_Engine extends Scene_Base {
      * This is useful because if the camera has a special renderer like a 2d projection renderer on it,
      * you may still render in camera space as usual using this method.
      * 
-     * Renderables added to the GUI will render in the order they are added. As such, it recommended
+     * Renderables added to the Camera will render in the order they are added. As such, it recommended
      * to only call this in draw since it is sorted.
      * @param {PIXI.Container} renderable 
      */
     requestRenderOnCamera(renderable) {
         this.getCamera().getCameraGraphics().addChild(renderable);
+    }
+
+    /** 
+     * Requests that on this frame, the renderable be rendered to the Camera layer in GUI space. Use this if you want
+     * to get the same effect as the GUI, but also want the renderable to exist in the camera's scope (for stuff like filters).
+     * 
+     * Renderables added to the Camera will render in the order they are added. As such, it recommended
+     * to only call this in draw since it is sorted.
+     * @param {PIXI.Container} renderable 
+     */
+    requestRenderOnCameraGUI(renderable) {
+        this.getCamera().__cameraGUI.addChild(renderable);
     }
     
 
@@ -930,6 +949,7 @@ class Scene_Engine extends Scene_Base {
 
             camera.addChild(renderContainer);
             camera.addChild(camera.getCameraGraphics());
+            camera.addChild(camera.__cameraGUI);
         }
     }
 
@@ -948,6 +968,8 @@ class Scene_Engine extends Scene_Base {
 
         this.getCamera().getCameraGraphics().clear();
         this.getCamera().getCameraGraphics().removeChildren();
+
+        this.getCamera().__cameraGUI.removeChildren();
     }
 
     __disposeHandles(instance) { //TODO: disposes of any resources associated with the object. This should remove any objects (renderables) associated with the instance.
@@ -1480,18 +1502,18 @@ SceneManager.updateManagers = function() {
 // jank support for 1x1 spritesheet characters -- doesn't work with anything but characters facing down.
 // Doesn't work with anims. (prefix with ~):
 ImageManager.isObjectCharacter = function(filename) {
-    var sign = filename.match(/^[\!\$\~]+/);
+    var sign = filename.match(/^[\!\$\#]+/);
     return sign && sign[0].contains('!');
 };
 
 ImageManager.isBigCharacter = function(filename) {
-    var sign = filename.match(/^[\!\$\~]+/);
+    var sign = filename.match(/^[\!\$\#]+/);
     return sign && sign[0].contains('$');
 };
 
 ImageManager.isReallyBigCharacter = function(filename) {
-    var sign = filename.match(/^[\!\$\~]+/);
-    return sign && sign[0].contains('~');
+    var sign = filename.match(/^[\!\$\#]+/);
+    return sign && sign[0].contains('#');
 };
 
 Sprite_Character.prototype.patternWidth = function() {

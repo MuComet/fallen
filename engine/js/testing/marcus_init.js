@@ -1,4 +1,4 @@
-$__engineData.loadRoom = "WallBuildingRoom"
+$__engineData.loadRoom = "IntroMinigameRoom"
 $__engineData.__debugPreventReturn=true;
 $__engineData.__debugRequireAllTextures = true;
 IN.debugDisplayKeyPress(true)

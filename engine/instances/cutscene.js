@@ -5,7 +5,7 @@ class CutsceneController extends EngineInstance {
         this.setSprite(new PIXI.Sprite(this.textures[0]));
         this.frames = this.textures.length;
         this.currentFrame = 0;
-        this.frameLength = 3*60; // in frames
+        this.frameLength = [5*60,7*60,10*60,15*60,9*60,4*60,5*60,5*60,10*60,8*60,9*60,12*60,3*60,5*60]
         this.timer = 0;
 
         this.transitionTime = 36;
@@ -15,10 +15,12 @@ class CutsceneController extends EngineInstance {
         this.blurFilter.blur = this.blurFilterStrength
         this.blurFilter.repeatEdgePixels=true;
 
+        $engine.setBackgroundColour(0)
+
         if(!$engine.isLow())
             $engine.addFilter(this.blurFilter);
 
-        this.bloomFilterStrength = 1.75;
+        this.bloomFilterStrength = 3;
         this.bloomFilter = new PIXI.filters.AdvancedBloomFilter(8,4,3,15);
 
         if(!$engine.isLow())
@@ -39,8 +41,8 @@ class CutsceneController extends EngineInstance {
     }
 
     step() {
-        if(IN.keyCheckPressed("Space") && this.timer < this.frameLength-this.transitionTime && this.timer > this.transitionTime) {
-            this.timer = this.frameLength-this.transitionTime;
+        if(IN.anyInputPressed() && !IN.keyCheckPressed("Escape") && this.timer < this.frameLength[this.currentFrame]-this.transitionTime && this.timer > this.transitionTime/2) {
+            this.timer = this.frameLength[this.currentFrame]-this.transitionTime;
         }
         // speedrun speedrun speedrun go go go go go
         if(IN.keyCheckPressed("Escape") && this.timer > this.transitionTime && !this.wipeStarted) {
@@ -48,7 +50,7 @@ class CutsceneController extends EngineInstance {
             this.wipeTimer = 0;
             this.wipeStarted=true;
         }
-        if(this.timer>this.frameLength) {
+        if(this.timer>this.frameLength[this.currentFrame]) {
             if(this.currentFrame < this.frames-1) {
                 this.currentFrame++;
                 this.timer = 0;
@@ -58,14 +60,19 @@ class CutsceneController extends EngineInstance {
             if(this.timer <= this.transitionTime)
                 this.blurFilter.blur = EngineUtils.interpolate(this.timer/this.transitionTime,this.blurFilterStrength,0,EngineUtils.INTERPOLATE_OUT);
                 this.bloomFilter.brightness = EngineUtils.interpolate(this.timer/this.transitionTime,this.bloomFilterStrength,1,EngineUtils.INTERPOLATE_OUT);
-            if(this.frameLength-this.timer <= this.transitionTime) {
-                this.blurFilter.blur = EngineUtils.interpolate((this.frameLength-this.timer)/this.transitionTime,this.blurFilterStrength,0,EngineUtils.INTERPOLATE_OUT);
-                this.bloomFilter.brightness = EngineUtils.interpolate((this.frameLength-this.timer)/this.transitionTime,this.bloomFilterStrength,1,EngineUtils.INTERPOLATE_OUT);
+            if(this.frameLength[this.currentFrame]-this.timer <= this.transitionTime) {
+                this.blurFilter.blur = EngineUtils.interpolate((this.frameLength[this.currentFrame]-this.timer)/this.transitionTime,this.blurFilterStrength,0,EngineUtils.INTERPOLATE_OUT);
+                this.bloomFilter.brightness = EngineUtils.interpolate((this.frameLength[this.currentFrame]-this.timer)/this.transitionTime,this.bloomFilterStrength,1,EngineUtils.INTERPOLATE_OUT);
                 if(this.currentFrame >= this.frames-1 && !this.wipeStarted) {
                     this.wipeStarted=true;
                     this.wipeTimer = -1;
                     this.out = true;
                 }
+            }
+            if(this.frameLength[this.currentFrame]-this.timer===this.transitionTime/2 && this.currentFrame < this.frames-1) {
+                var snd = $engine.audioGetSound("audio/se/Paper.ogg");
+                snd.speed = EngineUtils.randomRange(0.9,1.1);
+                $engine.audioPlaySound(snd)
             }
         }
         if(this.wipeTimer>this.transitionTime && this.wipeStarted) {

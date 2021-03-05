@@ -10,7 +10,7 @@ class RoomManager {
     static loadRoom(name) {
         var room = RoomManager.getRoom(name);
         if(room===undefined)
-            throw "Room " + name + "does not exist.";
+            throw new Error("Room " + name + " does not exist.");
         room.loadRoom();
         return room;
     }
