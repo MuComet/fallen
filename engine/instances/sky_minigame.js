@@ -64,6 +64,7 @@ class SkyMinigameController extends MinigameController { // All classes that can
     updateProgressText() {
         this.progressText.text = "Progress: "+String(SkyMinigameController.score+" / "+String(SkyMinigameController.maxScore))
     }
+
     onCreate() { // called when you construct the instance yourself
         this.onEngineCreate();
         super.onCreate();
@@ -118,8 +119,8 @@ class SkyBuildPlayer extends EngineInstance {
         this.activated = true;
         this.nextnext = IM.find(SkyBuildPlayer, SkyMinigameController.nextBlock);
         this.setSprite(new PIXI.Sprite($engine.getTexture("falling_tower_1")))
-        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-50,0,50,100));
-        this.dropping=false;
+        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-50,2,50,100));
+        this.dropping = false;
         this.randomOffset = EngineUtils.irandom(120);
         this.swingMove();
         this.shakeTimer = 0;
@@ -245,7 +246,7 @@ class SkyBuildPlayer extends EngineInstance {
     draw(gui, camera) {
         //EngineDebugUtils.drawHitbox(camera,this)
         if(this.activated && !this.dropping)
-            camera.lineStyle(3,0xe74c3c).moveTo(this.x,this.y).lineTo($engine.getWindowSizeX()/2,this.yStart);
+            camera.lineStyle(5,0x00).moveTo(this.x,this.y).lineTo($engine.getWindowSizeX()/2,this.yStart);
 
     }
 }
@@ -259,10 +260,10 @@ class FallingTowerPlatform extends SkyBuildPlayer {
         this.y = y;
         
         this.setSprite(new PIXI.Sprite($engine.getTexture("sky_platform")));
-        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-150,0,150,35));
+        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-150,10,150,35));
     }
 
-    step() {
+    step() { 
         if(SkyMinigameController.score < 1){
             var towers = IM.instanceCollisionList(this,this.x,this.y,SkyBuildPlayer);
             for(const tower of towers) { // don't use 'in', use 'of'
