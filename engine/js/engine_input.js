@@ -12,11 +12,6 @@ class IN {
                 IN.__pressedKeysCarry.push(e.code);
                 if(IN.__debugRecordKeyPress) 
                     console.log(e.code);
-
-                //DEBUG, REMOVE BEFORE RELEASE!
-                if(e.ctrlKey && e.code==="Enter" && $__engineData.__ready) {
-                    SceneManager.push(Scene_Engine)
-                }
             }
             e.__handled = true;
         });
@@ -50,6 +45,8 @@ class IN {
             return;
         IN.__validMouse=false; // for sanity reasons, all mouse events invalidate the mouse location and force a refresh.
         var type = event.type;
+        if(event.button===undefined)
+            event.button = 0;
         if(type === "pointerdown" || type === "mousedown" || type === "touchstart") {
             IN.__anyButtonPressedCarry=true;
             if(IN.__heldButtons.indexOf(event.button)===-1 && IN.__pressedButtonsCarry.indexOf(event.button)===-1) {
@@ -60,6 +57,8 @@ class IN {
         }
         if(IN.__debugRecordMousePress) 
             console.log(type + " :: " + event.button);
+
+        IN.__mouseMoved(event) // update our mouse location too.
         event.__handled = true;
     }
 
@@ -72,7 +71,18 @@ class IN {
     }
 
     static __mouseMoved(event) {
-        IN.__validMouse=false;
+        var touch = event.type.startsWith("touch");
+        var locData = event;
+        if(touch) {
+            locData = event.touches[0];
+            if(!locData)
+                return;
+        }
+        IN.__inputMousePageX = locData.clientX;
+        IN.__inputMousePageY = locData.clientY;
+        IN.__inputMouseX = Graphics.pageToCanvasX(locData.clientX);
+        IN.__inputMouseY = Graphics.pageToCanvasY(locData.clientY);
+        IN.__invalidateMouseLocation();
     }
 
     static __update() {
@@ -96,7 +106,7 @@ class IN {
 
         IN.__releasedButtons = IN.__releasedButtonsCarry;
         IN.__pressedButtons = IN.__pressedButtonsCarry;
-        for(const key in IN.__releasedButtons) {
+        for(const key of IN.__releasedButtons) {
             IN.__heldButtons.splice(IN.__heldButtons.indexOf(key),1);
         }
 
@@ -110,7 +120,7 @@ class IN {
         IN.__wheel = IN.__wheelCarry;
         IN.__wheelCarry = 0;
 
-        var mGUI = Graphics._renderer.plugins.interaction.mouse.getLocalPosition($engine)
+        var mGUI = Graphics._renderer.plugins.interaction.mouse.global
         // when until the first mouse move, PIXI reports the mouse as -999999
         IN.__mouseXGUI = mGUI.x === -999999 ? 0 : mGUI.x;
         IN.__mouseYGUI = mGUI.y === -999999 ? 0 : mGUI.y;
@@ -229,7 +239,10 @@ class IN {
 
     static __requireMouseValid() {
         if(!IN.__validMouse) {
-            var mouse = $engine.getCamera().__reportMouse();
+            var page = new EngineLightweightPoint(IN.__inputMousePageX, IN.__inputMousePageY)
+            var global = new EngineLightweightPoint(IN.__inputMouseX, IN.__inputMouseY)
+            // confusingly: global location is expected to be relative to the canvas. I didn't come up with this naming scheme
+            var mouse = $engine.getCamera().__reportMouse(page,global);
             IN.__mouseX = mouse.x === -999999 ? 0 : mouse.x;
             IN.__mouseY =  mouse.y === -999999 ? 0 : mouse.y;
             IN.__validMouse=true;
@@ -277,5 +290,10 @@ IN.__mouseValid = false;
 
 IN.__debugRecordKeyPress = false;
 IN.__debugRecordMousePress = false;
+
+IN.__inputMousePageX = -999999;
+IN.__inputMousePageY = -999999;
+IN.__inputMouseX = -999999;
+IN.__inputMouseY = -999999;
 
 IN.__register();

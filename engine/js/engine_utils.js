@@ -211,6 +211,14 @@ class EngineUtils {
     }
 
     /**
+     * Returns a random element from the array.
+     * @param {Array} array The array
+     */
+    static randomFromArray(array) {
+        return array[EngineUtils.irandom(array.length-1)];
+    }
+
+    /**
      * Interpolates between min and max given a certain interpolation fuction and an input value.
      * 
      * example usage: 
@@ -236,7 +244,7 @@ class EngineUtils {
             case(EngineUtils.INTERPOLATE_LINEAR):
                 return diff*val + min;
             case(EngineUtils.INTERPOLATE_IN):
-                return diff*val*val*val + min;
+                return diff*(val*val*val) + min;
             case(EngineUtils.INTERPOLATE_OUT):
                 var t = val-1;
                 return diff*(t*t*t+1) + min
@@ -248,7 +256,7 @@ class EngineUtils {
                 return diff*(val*(2-val)) + min
             case(EngineUtils.INTERPOLATE_SMOOTH_QUAD):
                 return diff*(val < 0.5 ? 2*val*val : -1+(4-2*val)*val)+min
-            // functions written by Chriustian Figueroa
+            // following 3 functions written by Chriustian Figueroa
             // source: https://gist.github.com/gre/1650294#gistcomment-1892122
             case(EngineUtils.INTERPOLATE_IN_ELASTIC):
                 return diff*((.04 - .04 / val) * Math.sin(25 * val) + 1)+min
@@ -261,6 +269,27 @@ class EngineUtils {
                     val = 0.50000001;
                 return  diff*((val -= .5) < 0 ?     (.02 + .01 / val) * Math.sin(50 * val) 
                                                 :   (.02 - .01 / val) * Math.sin(50 * val) + 1) + min
+            // following 6 functions written sourced at https://gist.github.com/girish3/11167208
+            case(EngineUtils.INTERPOLATE_IN_BACK):
+                var s = 1.70158;
+                return diff * ((val)*val*((s+1)*val - s)) + min;
+            case(EngineUtils.INTERPOLATE_OUT_BACK):
+                var s = 1.70158;
+                return diff * ((val=val/1-1)*val*((s+1)*val + s) + 1) + min;
+            case(EngineUtils.INTERPOLATE_SMOOTH_BACK):
+                var s = 1.70158; 
+                if ((val/=1/2) < 1) 
+                    return diff * (1/2*(val*val*(((s*=(1.525))+1)*val - s))) + min;
+                return diff * (1/2*((val-=2)*val*(((s*=(1.525))+1)*val + s) + 2)) + min;
+            case(EngineUtils.INTERPOLATE_IN_EXPONENTIAL):
+                return (val===0) ? max : diff*(Math.pow(2, 10 * (val - 1))) + min;
+            case(EngineUtils.INTERPOLATE_OUT_EXPONENTIAL):
+                return (val===1) ? max : diff*(-Math.pow(2, -10 * val) + 1) + min;
+            case(EngineUtils.INTERPOLATE_SMOOTH_EXPONENTIAL):
+                if (val===0) return 0;
+                if (val===1) return 1;
+                if ((val/=1/2) < 1) return 1/2 * Math.pow(2, 10 * (val - 1));
+                return 1/2 * (-Math.pow(2, -10 * --val) + 2);
         }
     }
 }
@@ -275,6 +304,12 @@ EngineUtils.INTERPOLATE_SMOOTH_ELASTIC=6;
 EngineUtils.INTERPOLATE_IN_QUAD=7;
 EngineUtils.INTERPOLATE_OUT_QUAD=8;
 EngineUtils.INTERPOLATE_SMOOTH_QUAD=9;
+EngineUtils.INTERPOLATE_IN_BACK=10;
+EngineUtils.INTERPOLATE_OUT_BACK=11;
+EngineUtils.INTERPOLATE_SMOOTH_BACK=12;
+EngineUtils.INTERPOLATE_IN_EXPONENTIAL=13;
+EngineUtils.INTERPOLATE_OUT_EXPONENTIAL=14;
+EngineUtils.INTERPOLATE_SMOOTH_EXPONENTIAL=14;
 
 class EngineDebugUtils {
 

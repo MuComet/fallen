@@ -13,11 +13,16 @@ $__engineData.__cheatWriteBackValue = -1
 $__engineData.cheatWriteBackIndex = -1;
 $__engineData.autoSetWriteBackIndex = -1;
 $__engineData.loadRoom = "MenuIntro";
+$__engineData.__lowPerformanceMode = false;
 
+// things to unbork:
+// re-comment out YEP speech core at 645
+// re-enable custom cursor
 
 // reserve data slots 100 to 200 for engine use.
 $__engineData.__maxRPGVariables = 100;
 $__engineData.__RPGVariableStart = 101;
+$__engineData.__advanceGameInterpreter=false
 
 $__engineData.__debugRequireTextures = false;
 $__engineData.__debugPreventReturn = false;
@@ -47,7 +52,7 @@ const ENGINE_START = function() {
 //PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST; // set PIXI to render as nearest neighbour
 
 /*DEBUG CODE MANIFEST (REMOVE ALL BEFORE LAUNCH):
-IN: keydown listener will put you into engine on "ctrl + enter" press
+IN: keydown listener will put you into engine on "ctrl + enter" press [ REMOVED ]
 IN: log key press code
 Scene_Engine - debug_log_frame_time (create, doSimTick)
 */
@@ -56,14 +61,20 @@ class Scene_Engine extends Scene_Base {
 
     create() {
         super.create();
+        if($__engineData.__overworldMode) {
+            $__engineData.__overworldMode=false;
+            $engine.endOverworld(); // still refers to old engine at this point
+        }
         this.__initEngine();
     }
 
     __initEngine() {
         $engine = this;
-        this.__gamePaused = false;
+        this.__pauseMode = 0; // 0 = not paused, 1 = paused, 2 = pause special.
+        this.__pauseSpecialInstance = undefined;
         this.__filters = [];
-        this.filters = []; // PIXI
+        this.__gameCanvas = new PIXI.Container();
+        this.__gameCanvas.filters = []; // PIXI
         this.__enabledCameras = [true,false];
         this.__cameras=[new Camera(0,0,Graphics.boxWidth,Graphics.boxHeight,0)];
         this.__GUIgraphics = new PIXI.Graphics();
@@ -72,7 +83,11 @@ class Scene_Engine extends Scene_Base {
         this.__currentRoom = undefined;
         this.__globalTimer = 0;
         this.__gameTimer = 0;
+        this.__lastKnownTime = -1;
         this.__instanceCreationSpecial = {}; // it doesn't matter what this is so long as it's an object.
+        this.__timescale = 1;
+        this.__timescaleFraction = 0;
+        this.__sounds = [];
 
         this.__RPGVariableTags = [];
 
@@ -85,10 +100,48 @@ class Scene_Engine extends Scene_Base {
 
         this.__physicsEngine = undefined;
 
-        this.addChild(this.__backgroundContainer);
-        this.addChild(this.__cameras[0]);
-        this.addChild(this.__GUIgraphics)
+        // place everything into a container so that the GUIScreen is not effected by game effects.
+        this.addChild(this.__gameCanvas);
+        this.__gameCanvas.addChild(this.__backgroundContainer);
+        this.__gameCanvas.addChild(this.__cameras[0]);
+        this.__gameCanvas.addChild(this.__GUIgraphics)
         IM.__initializeVariables();
+    }
+
+    startOverworld() { // interestingly enough, RPG maker sprites and scenes share a common "update" method
+        // so if you add a scene as a child of another scene, it runs like normal.
+        $__engineData.__overworldMode = true;
+        $engine.alpha = 1;
+        this.removeChildren();
+        this.__initEngine();
+        this.__startEngine();
+        this.__bindEngine();
+        this.__sceneChangeListener = function() { // undeclared in create.
+            if(UwU.sceneIsOverworld())
+                $engine.__bindEngine();
+        }
+        UwU.addSceneChangeListener(this.__sceneChangeListener)
+    }
+
+    __bindEngine() {
+        if($__engineData.__overworldMode)
+            SceneManager._scene.addChildAt(this,1);
+    }
+
+    endOverworld() {
+        $__engineData.__overworldMode = false;
+        this.__cleanup();
+        this.setBackgroundColour(0);
+        SceneManager._scene.removeChild(this);
+        UwU.removeSceneChangeListener(this.__sceneChangeListener)
+    }
+
+    advanceGameInterpreter() {
+        $__engineData.__advanceGameInterpreter = true;
+    }
+
+    isOverworld() {
+        return $__engineData.__overworldMode; // true if the engine is in overworld mode *and* running.
     }
 
     start() {
@@ -124,6 +177,29 @@ class Scene_Engine extends Scene_Base {
         Matter.World.remove(this.__physicsEngine.world,body)
     }
 
+    setTimescale(scale) {
+        this.__timescale=scale;
+        if(scale===1)
+            this.resetTimescale();
+    }
+
+    resetTimescale() {
+        this.__timescale = 1;
+        this.__timescaleFraction = 0;
+    }
+
+    isTimeScaled() {
+        return this.__timescale!==1;
+    }
+
+    getTimescaleFraction() {
+        return this.__timescaleFraction%1;
+    }
+
+    getTimescale() {
+        return this.__timescale;
+    }
+
     update() {
         // RPG MAKER
         super.update();
@@ -134,12 +210,9 @@ class Scene_Engine extends Scene_Base {
         if(this.__shouldChangeRooms)
             this.__setRoom(this.__nextRoom);
 
-        IN.__update();
+        this.__timescaleFraction+=this.__timescale;
+
         this.__doSimTick();
-        
-        if(!this.__gamePaused)
-            this.__gameTimer++;
-        this.__globalTimer++;
     }
 
     /**
@@ -155,6 +228,151 @@ class Scene_Engine extends Scene_Base {
             pos: 0,
         }
         return ref;
+    }
+
+    async audioPlaySound(snd, loop=false, start = 0, end = 0) {
+        if(typeof(snd)==="string")
+            snd = this.audioGetSound(snd);
+        var retSnd = undefined;
+        if(end) {
+            retSnd = snd.play({
+                loop: loop,
+                start: start,
+                end: end,
+                complete:function() {
+                    snd.__isComplete = true;
+                }
+            });
+        } else {
+            retSnd = snd.play({
+                loop: loop,
+                complete:function() {
+                    snd.__isComplete = true;
+                }
+            });
+        }
+        snd.__tick = function(self){}; // nothing for now
+        this.__sounds.push(snd);
+        retSnd.sourceAudio = snd;
+        return retSnd;
+    }
+
+    audioGetSound(path, type="SE", volume=1) {
+        var vol = this.__getVolume(type)
+        const snd = new PIXI.sound.Sound.from({
+            url:path,
+            volume:vol*volume,
+        });
+        snd.originalVolume = vol;
+        snd.__isComplete = false
+        snd.__type = type;
+        return snd;
+    }
+
+    audioStopSound(snd) {
+        for(const sound of this.__lookupSounds(snd)) {
+            this.__destroySound(sound);
+        }
+    }
+
+    audioStopAll() {
+        this.__audioCleanup();
+    }
+
+    audioStopType(type) {
+        for(const sound of this.__sounds) {
+            if(sound.__type === __type)
+                sound.destroy();
+        }
+    }
+
+    __lookupSounds(snd) {
+        var sounds = [];
+        if(typeof(snd) === "string") {
+            for(const sound of this.__sounds) {
+                if(sound.url === snd)
+                    sounds.push(sound);
+            }
+        } else {
+            sounds.push(snd);
+        }
+        return sounds;
+    }
+
+    audioGetSoundsOfType(type) {
+        var sounds = [];
+        for(const sound of this.__sounds) {
+            if(sound.__type === type)
+                sounds.push(sound);
+        }
+        return sounds;
+    }
+
+    audioPauseSound(snd) {
+        for(const sound of this.__lookupSounds(snd)) {
+            sound.pause()
+        }
+    }
+
+    audioResumeSound(snd) {
+        for(const sound of this.__lookupSounds(snd)) {
+            sound.resume()
+        }
+    }
+
+    audioIsSoundPlaying(snd) {
+        return this.__lookupSounds(snd).length!==0;
+    }
+
+    audioGetProgress(snd) { // TODO: doesn't work right now.
+        var snd = this.__lookupSounds(snd);
+        return snd[0].progress
+    }
+
+    audioFadeSound(snd, time) {
+        snd.__timeToFade = time;
+        snd.__timer = 0;
+        snd.__vol = snd.volume;
+        snd.__tick = function(self) {
+            self.volume = (1-(self.__timer/ self.__timeToFade))*self.__vol
+            if(self.__timer>=self.__timeToFade)
+                $engine.__destroySound(self)
+            self.__timer++;
+        }
+    }
+
+    audioFadeAll(time) {
+        for(const sound of this.__sounds) {
+            this.audioFadeSound(sound,time)
+        }
+    }
+
+    __getVolume(type) {
+        return 1;
+    }
+
+    __audioTick() {
+        for(const sound of this.__sounds) {
+            if(sound.__isComplete === true)
+                this.__destroySound(sound);
+            sound.__tick(sound);
+        }
+        this.__sounds = this.__sounds.filter( x=> !x.__destroyed);
+    }
+
+    __destroySound(sound) {
+        if(sound.__destroyed)
+            return;
+        sound.stop();
+        sound.destroy();
+        sound.__destroyed=true;
+    }
+
+    __audioCleanup() { // at the end of the game, delete all sounds.
+        for(const sound of this.__sounds) {
+            this.__destroySound(sound);
+        }
+        this.__sounds = [];
     }
 
     setRoom(newRoom) {
@@ -200,17 +418,48 @@ class Scene_Engine extends Scene_Base {
     }
 
     pauseGame() {
-        this.__gamePaused = true;
+        this.__pauseMode = 1;
     }
 
     unpauseGame() {
-        this.__gamePaused = false;
+        this.__pauseMode = 0;
     }
 
     isGamePaused() {
-        return this.__gamePaused;
+        return this.__pauseMode===1;
     }
 
+    pauseGameSpecial(instance) {
+        if(!instance) {
+            throw new Error("PauseGameSpecial requires a target instance to keep running");
+        }
+        this.__pauseSpecialInstance = instance;
+        this.__pauseMode = 1;
+    }
+
+    unpauseGameSpecial() {
+        this.__pauseMode = 0;
+    }
+
+    isGamePaused() {
+        return this.__pauseMode===1;
+    }
+
+    isGamePausedSpecial() {
+        return this.__pauseMode===2;
+    }
+
+    setLowPerformanceMode(bool) {
+        $__engineData.__lowPerformanceMode = bool;
+    }
+
+    isLow() {
+        return $__engineData.__lowPerformanceMode;
+    }
+
+    __getPauseMode() {
+        return this.__pauseMode;
+    }
 
     __endAndReturn() {
         // for testing minigames.
@@ -222,8 +471,7 @@ class Scene_Engine extends Scene_Base {
             $__engineData.__haltAndReturn=false;
             return;
         }
-        $__engineData.__haltAndReturn=false;
-        SceneManager.pop();
+        SceneManager.pop(); // calls terminate
     }
 
     // called exclusively by terminate, which is called from RPG maker.
@@ -241,6 +489,8 @@ class Scene_Engine extends Scene_Base {
         this.getCamera().getCameraGraphics().removeChildren(); // prevent bug if you rendered to the Camera
         this.freeRenderable(this.__GUIgraphics)
         this.freeRenderable(this.__backgroundContainer);
+        this.freeRenderable(this.__gameCanvas)
+        this.__audioCleanup();
     }
 
     __writeBack() {
@@ -309,6 +559,8 @@ class Scene_Engine extends Scene_Base {
         this.__cleanup();
         this.__writeBack();
         this.__resumeAudio();
+        this.setBackgroundColour(0);
+        $__engineData.__haltAndReturn=false;
     }
 
     __resumeAudio() {
@@ -324,19 +576,36 @@ class Scene_Engine extends Scene_Base {
     __doSimTick() {
         var start = window.performance.now();
 
-        this.__clearGraphics();
-        this.__doPhysicsTick();
-        IM.__doSimTick();
-        this.__updateBackground();
-        this.__prepareRenderToCameras();
+        IN.__update();
 
+        while(this.__timescaleFraction-1>=0) {
+            this.__timescaleFraction--;
+
+            IM.__timescaleImplicit();
+
+            this.__clearGraphics();
+            this.__doPhysicsTick();
+            IM.__doSimTick(this.__timescaleFraction-1 < 0); // true if this is the last frame of simluation
+
+            if(this.__pauseMode !==1)
+                this.__gameTimer++;
+            this.__globalTimer++;
+        }
+
+        if(this.isTimeScaled())
+            IM.__timescaleImmuneStep();
+
+        this.__prepareRenderToCameras();
+        this.__audioTick();
+       
+        
         var time = window.performance.now()-start;
         if($__engineData.__debugLogFrameTime)
             console.log("Time taken for this frame: "+(time)+" ms")
     }
 
     __doPhysicsTick() {
-        if(this.__physicsEngine === undefined)
+        if(this.__physicsEngine === undefined || this.__pauseMode!==0)
             return;
         Matter.Engine.update(this.__physicsEngine);
     }
@@ -349,9 +618,9 @@ class Scene_Engine extends Scene_Base {
      */
     addFilter(screenFilter, removeOnRoomChange = true, name = "ENGINE_DEFAULT_FILTER_NAME") {
         this.__filters.push({filter:screenFilter,remove:removeOnRoomChange,filterName: name});
-        var filters = this.filters // PIXI requires reassignment
+        var filters = this.__gameCanvas.filters // PIXI requires reassignment
         filters.push(screenFilter);
-        this.filters = filters;
+        this.__gameCanvas.filters = filters;
     }
 
     /**
@@ -372,9 +641,9 @@ class Scene_Engine extends Scene_Base {
         }
         var filterObj = this.__filters[i]
 
-        var filters = this.filters; // PIXI requirments.
-        filters.splice(this.filters.indexOf(filterObj.filter),1);
-        this.filters = filters;
+        var filters = this.__gameCanvas.filters; // PIXI requirments.
+        filters.splice(this.__gameCanvas.filters.indexOf(filterObj.filter),1);
+        this.__gameCanvas.filters = filters;
 
         this.__filters.splice(index,1);
     }
@@ -447,7 +716,7 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
-     * @returns {Number} The amount of frames the engine has been running, excluding time paused.
+     * @returns {Number} The amount of frames the engine has been running, excluding time paused, and including special time paused.
      */
     getGameTimer() {
         return this.__gameTimer;
@@ -478,7 +747,16 @@ class Scene_Engine extends Scene_Base {
      * @returns {Object} Default text settings
      */
     getDefaultSubTextStyle() {
-        return { fontFamily: 'GameFont', fontSize: 20, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 };
+        return { fontFamily: 'GameFont', fontSize: 20, fontVariant: 'bold', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 };
+    }
+
+    /**
+     * Creates and returns a new Object which may be passed in to a PIXI.Text as the style.
+     * 
+     * @returns {Object} Default text settings
+     */
+    getDefaultTextStyle() {
+        return { fontFamily: 'GameFont', fontSize: 30, fontVariant: 'bold', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 };
     }
 
     setCameraEnabled(index, enable) {
@@ -491,11 +769,12 @@ class Scene_Engine extends Scene_Base {
      * 
      * This function also applies the default anchor of the texture as defined in the manifest.
      * 
-     * The major difference between this and createRenderable is that createRenderable will also cause the engine to automatically render it, while
-     * this function will only tell the engine to keep track of it for you.
+     * The major difference between this and createManagedRenderable is that this will also cause the engine to automatically render it, createManagedRenderable
+     * will only tell the engine to keep track of it for you.
      * @param {EngineInstance} parent The parent to attach the renderable to
      * @param {PIXI.DisplayObject} renderable The renderable to auto dispose of
      * @param {Boolean | false} [align=false] Whether or not to automatically move the renderable to match the parent instance's x, y, scale, and rotation (default false)
+     * @returns {PIXI.DisplayObject} The passed in renderable
      */
     createRenderable(parent, renderable, align = false) {
         renderable.__depth = parent.depth
@@ -503,19 +782,9 @@ class Scene_Engine extends Scene_Base {
         renderable.__align = align;
         renderable.dx=0;
         renderable.dy=0;
-        this.applyRenderableSettings(renderable);
+        renderable.__idx = parent.__renderables.length;
         parent.__renderables.push(renderable);
-        return renderable;
-    }
-
-    /**
-     * Applies settings to a renderable object if available. Some texture settings may be defined in the manifest such as the anchor of the sprite.
-     * @param {PIXI.DisplayObject} renderable The renderable
-     * @returns {PIXI.DisplayObject} The input, useful for chaining.
-     */
-    applyRenderableSettings(renderable) {
-        if(renderable.texture && renderable.texture.defaultAnchor)
-            renderable.anchor.set(renderable.texture.defaultAnchor.x,renderable.texture.defaultAnchor.y)
+        this.getCamera().__getRenderContainer().addChild(renderable);
         return renderable;
     }
 
@@ -523,12 +792,11 @@ class Scene_Engine extends Scene_Base {
      * Attaches the lifetime of the specified renderable to the instance in question. When the instance is destroyed, the engine will
      * also destroy the renderable along with it.
      * 
-     * This function does NOT apply the default origin of the texture as defined in the textures manifest. For that you should call applyRenderableSettings()
-     * 
      * The major difference between this and createRenderable is that createRenderable will also cause the engine to automatically render it, while
      * this function will only tell the engine to keep track of it for you.
      * @param {EngineInstance} parent The parent to attach the renderable to
      * @param {PIXI.DisplayObject} renderable The renderable to auto dispose of
+     * @returns {PIXI.DisplayObject} The passed in renderable
      */
     createManagedRenderable(parent, renderable) {
         parent.__pixiDestructables.push(renderable);
@@ -555,6 +823,7 @@ class Scene_Engine extends Scene_Base {
     removeRenderable(renderable) {
         renderable.__parent.__renderables.splice(renderable.__parent.__renderables.indexOf(renderable),1); // remove from parent
         renderable.__parent=null; // leave it to be cleaned up eventually
+        this.getCamera().__getRenderContainer().removeChild(renderable);
         this.freeRenderable(renderable)
     }
 
@@ -617,42 +886,49 @@ class Scene_Engine extends Scene_Base {
     }
     
     setBackgroundColour(col) {
-        if(!(this.__background instanceof PIXI.Graphics)) {
-            throw new Error("Cannot set background colour of non graphics background. current type = " +  typeof(this.__background));
-            //this.setBackgroud(new PIXI.Graphics());
-        }
-        this.__backgroundColour = col;
-        this.__usingSolidColourBackground = true;
+        this.getRenderer().backgroundColor = col;
     }
 
     getBackgroundColour() {
-        if(!this.__usingSolidColourBackground)
-            throw new Error("Background is not a colour");
-        return this.__backgroundColour;
-    }
-
-    __updateBackground() {
-        if(!this.__usingSolidColourBackground)
-            return;
-        this.__background.clear();
-        this.__background.beginFill(this.__backgroundColour);
-        this.__background.drawRect(-128,-128,this.getWindowSizeX()+128,this.getWindowSizeY()+128)
-        this.__background.endFill()
+        return this.getRenderer().backgroundColor
     }
 
     __prepareRenderToCameras() {
-        for(var i =0;i<1;i++) { // this is probably ultra slow
+        for(var i =0;i<1;i++) { // a relic from a time long gone. more than one camera wouldn't work like this, you'd have to call the renderer directly.
             if(!this.__enabledCameras[i])
                 continue;
             var camera = this.__cameras[i];
-            camera.removeChildren();
+            camera.removeChildren(); // old code, can clean up
 
-            var container = camera.__getRenderContainer()
-            var arr = this.__collectAllRenderables();
-            if(arr.length!==0) // prevent null call
-                container.addChild(...arr)
 
-            camera.addChild(container);
+            // STOP: The following code ONLY works because it was checked against PIXIJS containers.
+            // There are no guarantees it will work with other container types such as Graphics.
+            var renderContainer = camera.__getRenderContainer()
+            var children = renderContainer.children;
+
+            // remove destroyed graphics.
+            for(var k = children.length-1;k>=0;k--) {
+                var child = children[k];
+                if(child._destroyed)
+                    renderContainer.removeChildAt(k);
+            }
+
+            // sort our array.
+            children.sort((a,b) => {
+                const x = a.__parent;
+                const y = b.__parent;
+                var d = (y.depth - x.depth); // first, try depth
+                if(d===0) {
+                    var d2 = (x.id-y.id); // next, try instance creation order
+                    if(d2===0) {
+                        return a.__idx - b.__idx; // finally, the renderable creation order
+                    }
+                    return d2;
+                }
+                return d
+            })
+
+            camera.addChild(renderContainer);
             camera.addChild(camera.getCameraGraphics());
         }
     }
@@ -682,9 +958,27 @@ class Scene_Engine extends Scene_Base {
             this.freeRenderable(renderable)
         }
     }
+
+    __notifyVisibilityChanged(event) {
+        if(document.visibilityState==="visible") {
+            if(this.__lastKnownTime===-1) // we don't have a record... ignore.
+                return;
+            var frames = Math.floor((event.timeStamp - this.__lastKnownTime)/16.666666)
+            var controller = MinigameController.getInstance();
+            if(controller!==undefined) {
+                controller.__notifyFramesSkipped(frames);
+            }
+        } else { // user hid the game
+            this.__lastKnownTime=event.timeStamp;
+        }
+    }
 }
 
 $engine = new Scene_Engine(); // create the engine at least once so that we have access to all engine functions.
+
+document.addEventListener("visibilitychange", function(event) {
+    $engine.__notifyVisibilityChanged(event);
+})
 
 ////////////////////////////////single time setup of engine///////////////////////
 
@@ -1070,11 +1364,169 @@ Window_Message.prototype.startPause = function() {
     this.pause = true;
 };
 
+// NOTE: RS_GraphicsMenu was modified to make these work again.
+Scene_Menu.prototype.commandSave = function() {
+    Scene_File.prototype.onSavefileOk.call(this);
+    $gameSystem.onBeforeSave();
+    if (DataManager.saveGame(1)) {
+        this.onSaveSuccess();
+    } else {
+        this.onSaveFailure();
+    }
+    
+};
+
+Scene_Menu.prototype.onSaveSuccess = function() {
+    SoundManager.playSave();
+	StorageManager.cleanBackup(1);
+    SceneManager.pop();
+};
+
+Scene_Menu.prototype.onSaveFailure = function() {
+    SoundManager.playBuzzer();
+};
+
+SceneManager.snap = function() {
+    UwU.onBeforeSnap(this._scene);
+    var snap = Bitmap.snap(this._scene);
+    UwU.onAfterSnap(this._scene);
+    return snap;
+}
+
 // hook a in a global update.
 SceneManager.updateManagers = function() {
     ImageManager.update();
-    OwO.tick();
+    UwU.tick();
 }
+
+// place in block so that the local variables don't pollute the global namespace
+{
+    let oldFunc = SceneManager.renderScene;
+    SceneManager.renderScene = function() {
+        UwU.onBeforeRenderScene();
+        oldFunc.call(this);
+    }
+
+    /*
+    // Some info about GameInterpreter:
+    // found in RPG objects, line 8765
+    // will constantly execute commands, between each command it must wait for "updateWaitMode" to return true
+    let giUpdateWaitMode = Game_Interpreter.prototype.updateWaitMode;
+    Game_Interpreter.prototype.updateWaitMode = function() {
+        if (this._waitMode === "engine") {
+            if($__engineData.__advanceGameInterpreter) {
+                $__engineData.__advanceGameInterpreter=false;
+            } else {
+                return true; // true = waiting
+            }
+        }
+        return giUpdateWaitMode.call(this);
+    };
+
+    Game_Interpreter.prototype.command101 = function() {
+        if(!$engine.isOverworld()) { // start engine!
+            $__engineData.loadRoom = "OverworldTextRoom"
+            $engine.startOverworld();
+        }
+        var msg = [];
+        while (this.nextEventCode() === 401) {  // Text data
+            this._index++;
+            msg.push(this.currentCommand().parameters[0]);
+        }
+        OverworldTextController.instance.setTextArray(msg);
+        OverworldTextController.instance.setMode(OverworldTextController.MODE_TEXT);
+        this._index++;
+
+        this.setWaitMode("engine")
+        return false;
+
+        // REF:
+        if (!$gameMessage.isBusy()) {
+            $gameMessage.setFaceImage(this._params[0], this._params[1]);
+            $gameMessage.setBackground(this._params[2]);
+            $gameMessage.setPositionType(this._params[3]);
+            while (this.nextEventCode() === 401) {  // Text data
+                this._index++;
+                $gameMessage.add(this.currentCommand().parameters[0]);
+            }
+            switch (this.nextEventCode()) {
+            case 102:  // Show Choices
+                this._index++;
+                this.setupChoices(this.currentCommand().parameters);
+                break;
+            case 103:  // Input Number
+                this._index++;
+                this.setupNumInput(this.currentCommand().parameters);
+                break;
+            case 104:  // Select Item
+                this._index++;
+                this.setupItemChoice(this.currentCommand().parameters);
+                break;
+            }
+            this._index++;
+            this.setWaitMode('message');
+        }
+        return false;
+        // END REF
+    };
+
+    /*let giTerminate = Game_Interpreter.prototype.terminate;
+    Game_Interpreter.prototype.terminate = function() {
+        giTerminate.call(this);
+        $engine.endOverworld();
+    }*/
+}
+
+// jank support for 1x1 spritesheet characters -- doesn't work with anything but characters facing down.
+// Doesn't work with anims. (prefix with ~):
+ImageManager.isObjectCharacter = function(filename) {
+    var sign = filename.match(/^[\!\$\~]+/);
+    return sign && sign[0].contains('!');
+};
+
+ImageManager.isBigCharacter = function(filename) {
+    var sign = filename.match(/^[\!\$\~]+/);
+    return sign && sign[0].contains('$');
+};
+
+ImageManager.isReallyBigCharacter = function(filename) {
+    var sign = filename.match(/^[\!\$\~]+/);
+    return sign && sign[0].contains('~');
+};
+
+Sprite_Character.prototype.patternWidth = function() {
+    if (this._tileId > 0) {
+        return $gameMap.tileWidth();
+    } else if(this._isReallyBigCharacter) {
+		return this.bitmap.width
+	} else if (this._isBigCharacter) {
+        return this.bitmap.width / 3;
+    } else {
+        return this.bitmap.width / 12;
+    }
+};
+
+Sprite_Character.prototype.patternHeight = function() {
+    if (this._tileId > 0) {
+        return $gameMap.tileHeight();
+    } else if (this._isReallyBigCharacter) {
+		return this.bitmap.height
+	} else if (this._isBigCharacter) {
+        return this.bitmap.height / 4;
+    } else {
+        return this.bitmap.height / 8;
+    }
+};
+
+Sprite_Character.prototype.setCharacterBitmap = function() {
+    this.bitmap = ImageManager.loadCharacter(this._characterName);
+    this._isBigCharacter = ImageManager.isBigCharacter(this._characterName);
+    this._isReallyBigCharacter = ImageManager.isReallyBigCharacter(this._characterName);
+};
+
+
+
+////////////////// end overriding RPG maker /////////////////
 
 // Unwrap Utilities
 // A utility class that provides access to and hooks into low level RPG maker functions.
@@ -1125,6 +1577,34 @@ class UwU {
     static sceneIsOverworld() {
         return SceneManager._scene.constructor === Scene_Map; 
     }
+
+    static onBeforeSnap(scene) {
+        GUIScreen.onBeforeSnap(scene);
+    }
+
+    static onAfterSnap(scene) {
+        GUIScreen.onAfterSnap(scene);
+    }
+
+    static onBeforeRenderScene() {
+        for(const listener of UwU.__onBeforeRenderListeners)
+            listener()
+    }
+
+    static addRenderListener(func) {
+        UwU.__onBeforeRenderListeners.push(func)
+    }
+
+    static removeRenderListener(func) {
+        var idx = UwU.__onBeforeRenderListeners.indexOf(func);
+        if(idx===-1)
+            throw new Error("Cannot remove listener that was not added.")
+        UwU.__onBeforeRenderListeners.splice(idx,1);
+    }
+
+    static tick() {
+        OwO.tick();
+    }
 }
 
 var sceneManagerOnSceneStart = SceneManager.onSceneStart;
@@ -1136,6 +1616,7 @@ SceneManager.onSceneStart = function() {
 UwU.__onSceneChangeListeners = [];
 UwU.__lastMapId = 0;
 UwU.__currentMapId = 0;
+UwU.__onBeforeRenderListeners = [];
 
 // Overworld Organizer
 // I hate myself too.
@@ -1155,8 +1636,11 @@ class OwO {
             }
             if(UwU.sceneIsOverworld()) { // any transition into overworld, from any other scene.
                 OwO.__applyAllFilters(OwO.__gameFilters);
-                if(UwU.mapIdChanged()) // changed to a new map level
+                if(UwU.mapIdChanged()) { // changed to a new map level
                     OwO.__deallocateRenderLayer();
+                    OwO.__executeMapScript();
+                    $gamePlayer._touchTarget = null // reset the target why doesn't altimit do this like really.
+                }
             }
             if(!UwU.lastSceneWasMenu() && !UwU.sceneIsMenu()) { // if true, the last change had nothing to do with menu (could be overworld to engine)
                 OwO.__resetAutorunSwitch();
@@ -1165,6 +1649,20 @@ class OwO {
                 OwO.__syncRenderLayer();
             }
         })
+    }
+
+    static __executeMapScript() {
+        var scr = OwO.__mapScripts[$gameMap._mapId];
+        if(scr) {
+            scr();
+        }
+    }
+
+    static registerMapScript(scr) {
+        if(OwO.__mapScripts[$gameMap._mapId]) // already registered, ignore.
+            return;
+        OwO.__mapScripts[$gameMap._mapId] = scr;
+        OwO.__executeMapScript();
     }
 
     // in every room there exists an autorun script. this autorun will only run if variable #4 is set to 0 and it will set #4 back to 1
@@ -1338,7 +1836,7 @@ class OwO {
         OwO.__renderLayerIndex = 0;
         OwO.__deallocateRenderLayer();
         OwO.__renderLayer = new PIXI.Container();
-        OwO.getSpriteset().children[0].addChild(OwO.__renderLayer);
+        OwO.__rebindRenderLayer();
         OwO.__syncRenderLayer();
     }
 
@@ -1352,11 +1850,12 @@ class OwO {
     }
 
     static __rebindRenderLayer() {
-        OwO.getSpriteset().children[0].addChild(OwO.__renderLayer);
+        if(!$engine.isLow())
+            OwO.getSpriteset().children[0].addChild(OwO.__renderLayer);
     }
 
     static __renderLayerTick() {
-        if(!OwO.__renderLayer || UwU.sceneIsMenu())
+        if(!OwO.__renderLayer || UwU.sceneIsMenu() || UwU.sceneIsEngine())
             return;
 
         if(OwO.__renderLayerController)
@@ -1508,7 +2007,8 @@ class OwO {
     // this method runs once per frame no matter what
     static tick() {
         OwO.__applyUpdateFunctions();
-        OwO.__renderLayerTick();
+        if(!$engine.isLow())
+            OwO.__renderLayerTick();
         if(!UwU.sceneIsMenu())
             OwO.__RPGgameTimer++;
     }
@@ -1538,3 +2038,97 @@ OwO.__sceneShaderMap = {};
 OwO.__RPGgameTimer = 0;
 OwO.__colourFilter = new PIXI.filters.AdjustmentFilter()
 OwO.__gameFilters = [OwO.__colourFilter];
+OwO.__mapScripts = {};
+
+class GUIScreen { // static class for stuff like the custom cursor. always running.
+
+    static onBeforeRenderScene() {
+        GUIScreen.__updateMouseLocation();
+        GUIScreen.__renderMouse();
+    }
+
+    static __sceneChanged(previousClass, scene) {
+        //GUIScreen.__bindContainer();
+    }
+
+    static __bindContainer() {
+        SceneManager._scene.addChild(GUIScreen.__graphics); // bind directly to the scene
+        GUIScreen.__graphics.filters = [GUIScreen.__filter]
+        /*if($engine.isLow()) {
+            GUIScreen.__graphics.filters = []
+        } else {
+            GUIScreen.__graphics.filters = [GUIScreen.__filter]
+        }*/
+    }
+
+    static __initGraphics() {
+        GUIScreen.__filter = new PIXI.filters.OutlineFilter(1,0xffffff)
+        GUIScreen.__graphics.filters = [GUIScreen.__filter]
+    }
+
+    static __renderMouse() {
+        var graphics = GUIScreen.__graphics
+        var locations = GUIScreen.__mousePoints;
+        var length = GUIScreen.__mousePoints.length;
+        if(length===0)
+            return;
+        //graphics.cursor = undefined
+        graphics.clear();
+        graphics.moveTo(locations[0].x,locations[0].y)
+        var size = length;
+        var points = [];
+        // code by Homan, https://stackoverflow.com/users/793454/homan
+        // source: https://stackoverflow.com/a/7058606
+        for(var i =0;i<length-1;i++) {
+            graphics.lineStyle(size - i,0);
+            var xc = (locations[i].x + locations[i + 1].x) / 2;
+            var yc = (locations[i].y + locations[i + 1].y) / 2;
+            points.push(new EngineLightweightPoint(xc,yc))
+            graphics.quadraticCurveTo(locations[i].x, locations[i].y, xc, yc);
+        }
+        graphics.lineStyle(0);
+        graphics.beginFill(0);
+        graphics.drawCircle(locations[0].x,locations[0].y,(size-1)/2)
+        for(var i =0;i<length-1;i++) {
+            graphics.drawCircle(points[i].x,points[i].y,(size - i)/2)
+        }
+        graphics.endFill()
+
+    }
+
+    static __mouseMoveHandler(event) {
+        GUIScreen.__mouseDirect = new EngineLightweightPoint(event.clientX,event.clientY)
+    }
+
+    static __updateMouseLocation() {
+        if(!GUIScreen.__mouseDirect)
+            return;
+        if(!Graphics._renderer)
+            return;
+        var locCorrected = Graphics._renderer.plugins.interaction.mouse.getLocalPosition(GUIScreen.__graphics,GUIScreen.__mouseDirect);
+        GUIScreen.__mouse = locCorrected;
+
+        GUIScreen.__mousePoints.unshift(new EngineLightweightPoint(GUIScreen.__mouse.x,GUIScreen.__mouse.y))
+        if(GUIScreen.__mousePoints.length > GUIScreen.__maxMousePoints)
+            GUIScreen.__mousePoints.pop();
+    }
+
+    static onBeforeSnap(scene) {
+        scene.removeChild(GUIScreen.__graphics);
+    }
+
+    static onAfterSnap(scene) {
+        GUIScreen.__bindContainer();
+    }
+}
+
+GUIScreen.__graphics = new PIXI.Graphics();
+GUIScreen.__mouse = undefined;
+GUIScreen.__updateMouseLocation();
+GUIScreen.__mousePoints = [];
+GUIScreen.__maxMousePoints = 10;
+GUIScreen.__maxMouseTrailLength = 10;
+GUIScreen.__initGraphics();
+UwU.addRenderListener(GUIScreen.onBeforeRenderScene);
+document.addEventListener("pointerrawupdate", GUIScreen.__mouseMoveHandler); // fix one frame lag.
+UwU.addSceneChangeListener(GUIScreen.__sceneChanged);

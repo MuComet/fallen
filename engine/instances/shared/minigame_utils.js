@@ -1,3 +1,11 @@
+/**
+ * Buffers an input.
+ * 
+ * Usage:
+ * 
+ * Pass in the string name of the key to buffer, and then the buffer length. After that 
+ * call consume(), consumeImmedaitely(), or check() to use up this BufferedInput.
+ */
 class BufferedKeyInput extends EngineInstance {
     onEngineCreate() {}
 

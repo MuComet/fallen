@@ -1428,7 +1428,7 @@
         return Input.dir8;
       };
 
-      Game_Player.prototype.moveByInput = function() {
+      Game_Player.prototype.moveByInput = function() { // MODIFIED
         if ( $gameSystem._staticEnableTouchMouse != INPUT_CONFIG.ENABLE_TOUCH_MOUSE ) {
           $gameSystem._staticEnableTouchMouse = INPUT_CONFIG.ENABLE_TOUCH_MOUSE;
           $gameSystem._enableTouchMouse = INPUT_CONFIG.ENABLE_TOUCH_MOUSE;
@@ -1496,10 +1496,23 @@
           } else if ( $gameSystem._enableTouchMouse && $gameTemp.isDestinationValid() ) {
             // Touch movement
             var characterTarget = null;
-            var touchedCharacters = $gameMap.getCharactersUnderPoint( $gameTemp.destinationX(), $gameTemp.destinationY() ).filter( function( character ) {
+			var filterFunc = function( character ) {
               // Filter out events that player cannot reach
               return !( character._eventId && !character.isNormalPriority() );
-            } );
+            } 
+            var touchedCharacters = [];
+			// prioritize the character under the cursor first.
+			var targets = $gameMap.getCharactersUnderPoint( $gameTemp.destinationX(), $gameTemp.destinationY());
+			if(targets.length!==0)
+				touchedCharacters.push(...targets);
+			// fix for altmite being stupid precise. now you can click near a character and it will register
+			for(var i =0;i<25;i++) {
+				var targets = $gameMap.getCharactersUnderPoint( $gameTemp.destinationX()-0.5 + 0.25*(i%5), $gameTemp.destinationY() - 0.5 + 0.25 * Math.floor(i/5));
+				if(targets.length!==0)
+					touchedCharacters.push(...targets);
+			}
+			
+			touchedChacters = touchedCharacters.filter(filterFunc)
             if ( this.isInVehicle() ) {
               // In vehicle
               if ( touchedCharacters.contains( $gamePlayer.vehicle() ) ) {

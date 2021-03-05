@@ -34,7 +34,7 @@ class DrawController extends MinigameController { // controls the minigame
                         fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
         this.setInstructionRenderable(text)
 
-        this.audioReference = $engine.generateAudioReference("Minigame-001");
+        this.audioReference = $engine.generateAudioReference("Minigame");
         AudioManager.playBgm(this.audioReference);
         AudioManager.fadeInBgm(1);
     }
@@ -73,6 +73,8 @@ class DrawController extends MinigameController { // controls the minigame
             this.done = true;
             return;
         }
+        $engine.audioPlaySound("audio/se/Start.ogg")
+        $engine.audioPlaySound("audio/se/Shake.ogg","SE",1,true)
         this.drawings[this.drawingInd].alpha = 1;
         this.waitTimer = -9999999;
     }
@@ -80,7 +82,7 @@ class DrawController extends MinigameController { // controls the minigame
     step() {
         super.step();
 
-        if(!this.timer.stopped()) {
+        if(!this.timer.isTimerDone()) {
             this.waitTimer++;
             if(this.waitTimer<150) {
                 if(this.waitTimer<=60) {
@@ -89,6 +91,7 @@ class DrawController extends MinigameController { // controls the minigame
                 } else {
                     this.instructiontext.text = "GO!!!!"
                     this.instructiontext.alpha = 1-(this.waitTimer-60)/40 + Math.sin(this.waitTimer/2)/2
+                    $engine.audioStopSound("audio/se/Shake.ogg");
                 }
             } else {
                 this.instructiontext.text = "";
@@ -145,6 +148,10 @@ class DrawController extends MinigameController { // controls the minigame
         this.instructiontext.alpha=1;
         this.instructiontext.text = "Summary: Drawing " + String(ind+1)+" -> Score = " +String(draw.score).substring(0,4) + "\n("+
                             String(draw.baseScore).substring(0,4)+" accuracy - "+String(draw.basePenalty).substring(0,4) +" extra distance "+")";
+    }
+
+    notifyFramesSkipped(frames) {
+        this.timer.tickDown(frames);
     }
 }
 
@@ -207,10 +214,12 @@ class DrawableLine extends EngineInstance {
         this.isDrawing=true;
         this.points.push(new Vertex(IN.getMouseX(),IN.getMouseY()))
         this.lastPoint = this.points[0];
+        $engine.audioPlaySound("audio/se/Spray.ogg","SE",1,true)
     }
 
     endDrawing() {
         this.isDrawing=false;
+        $engine.audioStopSound("audio/se/Spray.ogg")
     }
 
     draw(gui,camera) {
@@ -218,14 +227,27 @@ class DrawableLine extends EngineInstance {
         if(!this.show) 
             return;
         var graphics = this.drawGraphics;
-        graphics.lineStyle(3+Math.abs(Math.sin($engine.getGameTimer()/60)*7),0xffffff).moveTo(this.points[0].x,this.points[0].y);
-        for(var i =1;i<this.points.length;i++) {
-            graphics.lineTo(this.points[i].x,this.points[i].y)
-        }
+        if(!$engine.isLow()) {
+            graphics.lineStyle(3+Math.abs(Math.sin($engine.getGameTimer()/60)*7),0xffffff).moveTo(this.points[0].x,this.points[0].y);
+            for(var i =1;i<this.points.length-1;i++) {
+                var xc = (this.points[i].x + this.points[i + 1].x) / 2;
+                var yc = (this.points[i].y + this.points[i + 1].y) / 2;
+                graphics.quadraticCurveTo(this.points[i].x, this.points[i].y, xc, yc);
+            }
+            graphics.lineTo(this.points[this.points.length-1].x,this.points[this.points.length-1].y)
 
-        graphics.lineStyle(Math.abs(Math.sin($engine.getGameTimer()/60)*2),0xaaaaaa).moveTo(this.points[0].x,this.points[0].y);
-        for(var i =1;i<this.points.length;i++) {
-            graphics.lineTo(this.points[i].x,this.points[i].y)
+            graphics.lineStyle(Math.abs(Math.sin($engine.getGameTimer()/60)*2),0xaaaaaa).moveTo(this.points[0].x,this.points[0].y);
+            for(var i =1;i<this.points.length-1;i++) {
+                var xc = (this.points[i].x + this.points[i + 1].x) / 2;
+                var yc = (this.points[i].y + this.points[i + 1].y) / 2;
+                graphics.quadraticCurveTo(this.points[i].x, this.points[i].y, xc, yc);
+            }
+            graphics.lineTo(this.points[this.points.length-1].x,this.points[this.points.length-1].y)
+        } else {
+            graphics.lineStyle(5,0xffffff).moveTo(this.points[0].x,this.points[0].y);
+            for(var i =1;i<this.points.length;i++) {
+                graphics.lineTo(this.points[i].x, this.points[i].y, xc, yc);
+            }
         }
 
         graphics.lineStyle(0,0xffffff)

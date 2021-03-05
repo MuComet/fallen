@@ -5,4 +5,7 @@ MenuIntro engine/rooms/menu_intro.txt
 RockRoom engine/rooms/rock.txt
 SkyRoom engine/rooms/sky.txt
 CutsceneRoom engine/rooms/cutscene_room.txt
+OverworldTextRoom engine/rooms/overworld_text.txt
 CardRoom engine/rooms/card_room.txt
+FallingObjectsRoom engine/rooms/falling_objects_room.txt
+WallBuildingRoom engine/rooms/wall_building.txt

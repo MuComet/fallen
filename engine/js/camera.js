@@ -4,6 +4,9 @@ class Camera extends PIXI.Container {
         super();
         this.CANVAS_WIDTH = Graphics.boxWidth;
         this.CANVAS_HEIGHT = Graphics.boxHeight;
+        this.engineX = this.x;
+        this.engineY = this.y;
+        this.angle = 0;
         this.setLocation(x,y);
         this.setDimensions(w,h);
         this.setRotation(r);
@@ -60,8 +63,26 @@ class Camera extends PIXI.Container {
 
     setLocation(x,y) { // x and y are negative so that they represent where the camera would physically be.
         IN.__validMouse = false;
-        this.x = -x;
-        this.y = -y;
+        this.engineX = x; // we use intermediates so that we can have our own coord. system.
+        this.engineY = y;
+        this.__applyLocation();
+    }
+
+    __applyLocation() {
+        var dx = this.getWidth()/2;
+        var dy = this.getHeight()/2;
+
+        var off = new Vertex(dx,dy);
+        off.rotate(this.angle);
+        off.translate(-dx,-dy)
+
+        this.rotation = this.angle;
+        this.x = -this.engineX - off.x;
+        this.y = -this.engineY - off.y;
+    }
+
+    __getCenter() {
+        return new EngineLightweightPoint(this.engineX + this.getWidth()/2,this.engineY + this.getHeight()/2);
     }
 
     translate(dx,dy) {
@@ -69,21 +90,19 @@ class Camera extends PIXI.Container {
     }
 
     setX(x) {
-        IN.__validMouse = false;
-        this.x = -x;
+        this.setLocation(x,this.getY())
     }
 
     setY(y) {
-        IN.__validMouse = false;
-        this.y = -y;
+        this.setLocation(this.getX(),y)
     }
 
     getX() {
-        return -this.x;
+        return this.engineX;
     }
 
     getY() {
-        return -this.y;
+        return this.engineY;
     }
 
     setScaleX(sx) {
@@ -136,33 +155,52 @@ class Camera extends PIXI.Container {
 
     setRotation(rot) {
         IN.__validMouse = false;
-        this.rotation = rot;
+        this.angle = rot;
+        this.__applyLocation();
     }
 
     getRotation() {
-        return this.rotation;
+        return this.angle;
     }
 
     __match() {
         var len = this.__renderContainer.children.length;
-        for(var i =0;i<len;i++) {
-            var child = this.__renderContainer.children[i];
-            if(!child.__align)
-                continue;
-            var parent = child.__parent;
-            child.x = parent.x;
-            child.y = parent.y;
-            child.x+=child.dx;
-            child.y+=child.dy;
-            child.rotation = parent.angle;
-            child.scale.x = parent.xScale;
-            child.scale.y = parent.yScale;
-            child.alpha = parent.alpha
+        if(!$engine.isTimeScaled()) {
+            for(var i =0;i<len;i++) {
+                var child = this.__renderContainer.children[i];
+                if(!child.__align)
+                    continue;
+                var parent = child.__parent;
+                child.x = parent.x;
+                child.y = parent.y;
+                child.x+=child.dx;
+                child.y+=child.dy;
+                child.rotation = parent.angle;
+                child.scale.x = parent.xScale;
+                child.scale.y = parent.yScale;
+                child.alpha = parent.alpha
+            }
+        } else {
+            var fraction = $engine.getTimescaleFraction();
+            for(var i =0;i<len;i++) {
+                var child = this.__renderContainer.children[i];
+                if(!child.__align)
+                    continue;
+                var parent = child.__parent;
+                child.x = parent.__lx + (parent.x-parent.__lx)*fraction;
+                child.y = parent.__ly + (parent.y-parent.__ly)*fraction;
+                child.x+=child.dx;
+                child.y+=child.dy;
+                child.rotation = parent.__langle + (parent.angle-parent.__langle)*fraction;
+                child.scale.x = parent.__lxScale + (parent.xScale-parent.__lxScale)*fraction;
+                child.scale.y = parent.__lyScale + (parent.yScale-parent.__lyScale)*fraction;
+                child.alpha = parent.__lalpha + (parent.alpha-parent.__lalpha)*fraction
+            }
         }
     }
 
-    __reportMouse() {
-        return Graphics._renderer.plugins.interaction.mouse.getLocalPosition(this);
+    __reportMouse(point,global) {
+        return Graphics._renderer.plugins.interaction.mouse.getLocalPosition(this,point,global);
     }
 
 

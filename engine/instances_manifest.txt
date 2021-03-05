@@ -4,6 +4,7 @@ BufferedKeyInput BufferedMouseInput EngineButton engine/instances/shared/minigam
 EnginePhysicsInstance engine/instances/shared/physics_instance.js
 
 CutsceneController engine/instances/cutscene.js
+OverworldTextController engine/instances/overworld_text.js
 
 TestInstance engine/instances/test_instance.js
 TestInstance2 engine/instances/test_instance2.js
@@ -14,3 +15,5 @@ MenuIntroController Letter RisingSprite MainMenuButton engine/instances/menu_int
 RockMinigameController RockDodgingPlayer FallingRock engine/instances/falling_rocks.js
 SkyMinigameController SkyBuildPlayer FallingTowerPlatform engine/instances/sky_minigame.js
 CardMinigameController CardBoard engine/instances/card_minigame.js
+FallingObjectsController FallingObjectsPlayer FallingObject FallingObjectShadow DustParticle engine/instances/falling_objects_2d.js
+WallBuilderController Brick engine/instances/wall_building.js

@@ -1747,6 +1747,7 @@ Scene_Load.prototype.initialize = function() {
 
 Scene_Load.prototype.terminate = function() {
     Scene_File.prototype.terminate.call(this);
+	console.log(SceneManager._scene)
     if (this._loadSuccess) {
         $gameSystem.onAfterLoad();
     }

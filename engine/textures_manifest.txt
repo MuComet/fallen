@@ -12,9 +12,6 @@ require cloud_generic_2 engine/textures/generic/cloud_generic_2.png 0.5 0.5
 require cloud_generic_3 engine/textures/generic/cloud_generic_3.png 0.5 0.5
 require cloud_generic_4 engine/textures/generic/cloud_generic_4.png 0.5 0.5
 
-require introStart1 engine/textures/intro/start1.png 0.5 0.5
-require introStart2 engine/textures/intro/start2.png 0.5 0.5
-
 spritesheet dimensions 6000 624 6 1 background_sheet engine/textures/generic/background_generic_sheet.png 0.5 0.5
 spritesheet dimensions 1632 624 2 1 intro_cutscene_sheet engine/textures/intro/intro_cutscene_sheet.png 0 0
 
@@ -48,3 +45,11 @@ card_1 engine/textures/card_1.png 0.5 0.5
 card_2 engine/textures/card_2.png 0.5 0.5
 card_3 engine/textures/card_3.png 0.5 0.5
 yugioh engine/textures/yugioh.png 0.5 0.5
+
+falling_object_spike engine/textures/falling_object/spike.png 0.5 0.5
+falling_object_flower engine/textures/falling_object/flower.png 0.5 0.5
+falling_object_shadow engine/textures/falling_object/shadow.png 0.5 0.5
+
+wall_building_brick_1 engine/textures/brick.png 0.5 1
+letter_backdrop engine/textures/letter_backdrop.png 0.5 0.5
+wall_building_grit engine/textures/grit.png 0.5 0.5

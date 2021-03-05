@@ -32,6 +32,7 @@ class EngineInstance {
      * This means that if you say new EngineInstance(50,50,100) and have onCreate(x,y,z), then x = 50, y = 50, and z = 100.
      */
     constructor(...args) {
+
         this.depth = 0;
         this.x=0;
         this.y=0;
@@ -57,6 +58,9 @@ class EngineInstance {
             this.onEngineCreate(); // called when the instance is first created
         } else
             this.onCreate.apply(this,args); // calls on create of calling inst with args
+
+        if($engine.isTimeScaled())
+            this.__timescaleImplicit();
     }
 
     /**
@@ -140,11 +144,16 @@ class EngineInstance {
     step() {}
 
     /**
+     * timescaleImmuneStep is run only when the engine timescale is non standard. When the timescale is different, this event is called once per
+     * frame (60 times a second). Use this event to control the game logic while the timescale is different or possibly zero.
+     * 
+     * This event runs after all other events are completed.
+     */
+    timescaleImmuneStep() {};
+
+    /**
      * preDraw is called once per frame (60 times per second) and may be used to set up variables for draw(). Becuase of the draw contract,
      * this method must exist so that you can reliably set up your data.
-     * 
-     * This event is NOT sorted, so the order that it is called in may not be representative of the draw order.
-     * The order is the same as in step().
      * 
      * This event runs right after step(), and right before draw()
      */
@@ -156,9 +165,19 @@ class EngineInstance {
     __implicit() {}
 
     /**
+     * Engine functions. Do not override.
+     */
+    __timescaleImplicit() {
+        this.__lx = this.x;
+        this.__ly = this.y;
+        this.__lxScale = this.xScale;
+        this.__lyScale = this.yScale;
+        this.__lalpha = this.alpha;
+        this.__langle = this.angle;
+    }
+
+    /**
      * Draw contract: Do not edit any variables in this method, only read them.
-     * 
-     * This event is sorted, unlike other events, it will be called in the same order that objects will be rendered in.
      * 
      * Draw is the method that you can use to render more advanced objects to the screen. It is called once per frame (60 times per second) reguardless of
      * whether or not the game is currently paused. Note that anything created using $engine.createRenderable() is
@@ -192,7 +211,7 @@ class EngineInstance {
     pause() {}
 
     /**
-     * onDestroy is at the end of the frame called when this instance is destroyed for any using destroy().
+     * onDestroy is called immediately when this instance is destroyed using destroy(). Also called when the current room ends.
      */
     onDestroy() {}
 

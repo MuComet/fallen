@@ -4,23 +4,23 @@ class SkyMinigameController extends MinigameController { // All classes that can
         super.onEngineCreate();
         SkyMinigameController.score = 0;
         SkyMinigameController.nextBlock = 0;
-        SkyMinigameController.timer = 0;
+        SkyMinigameController.timer = 20;
         SkyMinigameController.endTime = 20;
         SkyMinigameController.pCamY = 0;
         SkyMinigameController.nCamY = 0;
         SkyMinigameController.iBuffer = undefined
-        SkyMinigameController.mingameTimer = undefined
         SkyMinigameController.maxScore = 32;
 
         new SkyBuildPlayer($engine.getWindowSizeX()/2,0,0);
         new FallingTowerPlatform($engine.getWindowSizeX()/2,$engine.getWindowSizeY()-50);
-        this.timer = 0;
         //$engine.setBackgroundColour(12067);
         $engine.setBackgroundColour(0xa58443);
         SkyMinigameController.iBuffer = new BufferedKeyInput('Space',2);
 
-        SkyMinigameController.mingameTimer = new MinigameTimer(60*5);
-        SkyMinigameController.mingameTimer.addOnTimerStopped(this, function(parent, bool) {
+        this.startTimer(5*60);
+
+        //SkyMinigameController.minigameTimer = new MinigameTimer(60*5);
+        /*SkyMinigameController.minigameTimer.addOnTimerStopped(this, function(parent, bool) {
             if(bool)
                 $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
             else {
@@ -29,36 +29,37 @@ class SkyMinigameController extends MinigameController { // All classes that can
             AudioManager.fadeOutBgm(1)
             $engine.startFadeOut(30,false)
             $engine.endGame();
-        })
+        })*/
 
         new ParallaxingBackground();
 
-        // audio
-        this.audioReference = $engine.generateAudioReference("Minigame-001");
-        AudioManager.playBgm(this.audioReference);
-        AudioManager.fadeInBgm(1);
-
         // instructions
 
-        var text = new PIXI.Text("Press Space to drop a block\nPress Enter to cheat!",{ fontFamily: 'Helvetica',
-                        fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
+        var text = new PIXI.Text("Press Space to drop a block\nPress Enter to cheat!",$engine.getDefaultTextStyle())
 
         this.setInstructionRenderable(text)
 
         // progress
-        this.progressText = new PIXI.Text("",{ fontFamily: 'Helvetica',
-                    fontSize: 20, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
+        this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle())
         $engine.createManagedRenderable(this,this.progressText);
         this.progressText.anchor.set(0.5,0.5);
         this.progressText.x = $engine.getWindowSizeX()/2;
         this.progressText.y = $engine.getWindowSizeY()-30;
         this.updateProgressText();
 
-        this.seList = ["Bonk","Donk","Drill","Wobbly"];
+        this.seList = ["Donk","Drill"];
         this.nextSoundTimer = 0;
         this.nextSoundRand = EngineUtils.irandomRange(60,150);
 
-    }  
+        this.drillTimer = 5*60;
+        this.drillTimeBase = 8*60;
+        this.drillTime = this.drillTimeBase+EngineUtils.irandomRange(-60,60);
+
+    } 
+
+    notifyFramesSkipped(frames) {
+        this.getTimer().tickDown(frames)
+    }
 
     updateProgressText() {
         this.progressText.text = "Progress: "+String(SkyMinigameController.score+" / "+String(SkyMinigameController.maxScore))
@@ -72,16 +73,26 @@ class SkyMinigameController extends MinigameController { // All classes that can
         super.step();
         var timer = SkyMinigameController.timer;
         var endTime = SkyMinigameController.endTime;
-        if(timer<=endTime) {
-            $engine.getCamera().setY(EngineUtils.interpolate(timer/endTime,SkyMinigameController.pCamY,SkyMinigameController.nCamY,EngineUtils.INTERPOLATE_OUT));
+        if(timer<=endTime) { 
+            var camera = $engine.getCamera()
+            camera.setY(EngineUtils.interpolate(timer/endTime,SkyMinigameController.pCamY,SkyMinigameController.nCamY,EngineUtils.INTERPOLATE_OUT_BACK));
+            var fac = EngineUtils.interpolate(timer/endTime,1,0,EngineUtils.INTERPOLATE_OUT_QUAD);
+            camera.setRotation(EngineUtils.randomRange(-0.01,0.01)*fac)
+            camera.setLocation(EngineUtils.irandomRange(-2,2) * fac, camera.getY() + EngineUtils.irandomRange(-2,2) * fac)
         }
         SkyMinigameController.timer++;
 
         this.nextSoundTimer++; 
         if(this.nextSoundTimer>=this.nextSoundRand) {
-            AudioManager.playSe($engine.generateAudioReference(this.seList[EngineUtils.irandom(3)]));
+            AudioManager.playSe($engine.generateAudioReference(this.seList[EngineUtils.irandom(0)]));
             this.nextSoundTimer=0;
-            this.nextSoundRand = EngineUtils.irandomRange(60,150);
+            this.nextSoundRand = EngineUtils.irandomRange(150,300);
+        }
+        this.drillTimer++;
+        if(this.drillTimer>this.drillTime) {
+            this.drillTimer=0;
+            this.drillTime = this.drillTimeBase+EngineUtils.irandomRange(-60,60)
+            AudioManager.playSe($engine.generateAudioReference(this.seList[1]));
         }
     }
 
@@ -111,6 +122,16 @@ class SkyBuildPlayer extends EngineInstance {
         this.dropping=false;
         this.randomOffset = EngineUtils.irandom(120);
         this.swingMove();
+        this.shakeTimer = 0;
+        this.shakeTime = 12;
+        this.dropX = 0;
+        this.dropY = 0;
+        this.dropAngle = 0;
+        this.dropTimer=0;
+        this.dropFadeTime = 24;
+        this.lastX = 0;
+        this.lastDir = 0;
+        this.fallPlayed = false;
     }
 
     swingMove() {
@@ -119,35 +140,70 @@ class SkyBuildPlayer extends EngineInstance {
         var sin = Math.sin($engine.getGameTimer()/EngineUtils.clamp(32-SkyMinigameController.score * val,4,32) + this.randomOffset);
         this.angle = -sin/2;
         var angle2 = Math.PI*3/2+sin/2;
+        this.lastX=this.x;
         this.x = this.xStart + V2D.lengthDirX(angle2,300);
         this.y = this.yStart + V2D.lengthDirY(angle2,300);
+
+        
+        this.lastDir = this.dir;
+        this.dir = Math.sign(this.lastX - this.x);
+        if(this.dir===0)
+            this.dir = -this.lastDir;
+
+        if(this.lastDir!==this.dir) {
+            if(this.dir===-1) {
+                $engine.audioPlaySound("audio/se/Woosh1.ogg")
+            } else {
+                $engine.audioPlaySound("audio/se/Woosh2.ogg")
+            }
+        }
     }
 
     step() {
-        this.y+=this.speed;
-        
         if(this.y>$engine.getWindowSizeY()+100) {
             this.destroy();
+        }
+
+        if(this.activated && this.y > $engine.getCamera().getY()+$engine.getWindowSizeY() && ! this.fallPlayed) {
+            $engine.audioPlaySound("audio/se/Falling.ogg")
         }
 
         if(!this.dropping) {
             this.swingMove();
         } else {
-            this.angle = 0;
+            if(this.shakeTimer>this.shakeTime) {
+                this.dropTimer = EngineUtils.clamp(this.dropTimer+1,0,this.dropFadeTime);
+                this.angle = 0;
+                this.y+=EngineUtils.interpolate(this.dropTimer/this.dropFadeTime,0,this.speed,EngineUtils.INTERPOLATE_IN_BACK);
+                if(this.activated)
+                    this.speed+=0.5;
+            } else {
+                var fac = this.shakeTimer/this.shakeTime; // % way through shake.
+                this.angle = EngineUtils.interpolate(fac,this.dropAngle,0,EngineUtils.INTERPOLATE_OUT) + EngineUtils.randomRange(-0.125,0.125)*(1-fac);
+                this.x = this.dropX + EngineUtils.randomRange(-18,18) * (1-fac)
+                this.y = this.dropY + EngineUtils.randomRange(-18,18) * (1-fac)
+                this.shakeTimer++;
+            }
         }
         var consume = SkyMinigameController.iBuffer.consume()
 
         if(this.activated == true && !this.dropping && consume) {
             this.dropping = true;
-            this.speed+=5 + SkyMinigameController.score;
+            this.speed+=20 + SkyMinigameController.score/8;
+            this.dropX = this.x;
+            this.dropY = this.y;
+            this.dropAngle = this.angle
+            SkyMinigameController.getInstance().getTimer().pauseTimer();
+            $engine.audioPlaySound("audio/se/WobblyTrue.ogg");
         }
 
 
         if(SkyMinigameController.score >= 1 && this.activated){
-            var towers = IM.instanceCollisionList(this,this.x,this.y,this.nextnext);
-            for(const tower of towers) { // don't use 'in', use 'of'
-                if(tower.activated == false){
-                    SkyMinigameController.mingameTimer.setTimeRemaining(60*5)
+            var tower = IM.instancePlace(this,this.x,this.y,this.nextnext);
+            if(tower) { // don't use 'in', use 'of'
+                if(tower.activated === false){
+                    SkyMinigameController.getInstance().getTimer().setTimeRemaining(60*5)
+                    SkyMinigameController.getInstance().getTimer().unpauseTimer();
                     SkyMinigameController.score+= 1;
                     SkyMinigameController.getInstance().updateProgressText();
                     this.speed = 0;
@@ -155,14 +211,15 @@ class SkyBuildPlayer extends EngineInstance {
                     SkyMinigameController.nextBlock += 1;
                     this.y = tower.hitbox.getBoundingBoxTop()-100;
                     tower.getSprite().tint = 0x444444;
+                    $engine.audioPlaySound("audio/se/BuildingLanding.ogg");
+                    SkyMinigameController.timer=0;
                     if(SkyMinigameController.score>=3){
-                        SkyMinigameController.endTime = EngineUtils.clamp(SkyMinigameController.endTime-1,5,20);
+                        SkyMinigameController.endTime = EngineUtils.clamp(SkyMinigameController.endTime-1,10,20);
                         SkyMinigameController.pCamY=$engine.getCamera().getY();
                         SkyMinigameController.nCamY = -100 * (SkyMinigameController.score-3)-100;
-                        SkyMinigameController.timer=0;
                     }
                     if(SkyMinigameController.score>=SkyMinigameController.maxScore) {
-                        SkyMinigameController.mingameTimer.stopTimer();
+                        SkyMinigameController.getInstance().getTimer().stopTimer();
                         SkyMinigameController.nCamY = SkyMinigameController.pCamY;
                     } else {
                         new SkyBuildPlayer($engine.getWindowSizeX()/2,64 - 100 * SkyMinigameController.score,0);
@@ -181,10 +238,7 @@ class SkyBuildPlayer extends EngineInstance {
     }
 
     onDestroy() {
-        AudioManager.fadeOutBgm(1)
-        $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
-        $engine.startFadeOut(30,false)
-        $engine.endGame();
+        SkyMinigameController.getInstance().getTimer().expire();
     }
 
     draw(gui, camera) {
@@ -212,9 +266,12 @@ class FallingTowerPlatform extends SkyBuildPlayer {
             var towers = IM.instanceCollisionList(this,this.x,this.y,SkyBuildPlayer);
             for(const tower of towers) { // don't use 'in', use 'of'
                 if(tower.activated == true){
-                    SkyMinigameController.mingameTimer.setTimeRemaining(60*5)
+                    SkyMinigameController.getInstance().getTimer().setTimeRemaining(60*5)
+                    SkyMinigameController.getInstance().getTimer().unpauseTimer();
                     SkyMinigameController.score+= 1;
                     SkyMinigameController.getInstance().updateProgressText();
+                    SkyMinigameController.timer=0;
+                    $engine.audioPlaySound("audio/se/BuildingLanding.ogg");
                     tower.speed = 0;
                     tower.activated = false;
                     new SkyBuildPlayer($engine.getWindowSizeX()/2,64 - 100 * SkyMinigameController.score,0);

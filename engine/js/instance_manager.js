@@ -11,7 +11,7 @@ class IM {
 
     static __initializeVariables() {
         IM.__objects = [];
-        IM.__objectsSorted = []
+        //IM.__objectsSorted = []
         for(var i = 1;i<=IM.__numRegisteredClasses;i++)
             IM.__accessMap[i] = [];
             IM.__alteredLists[i] = false;
@@ -24,6 +24,7 @@ class IM {
         IM.__accessMap = [[],];
         IM.__accessMap[1] = [];
         EngineInstance.__oid=1;
+        IM.__childMap = [undefined,]
         IM.__childMap[1] = IM.__childTree;
         var id=2;
         for(const x of instances) {
@@ -31,25 +32,7 @@ class IM {
             x.__oid=id++;
         };
 
-        var BFS = function(target) {
-            var stack = [IM.__childTree];
-            if(IM.__childTree.__children!==undefined)
-                IM.__childTree.__children.forEach(x => stack.push(x));
-
-            while(stack.length!==0) {
-                var len = stack.length;
-                for(var i = 0;i<len;i++) {
-                    var tree = stack.shift(); // pop(0)
-                    if(target.prototype instanceof tree.__oid) // is the current instance a parent of the target instance?
-                        return tree;
-                    if(tree.__children!==undefined) { // are there more elements?
-                        tree.__children.forEach(x=>stack.push(x));
-                    }
-                }
-            }
-            return undefined;
-        }
-
+        // find the deepest instance in the tree that is a parent of target
         var returnDeepest = function(target, result) {
             if(result.__children===undefined) {
                 return result;
@@ -62,6 +45,8 @@ class IM {
             return result;
         }
 
+        // check if any child in children is a subclass of newParent, if it is, bind it to the
+        // newParent instead of it's previous parent (ensure only direct subclasses are in __children)
         var rebind = function(newParent, children) {
             for(let i =0;i<children.length;i++) {
                 if(children[i].__oid.prototype instanceof newParent.__oid) {
@@ -75,10 +60,8 @@ class IM {
         }
 
         instances.forEach(x => { // manage children
-            //perform BFS
-            var result = BFS(x);
-            if(result!==undefined) { // result is at some point a superclass of x
-                result = returnDeepest(x,result); // result is the lowest superclass of x
+            if(x.prototype instanceof EngineInstance) {
+                var result = returnDeepest(x,IM.__childTree); // result is the lowest superclass of x
                 
                 var r = {
                     __oid:x,
@@ -88,12 +71,13 @@ class IM {
                 if(result.__children===undefined) {
                     result.__children = [];
                 } else {
+                    // check if any children on this level are children of us.
                     rebind(r,result.__children);
                 }
                 result.__children.push(r);
                 IM.__childMap[IM.__oidFrom(x)] = r;
             } else {
-                throw "Attemping to add non Instance subclass("+String(x)+") to IM";
+                throw new Error("Attemping to add non EngineInstance subclass("+String(x)+") to IM");
             }
         });
         // final step, replace classes with their OID for faster lookup
@@ -109,26 +93,37 @@ class IM {
         IM.__childTree.__oid=1;
     }
 
-    static __doSimTick() {
-        if(!$engine.isGamePaused()) {
-            IM.__cleanup();
-            IM.__deleteFromObjects();
-            IM.__implicit();
-            IM.__step();
-            IM.__preDraw();
-            IM.__sort();
-            IM.__draw();
+    static __doSimTick(lastFrame) {
+        var mode = $engine.__getPauseMode();
+        if(lastFrame) {
+            if(mode===0) {
+                IM.__cleanup();
+                IM.__deleteFromObjects();
+                IM.__implicit();
+                IM.__step();
+                IM.__preDraw();
+                IM.__draw();
+            } else if(mode===1) {
+                IM.__pause();
+                IM.__draw();
+            } else { // special pause (mode===2)
+                IM.__pause();
+                $engine.__pauseSpecialInstance.step(); // run the special instance's step.
+                IM.__draw();
+            }
         } else {
-            IM.__sort();
-            IM.__pause();
-            IM.__draw();
+            if(mode===0) {
+                IM.__cleanup();
+                IM.__deleteFromObjects();
+                IM.__step();
+            }
         }
         
     }
 
     static __cleanup() {
         for(const obj of IM.__cleanupList) {
-            obj.onDestroy();
+            //obj.onDestroy();
             obj.cleanup();
             $engine.__disposeHandles(obj);
         }
@@ -144,7 +139,7 @@ class IM {
         }
         if(IM.__cleanupList.length!==0) { // don't waste CPU if there's nothing to update...
             IM.__objects=IM.__objects.filter(x=>x.__alive);
-            IM.__objectsSorted=IM.__objectsSorted.filter(x=>x.__alive);
+            //IM.__objectsSorted=IM.__objectsSorted.filter(x=>x.__alive);
             for(var i =1;i<=IM.__numRegisteredClasses;i++) { // only filter lists that were changed
                 if(IM.__alteredLists[i])
                     IM.__accessMap[i] = IM.__accessMap[i].filter(x => x.__alive)
@@ -177,7 +172,7 @@ class IM {
     static __draw() {
         $engine.getCamera().getCameraGraphics().clear();
         $engine.__GUIgraphics.clear();
-        for(const obj of IM.__objectsSorted)
+        for(const obj of IM.__objects)
             obj.draw($engine.__GUIgraphics, $engine.getCamera().getCameraGraphics());
     } 
 
@@ -189,6 +184,18 @@ class IM {
                 return (x.id-y.id)
             return d
         })
+    }
+
+    static __timescaleImplicit() {
+        for(const obj of IM.__objects) {
+            obj.__timescaleImplicit();
+        }
+    }
+
+    static __timescaleImmuneStep() {
+        for(const obj of IM.__objects) {
+            obj.timescaleImmuneStep();
+        }
     }
 
     static __getMatrixFor(inst) { //TODO: unnecessary? camera does this?
@@ -248,7 +255,7 @@ class IM {
             IM.__objects.unshift(inst);
         else
             IM.__objects.push(inst);
-        IM.__objectsSorted.push(inst);
+        //IM.__objectsSorted.push(inst);
         IM.__accessMap[inst.oid].push(inst);
     }
 
@@ -258,6 +265,9 @@ class IM {
         }
         for(const obj of IM.__objects) {
             obj.onGameEnd();
+        }
+        for(const obj of IM.__objects) {
+            obj.onDestroy();
         }
         for(const obj of IM.__objects) {
             obj.cleanup();
@@ -274,6 +284,13 @@ class IM {
     static __endRoom() {
         for(const obj of IM.__objects) {
             obj.onRoomEnd();
+        }
+        for(const obj of IM.__objects) {
+            obj.onDestroy();
+        }
+        for(const obj of IM.__objects) {
+            obj.cleanup();
+            $engine.__disposeHandles(obj)
         }
         this.__initializeVariables() // clear IM
     }
@@ -343,13 +360,17 @@ class IM {
     }
 
     /**
-     * Queries all targets instanes and then marks them for deletion.
+     * Queries all targets instanes and then marks them for deletion. Also calls the onDestroy() method immediately.
      * @param  {...EngineInstance} targets N instances of EngineInstance or classes
      */
     static destroy(...targets) {
         for(const input of targets)
-            for(const inst of IM.__queryObjects(input))
-                inst.__alive = false;
+            for(const inst of IM.__queryObjects(input)) {
+                if(inst.__alive) {
+                    inst.__alive = false;
+                    inst.onDestroy();
+                }
+            }
                 
     }
 
@@ -579,7 +600,7 @@ class IM {
 
 IM.__accessMap = [];        // indexes every single instance with oid being the key and an array of all those instances being the value
 IM.__alteredLists = [];     // whether or not this specific OID has had instances removed (lets us skip filtering objects which haven't been touched)
-IM.__childMap = {};         // maps each oid to a tree containting all children oid
+IM.__childMap = [];         // maps each oid to a tree containting all children oid
 IM.__childTree = {
     __oid:EngineInstance,
     __children:undefined
