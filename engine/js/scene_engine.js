@@ -1502,18 +1502,18 @@ SceneManager.updateManagers = function() {
 // jank support for 1x1 spritesheet characters -- doesn't work with anything but characters facing down.
 // Doesn't work with anims. (prefix with ~):
 ImageManager.isObjectCharacter = function(filename) {
-    var sign = filename.match(/^[\!\$\#]+/);
+    var sign = filename.match(/^[\!\$\_]+/);
     return sign && sign[0].contains('!');
 };
 
 ImageManager.isBigCharacter = function(filename) {
-    var sign = filename.match(/^[\!\$\#]+/);
+    var sign = filename.match(/^[\!\$\_]+/);
     return sign && sign[0].contains('$');
 };
 
 ImageManager.isReallyBigCharacter = function(filename) {
-    var sign = filename.match(/^[\!\$\#]+/);
-    return sign && sign[0].contains('#');
+    var sign = filename.match(/^[\!\$\_]+/);
+    return sign && sign[0].contains('_');
 };
 
 Sprite_Character.prototype.patternWidth = function() {
