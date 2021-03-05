@@ -74,3 +74,6 @@ bar_time engine/textures/bars/bar_time.png 0.5 1
 
 drawing_mingiame_background_1 engine/textures/drawing/wall.png 0 0
 drawing_mingiame_background_2 engine/textures/drawing/wall_bush.png 0 0
+
+minigame_key_icon engine/textures/minigames/minigame_icon_start2.png 0.5 0.5
+minigame_mouse_icon engine/textures/minigames/minigame_icon_start1.png 0.5 0.5

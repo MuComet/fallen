@@ -35,12 +35,12 @@ class SkyMinigameController extends MinigameController { // All classes that can
 
         // instructions
 
-        var text = new PIXI.Text("Press Space to drop a block\nPress Enter to cheat!",$engine.getDefaultTextStyle())
-
-        this.setInstructionRenderable(text)
+        var text = new PIXI.Text("Press Space to drop a block\nnew block must stack on the top\nof the most recent one\nreach the goal height\n\nPress Enter to cheat!",$engine.getDefaultTextStyle())
+        this.setInstructionRenderable(text);
+        this.controllsUseKeyBoard(true);
 
         // progress
-        this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle())
+        this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         $engine.createManagedRenderable(this,this.progressText);
         this.progressText.anchor.set(0.5,0.5);
         this.progressText.x = $engine.getWindowSizeX()/2;
@@ -54,7 +54,6 @@ class SkyMinigameController extends MinigameController { // All classes that can
         this.drillTimer = 5*60;
         this.drillTimeBase = 8*60;
         this.drillTime = this.drillTimeBase+EngineUtils.irandomRange(-60,60);
-
     } 
 
     notifyFramesSkipped(frames) {
@@ -100,6 +99,7 @@ class SkyMinigameController extends MinigameController { // All classes that can
     draw(gui,camera) {
         super.draw(gui,camera)
         $engine.requestRenderOnGUI(this.progressText);
+
     }
 
     onDestroy() {

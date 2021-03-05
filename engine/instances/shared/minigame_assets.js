@@ -325,6 +325,10 @@ class MinigameController extends EngineInstance {
 
         this.resultGraphicWon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_win_graphic")));
         this.resultGraphicLoss = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_loss_graphic")));
+        this.MouseIcon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_key_icon")));
+        this.KeyIcon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_mouse_icon")));
+        this.KeyIcon.x = $engine.getWindowSizeX()/2 + 250;
+        this.KeyIcon.y = 400;
 
         this.onCheatCallbacks  = [];
         this.onGameStartCallbacks = [];
@@ -608,9 +612,18 @@ class MinigameController extends EngineInstance {
         this._minigameControllerTick();
     }
 
+    controllsUseKeyBoard(bool) {
+        this.usingKey = bool;
+    }
+
     draw(gui, camera) {
         if(this.showingInstructions) {
             $engine.requestRenderOnGUI(this.instructionImage);
+            if(this.usingKey){
+                $engine.requestRenderOnGUI(this.KeyIcon);
+            }else{
+                $engine.requestRenderOnGUI(this.MouseIcon);
+            }
         }
 
         if(this.showingCheat) {
@@ -759,8 +772,11 @@ class MinigameController extends EngineInstance {
         this.instructionImage.x = $engine.getWindowSizeX()/2;
         this.instructionImage.y = $engine.getWindowSizeY()/2;
         this.instructionImage.anchor.x = 0.5;
-        this.instructionImage.anchor.y = 0.5;
+        this.instructionImage.anchor.y = 0.5; 
+        //this.instructionImage.addChild(this.KeyIcon, this.MouseIcon);
         $engine.createManagedRenderable(this,renderable);
+        this.KeyIcon.filters = [this.blurFilterInstruction];
+        this.MouseIcon.filters = [this.blurFilterInstruction];
     }
 
     /**

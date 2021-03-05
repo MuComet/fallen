@@ -30,8 +30,7 @@ class DrawController extends MinigameController { // controls the minigame
             parent.timer.setGameOverText(text)
         })
 
-        var text = new PIXI.Text("Click and hold to draw a line\nThere are 3 total drawings\n\nPress Enter to cheat!",{ fontFamily: 'Helvetica',
-                        fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
+        var text = new PIXI.Text("Click and hold to draw\nDon't let go and follow the shape outline\nDon't draw extra lines and\ndont go over the lines twice\nThere are 3 total drawings\n\nPress Enter to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text)
 
         this.audioReference = $engine.generateAudioReference("Minigame");
