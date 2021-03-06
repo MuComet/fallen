@@ -491,8 +491,8 @@ class MinigameController extends EngineInstance {
             $engine.audioPlaySound("audio/se/GameEnd.ogg")
             $engine.setCheatWriteBackValue(ENGINE_RETURN.NO_CHEAT)
         }
-        
-        $engine.getCamera().addFilter(this.blurFilter)
+        if(!$engine.isLow())
+            $engine.getCamera().addFilter(this.blurFilter)
     }
 
     /**

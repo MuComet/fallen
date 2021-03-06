@@ -245,7 +245,7 @@ class MenuIntroController extends EngineInstance {
         var time = window.performance.now();
         var diff = time - this.startTime - this.timeCorrection;
         var frameTime = diff/this.frames;
-        if(frameTime >= 17) {
+        if(frameTime >= 17.25) {
             if(!$engine.isLow()) {
                 console.warn("It looks like you're playing on a low spec system... The game will automatically lower render quality to account for this.")
                 console.warn("Average frame time: "+String(frameTime)+"ms")

@@ -133,6 +133,10 @@ class SkyBuildPlayer extends EngineInstance {
         this.lastX = 0;
         this.lastDir = 0;
         this.fallPlayed = false;
+        for(var i =0;i<1000;i++) {
+            this.registerInterpolationVariable("x","xInterp");
+            this.registerInterpolationVariable("y","yInterp");
+        }
     }
 
     swingMove() {
@@ -245,8 +249,9 @@ class SkyBuildPlayer extends EngineInstance {
 
     draw(gui, camera) {     
         //EngineDebugUtils.drawHitbox(camera,this)
-        if(this.activated && !this.dropping)
-            camera.lineStyle(5,0x00).moveTo(this.x,this.y).lineTo($engine.getWindowSizeX()/2,this.yStart);
+        if(this.activated && !this.dropping) {
+            camera.lineStyle(5,0x00).moveTo(this.xInterp,this.yInterp).lineTo($engine.getWindowSizeX()/2,this.yStart);
+        }
 
     }
 }

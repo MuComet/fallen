@@ -215,6 +215,8 @@ class Scene_Engine extends Scene_Base {
         this.__timescaleFraction+=this.__timescale;
 
         this.__doSimTick();
+
+        this.__globalTimer++;
     }
 
     /**
@@ -367,15 +369,16 @@ class Scene_Engine extends Scene_Base {
     }
 
     audioGetVolume(type) {
+        var masterVolume = AudioManager.masterVolume;
         switch(type) {
             case "BGM":
-                return AudioManager.bgmVolume/100;
+                return AudioManager.bgmVolume/100 * masterVolume;
             case "BGS":
-                return AudioManager.bgsVolume/100;
+                return AudioManager.bgsVolume/100 * masterVolume;
             case "ME":
-                return AudioManager.meVolume/100;
+                return AudioManager.meVolume/100 * masterVolume;
             case "SE":
-                return AudioManager.seVolume/100;
+                return AudioManager.seVolume/100 * masterVolume;
         }
         console.error("Audio type "+type+" is not defined, please use one of: BGM, BGS, ME, SE");
         return 1;
@@ -633,11 +636,13 @@ class Scene_Engine extends Scene_Base {
 
             if(this.__pauseMode !==1)
                 this.__gameTimer++;
-            this.__globalTimer++;
         }
 
-        if(this.isTimeScaled())
+        if(this.isTimeScaled()) {
             IM.__timescaleImmuneStep();
+        }
+
+        IM.__interpolate();
 
         if(!renderedOnce) {
             IM.__draw();
@@ -764,14 +769,14 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
-     * @returns {Number} The amount of frames the engine has been running, excluding time paused, and including special time paused.
+     * @returns {Number} The amount of frames the game has executed (timescale aware), excluding time paused, and including special time paused.
      */
     getGameTimer() {
         return this.__gameTimer;
     }
 
     /**
-     * @returns {Number} The amount of frames the engine has been running, including time paused.
+     * @returns {Number} The amount of frames the engine has been running.
      */
     getGlobalTimer() {
         return this.__globalTimer;
@@ -1587,7 +1592,19 @@ Sprite_Character.prototype.setCharacterBitmap = function() {
     this._isReallyBigCharacter = ImageManager.isReallyBigCharacter(this._characterName);
 };
 
+// set the max HP to 100 for all entities.
+Object.defineProperties(Game_BattlerBase.prototype, {
+    mhp: {get: function(){ return 100 }, configurable:true}
+})
 
+// let the player hit 0 HP
+Game_BattlerBase.prototype.paramMin = function(paramId) {
+    return 0;
+};
+
+// notes:
+// YEP_CoreEngine 2475 commented out to prevent showing level
+// AltimitMovement 1508 modified to become less precise
 
 ////////////////// end overriding RPG maker /////////////////
 

@@ -2472,7 +2472,7 @@ Window_Base.prototype.drawActorSimpleStatus = function(actor, x, y, width) {
     var x2 = x + xpad;
     var width2 = Math.max(180, width - xpad - this.textPadding());
     this.drawActorName(actor, x, y);
-    this.drawActorLevel(actor, x, y + lineHeight * 1);
+    //this.drawActorLevel(actor, x, y + lineHeight * 1); // MODIFIED
     this.drawActorIcons(actor, x, y + lineHeight * 2);
     this.drawActorClass(actor, x2, y, width2);
     this.drawActorHp(actor, x2, y + lineHeight * 1, width2);

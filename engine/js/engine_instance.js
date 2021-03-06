@@ -47,6 +47,7 @@ class EngineInstance {
         this.id = -1;
         this.__renderables = [];
         this.__pixiDestructables = [];
+        this.__interpVars = [];
         IM.__addToWorld(this);
         if(args[0]===$engine.__instanceCreationSpecial) {
             this.x = args[1];
@@ -174,6 +175,33 @@ class EngineInstance {
         this.__lyScale = this.yScale;
         this.__lalpha = this.alpha;
         this.__langle = this.angle;
+        for(const interpVal of this.__interpVars)
+            interpVal.__lastValue = this[interpVal.__variableName];
+    }
+
+    /**
+     * Causes the engine to automcatically interpolate the provided value between this frame and last frame.
+     * The variable is read from src and then written into dst.
+     * 
+     * @param {String} src The name of the variable to record
+     * @param {String} dst The name of the variable to write back to
+     */
+    registerInterpolationVariable(src, dst) {
+        var obj = {
+            __variableName:src,
+            __lastValue:this[src],
+            __destinationVariable:dst
+        }
+        this[dst] = obj.__lastValue;
+        this.__interpVars.push(obj);
+    }
+
+    /**
+     * Engine functions. Do not override.
+     */
+    __applyInterpolations(fraction) {
+        for(const obj of this.__interpVars)
+            this[obj.__destinationVariable] = obj.__lastValue + (obj.__lastValue-this[obj.__variableName]) * fraction
     }
 
     /**

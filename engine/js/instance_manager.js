@@ -186,7 +186,7 @@ class IM {
         })
     }
 
-    static __timescaleImplicit() {
+    static __timescaleImplicit() { // called once per step.
         for(const obj of IM.__objects) {
             obj.__timescaleImplicit();
         }
@@ -198,8 +198,12 @@ class IM {
         }
     }
 
-    static __getMatrixFor(inst) { //TODO: unnecessary? camera does this?
-        return PIXI.Matrix().rotate(inst.angle).scale(inst.xScale,inst.yScale).translate(inst.x,inst.y);
+    static __interpolate() { // called once per frame, not matter what
+        var frac = $engine.isTimeScaled() ? $engine.getTimescaleFraction() : 1;
+        
+        for(const obj of IM.__objects) {
+            obj.__applyInterpolations(frac)
+        }
     }
 
     static __findAll(oid) {
