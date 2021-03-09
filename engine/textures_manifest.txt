@@ -57,7 +57,7 @@ zone_restart engine/textures/tutorial/zone.png 0.5 0
 card_1 engine/textures/card_1.png 0.5 0.5
 card_2 engine/textures/card_2.png 0.5 0.5
 card_3 engine/textures/card_3.png 0.5 0.5
-yugioh engine/textures/yugioh.png 0.5 0.5
+yugioh engine/textures/card/card_flipped.png 0.5 0.5
 
 falling_object_spike engine/textures/falling_object/spike.png 0.5 0.5
 falling_object_flower engine/textures/falling_object/flower.png 0.5 0.5
