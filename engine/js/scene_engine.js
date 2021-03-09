@@ -248,6 +248,8 @@ class Scene_Engine extends Scene_Base {
     audioPlaySound(snd, volume=1, loop=false, start = 0, end = 0) {
         if(typeof(snd)==="string")
             snd = this.audioGetSound(snd);
+        if(snd===undefined)
+            return;
         var retSnd = undefined;
         if(end) {
             retSnd = snd.play({

@@ -72,7 +72,7 @@ class WallBuilderController extends MinigameController {
     }
 
     createRope() {
-        $engine.audioPlaySound("audio/se/Layer.ogg")
+        $engine.audioPlaySound("wall_layer")
         var tex = $engine.getTexture("wall_building_grit")
         tex.baseTexture.wrapMode = PIXI.WRAP_MODES.MIRRORED_REPEAT;
 

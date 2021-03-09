@@ -24,6 +24,10 @@ draw_shake engine/audio/se/drawing/Shake.ogg SE
 draw_spray engine/audio/se/drawing/Spray.ogg SE
 draw_start engine/audio/se/drawing/Start.ogg SE
 
+wall_hit engine/audio/se/wall/Hit.ogg SE
+wall_miss engine/audio/se/wall/Miss.ogg SE
+wall_layer engine/audio/se/wall/Layer.ogg SE
+
 minigame_cheat engine/audio/se/minigames/Cheat.ogg ME
 minigame_drumroll engine/audio/se/minigames/DrumRoll.ogg SE
 minigame_end engine/audio/se/minigames/GameEnd.ogg ME

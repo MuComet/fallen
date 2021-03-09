@@ -147,7 +147,7 @@ class IntroMinigameController extends MinigameController {
             this.hitTimer = this.hitTime;
             this.zoneTimer = -this.zoneTime;
             this.tintColour = 0xff1222;
-            $engine.audioPlaySound("drain_wall")
+            $engine.audioPlaySound("drain_hit")
         }
 
         if(this.samplingMouse) {
