@@ -151,13 +151,13 @@ class MinigameTimer extends EngineInstance {
             this._updateSprite();
     }
 
-    _updateSprite() {
-
-    }
-
     _updateText() {
         var strEnd = String(EngineUtils.roundMultiple((this.timer%60)/60,0.01))+"000"
         this.timerText.text = this.timerTextPrepend + String(Math.floor(this.timer/60) +":"+strEnd.substring(2,4))
+    }
+
+    _updateSprite() {
+
     }
 
     _checkIsTimeUp() {
@@ -392,7 +392,7 @@ class MinigameController extends EngineInstance {
         this._initMusic();
 
         this.addCheatCallback(this,function(self) {
-            $engine.audioPlaySound("audio/se/Cheat.ogg")
+            $engine.audioPlaySound("minigame_cheat")
         })
 
         MinigameController.controller = this;
@@ -413,38 +413,20 @@ class MinigameController extends EngineInstance {
     }
 
     _initMusic() {
-        this.musicStandard = $engine.audioGetSound("audio/bgm/Minigame.ogg","BGM",1)
-        $engine.audioPlaySound(this.musicStandard,true).then(result => {
-            if(!result)
-                return;
-            this.musicStandardReference=result;
-            result._source.loopStart = 8
-            result._source.loopEnd = 56
-            $engine.audioPauseSound(this.musicStandard)
-        })
+        this.musicStandard = $engine.audioPlaySound("minigame_music",1,true)
+        this.musicStandard._source.loopStart = 8
+        this.musicStandard._source.loopEnd = 56
+        $engine.audioPauseSound(this.musicStandard)
 
-        this.musicCheat = $engine.audioGetSound("audio/bgm/MinigameCheat.ogg","BGM",0)
-        $engine.audioPlaySound(this.musicCheat,true).then(result => {
-            if(!result)
-                return;
-            this.musicCheatReference=result;
-            result._source.loopStart = 8
-            result._source.loopEnd = 56
-            $engine.audioPauseSound(this.musicCheat)
-        })
+        this.musicCheat = $engine.audioPlaySound("minigame_music_cheat",0,true)
+        this.musicCheat._source.loopStart = 8
+        this.musicCheat._source.loopEnd = 56
+        $engine.audioPauseSound(this.musicCheat)
     }
 
     _startMusic() {
         $engine.audioResumeSound(this.musicStandard)
         $engine.audioResumeSound(this.musicCheat)
-        if(this.musicStandardReference) { // TODO: move to engine function ApplyUntil
-            this.musicStandardReference._source.loopStart = 8
-            this.musicStandardReference._source.loopEnd = 56
-        }
-        if(this.musicCheatReference) {
-            this.musicCheatReference._source.loopStart = 8
-            this.musicCheatReference._source.loopEnd = 56
-        }
     }
 
     /**
@@ -485,10 +467,10 @@ class MinigameController extends EngineInstance {
         }
 
         if(this.hasCheated()) {
-            $engine.audioPlaySound("audio/se/GameEndCheat.ogg")
+            $engine.audioPlaySound("minigame_end_cheat")
             $engine.setCheatWriteBackValue(ENGINE_RETURN.CHEAT)
         } else {
-            $engine.audioPlaySound("audio/se/GameEnd.ogg")
+            $engine.audioPlaySound("minigame_end")
             $engine.setCheatWriteBackValue(ENGINE_RETURN.NO_CHEAT)
         }
         if(!$engine.isLow())
@@ -586,22 +568,19 @@ class MinigameController extends EngineInstance {
 
                 if(this.wonMinigame) {
                     if(this.hasCheated())
-                        snd = $engine.audioGetSound("audio/bgm/VictoryAtaCost.ogg","BGM")
+                        snd = $engine.audioPlaySound("minigame_win_cheat",1,true)
                     else
-                        snd = $engine.audioGetSound("audio/bgm/Victory.ogg","BGM")
+                        snd = $engine.audioPlaySound("minigame_win",1,true)
                 } else {
                     if(this.hasCheated())
-                        snd = $engine.audioGetSound("audio/bgm/LossCheat.ogg","BGM")
+                        snd = $engine.audioPlaySound("minigame_loss_cheat",1,true)
                     else
-                        snd = $engine.audioGetSound("audio/bgm/Loss.ogg","BGM")
+                        snd = $engine.audioPlaySound("minigame_loss",1,true)
                 }
-                    
-                $engine.audioPlaySound(snd,true).then(result=> {
-                    if(!result)
-                        return;
-                    result._source.loopStart = 6;
-                    result._source.loopEnd = 22;
-                })
+                
+                // we have to specify this afterwards so the sound will start at 0
+                snd._source.loopStart = 6;
+                snd._source.loopEnd = 22;
             }
             this.gameStoppedFrameTimer++;
         }
@@ -865,7 +844,7 @@ class ParallaxingBackground extends EngineInstance {
         this.parallaxFactorY = 0.25;
         this.x = $engine.getWindowSizeX()/2;
         this.y = $engine.getWindowSizeY()/2;
-        this.sprites = $engine.getTexturesFromSpritesheet("background_sheet",0,$engine.getSpriteSheetLength("background_sheet"));
+        this.sprites = $engine.getTexturesFromSpritesheet("background_sheet",0,$engine.getSpritesheetLength("background_sheet"));
         for(var i =0;i<this.sprites.length;i++) {
             this.sprites[i] = $engine.createRenderable(this,new PIXI.Sprite(this.sprites[i]),false);
             this.sprites[i].x = this.x;

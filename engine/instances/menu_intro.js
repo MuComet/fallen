@@ -5,7 +5,8 @@ class MenuIntroController extends EngineInstance {
         MinigameController.controller = this;
 
         this.frames = 0;
-        this.startTime = window.performance.now();
+        this.startTime = window.performance.now(); // overwritten later...
+        this.startTimeOffset = 20;
         this.timeCorrection=0; // in case they minimize...
         UwU.addRenderListener(this.nextFrame);
 
@@ -56,7 +57,7 @@ class MenuIntroController extends EngineInstance {
         
         var continueButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+120);
         continueButton.setTextures("button_continue_1","button_continue_1","button_continue_2")
-        continueButton.setOnPressed(function(){
+        continueButton.setOnPressed(function() {
             var time = window.performance.now();
             var ret = false;
             if (DataManager.loadGame(1)) {
@@ -77,7 +78,7 @@ class MenuIntroController extends EngineInstance {
                 SoundManager.playBuzzer();
                 ret = false;
             }
-            MinigameController.controller.timeCorrection+=window.performance.now()-time;
+            MinigameController.getInstance().timeCorrection+=window.performance.now()-time;
             return ret;
         });
         continueButton.setScript(function() {
@@ -89,22 +90,15 @@ class MenuIntroController extends EngineInstance {
             }
         });
 
-        //this.audioReference = $engine.generateAudioReference("Menu");
-        //this.musicStarted = false;
-        //AudioManager.playBgm(this.audioReference)
-
-        this.menuMusic = $engine.audioGetSound("audio/bgm/Title.ogg","SE",1)
-        $engine.audioPlaySound(this.menuMusic,true).then(result => {
-            if(!result)
-                return;
-            this.audioRef=result;
-            result._source.loopStart = 10;
-            result._source.loopEnd = 50;
-        })
+        this.menuMusic = $engine.audioPlaySound("title_music",1,true)
+        this.menuMusic._source.loopStart = 10;
+        this.menuMusic._source.loopEnd = 50;
     }
 
     nextFrame() {
-        MinigameController.controller.frames++;
+        var inst =MinigameController.getInstance()
+        if(inst.timer>inst.endTime+inst.startTimeOffset)
+        inst.frames++;
     }
 
     step() {
@@ -174,6 +168,10 @@ class MenuIntroController extends EngineInstance {
                 this.afterFade.apply(this.afterFadeArgs);
             }
         }
+
+        if(this.timer===this.endTime+this.startTimeOffset) {
+            this.startTime = window.performance.now();
+        }
     }
 
     static startNewGame() {
@@ -238,14 +236,15 @@ class MenuIntroController extends EngineInstance {
     }
 
     __notifyFramesSkipped(frames) {
-        this.timeCorrection+=frames*16.66666;
+        if(this.timer>this.endTime+this.startTimeOffset) // don't bother, we haven't started recording.
+            this.timeCorrection+=frames*16.66666;
     }
 
     onRoomEnd() {
         var time = window.performance.now();
         var diff = time - this.startTime - this.timeCorrection;
         var frameTime = diff/this.frames;
-        if(frameTime >= 17.25) {
+        if(frameTime >= 17.5) {
             if(!$engine.isLow()) {
                 console.warn("It looks like you're playing on a low spec system... The game will automatically lower render quality to account for this.")
                 console.warn("Average frame time: "+String(frameTime)+"ms")

@@ -1,7 +1,7 @@
 class CutsceneController extends EngineInstance {
     onEngineCreate() {
         this.sheet = CutsceneController.cutsceneSheet;
-        this.textures = $engine.getTexturesFromSpritesheet(this.sheet,0,$engine.getSpriteSheetLength(this.sheet));
+        this.textures = $engine.getTexturesFromSpritesheet(this.sheet,0,$engine.getSpritesheetLength(this.sheet));
         this.setSprite(new PIXI.Sprite(this.textures[0]));
         this.frames = this.textures.length;
         this.currentFrame = 0;
@@ -34,7 +34,7 @@ class CutsceneController extends EngineInstance {
         this.musicIndices = [0,3,6,10];
         this.musicIndex = 0;
 
-        this.sounds = ["audio/bgm/Intro1.ogg","audio/bgm/Intro2.ogg","audio/bgm/Intro3.ogg","audio/bgm/Intro4.ogg"];
+        this.sounds = ["intro1","intro2","intro3","intro4"];
         this.music = undefined;
         this.getNextMusic();
     }
@@ -42,9 +42,9 @@ class CutsceneController extends EngineInstance {
     getNextMusic() {
         if(this.music)
             $engine.audioFadeSound(this.music);
-        this.music = $engine.audioGetSound(this.sounds[this.musicIndex],"BGM",0.5);
-        $engine.audioPlaySound(this.music,true);
-        $engine.audioFadeInSound(this.music);
+        this.music = $engine.audioPlaySound(this.sounds[this.musicIndex],0.5,true);
+        if(this.musicIndex!==0)
+            $engine.audioFadeInSound(this.music,30);
         this.musicIndex++;
     }
 
@@ -78,7 +78,7 @@ class CutsceneController extends EngineInstance {
                 $engine.audioFadeAll(15);
             }
             if(this.currentFrame===12) {
-                $engine.audioPlaySound("audio/se/Snap.ogg");
+                $engine.audioPlaySound("cutscene_snap");
             }
         } else {
             if(this.timer <= this.transitionTime)
@@ -94,9 +94,8 @@ class CutsceneController extends EngineInstance {
                 }
             }
             if(this.frameLength[this.currentFrame]-this.timer===this.transitionTime/2 && this.currentFrame < this.frames-1) {
-                var snd = $engine.audioGetSound("audio/se/Paper.ogg","SE",3);
+                var snd = $engine.audioPlaySound("cutscene_paper",3);
                 snd.speed = EngineUtils.randomRange(0.9,1.1);
-                $engine.audioPlaySound(snd)
             }
         }
         if(this.wipeTimer>this.transitionTime && this.wipeStarted) {
@@ -111,9 +110,9 @@ class CutsceneController extends EngineInstance {
         if($engine.isLow()) {
             var fac = 0;
             if(this.timer <= this.transitionTime)
-                fac = EngineUtils.interpolate(this.timer/this.transitionTime,this.blurFilterStrength,0,EngineUtils.INTERPOLATE_OUT);
-            else if(this.frameLength-this.timer <= this.transitionTime)
-                fac = EngineUtils.interpolate((this.frameLength-this.timer)/this.transitionTime,this.blurFilterStrength,0,EngineUtils.INTERPOLATE_OUT);
+                fac = EngineUtils.interpolate(this.timer/this.transitionTime,1,0,EngineUtils.INTERPOLATE_OUT);
+            else if(this.frameLength[this.currentFrame]-this.timer <= this.transitionTime)
+                fac = EngineUtils.interpolate((this.frameLength[this.currentFrame]-this.timer)/this.transitionTime,1,0,EngineUtils.INTERPOLATE_OUT);
             if(fac!==0) {
                 gui.beginFill(0xffffff,fac);
                 gui.drawRect(-64,-64,$engine.getWindowSizeX()+64,$engine.getWindowSizeY()+64)

@@ -72,8 +72,8 @@ class DrawController extends MinigameController { // controls the minigame
             this.done = true;
             return;
         }
-        $engine.audioPlaySound("audio/se/Start.ogg")
-        $engine.audioPlaySound("audio/se/Shake.ogg","SE",1,true)
+        $engine.audioPlaySound("draw_start")
+        $engine.audioPlaySound("draw_shake",1,true)
         this.drawings[this.drawingInd].alpha = 1;
         this.waitTimer = -9999999;
     }
@@ -90,7 +90,7 @@ class DrawController extends MinigameController { // controls the minigame
                 } else {
                     this.instructiontext.text = "GO!!!!"
                     this.instructiontext.alpha = 1-(this.waitTimer-60)/40 + Math.sin(this.waitTimer/2)/2
-                    $engine.audioStopSound("audio/se/Shake.ogg");
+                    $engine.audioStopSound("draw_shake");
                 }
             } else {
                 this.instructiontext.text = "";
@@ -213,12 +213,12 @@ class DrawableLine extends EngineInstance {
         this.isDrawing=true;
         this.points.push(new Vertex(IN.getMouseX(),IN.getMouseY()))
         this.lastPoint = this.points[0];
-        $engine.audioPlaySound("audio/se/Spray.ogg","SE",1,true)
+        $engine.audioPlaySound("draw_spray",1,true)
     }
 
     endDrawing() {
         this.isDrawing=false;
-        $engine.audioStopSound("audio/se/Spray.ogg")
+        $engine.audioStopSound("draw_spray")
     }
 
     draw(gui,camera) {

@@ -102,6 +102,7 @@ class IM {
                 IM.__implicit();
                 IM.__step();
                 IM.__preDraw();
+                IM.__interpolate();
                 IM.__draw();
             } else if(mode===1) {
                 IM.__pause();
@@ -199,10 +200,16 @@ class IM {
     }
 
     static __interpolate() { // called once per frame, not matter what
-        var frac = $engine.isTimeScaled() ? $engine.getTimescaleFraction() : 1;
+        var frac = $engine.getTimescaleFraction();
         
-        for(const obj of IM.__objects) {
-            obj.__applyInterpolations(frac)
+        if($engine.isTimeScaled()) {
+            for(const obj of IM.__objects) {
+                obj.__applyInterpolations(frac)
+            }
+        } else {
+            for(const obj of IM.__objects) {
+                obj.__applyInterpolationsNoFraction();
+            }
         }
     }
 

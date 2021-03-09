@@ -201,7 +201,12 @@ class EngineInstance {
      */
     __applyInterpolations(fraction) {
         for(const obj of this.__interpVars)
-            this[obj.__destinationVariable] = obj.__lastValue + (obj.__lastValue-this[obj.__variableName]) * fraction
+            this[obj.__destinationVariable] = obj.__lastValue + (this[obj.__variableName]-obj.__lastValue) * fraction
+    }
+
+    __applyInterpolationsNoFraction() {
+        for(const obj of this.__interpVars)
+            this[obj.__destinationVariable] = this[obj.__variableName];
     }
 
     /**

@@ -120,10 +120,9 @@ class IN {
         IN.__wheel = IN.__wheelCarry;
         IN.__wheelCarry = 0;
 
-        var mGUI = Graphics._renderer.plugins.interaction.mouse.global
         // when until the first mouse move, PIXI reports the mouse as -999999
-        IN.__mouseXGUI = mGUI.x === -999999 ? 0 : mGUI.x;
-        IN.__mouseYGUI = mGUI.y === -999999 ? 0 : mGUI.y;
+        IN.__mouseXGUI = IN.__inputMouseX;
+        IN.__mouseYGUI = IN.__inputMouseY;
 
         IN.__anyKeyPressed=IN.__anyKeyPressedCarry;
         IN.__anyKeyPressedCarry=false;

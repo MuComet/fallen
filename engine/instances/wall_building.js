@@ -335,16 +335,15 @@ class Brick extends EngineInstance {
                 this.dr = EngineUtils.randomRange(0.05,0.05)
                 this.depth = -1;
                 if(!this.landedOnce)
-                    $engine.audioPlaySound("audio/se/Miss.ogg")
+                    $engine.audioPlaySound("wall_miss")
             } else {
                 if(this.dy < 2)
                     this.phase = 1;
                 
                 this.dy = -this.dy*0.3333;
                 if(!this.landedOnce) {
-                    var snd = $engine.audioGetSound("audio/se/Hit.ogg");
+                    var snd = $engine.audioPlaySound("wall_hit");
                     snd.speed = EngineUtils.randomRange(0.75,1.5);
-                    $engine.audioPlaySound(snd)
                 }
             }
             this.landedOnce=true;

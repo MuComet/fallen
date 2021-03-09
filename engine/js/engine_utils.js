@@ -226,7 +226,7 @@ class EngineUtils {
     }
 
     /**
-     * Interpolates between min and max given a certain interpolation fuction and an input value.
+     * Interpolates between min and max given a certain interpolation function and an input value.
      * 
      * example usage: 
      * 

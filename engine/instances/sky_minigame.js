@@ -47,7 +47,7 @@ class SkyMinigameController extends MinigameController { // All classes that can
         this.progressText.y = $engine.getWindowSizeY()-30;
         this.updateProgressText();
 
-        this.seList = ["Donk","Drill"];
+        this.seList = ["sky_donk","sky_drill"];
         this.nextSoundTimer = 0;
         this.nextSoundRand = EngineUtils.irandomRange(60,150);
 
@@ -84,7 +84,7 @@ class SkyMinigameController extends MinigameController { // All classes that can
 
         this.nextSoundTimer++; 
         if(this.nextSoundTimer>=this.nextSoundRand) {
-            AudioManager.playSe($engine.generateAudioReference(this.seList[EngineUtils.irandom(0)]));
+            $engine.audioPlaySound(this.seList[0])
             this.nextSoundTimer=0;
             this.nextSoundRand = EngineUtils.irandomRange(150,300);
         }
@@ -92,7 +92,7 @@ class SkyMinigameController extends MinigameController { // All classes that can
         if(this.drillTimer>this.drillTime) {
             this.drillTimer=0;
             this.drillTime = this.drillTimeBase+EngineUtils.irandomRange(-60,60)
-            AudioManager.playSe($engine.generateAudioReference(this.seList[1]));
+            $engine.audioPlaySound(this.seList[1])
         }
     }
 
@@ -142,7 +142,7 @@ class SkyBuildPlayer extends EngineInstance {
     swingMove() {
         var controller = SkyMinigameController.getInstance();
         var val = controller.hasCheated() ? 0.5 : 1;
-        var sin = Math.sin($engine.getGameTimer()/EngineUtils.clamp(32-SkyMinigameController.score * val,4,32) + this.randomOffset);
+        var sin = Math.sin($engine.getGameTimer()/EngineUtils.clamp(32-SkyMinigameController.score * val,3.5,32) + this.randomOffset);
         this.angle = -sin/2;
         var angle2 = Math.PI*3/2+sin/2;
         this.lastX=this.x;
@@ -157,9 +157,9 @@ class SkyBuildPlayer extends EngineInstance {
 
         if(this.lastDir!==this.dir) {
             if(this.dir===-1) {
-                $engine.audioPlaySound("audio/se/Woosh1.ogg")
+                $engine.audioPlaySound("sky_woosh_1")
             } else {
-                $engine.audioPlaySound("audio/se/Woosh2.ogg")
+                $engine.audioPlaySound("sky_woosh_2")
             }
         }
     }
@@ -170,7 +170,7 @@ class SkyBuildPlayer extends EngineInstance {
         }
 
         if(this.activated && this.y > $engine.getCamera().getY()+$engine.getWindowSizeY() && ! this.fallPlayed) {
-            $engine.audioPlaySound("audio/se/Falling.ogg")
+            $engine.audioPlaySound("sky_fall"); // hehe
             this.fallPlayed = true;
         }
 
@@ -200,7 +200,7 @@ class SkyBuildPlayer extends EngineInstance {
             this.dropY = this.y;
             this.dropAngle = this.angle
             SkyMinigameController.getInstance().getTimer().pauseTimer();
-            $engine.audioPlaySound("audio/se/WobblyTrue.ogg");
+            $engine.audioPlaySound("sky_wobble");
         }
 
 
@@ -217,7 +217,7 @@ class SkyBuildPlayer extends EngineInstance {
                     SkyMinigameController.nextBlock += 1;
                     this.y = tower.hitbox.getBoundingBoxTop()-100;
                     tower.getSprite().tint = 0x444444;
-                    $engine.audioPlaySound("audio/se/BuildingLanding.ogg");
+                    $engine.audioPlaySound("sky_land");
                     SkyMinigameController.timer=0;
                     if(SkyMinigameController.score>=3){
                         SkyMinigameController.endTime = EngineUtils.clamp(SkyMinigameController.endTime-1,10,20);
@@ -278,7 +278,7 @@ class FallingTowerPlatform extends SkyBuildPlayer {
                     SkyMinigameController.score+= 1;
                     SkyMinigameController.getInstance().updateProgressText();
                     SkyMinigameController.timer=0;
-                    $engine.audioPlaySound("audio/se/BuildingLanding.ogg");
+                    $engine.audioPlaySound("sky_land");
                     tower.speed = 0;
                     tower.activated = false;
                     new SkyBuildPlayer($engine.getWindowSizeX()/2,64 - 100 * SkyMinigameController.score,0);

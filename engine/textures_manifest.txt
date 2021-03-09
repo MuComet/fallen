@@ -14,7 +14,7 @@ require cloud_generic_4 engine/textures/generic/cloud_generic_4.png 0.5 0.5
 
 spritesheet dimensions 6000 624 6 1 background_sheet engine/textures/generic/background_generic_sheet.png 0.5 0.5
 spritesheet dimensions 6000 624 6 1 background_sheet_ground engine/textures/generic/background_generic_sheet_2.png 0.5 0.5
-spritesheet dimensions 11424 624 14 1 intro_cutscene_sheet engine/textures/intro/intro_cutscene_sheet.jpg 0 0
+require spritesheet dimensions 11424 624 14 1 intro_cutscene_sheet engine/textures/intro/intro_cutscene_sheet.webp 0 0
 
 spritesheet dimensions 48 24 4 2 leaf_particles_small engine/textures/generic/leaf_particles_smol_sheet.png 0.5 0.5
 spritesheet dimensions 300 100 3 1 dust_particles engine/textures/particle/dust_particle_sheet.png 0.5 0.5

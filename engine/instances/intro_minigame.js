@@ -25,7 +25,7 @@ class IntroMinigameController extends MinigameController {
         new Vertex(685,461),new Vertex(697,445),new Vertex(710,431),new Vertex(727,425),new Vertex(753,426),new Vertex(772,435),new Vertex(781,444),
         new Vertex(788,454),new Vertex(799,458),new Vertex(816,458),new Vertex(816,0)));
 
-        var textures = $engine.getTexturesFromSpritesheet("tutorial_sheet",0,$engine.getSpriteSheetLength("tutorial_sheet"));
+        var textures = $engine.getTexturesFromSpritesheet("tutorial_sheet",0,$engine.getSpritesheetLength("tutorial_sheet"));
         this.sprites = [];
         for(var i =textures.length-1;i>=0;i--) {
             var spr = $engine.createRenderable(this,new PIXI.Sprite(textures[i]))
@@ -70,10 +70,8 @@ class IntroMinigameController extends MinigameController {
         this.zoneTime = 32;
         this.zoneTimer = -this.zoneTime;
 
-        this.sound1 = $engine.audioGetSound("audio/se/Stream.ogg","BGS",0.25);
-        $engine.audioPlaySound(this.sound1,true);
-        this.sound2 = $engine.audioGetSound("audio/se/Drop.ogg","BGS",0.25);
-        $engine.audioPlaySound(this.sound2,true);
+        this.sound1 = $engine.audioPlaySound("drain_stream",0.25,true);
+        this.sound2 = $engine.audioPlaySound("drain_drop",0.25,true);
 
         this.addOnGameEndCallback(this,function(self) {
             $engine.audioFadeSound(self.sound1);
@@ -149,7 +147,7 @@ class IntroMinigameController extends MinigameController {
             this.hitTimer = this.hitTime;
             this.zoneTimer = -this.zoneTime;
             this.tintColour = 0xff1222;
-            $engine.audioPlaySound("audio/se/DrainWall.ogg")
+            $engine.audioPlaySound("drain_wall")
         }
 
         if(this.samplingMouse) {
@@ -202,14 +200,15 @@ class IntroMinigameController extends MinigameController {
 
     renderRestartZone(camera) {
 
+        var colour = 0x12ff22
         var fac = EngineUtils.interpolate(Math.abs(this.zoneTimer/this.zoneTime),1,0,EngineUtils.INTERPOLATE_SMOOTH);
         this.zoneSprite.alpha = fac;
         this.zoneSprite.tilePosition.x+=0.1;
         this.zoneSprite.tilePosition.y+=0.1;
-        this.zoneSprite.tint = this.tintColour;
+        this.zoneSprite.tint = colour;
         var zone = this.zoneSprite;
         var thickness = 3 + Math.abs(Math.sin($engine.getGameTimer()/32))*5
-        camera.lineStyle(thickness,this.tintColour,fac);
+        camera.lineStyle(thickness,colour,fac);
         camera.moveTo(zone.x-zone.width/2,zone.y)
                 .lineTo(zone.x+zone.width/2,zone.y)
                 .lineTo(zone.x+zone.width/2,zone.y+zone.height)

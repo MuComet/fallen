@@ -1,0 +1,39 @@
+require title_music engine/audio/bgm/Title.ogg BGM
+require intro1 engine/audio/bgm/Intro1.ogg BGM
+require intro2 engine/audio/bgm/Intro2.ogg BGM
+require intro3 engine/audio/bgm/Intro3.ogg BGM
+require intro4 engine/audio/bgm/Intro4.ogg BGM
+
+minigame_loss engine/audio/bgm/Loss.ogg BGM
+minigame_loss_cheat engine/audio/bgm/LossCheat.ogg BGM
+
+minigame_win engine/audio/bgm/Victory.ogg BGM
+minigame_win_cheat engine/audio/bgm/VictoryCheat.ogg BGM
+
+minigame_music engine/audio/bgm/Minigame.ogg BGM
+minigame_music_cheat engine/audio/bgm/MinigameCheat.ogg BGM
+
+require cutscene_paper engine/audio/se/cutscene/Paper.ogg SE
+require cutscene_snap engine/audio/se/cutscene/Snap.ogg SE
+
+drain_hit engine/audio/se/drain/DrainWall.ogg SE
+drain_drop engine/audio/se/drain/Drop.ogg BGS
+drain_stream engine/audio/se/drain/Stream.ogg BGS
+
+draw_shake engine/audio/se/drawing/Shake.ogg SE
+draw_spray engine/audio/se/drawing/Spray.ogg SE
+draw_start engine/audio/se/drawing/Start.ogg SE
+
+minigame_cheat engine/audio/se/minigames/Cheat.ogg ME
+minigame_drumroll engine/audio/se/minigames/DrumRoll.ogg SE
+minigame_end engine/audio/se/minigames/GameEnd.ogg ME
+minigame_end_cheat engine/audio/se/minigames/GameEndCheat.ogg ME
+
+sky_bonk engine/audio/se/skybuild/Bonk.ogg SE
+sky_land engine/audio/se/skybuild/BuildingLanding.ogg SE
+sky_donk engine/audio/se/skybuild/Donk.ogg SE
+sky_drill engine/audio/se/skybuild/Drill.ogg SE
+sky_fall engine/audio/se/skybuild/Falling.ogg SE
+sky_wobble engine/audio/se/skybuild/WobblyTrue.ogg SE
+sky_woosh_1 engine/audio/se/skybuild/Woosh1.ogg SE
+sky_woosh_2 engine/audio/se/skybuild/Woosh2.ogg SE

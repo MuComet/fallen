@@ -43,7 +43,7 @@ class UmbrellaMinigameController extends MinigameController {
         this.timer.setSurvivalMode();
         $engine.setBackgroundColour(0x080820)
 
-        $engine.enablePhysics();
+        $engine.physicsEnable();
 
         this.physicsFloor = Matter.Bodies.rectangle($engine.getWindowSizeX()/2,$engine.getWindowSizeY(),$engine.getWindowSizeX(),64,{isStatic:true});
         $engine.physicsAddBodyToWorld(this.physicsFloor);

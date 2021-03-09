@@ -4,9 +4,11 @@ var $engine;
 /** @type {Object} */
 var $__engineData = {}
 $__engineData.__textureCache = {};
+$__engineData.__soundCache = {};
 $__engineData.__spritesheets = {};
 $__engineData.__haltAndReturn = false;
 $__engineData.__ready = false;
+$__engineData.__fullyReady = false;
 $__engineData.__outcomeWriteBackValue = -1
 $__engineData.outcomeWriteBackIndex = -1;
 $__engineData.__cheatWriteBackValue = -1
@@ -14,6 +16,7 @@ $__engineData.cheatWriteBackIndex = -1;
 $__engineData.autoSetWriteBackIndex = -1;
 $__engineData.loadRoom = "MenuIntro";
 $__engineData.__lowPerformanceMode = false;
+$__engineData.__overrideRoom = undefined;
 
 // things to unbork:
 // re-comment out YEP speech core at 645
@@ -25,9 +28,11 @@ $__engineData.__RPGVariableStart = 101;
 $__engineData.__advanceGameInterpreter=false
 
 $__engineData.__debugRequireTextures = false;
+$__engineData.__debugRequireSounds = false;
 $__engineData.__debugPreventReturn = false;
 $__engineData.__debugLogFrameTime = false;
 $__engineData.__debugRequireAllTextures = false;
+$__engineData.__debugRequireAllSounds = false;
 
 const ENGINE_RETURN = {};
 ENGINE_RETURN.LOSS = 0;
@@ -69,7 +74,6 @@ class Scene_Engine extends Scene_Base {
     }
 
     __initEngine() {
-        $engine.__cleanupOldSounds(this);
         $engine = this;
         this.__pauseMode = 0; // 0 = not paused, 1 = paused, 2 = pause special.
         this.__pauseSpecialInstance = undefined;
@@ -89,7 +93,6 @@ class Scene_Engine extends Scene_Base {
         this.__timescale = 1;
         this.__timescaleFraction = 0;
         this.__sounds = [];
-        this.__soundsToDestroy = [];
 
         this.__RPGVariableTags = [];
 
@@ -166,7 +169,7 @@ class Scene_Engine extends Scene_Base {
     /**
      * Enables matter.js physics engine. After calling this method, all EnginePhysicsInstances will be physically simulated.
      */
-    enablePhysics() {
+    physicsEnable() {
         if(!this.__physicsEngine)
             this.__physicsEngine = new Matter.Engine.create();
     }
@@ -177,6 +180,14 @@ class Scene_Engine extends Scene_Base {
 
     physicsRemoveBodyFromWorld(body) {
         Matter.World.remove(this.__physicsEngine.world,body)
+    }
+
+    physicsDestroy() {
+        if(!this.__physicsEngine)
+            return;
+        Matter.World.clear(this.__physicsEngine.world);
+        Matter.Engine.clear(this.__physicsEngine);
+        this.__physicsEngine=undefined;
     }
 
     setTimescale(scale) {
@@ -234,7 +245,7 @@ class Scene_Engine extends Scene_Base {
         return ref;
     }
 
-    async audioPlaySound(snd, loop=false, start = 0, end = 0) {
+    audioPlaySound(snd, volume=1, loop=false, start = 0, end = 0) {
         if(typeof(snd)==="string")
             snd = this.audioGetSound(snd);
         var retSnd = undefined;
@@ -243,42 +254,37 @@ class Scene_Engine extends Scene_Base {
                 loop: loop,
                 start: start,
                 end: end,
-                complete:function() {
-                    snd.__isComplete = true;
-                }
+                volume: volume,
             });
         } else {
             retSnd = snd.play({
                 loop: loop,
-                complete:function() {
-                    snd.__isComplete = true;
-                }
+                volume: volume,
             });
         }
-        snd.__tick = function(self){}; // nothing for now
-        this.__sounds.push(snd);
-        retSnd.sourceAudio = snd;
-        return retSnd.then(result => {
-            snd.__sourceSound = result;
-            return result;
-        });
+        retSnd.__tick = function(self){}; // nothing for now
+        this.__sounds.push(retSnd);
+        retSnd.__sourceSound = snd;
+        retSnd.__destroyed=false;
+        return retSnd;
     }
 
-    audioGetSound(path, type="SE", volume=1) {
-        var vol = this.audioGetVolume(type)
-        const snd = new PIXI.sound.Sound.from({
-            url:path,
-            volume:vol*volume,
-        });
-        snd.originalVolume = vol;
-        snd.__isComplete = false
-        snd.__type = type;
-        return snd;
+    audioGetSound(path) {
+        var sound = $__engineData.__soundCache[path];
+        if(!sound) {
+            var str = "Unable to find sound for name: "+String(path)+". Did you remember to include the sound in the manifest?"
+            if($__engineData.__debugRequireSounds)
+                throw new Error(str);
+            console.error(str)
+            return undefined;
+        }
+        sound.filters = []; // reset the filters.
+        return sound;
     }
 
     audioStopSound(snd) {
         for(const sound of this.__lookupSounds(snd)) {
-            this.__destroySound(sound);
+            $engine.audioDestroy(sound)
         }
     }
 
@@ -288,8 +294,9 @@ class Scene_Engine extends Scene_Base {
 
     audioStopType(type) {
         for(const sound of this.__sounds) {
-            if(sound.__type === type)
-                sound.destroy();
+            if(sound.__sourceSound.__type === type) {
+                $engine.audioDestroy(sound)
+            }
         }
     }
 
@@ -297,7 +304,7 @@ class Scene_Engine extends Scene_Base {
         var sounds = [];
         if(typeof(snd) === "string") {
             for(const sound of this.__sounds) {
-                if(sound.url === snd)
+                if(sound.__sourceSound.__engineAlias === snd)
                     sounds.push(sound);
             }
         } else {
@@ -309,7 +316,7 @@ class Scene_Engine extends Scene_Base {
     audioGetSoundsOfType(type) {
         var sounds = [];
         for(const sound of this.__sounds) {
-            if(sound.__type === type)
+            if(sound.__sourceSound.__type === type)
                 sounds.push(sound);
         }
         return sounds;
@@ -317,13 +324,24 @@ class Scene_Engine extends Scene_Base {
 
     audioPauseSound(snd) {
         for(const sound of this.__lookupSounds(snd)) {
-            sound.pause()
+            if(sound._source) { // remember our loop points, they get erased when you pause
+                sound.__loopStart = sound._source.loopStart;
+                sound.__loopEnd = sound._source.loopEnd;
+            } else {
+                sound.__loopStart=undefined;
+                sound.__loopEnd=undefined;
+            }
+            sound.paused = true
         }
     }
 
     audioResumeSound(snd) {
         for(const sound of this.__lookupSounds(snd)) {
-            sound.resume()
+            sound.paused = false;
+            if(sound.__loopStart!==undefined) {
+                sound._source.loopStart = sound.__loopStart;
+                sound._source.loopEnd = sound.__loopEnd;
+            }
         }
     }
 
@@ -338,7 +356,7 @@ class Scene_Engine extends Scene_Base {
         snd.__tick = function(self) {
             self.volume = (1-(self.__timer/ self.__timeToFade))*self.__vol
             if(self.__timer>=self.__timeToFade)
-                $engine.__destroySound(self)
+                $engine.audioDestroy(self);
             self.__timer++;
         }
     }
@@ -347,12 +365,18 @@ class Scene_Engine extends Scene_Base {
         snd.__timeToFade = time;
         snd.__timer = 0;
         snd.__vol = snd.volume;
+        snd.volume = 0;
         snd.__tick = function(self) {
-            if(self.__timer>=self.__timeToFade)
+            if(self.__timer>self.__timeToFade)
                 return;
             self.volume = (self.__timer/ self.__timeToFade)*self.__vol
             self.__timer++;
         }
+    }
+
+    audioDestroy(audio) {
+        audio.stop();
+        audio.__destroyed = true;
     }
 
     audioFadeAll(time=30) {
@@ -363,8 +387,8 @@ class Scene_Engine extends Scene_Base {
 
     audioFadeAllOfType(type = "SE",time=30) {
         for(const sound of this.__sounds) {
-            if(sound.__type === type)
-                this.audioFadeSound(sound,time)
+            if(sound.__sourceSound.__type === type)
+                this.audioFadeSound(audio,time)
         }
     }
 
@@ -386,39 +410,32 @@ class Scene_Engine extends Scene_Base {
 
     __audioTick() {
         for(const sound of this.__sounds) {
-            if(sound.__isComplete === true)
-                this.__destroySound(sound);
             sound.__tick(sound);
+            if(sound.progress>=1) {
+                this.audioDestroy(sound)
+            }
         }
         this.__sounds = this.__sounds.filter( x=> !x.__destroyed);
     }
 
-    __destroySound(sound) {
-        if(sound.__destroyed)
-            return;
-        sound.stop();
-        /*if(sound.__sourceSound) // fix for async load bug
-            sound.destroy();
-        else
-            this.__soundsToDestroy.push(sound)*/
-        sound.__destroyed=true;
-    }
-
-    // PIXI sounds load async. As a result if the engine stops while a sound is still loading, then destryoing it will
-    // result in a crash. To work around this, we will pass the sound forward to new copies of the engine until one cleans it up.
-    __cleanupOldSounds(newEngine) {
-        if(!this.__soundsToDestroy)
-            return;
-        for(const sound of this.__soundsToDestroy) {
-            newEngine.__destroySound(sound); // continually pass the sound forward until eventually some engine is able to destroy it.
-        }
-    }
-
     __audioCleanup() { // at the end of the game, delete all sounds.
         for(const sound of this.__sounds) {
-            this.__destroySound(sound);
+            sound.stop();
         }
         this.__sounds = [];
+    }
+
+    /**
+     * The next time the engine tries to return, override the request and instead go to the specified room.
+     * 
+     * This does not effect a room change request. Only a return to overworld request.
+     * 
+     * The engine will completely restart itself in this situation, 
+     * and it will act as if the engine terminated and then immediately started in the new room.
+     * @param {String} newRoom The room to go to instead
+     */
+    overrideReturn(newRoom) {
+        $__engineData.__overrideRoom = newRoom;
     }
 
     setRoom(newRoom) {
@@ -508,6 +525,19 @@ class Scene_Engine extends Scene_Base {
     }
 
     __endAndReturn() {
+
+        if($__engineData.__overrideRoom) { // completely restart the engine if we override room.
+            this.__cleanup(); // after all the intention of the programmer at this point is that the engine is to be terminated.
+            this.removeChildren();
+            this.__initEngine();
+            $__engineData.loadRoom = $__engineData.__overrideRoom
+            this.__startEngine();
+            $__engineData.__overrideRoom=undefined;
+            $__engineData.__haltAndReturn=false;
+            this.startFadeIn();
+            return;
+        }
+
         // for testing minigames.
         if($__engineData.__debugPreventReturn) {
             this.__cleanup();
@@ -517,6 +547,7 @@ class Scene_Engine extends Scene_Base {
             $__engineData.__haltAndReturn=false;
             return;
         }
+
         SceneManager.pop(); // calls terminate
     }
 
@@ -537,6 +568,11 @@ class Scene_Engine extends Scene_Base {
         this.freeRenderable(this.__backgroundContainer);
         this.freeRenderable(this.__gameCanvas)
         this.__audioCleanup();
+        this.physicsDestroy();
+        if(this._fadeSprite) {
+            this.freeRenderable(this._fadeSprite);
+            this._fadeSprite=undefined;
+        }
     }
 
     __writeBack() {
@@ -642,8 +678,6 @@ class Scene_Engine extends Scene_Base {
             IM.__timescaleImmuneStep();
         }
 
-        IM.__interpolate();
-
         if(!renderedOnce) {
             IM.__draw();
         }
@@ -725,7 +759,7 @@ class Scene_Engine extends Scene_Base {
     getRandomTextureFromSpritesheet(name) {
         var sheetData = $__engineData.__spritesheets[name];
         if(!sheetData) {
-            var str = "Unable to find spritesheet for name: "+String(name)+". Was this texture initalized as a spritesheet?"
+            var str = "Unable to find spritesheet for name: "+String(name)+". Was this texture initialized as a spritesheet?"
             if($__engineData.__debugRequireTextures)
                 throw new Error(str);
             console.error(str)
@@ -741,7 +775,7 @@ class Scene_Engine extends Scene_Base {
      * 
      * @param {String} name The name of the spritesheet
      */
-    getSpriteSheetLength(name) {
+    getSpritesheetLength(name) {
         var sheetData = $__engineData.__spritesheets[name];
         if(!sheetData) {
             var str = "Unable to find texture for name: "+String(name)+". Did you remember to include the texture in the manifest?"
@@ -1051,50 +1085,82 @@ document.addEventListener("visibilitychange", function(event) {
 ////////////////////////////////single time setup of engine///////////////////////
 
 IN.__register();
-// calling of this is defered until window.onLoad() is called in main.js
-// this is so that the engine won't delay the starting of RPG maker while it loads.
-__initalize = function() {
+// calling of this is defered until scene boot. If we call it any earlier,
+// the engine early start won't work because it has to wait for RPG maker
+__initialize = function() {
     var obj = {
+        deferredTextures: [],
+        deferredSounds: [],
         count : 0,
         scripts : 0,
         textures : 0,
         rooms : 0,
         instances : 0,
+        sounds : 0,
         elements : 0,
         time : window.performance.now(),
         total : 0,
+        deferredAssets : 0,
         valid : false, // don't let the engine falsely think it's ready
         onNextLoaded : function() {
             this.count++;
             this.testComplete();
         },
         testComplete : function() {
-            if(this.count===this.total && this.valid && this.elements===4) // all loaded
+            if(this.count===this.total && this.valid && this.elements===5) // all loaded
                 this.onComplete();
         },
         onComplete : function() {
-            __initalizeDone(this)
+            __initializeDone(this)
         },
         validate : function() {
             this.valid=true;
-            if(this.count===this.total && this.elements===4) // already loaded everything, proceed. 4 = (scripts, rooms, textures, instances)
+            if(this.count===this.total && this.elements===5) // already loaded everything, proceed. 4 = (scripts, rooms, textures, instances, sounds)
                 this.onComplete();
         }
     }
     __prepareScripts("engine/scripts_manifest.txt",obj);
     __inst = __readInstances("engine/instances_manifest.txt",obj);
-    __readTextures("engine/textures_manifest.txt",obj);
     __readRooms("engine/rooms_manifest.txt",obj);
+    __readTextures("engine/textures_manifest.txt",obj);
+    __readSounds("engine/sounds_manifest.txt",obj);
     obj.validate()
 }
 
-__initalizeDone = function(obj) {
+__initializeDone = function(obj) {
     IM.__init(this.__inst);
     RoomManager.__init();
-    var msg = "("+String(obj.scripts)+(obj.scripts!==1 ? " scripts, " : " script, ")+String(obj.textures)+(obj.textures!==1 ? " textures, " : " texture, ") +
-                String(obj.rooms)+(obj.rooms!==1 ? " rooms, " : " room, ")+String(obj.instances)+(obj.instances!==1 ? " instances) ->" : " instance) ->")
-    console.log("Loaded all the files we need!",msg, window.performance.now() - obj.time," ms")
+    console.log("Loaded all required assets! ->",window.performance.now() - obj.time,"ms");
     $__engineData.__ready=true;
+    __finishReading(obj);
+}
+
+__finishReading = function(obj) {
+    var total = 0;
+    var loaded = 0;
+
+    const isDone = function() {
+        if(++loaded===total) {
+            var msg = "("+String(obj.scripts)+(obj.scripts!==1 ? " scripts, " : " script, ")+String(obj.textures)+(obj.textures!==1 ? " textures, " : " texture, ") 
+                    + String(obj.rooms)+(obj.rooms!==1 ? " rooms, " : " room, ") + String(obj.sounds)+(obj.sounds!==1 ? " sounds, " : " sound, ")
+                    + String(obj.instances)+(obj.instances!==1 ? " instances) ->" : " instance) ->");
+            console.log("Loaded remaining "+String(obj.deferredAssets)+" assets! Asset summary:",msg,window.performance.now() - obj.time," ms");
+            $__engineData.__fullyReady = true;
+        }
+    }
+
+    for(const soundObj of obj.deferredSounds) {
+        total++;
+        __loadSound(obj, soundObj, () => {
+            isDone();
+        });
+    }
+    for(const texObj of obj.deferredTextures) {
+        total++;
+        __loadTexture(obj, texObj, () => {
+            isDone();
+        });
+    }
 }
 
 __prepareScripts = function(script_file,obj) {
@@ -1105,6 +1171,7 @@ __prepareScripts = function(script_file,obj) {
         for (const x of data) {
             obj.total++;
             obj.scripts++;
+            obj.assetCount++;
             EngineUtils.attachScript(x,obj.onNextLoaded)
         }
         obj.elements++;
@@ -1121,6 +1188,7 @@ __readRooms = function(room_file,obj) {
             const name = arr[0];
             obj.rooms++;
             obj.total++;
+            obj.assetCount++;
             const callback_room = function(text) {
                 const roomData = EngineUtils.strToArrNewline(text);
                 RoomManager.__addRoom(name, Room.__roomFromData(name,roomData));
@@ -1162,6 +1230,57 @@ __readInstances = function(instance_file,obj) {
     return inst;
 }
 
+__readSounds = function(sound_file,obj) {
+    var callback = function(fileData) {
+        const data = EngineUtils.strToArrNewline(fileData);
+
+        var required = [];
+    
+        for (const x of data) {
+            const arr = EngineUtils.strToArrWhitespace(x);
+            obj.sounds++;
+            obj.assetCount++;
+            var soundObj = {
+                alias: arr[arr.length-3],
+                path: arr[arr.length-2],
+                type: arr[arr.length-1],
+            }
+
+            if((arr.length > 3 && arr[0] === "require") || $__engineData.__debugRequireAllSounds) {
+                required.push(soundObj);
+            } else {
+                obj.deferredSounds.push(soundObj)
+                obj.deferredAssets++;
+            }
+        }
+
+        for(const soundObj of required) {
+            obj.total++;
+            __loadSound(obj, soundObj, () => {
+                obj.onNextLoaded();
+            });
+        }
+
+        obj.elements++;
+        obj.testComplete(); // update the obj
+    }
+    EngineUtils.readLocalFileAsync(sound_file,callback);
+}
+
+__loadSound = function(obj, soundObj, callback) {
+    var options = {
+        url: soundObj.path,
+        preload: true,
+        autoPlay: false,
+        loaded: callback,
+        volume: $engine.audioGetVolume(soundObj.type),
+    }
+    const sound = PIXI.sound.Sound.from(options);
+    sound.__type = obj.type;
+    $__engineData.__soundCache[soundObj.alias] = sound;
+    sound.__engineAlias = soundObj.alias;
+}
+
 __readTextures = function(texture_file,obj) { // already sync
     const callback = function(fileData) {
         var data = EngineUtils.strToArrNewline(fileData);
@@ -1169,6 +1288,7 @@ __readTextures = function(texture_file,obj) { // already sync
         // parse raw data into objects
         for (const d of data) {
             const arr = EngineUtils.strToArrWhitespace(d);
+            
 
             const type = arr[0];
             let len = arr.length;
@@ -1202,19 +1322,17 @@ __readTextures = function(texture_file,obj) { // already sync
         var other = [];
         for(const texObj of texData) {
             __parseTextureObject(texObj)
-            if(__queryTextureObject(texObj,"require") || $__engineData.__debugRequireAllTextures)
+            if(__queryTextureObject(texObj,"require") || $__engineData.__debugRequireAllTextures) {
                 required.push(texObj);
-            else
-                other.push(texObj);
+            } else {
+                obj.deferredTextures.push(texObj);
+                obj.deferredAssets++;
+            }
         }
         for(const texObj of required) {
             __loadTexture(obj, texObj, () => {
                 obj.onNextLoaded();
             });
-        }
-        for(const texObj of other) {
-            __loadTexture(obj, texObj, () => {});
-            obj.total--; // don't count the texture...
         }
 
         obj.elements++;
@@ -1405,6 +1523,14 @@ Scene_Boot.prototype.start = function() { // hijack the boot routine
     this.updateDocumentTitle();
 };
 
+Scene_Boot.prototype.create = function() { // defer loading of the engine until as late as possible so that RPG maker calls are evaluated first.
+    Scene_Base.prototype.create.call(this);
+    DataManager.loadDatabase();
+    ConfigManager.load();
+    this.loadSystemWindowImage();
+    __initialize();
+};
+
 Scene_Boot.prototype.isReady = function() {
     if (Scene_Base.prototype.isReady.call(this)) {
         return DataManager.isDatabaseLoaded() && this.isGameFontLoaded() && $__engineData.__ready;
@@ -1460,6 +1586,7 @@ SceneManager.snap = function() {
     UwU.onAfterSnap(this._scene);
     return snap;
 }
+
 
 // hook a in a global update.
 SceneManager.updateManagers = function() {
@@ -1729,6 +1856,11 @@ class OwO {
                 OwO.__syncRenderLayer();
             }
         })
+
+        UwU.addRenderListener(function() {
+            if(UwU.sceneIsOverworld() && OwO.__renderLayer)
+                OwO.__syncRenderLayer();
+        })
     }
 
     static __executeMapScript() {
@@ -1940,7 +2072,7 @@ class OwO {
     }
 
     static __renderLayerTick() {
-        if(!OwO.__renderLayer || UwU.sceneIsMenu() || UwU.sceneIsEngine())
+        if(!OwO.__renderLayer || !UwU.sceneIsOverworld())
             return;
 
         if(OwO.__renderLayerController)
@@ -1964,7 +2096,6 @@ class OwO {
             });
             OwO.__renderLayer.addChild(...children)
         }
-        OwO.__syncRenderLayer()
     }
 
     static __syncRenderLayer() {
