@@ -20,6 +20,6 @@ var $plugins =
 {"name":"KhasCore","status":true,"description":"[2.0] Required by Khas plugins.","parameters":{}},
 {"name":"KhasGraphics","status":true,"description":"[1.1] Required by Khas graphics plugins.","parameters":{}},
 {"name":"KhasAdvancedFog","status":true,"description":"[3.0] Adds procedural fog to your game.","parameters":{"Variable Fog Density":"ON","Zoom Compatibility":"OFF","MBS Zoom":"OFF","Transfer Reset":"OFF","Auto Battle Fog":"ON"}},
-{"name":"KhasUltraLighting","status":true,"description":"[4.2] Adds lighting and real-time shadows to your game.","parameters":{"Custom Blending":"ON","Transfer Reset":"OFF","Auto Battle Lighting":"ON"}},
+{"name":"KhasUltraLighting","status":true,"description":"[4.2] Adds lighting and real-time shadows to your game.","parameters":{"Custom Blending":"ON","Transfer Reset":"ON","Auto Battle Lighting":"ON"}},
 {"name":"MrTS_NoItemCategories","status":true,"description":"Removes item categories from item menu scene and from shop scene.","parameters":{"Hide Menu":"True","Hide Shop":"True"}}
 ];
