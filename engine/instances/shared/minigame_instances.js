@@ -11,7 +11,7 @@
  * 
  * implement canControl()
  * 
- * call move([2]<accel>, this.vel)
+ * call move(accel, this.vel)
  */
 class InstanceMover extends EngineInstance {
 
@@ -21,11 +21,17 @@ class InstanceMover extends EngineInstance {
         this.__initalized = true;
         this.snapMoveFactor = 0.5; // how much to factor in your current speed to the snap distance
         this.snapDistance = 20; // how far to try to snap
+        this.snapDistanceArray = [0,0] // takes priority if nonzero
         this.maxVelocity = 8;
         this.turnLag = 4; // how long if accel in other dir
         this.turnLagStop=8; // how long if no accel
         this.drag = 0.01;
-        this.acceleration =2;
+        this.acceleration = 2;
+
+        this.allowSnapDown=true;
+        this.allowSnapLeft=true;
+        this.allowSnapRight=true;
+        this.allowSnapUp=true;
 
         // don't touch
         this.vel = [0,0]
@@ -190,6 +196,9 @@ class InstanceMover extends EngineInstance {
                 t++;
             }
             this.vel[1]=0;
+            this.turnLagTimer[1] = 0;
+            this.turnLagFramesControl[1] = 0;
+            this.turnLagSpeeds[1] = 0;
             hit = true;
         }
         return hit;
@@ -198,11 +207,12 @@ class InstanceMover extends EngineInstance {
     __snapX() {
         var vel2 = V2D.calcMag(this.vel[0],this.vel[1]);
         var fac = this.snapMoveFactor;
-        var lowerBound = Math.min(-this.snapDistance + vel2*fac * Math.sign(this.vel[0]),0);
-        var upperBound = Math.max(this.snapDistance + vel2*fac * Math.sign(this.vel[0]),0);
-        if(this.vel[0]>0) // cannot snap in a direction you are not moving...
+        var dist = this.snapDistanceArray[0] || this.snapDistance
+        var lowerBound = Math.min(-dist + vel2*fac * Math.sign(this.vel[0]),0);
+        var upperBound = Math.max(dist + vel2*fac * Math.sign(this.vel[0]),0);
+        if(this.vel[0]>0 || !this.allowSnapLeft) // cannot snap in a direction you are not moving...
             lowerBound=0;
-        if(this.vel[0]<0)
+        if(this.vel[0]<0 || !this.allowSnapRight)
             upperBound=0;
         for(var i = 0;i<upperBound;i++) {
             if(!this.collisionCheck(this.x+i,this.y+this.vel[1])) {
@@ -228,6 +238,9 @@ class InstanceMover extends EngineInstance {
                 t++;
             }
             this.vel[0]=0;
+            this.turnLagTimer[0] = 0;
+            this.turnLagFramesControl[0] = 0;
+            this.turnLagSpeeds[0] = 0;
             hit = true;
         }
         return hit;
@@ -236,11 +249,12 @@ class InstanceMover extends EngineInstance {
     __snapY() {
         var vel2 = V2D.calcMag(this.vel[0],this.vel[1]);
         var fac = this.snapMoveFactor;
-        var lowerBound = Math.min(-this.snapDistance + vel2*fac * Math.sign(this.vel[1]),0);
-        var upperBound = Math.max(this.snapDistance + vel2*fac * Math.sign(this.vel[1]),0);
-        if(this.vel[1]>0) // cannot snap in a direction you are not moving...
+        var dist = this.snapDistanceArray[1] || this.snapDistance
+        var lowerBound = Math.min(-dist + vel2*fac * Math.sign(this.vel[1]),0);
+        var upperBound = Math.max(dist + vel2*fac * Math.sign(this.vel[1]),0);
+        if(this.vel[1]>0 || !this.allowSnapUp) // cannot snap in a direction you are not moving...
             lowerBound=0;
-        if(this.vel[1]<0)
+        if(this.vel[1]<0 || !this.allowSnapDown)
             upperBound=0;
         for(var i = 0;i<upperBound;i++) {
             if(!this.collisionCheck(this.x+this.vel[0],this.y+i)) {

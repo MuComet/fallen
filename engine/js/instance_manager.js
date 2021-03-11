@@ -12,7 +12,7 @@ class IM {
     static __initializeVariables() {
         IM.__objects = [];
         //IM.__objectsSorted = []
-        for(var i = 1;i<=IM.__numRegisteredClasses;i++)
+        for(var i = 1;i<=IM.__numRegisteredClasses+1;i++) // +1 because Instance is given an entry, but isn't counted in the class count.
             IM.__accessMap[i] = [];
             IM.__alteredLists[i] = false;
         IM.__cleanupList = [];
@@ -20,7 +20,7 @@ class IM {
     }
 
     static __init(instances) { // assumed instances is a list of classes.
-        IM.__numRegisteredClasses = instances.length;
+        IM.__numRegisteredClasses = instances.length; // DOES NOT INCLUDE ENGINEINSTANCE!
         IM.__accessMap = [[],];
         IM.__accessMap[1] = [];
         EngineInstance.__oid=1;

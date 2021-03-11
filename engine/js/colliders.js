@@ -164,8 +164,8 @@ class Hitbox { // container for actual hitboxes
     checkBoundingBox(hitbox, x, y) {
         var bb = this.__getBoundingBox();
         var other = hitbox.__getBoundingBox();
-        return  bb.x1+x <= other.x2+hitbox.x && bb.x2+x >= other.x1+hitbox.x && 
-                bb.y1+y <= other.y2+hitbox.y && bb.y2+y >= other.y1+hitbox.y
+        return  bb.x1+x < other.x2+hitbox.x && bb.x2+x > other.x1+hitbox.x && 
+                bb.y1+y < other.y2+hitbox.y && bb.y2+y > other.y1+hitbox.y
     }
 
     checkLineCollision(v1,v2) {
@@ -435,11 +435,11 @@ class RectangeHitbox extends BaseHitbox {
     }
 
     getTopLeft() {
-        return new EnginePoint(Math.min(this.x1,this.x2),Math.min(this.y1,this.y2));
+        return new EngineLightweightPoint(Math.min(this.x1,this.x2),Math.min(this.y1,this.y2));
     }
 
     getBottomRight() {
-        return new EnginePoint(Math.max(this.x1,this.x2),Math.max(this.y1,this.y2));
+        return new EngineLightweightPoint(Math.max(this.x1,this.x2),Math.max(this.y1,this.y2));
     }
 
     setBottomRight(x,y) {

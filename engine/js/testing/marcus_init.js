@@ -1,4 +1,4 @@
-$__engineData.loadRoom = "IntroMinigameRoom"
+$__engineData.loadRoom = "HoleMinigameRoom"
 $__engineData.__debugPreventReturn=true;
 $__engineData.__debugRequireAllTextures = true;
 $__engineData.__debugRequireAllSounds = true;

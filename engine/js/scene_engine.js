@@ -22,9 +22,6 @@ $__engineData.__overrideRoom = undefined;
 // re-comment out YEP speech core at 645
 // re-enable custom cursor
 
-// reserve data slots 100 to 200 for engine use.
-$__engineData.__maxRPGVariables = 100;
-$__engineData.__RPGVariableStart = 101;
 $__engineData.__advanceGameInterpreter=false
 
 $__engineData.__debugRequireTextures = false;
@@ -33,6 +30,9 @@ $__engineData.__debugPreventReturn = false;
 $__engineData.__debugLogFrameTime = false;
 $__engineData.__debugRequireAllTextures = false;
 $__engineData.__debugRequireAllSounds = false;
+
+/** @type {Object} */
+var $__engineSaveData = {}; // this data is automatically read and written by RPG maker when you load a save.
 
 const ENGINE_RETURN = {};
 ENGINE_RETURN.LOSS = 0;
@@ -52,6 +52,7 @@ const SET_ENGINE_RETURN = function(indexOutcome, indexCheat, indexWriteAutoSet =
 
 const ENGINE_START = function() {
     SceneManager.push(Scene_Engine);
+    OwO.incrementTimeOfDay();
 }
 
 //PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST; // set PIXI to render as nearest neighbour
@@ -599,45 +600,7 @@ class Scene_Engine extends Scene_Base {
             $__engineData.autoSetWriteBackIndex=-1;
         }
     }
-
-    getRPGVariable(index, tag=null) {
-        this.__ensureTag(index,tag);
-        return $gameVariables.value(this.__correctRange(index));
-    }
-
-    setRPGVariable(index, value, tag=null) {
-        this.__ensureTag(index,tag);
-        $gameVariables.setValue(this.__correctRange(index),value);
-    }
-
-    __ensureTag(index, tag) {
-        if(tag===null) {
-            throw new Error("Must supply tag.");
-        }
-        var val = this.__RPGVariableTags[index]
-
-        if(val===undefined) { // take ownership of this tag.
-            this.__RPGVariableTags[index] = tag;
-            return true;
-        }
-        
-        if(val!==tag) {
-            throw new Error("Error: Tag mismatch when attemting to access RPG variable at "+String(this.__correctRange(index)) 
-                            + "(source: "+String(val)+", provided: "+String(tag)+")");
-        }
-    }
-
-    resetAllRPGVariables() {
-        for(var i = $__engineData.__RPGVariableStart;i<$__engineData.__RPGVariableStart+$__engineData.__maxRPGVariables;i++)
-            $gameVariables.setValue(i,-1);
-    }
-
-    __correctRange(index) {
-        if(index<0 || index > $__engineData.__maxRPGVariables)
-            throw new Error("Access to variable at "+index+" is not in engine range of [0 - "+String($__engineData.__maxRPGVariables-1)+"].");
-        return index + $__engineData.__RPGVariableStart;
-    }
-
+    
     terminate() {
         super.terminate()
         this.__cleanup();
@@ -1731,6 +1694,52 @@ Game_BattlerBase.prototype.paramMin = function(paramId) {
     return 0;
 };
 
+// append to the save system.
+{
+    let func1 = DataManager.makeSaveContents;
+    DataManager.makeSaveContents = function() {
+        var result = func1.call(this);
+        result.engineSave = $__engineSaveData;
+        return result;
+    }
+
+    let func2 = DataManager.extractSaveContents;
+    DataManager.extractSaveContents = function(contents) {
+        func2.call(this,contents);
+        $__engineSaveData = contents.engineSave;
+    }
+}
+
+// make shop more streamlined.
+{
+    Window_ShopCommand.prototype.makeCommandList = function() {
+        //this.addCommand(TextManager.buy,    'buy');
+        //this.addCommand(TextManager.sell,   'sell',   !this._purchaseOnly);
+        this.addCommand("Close", 'cancel'); // TextManager.cancel, 'cancel'
+    };
+
+    let func1 = Scene_Shop.prototype.create;
+    Scene_Shop.prototype.create = function() {
+        func1.call(this);
+        this.activateBuyWindow();
+    };
+
+    Window_ShopCommand.prototype.maxCols = function() {
+        return 1;
+    };
+
+    Scene_Shop.prototype.onBuyOk = function() {
+        this._item = this._buyWindow.item();
+        this.doBuy(1)
+        SoundManager.playShop();
+        this._goldWindow.refresh();
+        this._statusWindow.refresh();
+        this.activateBuyWindow();
+    }
+
+}
+
+
 // notes:
 // YEP_CoreEngine 2475 commented out to prevent showing level
 // AltimitMovement 1508 modified to become less precise
@@ -1850,6 +1859,7 @@ class OwO {
                     OwO.__executeMapScript();
                     $gamePlayer._touchTarget = null // reset the target why doesn't altimit do this like really.
                 }
+                OwO.__applyTimeOfDayFilter();
             }
             if(!UwU.lastSceneWasMenu() && !UwU.sceneIsMenu()) { // if true, the last change had nothing to do with menu (could be overworld to engine)
                 OwO.__resetAutorunSwitch();
@@ -1884,6 +1894,18 @@ class OwO {
     // variable via RPG maker every time the room changes
     static __resetAutorunSwitch() {
         $gameSwitches.setValue(4,true);
+    }
+
+    static incrementTimeOfDay() {
+        $gameVariables.setValue(OwO.__timeOfDayIndex,$gameVariables.value(OwO.__timeOfDayIndex)+1); // variable 11 is reserved for engine use
+    }
+
+    static getTimeOfDay() {
+        return $gameVariables.value(OwO.__timeOfDayIndex);
+    }
+
+    static __applyTimeOfDayFilter() {
+        var time = OwO.getTimeOfDay();
     }
 
     // continually calls func with data as the arg until it returns true, then removes it from it's list
@@ -2257,6 +2279,7 @@ OwO.__RPGgameTimer = 0;
 OwO.__colourFilter = new PIXI.filters.AdjustmentFilter()
 OwO.__gameFilters = [OwO.__colourFilter];
 OwO.__mapScripts = {};
+OwO.__timeOfDayIndex = 11;
 
 class GUIScreen { // static class for stuff like the custom cursor. always running.
 
