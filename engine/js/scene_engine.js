@@ -1721,7 +1721,13 @@ Game_BattlerBase.prototype.paramMin = function(paramId) {
     let func1 = Scene_Shop.prototype.create;
     Scene_Shop.prototype.create = function() {
         func1.call(this);
-        this.activateBuyWindow();
+        this._commandWindow.isOkEnabled = function() {
+            return false;
+        }
+        this._commandWindow.isTouchOkEnabled = function() {
+            return true;
+        }
+        this.commandBuy();
     };
 
     Window_ShopCommand.prototype.maxCols = function() {
@@ -1735,6 +1741,13 @@ Game_BattlerBase.prototype.paramMin = function(paramId) {
         this._goldWindow.refresh();
         this._statusWindow.refresh();
         this.activateBuyWindow();
+    }
+
+    let func2 = Scene_Shop.prototype.update
+    Scene_Shop.prototype.update = function() {
+        func2.call(this);
+        if(!this._buyWindow.active)
+            SceneManager.pop();
     }
 
 }
@@ -1789,11 +1802,11 @@ class UwU {
     }
 
     static sceneIsEngine() {
-        return SceneManager._scene.constructor === Scene_Engine; 
+        return SceneManager._scene instanceof Scene_Engine; 
     }
 
     static sceneIsOverworld() {
-        return SceneManager._scene.constructor === Scene_Map; 
+        return SceneManager._scene instanceof Scene_Map; 
     }
 
     static onBeforeSnap(scene) {
@@ -1860,6 +1873,7 @@ class OwO {
                     $gamePlayer._touchTarget = null // reset the target why doesn't altimit do this like really.
                 }
                 OwO.__applyTimeOfDayFilter();
+                OwO.__rebindSpecialRenderLayer();
             }
             if(!UwU.lastSceneWasMenu() && !UwU.sceneIsMenu()) { // if true, the last change had nothing to do with menu (could be overworld to engine)
                 OwO.__resetAutorunSwitch();
@@ -1873,6 +1887,8 @@ class OwO {
             if(UwU.sceneIsOverworld() && OwO.__renderLayer)
                 OwO.__syncRenderLayer();
         })
+
+        OwO.__specialRenderLayer = new PIXI.Container();
     }
 
     static __executeMapScript() {
@@ -2095,6 +2111,10 @@ class OwO {
             OwO.getSpriteset().children[0].addChild(OwO.__renderLayer);
     }
 
+    static __rebindSpecialRenderLayer() {
+        OwO.getSpriteset().children[0].addChild(OwO.__specialRenderLayer);
+    }
+
     static __renderLayerTick() {
         if(!OwO.__renderLayer || !UwU.sceneIsOverworld())
             return;
@@ -2120,6 +2140,66 @@ class OwO {
             });
             OwO.__renderLayer.addChild(...children)
         }
+    }
+
+    static __specialRenderLayerTick() {
+        if(!UwU.sceneIsOverworld())
+            return;
+        for(const child of OwO.__specialRenderLayer.children)
+            child.__update(child);
+        for(var i = OwO.__specialRenderLayer.children.length-1;i>=0;i--) {
+            if(OwO.__specialRenderLayer.children._destroyed)
+                OwO.__specialRenderLayer.removeChildAt(i);
+        }
+    }
+
+    static addTooltip(tip, time = 400) {
+        var style = $engine.getDefaultTextStyle();
+        var text = new PIXI.Text(tip,style);
+        text.x = $engine.getWindowSizeX()/2;
+        text.y = 0-text.height;
+        text.anchor.x = 0.5;
+        text.anchor.y = 0.5;
+        text.__timer = 0;
+        text.__lifetime = time;
+        text.__y1 = -50;
+        var last = OwO.__specialRenderLayer.children[OwO.__specialRenderLayer.children.length-1];
+        if(last && last.__y2!==undefined)
+            last = last.__y2;
+        else
+            last = 0;
+        text.__y2 = 30 + last;
+        text.__update = function(self) {
+            var sinFac1 = Math.sin(OwO.getGameTimer()/26);
+            var sinFac2 = Math.sin((OwO.getGameTimer()+9)/23);
+
+            self.scale.x = 1+sinFac1/32;
+            self.scale.y = 1+sinFac2/32;
+            self.rotation = 0;
+
+            if(self.__timer<=75) {
+                var fac = self.__timer/75;
+                fac = EngineUtils.interpolate(fac,self.__y1,self.__y2,EngineUtils.INTERPOLATE_IN_ELASTIC);
+                self.y = fac;
+                self.rotation = (1-fac/self.__y2)/16
+            }
+
+            var num = self.__lifetime-40
+            if(self.__timer>=num) {
+                var fac = (self.__timer-num)/(self.__lifetime-num);
+                fac = EngineUtils.interpolate(fac,self.__y2,self.__y1,EngineUtils.INTERPOLATE_IN_QUAD);
+                self.y = fac;
+                self.alpha = fac/self.height;
+                self.rotation = -(1-fac/self.__y2)/16
+            }
+
+            self.rotation+=sinFac2/64;
+
+            if(self.__timer>self.__lifetime)
+                $engine.freeRenderable(self);
+            self.__timer++;
+        }
+        OwO.__specialRenderLayer.addChild(text)
     }
 
     static __syncRenderLayer() {
@@ -2249,6 +2329,7 @@ class OwO {
         OwO.__applyUpdateFunctions();
         if(!$engine.isLow())
             OwO.__renderLayerTick();
+        OwO.__specialRenderLayerTick();
         if(!UwU.sceneIsMenu())
             OwO.__RPGgameTimer++;
     }
@@ -2267,9 +2348,9 @@ class OwO {
 
 
 }
-OwO.__init();
 OwO.__renderLayerIndex = 0;
 OwO.__renderLayer = undefined;
+OwO.__specialRenderLayer = undefined;
 OwO.__renderLayerController = undefined;
 OwO.__spriteMapValid = false;
 OwO.__spriteMap = {};
@@ -2280,6 +2361,7 @@ OwO.__colourFilter = new PIXI.filters.AdjustmentFilter()
 OwO.__gameFilters = [OwO.__colourFilter];
 OwO.__mapScripts = {};
 OwO.__timeOfDayIndex = 11;
+OwO.__init();
 
 class GUIScreen { // static class for stuff like the custom cursor. always running.
 

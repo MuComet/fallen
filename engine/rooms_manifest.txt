@@ -11,3 +11,4 @@ FallingObjectsRoom engine/rooms/falling_objects_room.txt
 WallBuildingRoom engine/rooms/wall_building.txt
 IntroMinigameRoom engine/rooms/intro_minigame.txt
 HoleMinigameRoom engine/rooms/holes_room.txt
+BrokenImageMinigameRoom engine/rooms/broken_image_room.txt

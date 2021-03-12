@@ -85,6 +85,7 @@ class FallingObjectsPlayer extends InstanceMover {
         this.x = x;
         this.y = y;
         this.drag=0.1;
+        this.maxVelocity=10;
     }
 
     step() {
