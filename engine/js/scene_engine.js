@@ -1940,6 +1940,10 @@ class OwO {
         return SceneManager._scene._spriteset;
     }
 
+    static forwardInterpreter(eventId) {
+        $gameMap._interpreter.setup(OwO.getEvent(eventId).list(),eventId);
+    }
+
     // filterUpdate takes in 3 paramaeters, which are the variable to check against, the filter, and then by the update event
     static addConditionalFilter(evId, rpgVar = -1, shader = OwO.__getDefaultOutlineShader(), filterUpdate = OwO.__defaultUpdateFunc) {
         var map = $gameMap._mapId;
@@ -2066,8 +2070,8 @@ class OwO {
         OwO.__updateFunctions = [];
     }
 
-    static __buildSpriteMap() { // returns an object where an eventId will map to a character.
-        if(OwO.__spriteMapValid)
+    static __buildSpriteMap() { // returns an object where an eventId will map to a sprite.
+        if(OwO.__spriteMapValid) // furthermore, _character will give access to the event that owns the sprite.
             return OwO.__spriteMap;
         // reset event map
         OwO.__spriteMap = {};
