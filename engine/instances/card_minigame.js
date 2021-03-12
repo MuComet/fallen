@@ -2,20 +2,19 @@ class CardMinigameController extends MinigameController {
     
     onEngineCreate() { 
         super.onEngineCreate();
-        this.maxScore = 13;
+        this.maxScore = 3;
         this.score = 0;
+        this.roundscore = 0;
         
         new ParallaxingBackground();
 
-
-
         this.timer = 0;
         this.attempts = 6;
-        this.rounds = 3;
+        //this.rounds = 3;
         this.waiting = false;
         this.waitTimer = 0;
         
-        this.startTimer(7*60);
+        this.startTimer(30*60);
         this.getTimer().pauseTimer();
 
         var text = new PIXI.Text("Memorize the card positions of the goal\ncard located at the bottom\n Select as many cards matching\nthe goal card as you can\n3 rounds to select 13!\n\npress enter to cheat",$engine.getDefaultTextStyle());
@@ -45,7 +44,7 @@ class CardMinigameController extends MinigameController {
         for(var i = 0; i < card_texture.length; i++){
             var index = card_texture[i];
             if(i < 9){
-                new CardBoard(70+85*i, $engine.getWindowSizeY()/2 -75, index);
+                new CardBoard(70+85*i, $engine.getWindowSizeY()/2 -115, index);
             }else{
                 new CardBoard(70+85*(i-9), $engine.getWindowSizeY()/2, index);
             }
@@ -78,11 +77,12 @@ class CardMinigameController extends MinigameController {
             })
             this.getTimer().unpauseTimer();
         }
-        if(this.rounds >= 1 && this.waitTimer > 10 && IN.anyButtonPressed()){
+        //if(this.rounds >= 1 && this.waitTimer > 10 && IN.anyButtonPressed()){
+        if(this.waitTimer > 10 && IN.anyButtonPressed()){
             IM.destroy(CardBoard);
 
             //this.getTimer().unpauseTimer();
-            this.getTimer().restartTimer(7*60)
+            //this.getTimer().restartTimer(7*60)
             this.newRound();
             this.waiting = false;
             this.waitTimer = 0;  
@@ -94,9 +94,9 @@ class CardMinigameController extends MinigameController {
         if(this.score >= this.maxScore){
             this.endMinigame(true);
         }
-        if(this.rounds == 0 && this.score < this.maxScore){
-            this.endMinigame(false);
-        }     
+        //if(this.rounds == 0 && this.score < this.maxScore){
+            //this.endMinigame(false);
+        //}     
     }
     
 
@@ -112,7 +112,7 @@ class CardMinigameController extends MinigameController {
         if(this.attempts == 0){
             this.getTimer().pauseTimer();
             this.waiting = true;
-            this.rounds--;
+            //this.rounds--;
             this.attempts = 6;
             IM.with(CardBoard, function(card){
                 if(!card.clicked){
@@ -120,13 +120,18 @@ class CardMinigameController extends MinigameController {
                 }
                 if(card.group == CardMinigameController.getInstance().goal_index){
                     card.getSprite().tint = (0x11fa4f);  // correct choice 0xaaaa43
-                    CardMinigameController.getInstance().score++;
+                    CardMinigameController.getInstance().roundscore++;
                 }else{
                     card.getSprite().tint = (0xab1101);  //WRONG  0xab1101
                 }
                 card.getSprite().texture = $engine.getTexture(card.group);
-            })    
+            });
+            if(CardMinigameController.getInstance().roundscore >= 5){
+                CardMinigameController.getInstance().score++;
+            }
+            CardMinigameController.getInstance().roundscore = 0;   
         }
+        
     }
 }
 
@@ -140,7 +145,7 @@ class CardBoard extends EngineInstance {
         this.group = index;
         this.score = 0;
         this.setSprite(new PIXI.Sprite($engine.getTexture(index)));
-        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-35,-35,35,35));
+        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-35,-55,35,55));
         this.clicked = false;
         this.totalclicks = 0;
     }
