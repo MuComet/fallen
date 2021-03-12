@@ -34,7 +34,7 @@ class CardMinigameController extends MinigameController {
     
     newRound(){
         this.timer = 0;
-        var card_texture = ["dust_particles_0", "dust_particles_1", "dust_particles_2", "dust_particles_0", "dust_particles_1", "dust_particles_2","dust_particles_0", "dust_particles_1", "dust_particles_2","dust_particles_0", "dust_particles_1", "dust_particles_2","dust_particles_0", "dust_particles_1", "dust_particles_2","dust_particles_0", "dust_particles_1", "dust_particles_2"];
+        var card_texture = ["card_faces_1", "card_faces_2", "card_faces_3", "card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3"];
         this.goal_index = card_texture[EngineUtils.irandom(2)];      
         this.goal_card = new PIXI.Sprite($engine.getTexture(this.goal_index));    // change sprite instead??? marcus cares???????????????????????????
 
@@ -74,7 +74,7 @@ class CardMinigameController extends MinigameController {
         this.timer++;
         if(this.timer == 80){
             IM.with(CardBoard, function(instance){
-                instance.getSprite().texture = $engine.getTexture("yugioh");    
+                instance.getSprite().texture = $engine.getTexture("card_faces_0");    
             })
             this.getTimer().unpauseTimer();
         }
@@ -156,7 +156,7 @@ class CardBoard extends EngineInstance {
             }
 
             if(!this.clicked && IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){  
-                $engine.audioPlaySound("audio/se/Miss.ogg")
+                $engine.audioPlaySound("sky_bonk");
                 this.clicked = true;
                 this.getSprite().tint = (0xaaafff);
                 CardMinigameController.getInstance().notifyCardClick(this);
