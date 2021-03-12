@@ -362,6 +362,14 @@ class MinigameController extends EngineInstance {
         this.musicCheat = undefined;
         this.musicCheatReference = undefined;
 
+        this.preventEndOnTimerExpire = false;
+        this.roundMode = 0;
+        this.currentRound = 0;
+        this.maxRounds = 0;
+
+        this.onRoundOverCallbacks = [];
+        this.onAllRoundsOverCallbacks = [];
+
         this.blurFadeTime = 60;
         this.blurFilterStrength = 9.6666; // making it a round number kinda messes with it
         this.blurFilter = new PIXI.filters.BlurFilter(8,4,3,15);
@@ -449,6 +457,15 @@ class MinigameController extends EngineInstance {
     }
 
     _onMinigameEnd(self, expired) {
+        if(this.roundMode) {
+            if(this.rounds < this.maxRounds) {
+                this._onRoundOver();
+            } else {
+                this._onAllRoundsOver();
+            }
+        }
+        if(this.preventEndOnTimerExpire)
+            return;
         if((expired && self._timer.isSurvivalMode()) || (!expired && !self._timer.isSurvivalMode())) {
             self._onMinigameEndNoTimer(true);
         } else {
@@ -475,6 +492,7 @@ class MinigameController extends EngineInstance {
         }
         if(!$engine.isLow())
             $engine.getCamera().addFilter(this.blurFilter)
+        this._onGameEnd();
     }
 
     /**
@@ -488,7 +506,6 @@ class MinigameController extends EngineInstance {
         if(this._timer) {
             this._timer.pause();
         }
-        this._onGameEnd();
     }
 
     getTimer() {
@@ -687,6 +704,44 @@ class MinigameController extends EngineInstance {
         return this.cheated;
     }
 
+    /**
+     * If set to true, prevents the Controller from automatically starting the
+     * game end sequence on timer up and all round completed if applicable.
+     * 
+     * The game end sequence must be manually called using minigameEnd(<won>)
+     */
+    setPreventEndOnTimerExpire(b) {
+        this.preventEndOnTimerExpire=b;
+    }
+
+    /**
+     * If set to true, causes the Controller to ignore timer up unless the round is > maxRound
+     */
+    setRoundMode(b) {
+        this.roundMode=b;
+    }
+
+    setMaxRounds(max) {
+        this.maxRounds=max;
+    } 
+
+    _onRoundOver() {
+        this.currentRound++;
+        for(const callback of this.onRoundOverCallbacks) {
+            callback.func(callback.caller);
+        }
+    }
+
+    _onAllRoundsOver() {
+        for(const callback of this.onAllRoundsOverCallbacks) {
+            callback.func(callback.caller);
+        }
+    }
+
+    getCurrentRound() {
+        return this.currentRound;
+    }
+
     addCheatCallback(parent,callback) {
         this.onCheatCallbacks.push({
             func:callback,
@@ -703,6 +758,20 @@ class MinigameController extends EngineInstance {
 
     addOnGameEndCallback(parent,callback) {
         this.onGameEndCallbacks.push({
+            func:callback,
+            caller:parent
+        });
+    }
+
+    addOnRoundOverCallback(parent, callback) {
+        this.onRoundOverCallbacks.push({
+            func:callback,
+            caller:parent
+        });
+    }
+
+    addOnAllRoundsOverCallback(parent, callback) {
+        this.onAllRoundsOverCallbacks.push({
             func:callback,
             caller:parent
         });

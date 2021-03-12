@@ -77,3 +77,6 @@ drawing_mingiame_background_2 engine/textures/drawing/wall_bush.png 0 0
 
 minigame_key_icon engine/textures/minigames/minigame_icon_start2.png 0.5 0.5
 minigame_mouse_icon engine/textures/minigames/minigame_icon_start1.png 0.5 0.5
+
+fence_base engine/textures/fence.png 0 0
+paint_base engine/textures/paint_base.png 0.5 0

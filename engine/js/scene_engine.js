@@ -1858,14 +1858,12 @@ class OwO {
 
     static __init() {
         UwU.addSceneChangeListener(function(lastClass, newScene) {
-            // these are stupidly verbose but i don't know what RPG maker might throw at me, so i'd rather write extra code here than assume.
             OwO.__spriteMapValid=false;
-            if(UwU.lastSceneWasMenu() && UwU.sceneIsOverworld()) { // transition out of menu to overworld.
+            if(UwU.sceneIsOverworld()) { // any transition into overworld, from any other scene.
                 if(OwO.__renderLayer)
                     OwO.__rebindRenderLayer();
                 OwO.applyConditionalFilters();
-            }
-            if(UwU.sceneIsOverworld()) { // any transition into overworld, from any other scene.
+
                 OwO.__applyAllFilters(OwO.__gameFilters);
                 if(UwU.mapIdChanged()) { // changed to a new map level
                     OwO.__deallocateRenderLayer();
@@ -2104,8 +2102,7 @@ class OwO {
     static __deallocateRenderLayer() {
         if(OwO.__renderLayer) {
             OwO.__destroyRenderLayer();
-            if(OwO.getSpriteset().children[0].children[3])
-                OwO.getSpriteset().children[0].removeChildAt(3);
+            OwO.getSpriteset().children[0].removeChild(OwO.__renderLayer);
         }
         OwO.__renderLayer=undefined;
     }
