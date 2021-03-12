@@ -128,6 +128,8 @@ class CardMinigameController extends MinigameController {
             });
             if(CardMinigameController.getInstance().roundscore >= 5){
                 CardMinigameController.getInstance().score++;
+            }else{
+                CardMinigameController.getInstance().score = 0;
             }
             CardMinigameController.getInstance().roundscore = 0;   
         }
