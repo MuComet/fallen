@@ -21,5 +21,7 @@ var $plugins =
 {"name":"KhasGraphics","status":true,"description":"[1.1] Required by Khas graphics plugins.","parameters":{}},
 {"name":"KhasAdvancedFog","status":true,"description":"[3.0] Adds procedural fog to your game.","parameters":{"Variable Fog Density":"ON","Zoom Compatibility":"OFF","MBS Zoom":"OFF","Transfer Reset":"OFF","Auto Battle Fog":"ON"}},
 {"name":"KhasUltraLighting","status":true,"description":"[4.2] Adds lighting and real-time shadows to your game.","parameters":{"Custom Blending":"ON","Transfer Reset":"ON","Auto Battle Lighting":"ON"}},
-{"name":"MrTS_NoItemCategories","status":true,"description":"Removes item categories from item menu scene and from shop scene.","parameters":{"Hide Menu":"True","Hide Shop":"True"}}
+{"name":"MrTS_NoItemCategories","status":true,"description":"Removes item categories from item menu scene and from shop scene.","parameters":{"Hide Menu":"True","Hide Shop":"True"}},
+{"name":"YEP_FootstepSounds","status":true,"description":"v1.01 Set footstep sounds to play when the player and/or\nevents walk over specific tiles.","parameters":{"---Default---":"","Default Sound":"Knock","Default Volume":"10","Default Pitch":"150","---Player Settings---":"","Player Enable":"true","Player Volume":"1.00","Player Pitch":"1.00","---Event Settings---":"","Event Enable":"true","Event Volume":"1.00","Distance Volume":"-0.10","Event Pitch":"1.00","Distance Pitch":"-0.00","Distance Pan":"10"}},
+{"name":"CaeX_FootstepTime","status":true,"description":"v1.0 - Extends YEP_FootstepSounds: minimum time between step sounds.","parameters":{"Sound Interval":"20","Property Name":"_stepSoundTime"}}
 ];
