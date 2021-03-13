@@ -5,8 +5,7 @@ class CardMinigameController extends MinigameController {
         this.maxScore = 3;
         this.score = 0;
         this.roundscore = 0;
-        this.flipTimer = -1;
-        this.flipTime = 20;
+
         
         new ParallaxingBackground();
 
@@ -68,21 +67,7 @@ class CardMinigameController extends MinigameController {
 
 //==============================================================================================
 
-    cardFlip(){   
-        if(this.flipTimer>=0) {
-            var value = Math.abs((this.flipTimer-(this.flipTime/2))/(this.flipTime/2));
-            if(this.flipTimer <= this.flipTime/2) {
-                IM.with(CardBoard, function(card){
-                    var fac = EngineUtils.interpolate(value, 0, 1, EngineUtils.INTERPOLATE_OUT_BACK)
-                    card.xScale = fac;
-                    card.yScale = 0.75 + fac/4;
-                    card.getSprite().texture = $engine.getTexture("card_faces_0");    
-                })
-                this.getTimer().unpauseTimer();
-            }
-        }
-        this.flipTimer--;
-    }
+
 
 //==============================================================================================
     step() {
@@ -91,11 +76,13 @@ class CardMinigameController extends MinigameController {
             return;
         }
         if(this.timer == 80){
-            this.flipTimer = this.flipTime;
+            IM.with(CardBoard, function(card){
+                card.flipTimer = card.flipTime
+            });
         }
 
         this.timer++;
-        this.cardFlip();
+        //this.cardFlip();
         //if(this.rounds >= 1 && this.waitTimer > 10 && IN.anyButtonPressed()){
         if(this.waitTimer > 10 && IN.anyButtonPressed()){
             IM.destroy(CardBoard);
@@ -169,9 +156,26 @@ class CardBoard extends EngineInstance {
         this.hitbox = new Hitbox(this,new RectangeHitbox(this,-35,-55,35,55));
         this.clicked = false;
         this.totalclicks = 0;
+        this.flipTimer = -1;
+        this.flipTime = 20;
+    }
+
+    cardFlip(){   
+        if(this.flipTimer>=0) {
+            var value = Math.abs((this.flipTimer-(this.flipTime/2))/(this.flipTime/2));
+            if(this.flipTimer <= this.flipTime/2) {
+                var fac = EngineUtils.interpolate(value, 0, 1, EngineUtils.INTERPOLATE_OUT_BACK)
+                this.xScale = fac;
+                this.yScale = 0.75 + fac/4;
+                this.getSprite().texture = $engine.getTexture("card_faces_0");    
+                CardMinigameController.getInstance().getTimer().unpauseTimer();
+            }
+        }
+        this.flipTimer--;
     }
     
     step() {
+        this.cardFlip();
         if(CardMinigameController.getInstance().timer > 80){
             CardMinigameController.getInstance().updateProgressText();
             if(IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){
@@ -182,7 +186,7 @@ class CardBoard extends EngineInstance {
             }
 
             if(!this.clicked && IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){  
-                $engine.audioPlaySound("sky_bonk");
+                $engine.audioPlaySound("card_flip_all");
                 this.clicked = true;
                 this.getSprite().tint = (0xaaafff);
                 CardMinigameController.getInstance().notifyCardClick(this);
