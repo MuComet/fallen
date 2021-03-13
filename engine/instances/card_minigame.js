@@ -5,6 +5,8 @@ class CardMinigameController extends MinigameController {
         this.maxScore = 3;
         this.score = 0;
         this.roundscore = 0;
+        this.flipTimer = -1;
+        this.flipTime = 20;
         
         new ParallaxingBackground();
 
@@ -64,19 +66,36 @@ class CardMinigameController extends MinigameController {
         this.onEngineCreate();
     }
 
+//==============================================================================================
 
+    cardFlip(){   
+        if(this.flipTimer>=0) {
+            var value = Math.abs((this.flipTimer-(this.flipTime/2))/(this.flipTime/2));
+            if(this.flipTimer <= this.flipTime/2) {
+                IM.with(CardBoard, function(card){
+                    var fac = EngineUtils.interpolate(value, 0, 1, EngineUtils.INTERPOLATE_OUT_BACK)
+                    card.xScale = fac;
+                    card.yScale = 0.75 + fac/4;
+                    card.getSprite().texture = $engine.getTexture("card_faces_0");    
+                })
+                this.getTimer().unpauseTimer();
+            }
+        }
+        this.flipTimer--;
+    }
+
+//==============================================================================================
     step() {
         super.step();
         if(this.minigameOver()){
             return;
         }
-        this.timer++;
         if(this.timer == 80){
-            IM.with(CardBoard, function(instance){
-                instance.getSprite().texture = $engine.getTexture("card_faces_0");    
-            })
-            this.getTimer().unpauseTimer();
+            this.flipTimer = this.flipTime;
         }
+
+        this.timer++;
+        this.cardFlip();
         //if(this.rounds >= 1 && this.waitTimer > 10 && IN.anyButtonPressed()){
         if(this.waitTimer > 10 && IN.anyButtonPressed()){
             IM.destroy(CardBoard);
