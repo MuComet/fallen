@@ -20,7 +20,7 @@ class CardMinigameController extends MinigameController {
 
         var text = new PIXI.Text("Memorize the card positions matching the goal card located\n at the bottom. Select as many of those cards as you can.\nThere are 6 correct cards each round.\n\n30 seconds to get 5/6 correct cards for 3 rounds in a row!\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
-        this.controllsUseKeyBoard(false);
+        this.controlsUseKeyBoard(false);
 
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         $engine.createManagedRenderable(this,this.progressText);
@@ -33,6 +33,7 @@ class CardMinigameController extends MinigameController {
     }
     
     newRound(){
+
         this.timer = 0;
         var card_texture = ["card_faces_1", "card_faces_2", "card_faces_3", "card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3"];
         this.goal_index = card_texture[EngineUtils.irandom(2)];      
@@ -75,20 +76,32 @@ class CardMinigameController extends MinigameController {
         if(this.minigameOver()){
             return;
         }
-        if(this.timer == 80){
+        if(this.timer===70) {
             IM.with(CardBoard, function(card){
-                card.flipTimer = card.flipTime
+                card.delayedAction(EngineUtils.irandom(10), function(card) {
+                    card.routine(card.cardFlip);
+                    card.flipMode = 0;
+                    card.flipTimer = card.flipTime;
+                });
             });
+        }
+        if(this.timer == 80){
+            
+            this.getTimer().unpauseTimer();
         }
 
         this.timer++;
         //this.cardFlip();
         //if(this.rounds >= 1 && this.waitTimer > 10 && IN.anyButtonPressed()){
-        if(this.waitTimer > 10 && IN.anyButtonPressed()){
+        if(this.waitTimer===40) {
+            this.showPressAnyKey();
+        }
+        if(this.waitTimer > 40 && IN.anyButtonPressed()){
             IM.destroy(CardBoard);
 
             //this.getTimer().unpauseTimer();
             //this.getTimer().restartTimer(7*60)
+            this.hidePressAnyKey();
             this.newRound();
             this.waiting = false;
             this.waitTimer = 0;  
@@ -122,15 +135,23 @@ class CardMinigameController extends MinigameController {
             this.attempts = 6;
             IM.with(CardBoard, function(card){
                 if(!card.clicked){
+                    card.enabled = false;
                     return;
                 }
-                if(card.group == CardMinigameController.getInstance().goal_index){
-                    card.getSprite().tint = (0x11fa4f);  // correct choice 0xaaaa43
-                    CardMinigameController.getInstance().roundscore++;
-                }else{
-                    card.getSprite().tint = (0xab1101);  //WRONG  0xab1101
-                }
-                card.getSprite().texture = $engine.getTexture(card.group);
+                card.delayedAction(card.x/50+card.y/100, function(card) {
+                    card.delayedAction(card.flipTime/2, function(card) {
+                        if(card.group == CardMinigameController.getInstance().goal_index){
+                            card.getSprite().tint = (0x11fa4f);  // correct choice 0xaaaa43
+                            CardMinigameController.getInstance().roundscore++;
+                        }else{
+                            card.getSprite().tint = (0xab1101);  //WRONG  0xab1101
+                        }
+                    });
+                    card.routine(card.cardFlip)
+                    card.flipTimer=card.flipTime;
+                    card.flipMode=1;
+                });
+                //card.getSprite().texture = $engine.getTexture(card.group);
             });
             if(CardMinigameController.getInstance().roundscore >= 5){
                 CardMinigameController.getInstance().score++;
@@ -158,6 +179,8 @@ class CardBoard extends EngineInstance {
         this.totalclicks = 0;
         this.flipTimer = -1;
         this.flipTime = 20;
+        this.flipMode = 0;
+        this.enabled = true;
     }
 
     cardFlip(){   
@@ -167,15 +190,22 @@ class CardBoard extends EngineInstance {
                 var fac = EngineUtils.interpolate(value, 0, 1, EngineUtils.INTERPOLATE_OUT_BACK)
                 this.xScale = fac;
                 this.yScale = 0.75 + fac/4;
-                this.getSprite().texture = $engine.getTexture("card_faces_0");    
-                CardMinigameController.getInstance().getTimer().unpauseTimer();
+                if(this.flipMode===0)
+                    this.getSprite().texture = $engine.getTexture("card_faces_0");
+                else {
+                    this.getSprite().texture = $engine.getTexture(this.group);
+                }
             }
+        } else {
+            return true;
         }
         this.flipTimer--;
     }
     
     step() {
-        this.cardFlip();
+        if(!this.enabled)
+            return;
+        //this.cardFlip();
         if(CardMinigameController.getInstance().timer > 80){
             CardMinigameController.getInstance().updateProgressText();
             if(IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){

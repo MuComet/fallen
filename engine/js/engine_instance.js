@@ -48,6 +48,8 @@ class EngineInstance {
         this.__renderables = [];
         this.__pixiDestructables = [];
         this.__interpVars = [];
+        this.__delayedActions = []; // are you happy yevhen?
+        this.__routines = [];
         IM.__addToWorld(this);
         if(args[0]===$engine.__instanceCreationSpecial) {
             this.x = args[1];
@@ -197,6 +199,97 @@ class EngineInstance {
     }
 
     /**
+     * Registers a function to be called after the specified amount of frames.
+     * 
+     * Note that the function is evaluated after the main step event runs. This means that
+     * a delay of 0 is valid and will immediately run after step.
+     * 
+     * DelayedActions may use 'this' to refer to the instance, but the method will also have the instance
+     * be passed in as the only paramater for consistency sake.
+     * 
+     * 
+     * @param {Number} delay The amount of frames to wait
+     * @param {Function} func The function to call on time up.
+     * @param {...Object} [args] The arguments to pass along to the method. If undefined 'this' will be passed.
+     */
+    delayedAction(delay, func, ...args) {
+        if(args.length===0)
+            args=[this];
+        var obj = {
+            delay:delay,
+            timer: 0,
+            func: func,
+            args: args,
+            resolved: false,
+        }
+        this.__delayedActions.push(obj);
+    }
+
+    /**
+     * Registers a function as a routine. Routines are continually called until
+     * they return a truthy value.
+     * 
+     * Routines may use 'this' to refer to the instance, but the method will also have the instance
+     * be passed in as the only paramater for consistency sake.
+     * 
+     * @param {Function} func The function to call.
+     * @param {String} name The optional name given to this routine.
+     */
+    routine(func, name = "") {
+        var obj = {
+            func:func,
+            name:name,
+            resolved:false,
+        }
+        this.__routines.push(obj);
+    }
+
+    /**
+     * Cancels the specified routine.
+     * @param {String} name The name of the routine as specified when registered using routine()
+     */
+    cancelRoutine(name) {
+        this.__routines = this.__routines.filter(x=>x.name!==name);
+    }
+
+    /**
+     * Cancel all pending routines.
+     */
+    cancelAllRoutines() {
+        this.__routines = [];
+    }
+
+    /**
+     * Engine functions. Do not override.
+     */
+    __postStep() {
+        var delayedActionsChanged = false;
+        for(const da of this.__delayedActions) {
+            if(da.timer>=da.delay) {
+                da.func.apply(this,da.args); // pass this as arg for consistency.
+                da.resolved=true;
+                delayedActionsChanged=true;
+            } else {
+                da.timer++;
+            }
+        }
+
+        var routinesChanged = false;
+        for(const routine of this.__routines) {
+            if(routine.func.call(this, this)) {
+                routine.resolved=true;
+                routinesChanged=true;
+            }
+        }
+
+        if(delayedActionsChanged)
+            this.__delayedActions = this.__delayedActions.filter(x => !x.resolved)
+
+        if(routinesChanged)
+            this.__routines = this.__routines.filter(x => !x.resolved)
+    }
+
+    /**
      * Engine functions. Do not override.
      */
     __applyInterpolations(fraction) {
@@ -204,6 +297,9 @@ class EngineInstance {
             this[obj.__destinationVariable] = obj.__lastValue + (this[obj.__variableName]-obj.__lastValue) * fraction
     }
 
+    /**
+     * Engine functions, Do not override.
+     */
     __applyInterpolationsNoFraction() {
         for(const obj of this.__interpVars)
             this[obj.__destinationVariable] = this[obj.__variableName];

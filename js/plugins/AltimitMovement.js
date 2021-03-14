@@ -1505,9 +1505,9 @@
 			var targets = $gameMap.getCharactersUnderPoint( $gameTemp.destinationX(), $gameTemp.destinationY());
 			if(targets.length!==0)
 				touchedCharacters.push(...targets);
-			// fix for altmite being stupid precise. now you can click near a character and it will register
-			for(var i =0;i<25;i++) {
-				var targets = $gameMap.getCharactersUnderPoint( $gameTemp.destinationX()-0.5 + 0.25*(i%5), $gameTemp.destinationY() - 0.5 + 0.25 * Math.floor(i/5));
+			// fix for altmit being stupid precise. now you can click near a character and it will register
+			for(var i =0;i<9;i++) {
+				var targets = $gameMap.getCharactersUnderPoint( $gameTemp.destinationX()-0.5 + 0.5*(i%3), $gameTemp.destinationY() - 0.5 + 0.5 * Math.floor(i/3));
 				if(targets.length!==0)
 					touchedCharacters.push(...targets);
 			}

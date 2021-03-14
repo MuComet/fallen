@@ -2,7 +2,7 @@ class PaintImageController extends MinigameController { // this minigame literal
 
     onEngineCreate() {
         super.onEngineCreate();
-        this.startTimer(10*60);
+        this.startTimer(40*60);
 
         new ParallaxingBackground();
 

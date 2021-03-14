@@ -81,8 +81,8 @@ class Scene_Engine extends Scene_Base {
         this.__filters = [];
         this.__gameCanvas = new PIXI.Container();
         this.__gameCanvas.filters = []; // PIXI
-        this.__enabledCameras = [true,false];
-        this.__cameras=[new Camera(0,0,Graphics.boxWidth,Graphics.boxHeight,0)];
+        this.__enabledCameras = [true]; // Multi cameras don't work like this, but can still be done
+        this.__cameras=[new Camera(0,0,Graphics.boxWidth,Graphics.boxHeight,0)]; // with render textures!
         this.__GUIgraphics = new PIXI.Graphics();
         this.__shouldChangeRooms=false;
         this.__nextRoom="";
@@ -809,10 +809,6 @@ class Scene_Engine extends Scene_Base {
      */
     getDefaultTextStyle() {
         return { fontFamily: 'GameFont', fontSize: 30, fontVariant: 'bold', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 };
-    }
-
-    setCameraEnabled(index, enable) {
-        this.__enabledCameras[index] = enable;
     }
 
     /**
@@ -1864,7 +1860,7 @@ class OwO {
                     OwO.__rebindRenderLayer();
                 OwO.applyConditionalFilters();
 
-                OwO.__applyAllFilters(OwO.__gameFilters);
+                OwO.__applyAllFilters();
                 if(UwU.mapIdChanged()) { // changed to a new map level
                     OwO.__deallocateRenderLayer();
                     OwO.__executeMapScript();
@@ -1872,6 +1868,9 @@ class OwO {
                 }
                 OwO.__applyTimeOfDayFilter();
                 OwO.__rebindSpecialRenderLayer();
+
+                OwO.__listenForHP();
+                OwO.__updateHP();
             }
             if(!UwU.lastSceneWasMenu() && !UwU.sceneIsMenu()) { // if true, the last change had nothing to do with menu (could be overworld to engine)
                 OwO.__resetAutorunSwitch();
@@ -1894,6 +1893,36 @@ class OwO {
         if(scr) {
             scr();
         }
+    }
+
+    static __listenForHP() {
+        $gameParty.leader().setHp = function(hp) {
+            this._hp = hp;
+            this.refresh();
+            OwO.__updateHP();
+        };
+    }
+
+    // re-evaluates the current HP and firest the HP changed listener.
+    static __updateHP() {
+        OwO.__notifyHPChanged($gameParty.leader().hp);
+    }
+
+    static __notifyHPChanged(newHealth) {
+        var colFilter = OwO.getColourFilter()
+        var zoomFilter = OwO.getZoomBlurFilter()
+        if(newHealth<50) {
+            colFilter.brightness = EngineUtils.interpolate(newHealth/50,0.25,1,EngineUtils.INTERPOLATE_OUT)
+            colFilter.green = EngineUtils.interpolate(newHealth/50,0.5,1,EngineUtils.INTERPOLATE_OUT)
+            colFilter.blue = EngineUtils.interpolate(newHealth/50,0.5,1,EngineUtils.INTERPOLATE_OUT)
+            zoomFilter.strength = EngineUtils.interpolate(newHealth/50,0.05,0,EngineUtils.INTERPOLATE_OUT)
+        } else {
+            colFilter.brightness = 1;
+            colFilter.green = 1;
+            colFilter.blue = 1;
+            zoomFilter.strength = 0;
+        }
+        colFilter.saturation = EngineUtils.interpolate(newHealth/100,0,1,EngineUtils.INTERPOLATE_OUT_QUAD)
     }
 
     static registerMapScript(scr) {
@@ -2018,9 +2047,13 @@ class OwO {
         return SceneManager._scene.children[0];
     }
 
-    static __applyAllFilters(filters) {
-        OwO.__applyMapFilters(filters);
-        OwO.__applyPortraitFilters(filters);
+    static getMap() {
+        return SceneManager._scene;
+    }
+
+    static __applyAllFilters() {
+        OwO.__applyMapFilters();
+        OwO.__applyPortraitFilters();
     }
 
     static __disableAllFilters() {
@@ -2028,27 +2061,36 @@ class OwO {
         OwO.__disablePortraitFilters();
     }
 
-    static __applyMapFilters(filters) {
-        OwO.getMapContainer().filters = filters;
+    static __applyMapFilters() {
+        if(!$engine.isLow())
+            OwO.getMapContainer().filters = OwO.__gameFilters; // includes blur.
+        else {
+            OwO.getMapContainer().filters = [OwO.__colourFilter];
+        }
     }
 
     static __disableMapFilters() {
         OwO.getMapContainer().filters = [];
     }
+
     /**
      * @deprecated 
     * doesn't work because HUD loads in late.
     */
-    static __applyPortraitFilters(filters) {
-        OwO.getPortrait().filters = [filters]
+    static __applyPortraitFilters() {
+        OwO.getPortrait().filters = []
     }
 
     static __disablePortraitFilters() {
         OwO.getMapContainer().filters = [];
     }
 
-    static setSaturation(value) {
-        OwO.__colourFilter.saturation = value;
+    static getColourFilter() {
+        return OwO.__colourFilter;
+    }
+
+    static getZoomBlurFilter() {
+        return OwO.__zoomBlurFilter;
     }
 
     static getHud() {
@@ -2358,8 +2400,12 @@ OwO.__spriteMap = {};
 OwO.__updateFunctions = [];
 OwO.__sceneShaderMap = {};
 OwO.__RPGgameTimer = 0;
-OwO.__colourFilter = new PIXI.filters.AdjustmentFilter()
-OwO.__gameFilters = [OwO.__colourFilter];
+OwO.__colourFilter = new PIXI.filters.AdjustmentFilter();
+OwO.__zoomBlurFilter = new PIXI.filters.ZoomBlurFilter();
+OwO.__zoomBlurFilter.center = new PIXI.Point(816/2,624/2);
+OwO.__zoomBlurFilter.strength = 0;
+OwO.__zoomBlurFilter.innerRadius = 300;
+OwO.__gameFilters = [OwO.__colourFilter,OwO.__zoomBlurFilter];
 OwO.__mapScripts = {};
 OwO.__timeOfDayIndex = 11;
 OwO.__init();

@@ -226,7 +226,9 @@ class EngineUtils {
     }
 
     /**
-     * Interpolates between min and max given a certain interpolation function and an input value.
+     * Interpolates between min and max given a certain interpolation function and a normalized input value.
+     * 
+     * If the input is not within range [0,1], it will be clamped to fit that range.
      * 
      * example usage: 
      * 
@@ -237,16 +239,16 @@ class EngineUtils {
      * interpolate(0, 0, 500, EngineUtils.INTERPOLATE_SMOOTH) -> returns 0
      * 
      * @param {Number} val A normalized value represeting the value position along the interpolation curve to sample.
-     * @param {Number} min The begin value to interpolate to
+     * @param {Number} min The begin value to interpolate from
      * @param {Number} max The end value to interpolate to
      * @param {Number} interpType an EngineUtils.INTERPOLATE
      */
     static interpolate(val, min, max, interpType) {
         var diff = max-min;
-        if(val > 1)
-            val = 1;
+        if(val >= 1)
+            return max;
         else if(val <= 0)
-            val = 0.00000001; // prevent divide by zero
+            return min;
         switch(interpType) {
             case(EngineUtils.INTERPOLATE_LINEAR):
                 return diff*val + min;
@@ -263,20 +265,19 @@ class EngineUtils {
                 return diff*(val*(2-val)) + min
             case(EngineUtils.INTERPOLATE_SMOOTH_QUAD):
                 return diff*(val < 0.5 ? 2*val*val : -1+(4-2*val)*val)+min
-            // following 3 functions written by Chriustian Figueroa
+            // following 3 functions written by Chriustian Figueroa https://github.com/ChristianFigueroa
             // source: https://gist.github.com/gre/1650294#gistcomment-1892122
             case(EngineUtils.INTERPOLATE_IN_ELASTIC):
                 return diff*((.04 - .04 / val) * Math.sin(25 * val) + 1)+min
             case(EngineUtils.INTERPOLATE_OUT_ELASTIC):
-                if(val===1)
-                    val = 0.99999999;
                 return diff*(.04 * val / (--val) * Math.sin(25 * val))+min
             case(EngineUtils.INTERPOLATE_SMOOTH_ELASTIC):
                 if(val===0.5) // prevent divide by zero
                     val = 0.50000001;
                 return  diff*((val -= .5) < 0 ?     (.02 + .01 / val) * Math.sin(50 * val) 
                                                 :   (.02 - .01 / val) * Math.sin(50 * val) + 1) + min
-            // following 6 functions written sourced at https://gist.github.com/girish3/11167208
+            // following 6 functions written by Girish Budhwani https://github.com/girish3
+            // source: https://gist.github.com/girish3/11167208
             case(EngineUtils.INTERPOLATE_IN_BACK):
                 var s = 1.70158;
                 return diff * ((val)*val*((s+1)*val - s)) + min;
@@ -285,17 +286,16 @@ class EngineUtils {
                 return diff * ((val=val/1-1)*val*((s+1)*val + s) + 1) + min;
             case(EngineUtils.INTERPOLATE_SMOOTH_BACK):
                 var s = 1.70158; 
-                if ((val/=1/2) < 1) 
+                if ((val+=val) < 1) 
                     return diff * (1/2*(val*val*(((s*=(1.525))+1)*val - s))) + min;
                 return diff * (1/2*((val-=2)*val*(((s*=(1.525))+1)*val + s) + 2)) + min;
             case(EngineUtils.INTERPOLATE_IN_EXPONENTIAL):
-                return (val===0) ? max : diff*(Math.pow(2, 10 * (val - 1))) + min;
+                return diff*(Math.pow(2, 10 * (val - 1))) + min;
             case(EngineUtils.INTERPOLATE_OUT_EXPONENTIAL):
-                return (val===1) ? max : diff*(-Math.pow(2, -10 * val) + 1) + min;
+                return diff*(-Math.pow(2, -10 * val) + 1) + min;
             case(EngineUtils.INTERPOLATE_SMOOTH_EXPONENTIAL):
-                if (val===0) return 0;
-                if (val===1) return 1;
-                if ((val/=1/2) < 1) return 1/2 * Math.pow(2, 10 * (val - 1));
+                if ((val+=val) < 1) 
+                    return 1/2 * Math.pow(2, 10 * (val - 1));
                 return 1/2 * (-Math.pow(2, -10 * --val) + 2);
         }
     }
@@ -316,13 +316,13 @@ EngineUtils.INTERPOLATE_OUT_BACK=11;
 EngineUtils.INTERPOLATE_SMOOTH_BACK=12;
 EngineUtils.INTERPOLATE_IN_EXPONENTIAL=13;
 EngineUtils.INTERPOLATE_OUT_EXPONENTIAL=14;
-EngineUtils.INTERPOLATE_SMOOTH_EXPONENTIAL=14;
+EngineUtils.INTERPOLATE_SMOOTH_EXPONENTIAL=15;
 
 class EngineDebugUtils {
 
     /**
      * Draws the hitbox of the specified EngineInstance
-     * @param {PIXI.graphics} graphics The grapics instance to use
+     * @param {PIXI.Graphics} graphics The grapics instance to use
      * @param {EngineInstance} inst The engine instance to draw the hitbox of
      */
     static drawHitbox(graphics, inst) {

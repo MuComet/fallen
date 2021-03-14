@@ -96,15 +96,16 @@ class IM {
     static __doSimTick(lastFrame) {
         var mode = $engine.__getPauseMode();
         if(lastFrame) {
-            if(mode===0) {
+            if(mode===0) { // normal mode
                 IM.__cleanup();
                 IM.__deleteFromObjects();
                 IM.__implicit();
                 IM.__step();
+                IM.__postStep();
                 IM.__preDraw();
                 IM.__interpolate();
                 IM.__draw();
-            } else if(mode===1) {
+            } else if(mode===1) { // pause
                 IM.__pause();
                 IM.__draw();
             } else { // special pause (mode===2)
@@ -159,6 +160,11 @@ class IM {
             obj.step();
     }
 
+    static __postStep() {
+        for(const obj of IM.__objects)
+            obj.__postStep();
+    }
+
     static __preDraw() {
         for(const obj of IM.__objects) // this is where you can prepare for draw by checking collisions and such -- draw should only draw
             obj.preDraw();
@@ -199,7 +205,7 @@ class IM {
         }
     }
 
-    static __interpolate() { // called once per frame, not matter what
+    static __interpolate() { // called once per frame, no matter what
         var frac = $engine.getTimescaleFraction();
         
         if($engine.isTimeScaled()) {
@@ -358,7 +364,10 @@ class IM {
     }
 
     /**
-     * @deprecated
+     * @deprecated Unused intermediate function meant to speed up collisions.
+     * Could in theory be effective if it were passed to generatePCS to be called when a valid instance is found.
+     * However that would require a minor re-write of how collisions are handled, and they run fast enough as is.
+     * Collisions right now needlessly sample all elements before testing a single one...
      * @param {*} source 
      * @param {*} PCS 
      */
@@ -584,7 +593,8 @@ class IM {
      * 
      * NOTE: THIS FUNCTION IS NOT HIERARCY AWARE. Only instances of type obj will be returned, 
      * sublcasses are ignored. This is because the engine makes no guarantees of order after the
-     * inital class is found. So finding subclasses would be useless.
+     * inital class is found. So finding subclasses would be useless. If you don't care about order and
+     * need hierarchies, you should use an IM.with() call.
      * 
      * @param {EngineInstance} obj  the class to query
      * @param {Number} [ind=0] the nth instance to find.
@@ -597,9 +607,13 @@ class IM {
 
     /**
      * Runs the specified function as func(target,other) on all instances that match target.
+     * 
+     * Note that 'this' will be undefined in the script. This is done for clarity purposes.
+     * You can still supply the calling instance using other.
+     * 
      * @param {EngineInstance} target The target instance, or class.
-     * @param {Fucntion} script The script to execute
-     * @param {EngineInstance} [other] the calling instance (this)
+     * @param {Function} script The script to execute
+     * @param {EngineInstance} [other] the calling instance (usually this)
      */
     static with(target, script, other = undefined) {
         var instances = IM.__queryObjects(target);

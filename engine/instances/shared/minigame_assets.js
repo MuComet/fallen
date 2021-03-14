@@ -335,6 +335,7 @@ class MinigameController extends EngineInstance {
         this.pressAnyKeyToContinue.anchor.x = 0.5;
         this.pressAnyKeyToContinue.anchor.y = 1;
 
+        this.pressAnyKeyToContinueTimer = 0;
 
 
         this.KeyIcon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_key_icon")));
@@ -536,6 +537,7 @@ class MinigameController extends EngineInstance {
         this._handleCheat();
         if(this.wonMinigame || this.failedMinigame && ! $engine.isTimeScaled())
             this._winLossTick();
+        this._pressAnyKeyTick();
     }
 
     gameWin() {
@@ -611,18 +613,42 @@ class MinigameController extends EngineInstance {
         graphic.scale.x = facX;
         graphic.scale.y = facY;
 
-        this.pressAnyKeyToContinue.y = -120;
-
-        if(frame > 90) {
-            var fac2 = EngineUtils.interpolate((frame-90)/60,0,1,EngineUtils.INTERPOLATE_OUT_BACK);
-            this.pressAnyKeyToContinue.y = -120 + fac2*160;
-            this.pressAnyKeyToContinue.rotation = Math.sin($engine.getGlobalTimer()/16)/64
+        
+        if(frame === 90) {
+            this.showPressAnyKey();
         }
 
         if((frame > 90 && !$engine.isBusy() && IN.anyInputPressed())) {
             $engine.audioFadeAll();
             $engine.fadeOutAll();
             $engine.endGame();
+        }
+    }
+
+    showPressAnyKey() {
+        this.pressAnyKeyToContinue.y = -120;
+        this.showingPressAnykey = true;
+        if(this.pressAnyKeyToContinueTimer<0)
+            this.pressAnyKeyToContinueTimer = 0;
+    }
+
+    hidePressAnyKey() {
+        this.showingPressAnykey = false;
+        this.pressAnyKeyToContinueTimer = (this.pressAnyKeyToContinueTimer%16)+45;
+    }
+
+    _pressAnyKeyTick() {
+        if(this.showingPressAnykey)
+            this.pressAnyKeyToContinueTimer++;
+        else 
+            this.pressAnyKeyToContinueTimer--;
+        var fac = this.pressAnyKeyToContinueTimer/45
+        var fac2 = EngineUtils.interpolate(fac,0,1,EngineUtils.INTERPOLATE_OUT_BACK);
+        this.pressAnyKeyToContinue.y = -20 + fac2*60;
+        this.pressAnyKeyToContinue.rotation = Math.sin($engine.getGlobalTimer()/16)/64
+
+        if(this.pressAnyKeyToContinueTimer <= 45) {
+            this.pressAnyKeyToContinue.rotation += EngineUtils.interpolate(fac,-0.075,0,EngineUtils.INTERPOLATE_SMOOTH_BACK);
         }
     }
 
@@ -637,13 +663,14 @@ class MinigameController extends EngineInstance {
 
     timescaleImmuneStep() {
         this._winLossTick();
+        this._pressAnyKeyTick();
     }
 
     pause() {
         this._minigameControllerTick();
     }
 
-    controllsUseKeyBoard(bool) {
+    controlsUseKeyBoard(bool) {
         this.usingKey = bool;
     }
 
@@ -663,6 +690,8 @@ class MinigameController extends EngineInstance {
 
         if(this.showingResult) {
             $engine.requestRenderOnGUI(this.getResultRenderable())
+        }
+        if(this.showingResult || this.pressAnyKeyToContinueTimer>0) {
             $engine.requestRenderOnGUI(this.pressAnyKeyToContinue)
         }
     }
@@ -908,12 +937,15 @@ MinigameController.controller = undefined;
 
 class ParallaxingBackground extends EngineInstance {
 
-    onEngineCreate() {
+    onCreate(type = 0) {
         this.parallaxFactorX = 0.25;
         this.parallaxFactorY = 0.25;
         this.x = $engine.getWindowSizeX()/2;
         this.y = $engine.getWindowSizeY()/2;
-        this.sprites = $engine.getTexturesFromSpritesheet("background_sheet",0,$engine.getSpritesheetLength("background_sheet"));
+        if(type === 0)
+            this.sprites = $engine.getTexturesFromSpritesheet("background_sheet",0,$engine.getSpritesheetLength("background_sheet"));
+        else if(type === 1)
+            this.sprites = $engine.getTexturesFromSpritesheet("background_sheet_ground",0,$engine.getSpritesheetLength("background_sheet_ground"));
         for(var i =0;i<this.sprites.length;i++) {
             this.sprites[i] = $engine.createRenderable(this,new PIXI.Sprite(this.sprites[i]),false);
             this.sprites[i].x = this.x;
@@ -924,13 +956,17 @@ class ParallaxingBackground extends EngineInstance {
         $engine.setBackgroundColour(0xe2d6b3);
     }
 
-    onCreate() {
-        this.onEngineCreate()
+    getDx() {
+        return $engine.getCamera().getX();
     }
 
-    draw() {
-        var dx = $engine.getCamera().getX()
-        var dy = $engine.getCamera().getY()
+    getDy() {
+        return $engine.getCamera().getY();
+    }
+
+    draw(gui, camera) {
+        var dx = this.getDx();
+        var dy = this.getDy();
         var cx = $engine.getWindowSizeX()/2 + dx;
         var cy = $engine.getWindowSizeY()/2 + dy;
         var facX = this.parallaxFactorX;
@@ -944,3 +980,5 @@ class ParallaxingBackground extends EngineInstance {
     }
 
 }
+ParallaxingBackground.TYPE_NORMAL = 0;
+ParallaxingBackground.TYPE_SIDWALK = 1;
