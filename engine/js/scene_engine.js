@@ -34,7 +34,7 @@ $__engineData.__debugRequireAllSounds = false;
 /** @type {Object} */
 var $__engineSaveData = {}; // this data is automatically read and written by RPG maker when you load a save.
 
-$__engineSaveData.__mapFilterData={};
+$__engineSaveData.__mapData={};
 
 const ENGINE_RETURN = {};
 ENGINE_RETURN.LOSS = 0;
@@ -2022,16 +2022,15 @@ class OwO {
         UwU.addSceneChangeListener(function(lastClass, newScene) {
             OwO.__spriteMapValid=false;
             if(UwU.sceneIsOverworld()) { // any transition into overworld, from any other scene.
+                if(UwU.mapIdChanged()) { // changed to a new map level
+                    OwO.__deallocateRenderLayer();
+                    $gamePlayer._touchTarget = null // reset the target why doesn't altimit do this like really.
+                }
                 if(OwO.__renderLayer)
                     OwO.__rebindRenderLayer();
                 OwO.__doOverworldSetup();
 
                 OwO.__applyAllFilters();
-                if(UwU.mapIdChanged()) { // changed to a new map level
-                    OwO.__deallocateRenderLayer();
-                    OwO.__executeMapScript();
-                    $gamePlayer._touchTarget = null // reset the target why doesn't altimit do this like really.
-                }
                 OwO.__applyTimeOfDayFilter();
                 OwO.__rebindSpecialRenderLayer();
 
@@ -2049,13 +2048,6 @@ class OwO {
         })
 
         OwO.__specialRenderLayer = new PIXI.Container();
-    }
-
-    static __executeMapScript() {
-        var scr = OwO.__mapScripts[$gameMap._mapId];
-        if(scr) {
-            scr();
-        }
     }
 
     static __listenForHP() {
@@ -2086,14 +2078,6 @@ class OwO {
             zoomFilter.strength = 0;
         }
         colFilter.saturation = EngineUtils.interpolate(newHealth/100,0,1,EngineUtils.INTERPOLATE_OUT_QUAD)
-    }
-
-    static registerMapScript(scr) {
-        console.log("called", scr)
-        if(OwO.__mapScripts[$gameMap._mapId]) // already registered, ignore.
-            return;
-        OwO.__mapScripts[$gameMap._mapId] = scr;
-        OwO.__executeMapScript();
     }
 
     // contract with overworld... if an event exists reading switch, it will reset it to false once run.
@@ -2184,10 +2168,11 @@ class OwO {
     }
 
     static __getMapData(mapId) {
-        var data = $__engineSaveData.__mapFilterData;
+        var data = $__engineSaveData.__mapData;
         if(!data[mapId]) {
             data[mapId] = {};
             data[mapId].filterList =  [];
+            data[mapId].particleInit = -1;
             data[mapId].initialized = false;
         }
         return data[mapId];
@@ -2249,8 +2234,9 @@ class OwO {
         } else {
             OwO.__unsetAutorunSwitch();
         }
-        // if the filters exist, apply them now. Otherwise the overworld will call this method.
+        // if data exists, exectue.
         OwO.applyConditionalFilters();
+        OwO.__applyParticleInit();
     }
 
     static getMapContainer() {
@@ -2366,6 +2352,14 @@ class OwO {
 
     static __rebindSpecialRenderLayer() {
         OwO.getSpriteset().children[0].addChild(OwO.__specialRenderLayer);
+    }
+
+    static __applyParticleInit() {
+        var init = OwO.__getMapData($gameMap._mapId).particleInit;
+        if(init === 1) {
+            OwO.initializeRenderLayer();
+            OwO.leafParticleInit();
+        }
     }
 
     static __renderLayerTick() {
@@ -2512,6 +2506,7 @@ class OwO {
                 createLeaf(xx,yy);
         }
         OwO.setRenderLayerController(controller);
+        OwO.__getMapData($gameMap._mapId).particleInit = 1;
     }
 
     static destroyObject(obj) {
@@ -2615,7 +2610,6 @@ OwO.__zoomBlurFilter.center = new PIXI.Point(816/2,624/2);
 OwO.__zoomBlurFilter.strength = 0;
 OwO.__zoomBlurFilter.innerRadius = 300;
 OwO.__gameFilters = [OwO.__colourFilter,OwO.__zoomBlurFilter];
-OwO.__mapScripts = {};
 OwO.__timeOfDayIndex = 11;
 OwO.__init();
 
