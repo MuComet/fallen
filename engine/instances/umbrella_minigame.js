@@ -2,11 +2,6 @@ class UmbrellaMinigameController extends MinigameController {
     onEngineCreate() {
         super.onEngineCreate();
 
-
-        this.audioReference = $engine.generateAudioReference("Minigame-001");
-        AudioManager.playBgm(this.audioReference);
-        AudioManager.fadeInBgm(1);
-
         this.score = 750;
         this.scoreText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         this.scoreText.anchor.set(0.5,0.5);
@@ -25,8 +20,8 @@ class UmbrellaMinigameController extends MinigameController {
                         fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
         this.setInstructionRenderable(text)
 
-        new Man($engine.getWindowSizeX()/2,$engine.getWindowSizeY())
-        new Umbrella($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/1.4);
+        this.player = new Man($engine.getWindowSizeX()/2,$engine.getWindowSizeY())
+        this.umbrella = new Umbrella($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/1.4);
 
         this.timer = new MinigameTimer(60*60);
         this.timer.addOnTimerStopped(this,function(parent,expired) {
@@ -47,13 +42,50 @@ class UmbrellaMinigameController extends MinigameController {
 
         this.physicsFloor = Matter.Bodies.rectangle($engine.getWindowSizeX()/2,$engine.getWindowSizeY(),$engine.getWindowSizeX(),64,{isStatic:true});
         $engine.physicsAddBodyToWorld(this.physicsFloor);
+
+        this.setupBGS();
+        this.bgsTimer = 0;
+        this.bgsFadeTime = 30;
+    }
+
+    setupBGS() {
+        this.rainSound1 = $engine.audioPlaySound("umbrella_rain_1",1,true);
+        this.rainSound2 = $engine.audioPlaySound("umbrella_rain_2",1,true);
+        this.rainSound1.volume = 0;
+        $engine.audioPauseSound(this.rainSound1);
+        $engine.audioPauseSound(this.rainSound2);
+        this.addOnGameEndCallback(this,function(self) {
+            $engine.audioFadeSound(self.rainSound1,60);
+            $engine.audioFadeSound(self.rainSound2,60);
+        })
+        this.addOnGameStartCallback(this,function(self) {
+            $engine.audioResumeSound(self.rainSound1);
+            $engine.audioResumeSound(self.rainSound2);
+            $engine.audioFadeInSound(self.rainSound2,30);
+        })
     }
 
     step() {
         super.step();
+        if(this.minigameOver())
+            return;
+        this.bgsTick();
         if(IN.mouseCheckPressed(0)) {
             new Test(IN.getMouseX(), IN.getMouseY());
         }
+    }
+
+    bgsTick() {
+        var dx = this.umbrella.x - this.player.x;
+        if(Math.abs(dx)>64) {
+            this.bgsTimer++;
+        } else {
+            this.bgsTimer--;
+        }
+        this.bgsTimer = EngineUtils.clamp(this.bgsTimer,0,this.bgsFadeTime);
+        var fac = this.bgsTimer/this.bgsFadeTime;
+        $engine.audioSetVolume(this.rainSound1,0.25+fac*0.75);
+        $engine.audioSetVolume(this.rainSound2,1-fac);
     }
 
     decrementScore() {
@@ -66,8 +98,10 @@ class UmbrellaMinigameController extends MinigameController {
             //    this.timer.stopTimer();
             this.timer.removeAllOnTimerStopped();
             this.timer.preventExpire();
-            this.gameLoss();
+            this.endMinigame(false);
         }
+        if(!this.minigameOver())
+            $engine.audioPlaySound("drain_hit");
         this.updateScoreText();
     }
 
@@ -288,6 +322,7 @@ class Umbrella extends EngineInstance {
                         this.hasFaked=true;
                         this.fakeX = this.x;
                         this.fakeY = this.y;
+                        $engine.audioPlaySound("umbrella_juke");
                     }
                     this.ry = sry // keep the old y location though
                     this.sy = ssy;

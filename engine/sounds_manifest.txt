@@ -17,8 +17,8 @@ require cutscene_paper engine/audio/se/cutscene/Paper.ogg SE
 require cutscene_snap engine/audio/se/cutscene/Snap.ogg SE
 
 drain_hit engine/audio/se/drain/DrainWall.ogg SE
-drain_drop engine/audio/se/drain/Drop.ogg BGS
-drain_stream engine/audio/se/drain/Stream.ogg BGS
+drain_drop engine/audio/bgs/drain/Drop.ogg BGS
+drain_stream engine/audio/bgs/drain/Stream.ogg BGS
 
 draw_shake engine/audio/se/drawing/Shake.ogg SE
 draw_spray engine/audio/se/drawing/Spray.ogg SE
@@ -43,4 +43,7 @@ sky_woosh_1 engine/audio/se/skybuild/Woosh1.ogg SE
 sky_woosh_2 engine/audio/se/skybuild/Woosh2.ogg SE
 
 card_flip engine/audio/se/card/Flip.ogg SE
-card_flip_all engine/audio/se/card/FlipAll.ogg SE
+
+umbrella_rain_1 engine/audio/bgs/umbrella/Rain.ogg BGS
+umbrella_rain_2 engine/audio/bgs/umbrella/UmbrellaProtect.ogg BGS
+umbrella_juke engine/audio/se/umbrella/UmbrellaTrick.ogg SE

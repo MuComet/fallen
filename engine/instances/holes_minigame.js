@@ -4,7 +4,7 @@ class HoleMinigameController extends MinigameController {
         super.onEngineCreate();
 
         this.cameraDy = 1.75;
-        this.cameraDyChange = 0.001;
+        this.cameraDyChange = 0.00098; // 0.001 was too fast
         this.startTimer(40*60);
         this.getTimer().setSurvivalMode();
         this.height = 178;

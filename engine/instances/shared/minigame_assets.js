@@ -423,13 +423,11 @@ class MinigameController extends EngineInstance {
 
     _initMusic() {
         this.musicStandard = $engine.audioPlaySound("minigame_music",1,true)
-        this.musicStandard._source.loopStart = 8
-        this.musicStandard._source.loopEnd = 56
+        $engine.audioSetLoopPoints(this.musicStandard,8,56)
         $engine.audioPauseSound(this.musicStandard)
 
         this.musicCheat = $engine.audioPlaySound("minigame_music_cheat",0,true)
-        this.musicCheat._source.loopStart = 8
-        this.musicCheat._source.loopEnd = 56
+        $engine.audioSetLoopPoints(this.musicCheat,8,56)
         $engine.audioPauseSound(this.musicCheat)
     }
 
@@ -476,11 +474,13 @@ class MinigameController extends EngineInstance {
     }
 
     _onMinigameEndNoTimer(won) {
+        if(this.failedMinigame || this.wonMinigame)
+            return;
         if(won) {
-            this.gameWin();
+            this._gameWin();
             $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN)
         } else {
-            this.gameLoss();
+            this._gameLoss();
             $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS)
         }
 
@@ -540,15 +540,11 @@ class MinigameController extends EngineInstance {
         this._pressAnyKeyTick();
     }
 
-    gameWin() {
-        if(this.failedMinigame || this.wonMinigame)
-            return;
+    _gameWin() {
         this.wonMinigame = true;
     }
 
-    gameLoss() {
-        if(this.failedMinigame || this.wonMinigame)
-            return;
+    _gameLoss() {
         this.failedMinigame = true;
         $engine.setTimescale(0.9999);
     }
@@ -634,7 +630,8 @@ class MinigameController extends EngineInstance {
 
     hidePressAnyKey() {
         this.showingPressAnykey = false;
-        this.pressAnyKeyToContinueTimer = (this.pressAnyKeyToContinueTimer%16)+45;
+        if(this.pressAnyKeyToContinueTimer>45)
+            this.pressAnyKeyToContinueTimer = (this.pressAnyKeyToContinueTimer%16)+45;
     }
 
     _pressAnyKeyTick() {
@@ -647,8 +644,12 @@ class MinigameController extends EngineInstance {
         this.pressAnyKeyToContinue.y = -20 + fac2*60;
         this.pressAnyKeyToContinue.rotation = Math.sin($engine.getGlobalTimer()/16)/64
 
-        if(this.pressAnyKeyToContinueTimer <= 45) {
-            this.pressAnyKeyToContinue.rotation += EngineUtils.interpolate(fac,-0.075,0,EngineUtils.INTERPOLATE_SMOOTH_BACK);
+        if(this.pressAnyKeyToContinueTimer <= 30) {
+            var fac3 = this.pressAnyKeyToContinueTimer/48;
+            this.pressAnyKeyToContinue.rotation += EngineUtils.interpolate(fac3,-0.075,0,EngineUtils.INTERPOLATE_SMOOTH_BACK);
+        } else if(this.pressAnyKeyToContinueTimer<=45) {
+            var fac3 = Math.abs((this.pressAnyKeyToContinueTimer-37.5)/7.5); // 1 -> 0 -> 1
+            this.pressAnyKeyToContinue.rotation += EngineUtils.interpolate(fac3,0.0075,0,EngineUtils.INTERPOLATE_SMOOTH);
         }
     }
 

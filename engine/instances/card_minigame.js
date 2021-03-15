@@ -196,6 +196,8 @@ class CardBoard extends EngineInstance {
                     this.getSprite().texture = $engine.getTexture(this.group);
                 }
             }
+            if(this.flipTimer===Math.floor(this.flipTime/2))
+                $engine.audioPlaySound("card_flip")
         } else {
             return true;
         }
@@ -216,7 +218,7 @@ class CardBoard extends EngineInstance {
             }
 
             if(!this.clicked && IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){  
-                $engine.audioPlaySound("card_flip_all");
+                $engine.audioPlaySound("card_flip");
                 this.clicked = true;
                 this.getSprite().tint = (0xaaafff);
                 CardMinigameController.getInstance().notifyCardClick(this);

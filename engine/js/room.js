@@ -1,7 +1,14 @@
+/**
+ * Containter for a room in the engine.
+ * 
+ * Highly unfinished and mostly deprecated. Generally used exclusively for creating a MinigameController.
+ */
 class Room {
     constructor() {
         this.name="DEFAULT_ROOM_NAME";
         this.__instances = [];
+        // although technically supported, everything below basically got replaced by
+        // the onCreate() event in the minigameController.
         this.__extern = {
         };
         this.__settings = {
