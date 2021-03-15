@@ -733,6 +733,32 @@ Window_Base.prototype.convertExtraEscapeCharacters = function(text) {
     text = text.replace(/\x1bFR/gi, '\x1bMSGCORE[0]');
     text = text.replace(/\x1bFB/gi, '\x1bMSGCORE[1]');
     text = text.replace(/\x1bFI/gi, '\x1bMSGCORE[2]');
+	
+	//added! ( choose from any of the following, separated by \0 and enclosed by [] )
+	// \CH[...\0...\0]
+	text = text.replace(/\x1bCH\[(.*?)\]/gis, function() {
+		var data = arguments[1];
+		var choices = data.split(/\x1b0/gis);
+		var random = Math.floor(Math.random()*choices.length);
+		return choices[random];
+	}.bind(this));
+	
+	// \VC[n][val][text] ( variable check if gameVaraible(n) === val, then text1 else [text2=""] )
+	text = text.replace(/\x1bVC\[(\d+)\]\[(\d+)\]\[(.*?)\]($|\s|\[(.*?)\])/gis, function() {
+		var t = arguments[4];
+		if(arguments[4].trim()==="")
+			t="";
+		return $gameVariables.value(parseInt(arguments[1])) === parseInt(arguments[2]) ? arguments[3] : t;
+	}.bind(this));
+	
+	// \SC[n][val][text] ( switch check if switchVariable(n) === val, then text1 else [text2=""] )
+	text = text.replace(/\x1bSC\[(\d+)\]\[(\d+)\]\[(.*?)\]($|\s|\[(.*?)\])/gis, function() {
+		var t = arguments[4];
+		if(arguments[4].trim()==="")
+			t="";
+		return $gameSwitches.value(parseInt(arguments[1])) === (arguments[2].toLowerCase() === "true" || arguments[2] === "1") ? arguments[3] : t;
+	}.bind(this));
+	
     // \AC[n]
     text = text.replace(/\x1bAC\[(\d+)\]/gi, function() {
         return this.actorClassName(parseInt(arguments[1]));

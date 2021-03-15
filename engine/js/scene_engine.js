@@ -18,6 +18,9 @@ $__engineData.loadRoom = "MenuIntro";
 $__engineData.__lowPerformanceMode = false;
 $__engineData.__overrideRoom = undefined;
 
+// overwritten things:
+// YEP_MessageCore line 731 -> choice text.
+
 // things to unbork:
 // re-comment out YEP speech core at 645
 // re-enable custom cursor
