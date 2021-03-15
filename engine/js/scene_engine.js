@@ -34,7 +34,7 @@ $__engineData.__debugRequireAllSounds = false;
 /** @type {Object} */
 var $__engineSaveData = {}; // this data is automatically read and written by RPG maker when you load a save.
 
-$__engineSaveData.__mapShaderData={};
+$__engineSaveData.__mapFilterData={};
 
 const ENGINE_RETURN = {};
 ENGINE_RETURN.LOSS = 0;
@@ -2184,7 +2184,7 @@ class OwO {
     }
 
     static __getMapData(mapId) {
-        var data = $__engineSaveData.__mapShaderData;
+        var data = $__engineSaveData.__mapFilterData;
         if(!data[mapId]) {
             data[mapId] = {};
             data[mapId].filterList =  [];
@@ -2242,9 +2242,9 @@ class OwO {
 
     static __doOverworldSetup() {
         var data = OwO.__getMapData($gameMap._mapId);
-        if(!data.filterList.initialized) { // no filters, either this map has none or we're awaiting the data.
+        if(!data.initialized) { // no filters, either this map has none or we're awaiting the data.
             OwO.__setAutorunSwitch();
-            data.filterList.initialized = true;
+            data.initialized = true;
             return;
         } else {
             OwO.__unsetAutorunSwitch();
