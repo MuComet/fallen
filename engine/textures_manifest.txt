@@ -16,8 +16,13 @@ spritesheet dimensions 6000 624 6 1 background_sheet engine/textures/generic/bac
 spritesheet dimensions 6000 624 6 1 background_sheet_ground engine/textures/generic/background_generic_sheet_2.png 0.5 0.5
 require spritesheet dimensions 11424 624 14 1 intro_cutscene_sheet engine/textures/intro/intro_cutscene_sheet.webp 0 0
 
+require spritesheet dimensions 576 576 4 4 limit 4 4 4 4 eson_profiles engine/textures/cutscenes/eson_profiles.png 0.5 0.5
+require spritesheet dimensions 576 288 4 2 gods_profiles engine/textures/cutscenes/profiles_gods.png 0.5 0.5
+
 spritesheet dimensions 48 24 4 2 leaf_particles_small engine/textures/generic/leaf_particles_smol_sheet.png 0.5 0.5
 spritesheet dimensions 300 100 3 1 dust_particles engine/textures/particle/dust_particle_sheet.png 0.5 0.5
+
+text_box engine/textures/intro/text_box.png 0 1
 
 button_cheat_1 engine/textures/buttons/button_cheat.png 0.5 0.5
 button_cheat_2 engine/textures/buttons/button_cheat_down.png 0.5 0.5

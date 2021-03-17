@@ -1,0 +1,56 @@
+block instances
+    CutsceneController 0 0 0 0 1 1
+endblock
+
+block extern sheet
+intro_cutscene_sheet
+endblock
+
+block extern onComplete
+MenuIntroController.startNewGame
+endblock
+
+block extern biases
+1
+0.8
+1
+0.5
+0.5
+0
+0
+0.25
+0
+0.5
+0.5
+0.5
+0.8
+0.5
+endblock
+
+block extern music
+0 intro1
+3 intro2
+6 intro3
+10 intro4
+endblock
+
+block extern sounds
+
+endblock
+
+block extern text
+<none>
+__portrait[eson_profiles_0]Ah, I'm so close! I can already taste the bistro!
+__portrait[eson_profiles_13]Next guest, please\0__portrait[eson_profiles_2]Oh boy, that's me!
+__portrait[eson_profiles_14]Hey, why don't we try this place?\0__portrait[eson_profiles_11]WHAT?!
+__portrait[eson_profiles_3]Why do they get to go first?__wait[24]__noShift[1]__portrait[eson_profiles_4] I've been waiting for days!
+__portrait[eson_profiles_13]Sorry kid, High Angels get priority
+<none>
+<none>
+__portrait[eson_profiles_9]stupid high angels__speed[12]...\0__noShift[1]__portrait[eson_profiles_1]Secret saferoom__speed[12]...__speed[0]__portrait[eson_profiles_6] hmm
+<none>
+__portrait[gods_profiles_6]What are you doing here?!\0__speed[12]__portrait[eson_profiles_7]...\0__portrait[gods_profiles_7]AHEM!__wait[60] __portrait[gods_profiles_6]__wait[30]I believe I asked you a question.\0__portrait[eson_profiles_6]I- Uh- Well you see__speed[12]. . .__speed[0] I got a call about a umm__speed[12]…\0__portrait[eson_profiles_10]A leak!__wait[30] Yes that's right.__wait[30] And uh-\0__portrait[gods_profiles_5]*sigh*\0__portrait[gods_profiles_7]Of course you are. First of all, it’s the audacity for me!\0__speed[12]...
+Listen, you’ve only been alive for what, four-five centuries? Clearly you still have a lot to learn, so as the All Benevolent God that I am, I will forgive you this time.\0Oh Heavens! Thank you so much!!\0*Eson flaps their wings and prepares to fly out of the castle when…*\0WAIT!!! I’m not done yet.\0__italic[1](If I let this kid go unpunished, what will the others think of me? A pushover, that's what! And is that what I am?? No, definitely not! I have worked way too hard to get where I am and I cannot let some pesky kid take that away from me. Hmm... but what should the punishment be??)\0__italic[0]__speed[12]...__wait[30]__speed[0] huh?\0__italic[1](Aha! I have been a little backed up with my Godly duties lately and helping those earthly beings, what are they called again__speed[6]...?__speed[0] Human,__wait[18] that's it!__wait[12] Heavens, they really are a lot of work. Maybe, just maybe__speed[30]...)\0__italic[0]For this incredible act of treason, I curse you with mortality!__wait[12] With the snap my mighty fingers I banish you to earth and sentence you to three days of hard labour by helping the people.\0Oh no, Sky God that’s the harshest sentence of all! I’ll never make it, please reconsider!! I beg you!!\0If respect is what you desire, prove your worth by surviving without your privileges. Do this, and you will forever have my respect.
+<none>
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+endblock

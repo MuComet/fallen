@@ -18,8 +18,6 @@ $__engineData.loadRoom = "MenuIntro";
 $__engineData.__lowPerformanceMode = false;
 $__engineData.__overrideRoom = undefined;
 
-// overwritten things:
-// YEP_MessageCore line 731 -> choice text.
 
 // things to unbork:
 // re-comment out YEP speech core at 645
@@ -315,8 +313,8 @@ class Scene_Engine extends Scene_Base {
 
     __audioSetupSound(snd, audio) {
         var volume = audio.volume
-        audio.__srcVolume = volume * this.audioGetTypeVolume(snd.__type);
-        this.audioSetVolume(audio, volume);
+        audio.__srcVolume = volume * this.audioGetTypeVolume(snd.__type); // this is wrong because PIXI will let you batch change
+        this.audioSetVolume(audio, volume); // volume for a sound, but because you can't change volume in engine i don't have to improve this.
         audio.__tick = function(self){}; // nothing for now
         this.__sounds.push(audio);
         audio.__sourceSound = snd;
@@ -626,7 +624,7 @@ class Scene_Engine extends Scene_Base {
                 this.removeFilter(this.__filters[i].filter);
             }
         }
-        this.__currentRoom = RoomManager.loadRoom(roomName);
+        RoomManager.loadRoom(roomName); // also sets current room
         IM.__startRoom();
         this.__shouldChangeRooms=false;
     }
@@ -1208,10 +1206,6 @@ class Scene_Engine extends Scene_Base {
 
 $engine = new Scene_Engine(); // create the engine at least once so that we have access to all engine functions.
 
-document.addEventListener("visibilitychange", function(event) {
-    $engine.__notifyVisibilityChanged(event);
-})
-
 ////////////////////////////////single time setup of engine///////////////////////
 
 IN.__register();
@@ -1263,6 +1257,7 @@ __initializeDone = function(obj) {
     console.log("Loaded all required assets! ->",window.performance.now() - obj.time,"ms");
     $__engineData.__ready=true;
     __finishReading(obj);
+    __addListener();
 }
 
 __finishReading = function(obj) {
@@ -1291,6 +1286,12 @@ __finishReading = function(obj) {
             isDone();
         });
     }
+}
+
+__addListener = function() {
+    document.addEventListener("visibilitychange", function(event) {
+        $engine.__notifyVisibilityChanged(event);
+    })
 }
 
 __prepareScripts = function(script_file,obj) {
@@ -1591,7 +1592,8 @@ __parseSpritesheet = function(argsParsed, args, i) {
             columns = parseInt(args[++i]);
             rows = parseInt(args[++i]);
         } else if(arg==="limit") {
-            if(rows===-1) throw new Error("Cannot limit before supplying dimensions");
+            if(rows===-1) 
+                throw new Error("Cannot limit before supplying dimensions");
             for(var k =0;k<rows;k++) {
                 limit.push(parseInt(args[++i]));
             }
@@ -1918,9 +1920,10 @@ Game_BattlerBase.prototype.paramMin = function(paramId) {
 }
 
 
-// notes:
+// notes and overrides:
 // YEP_CoreEngine 2475 commented out to prevent showing level
 // AltimitMovement 1508 modified to become less precise
+// YEP_MessageCore line 731 -> choice text.
 
 ////////////////// end overriding RPG maker /////////////////
 
@@ -2128,7 +2131,10 @@ class OwO {
         $gameMap._interpreter.setup(OwO.getEvent(eventId).list(),eventId);
     }
 
-    // filterUpdate takes in 3 paramaeters, which are the variable to check against, the filter, and then by the update event
+    static activateEvent(eventId) {
+        OwO.getEvent(eventId)._starting = true;
+    }
+
     static addConditionalFilter(evId, rpgVar = -1,) {
         var map = $gameMap._mapId;
         var arr = OwO.__getConditionalFilters(map);
@@ -2256,7 +2262,7 @@ class OwO {
     }
 
     static __disableAllFilters() {
-        OwO.__disableyMapFilters();
+        OwO.__disableMapFilters();
         OwO.__disablePortraitFilters();
     }
 

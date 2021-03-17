@@ -8,10 +8,17 @@ class IN {
                 return;
             if(!e.repeat && IN.__heldKeys.indexOf(e.code)===-1 && IN.__pressedKeysCarry.indexOf(e.code)===-1) {
                 IN.__lastKeyCarry=e.code;
+                IN.__lastLogicalKeyCarry=e.key;
                 IN.__anyKeyPressedCarry=true;
+                IN.__anyStandardKeyPressedCarry = IN.__anyStandardKeyPressedCarry || IN.__isStandardKey(e.key);
+                // log physical location
                 IN.__pressedKeysCarry.push(e.code);
+
+                if(e.key!==e.code) // also allow the programmer to state the meaning of a key
+                    IN.__pressedKeysCarry.push(e.key)
+
                 if(IN.__debugRecordKeyPress) 
-                    console.log(e.code);
+                    console.log(e.code," :: ", e.key);
             }
             e.__handled = true;
         });
@@ -21,6 +28,8 @@ class IN {
             if(e.__handled)
                 return;
             IN.__releasedKeysCarry.push(e.code);
+            if(e.key!==e.code)
+                IN.__releasedKeysCarry.push(e.key)
             e.__handled = true;
         });
 
@@ -127,10 +136,14 @@ class IN {
         IN.__anyKeyPressed=IN.__anyKeyPressedCarry;
         IN.__anyKeyPressedCarry=false;
 
+        IN.__anyStandardKeyPressed=IN.__anyStandardKeyPressedCarry;
+        IN.__anyStandardKeyPressedCarry=false;
+
         IN.__anyButtonPressed=IN.__anyButtonPressedCarry;
         IN.__anyButtonPressedCarry=false;
 
         IN.__lastKey=IN.__lastKeyCarry;
+        IN.__lastLogicalKey=IN.__lastLogicalKeyCarry;
     }
 
     static __invalidateMouseLocation() {
@@ -149,7 +162,12 @@ class IN {
         IN.__anyKeyPressedCarry=false;
         IN.__anyButtonPressedCarry=false;
         IN.__lastKeyCarry="";
+        IN.__lastLogicalKeyCarry="";
         IN.__mouseValid=false;
+    }
+
+    static __isStandardKey(string) {
+        return string.length === 1 || string==="Enter";
     }
 
     static debugDisplayKeyPress(b) {
@@ -176,16 +194,43 @@ class IN {
         return IN.__lastKey;
     }
 
+    static getLastLogicalKey() {
+        return IN.__lastLogicalKey
+    }
+
+    /**
+     * @returns {Boolean} Whether or not any mouse button or key was pressed
+     */
     static anyKeyPressed() {
         return IN.__anyKeyPressed;
     }
 
+    /**
+     * @returns {Boolean} Whether or not a standard (single character or enter) key was pressed
+     */
+    static anyStandardKeyPressed() {
+        return IN.__anyStandardKeyPressed;
+    }
+
+    /**
+     * @returns {Boolean} Whether or not any mouse button was pressed
+     */
     static anyButtonPressed() {
         return IN.__anyButtonPressed;
     }
 
+    /**
+     * @returns {Boolean} Whether or not any mouse button or key was pressed
+     */
     static anyInputPressed() {
         return IN.__anyKeyPressed || IN.__anyButtonPressed;
+    }
+
+    /**
+     * @returns {Boolean} Whether or not any mouse button or standard key was pressed
+     */
+    static anyStandardInputPressed() {
+        return IN.__anyStandardKeyPressed || IN.__anyButtonPressed;
     }
 
     static mouseCheck(button) {
@@ -277,9 +322,13 @@ IN.__wheelCarry = 0;
 
 IN.__lastKeyCarry="";
 IN.__lastKey = "";
+IN.__lastLogicalKeyCarry="";
+IN.__lastLogicalKey = "";
 
 IN.__anyKeyPressedCarry=false;
+IN.__anyStandardKeyPressedCarry=false;
 IN.__anyKeyPressed = false;
+IN.__anyStandardKeyPressed = false;
 
 IN.__anyButtonPressedCarry=false;
 IN.__anyButtonPressed = false;

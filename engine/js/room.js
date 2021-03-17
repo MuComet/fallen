@@ -33,7 +33,8 @@ class Room {
 
     getExtern(name) {
         var data = this.__extern[name];
-        if(data===undefined) throw "External data " + name + " not found"
+        if(data===undefined) 
+            throw new Error("External data " + name + " not found")
         return data;
     }
 
@@ -49,9 +50,9 @@ class Room {
 
     static __roomFromData(name, data) {
         var room = new Room();
+        room.name=name;
         const iter = data.entries();
         Room.__parseData(room,iter);
-        room.name=name;
         return room;
     }
 

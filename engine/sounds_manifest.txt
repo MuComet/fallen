@@ -47,3 +47,4 @@ card_flip engine/audio/se/card/Flip.ogg SE
 umbrella_rain_1 engine/audio/bgs/umbrella/Rain.ogg BGS
 umbrella_rain_2 engine/audio/bgs/umbrella/UmbrellaProtect.ogg BGS
 umbrella_juke engine/audio/se/umbrella/UmbrellaTrick.ogg SE
+umbrella_hit engine/audio/se/umbrella/Splash.ogg SE

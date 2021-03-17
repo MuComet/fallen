@@ -11,6 +11,7 @@ class RoomManager {
         var room = RoomManager.getRoom(name);
         if(room===undefined)
             throw new Error("Room " + name + " does not exist.");
+        $engine.__currentRoom = room;
         room.loadRoom();
         return room;
     }
@@ -19,6 +20,10 @@ class RoomManager {
         return RoomManager.__rooms[name]!==undefined
     }
 
+    /**
+     * Gets the current room
+     * @returns {Room} The current room
+     */
     static currentRoom() {
         return $engine.__currentRoom;
     }

@@ -100,8 +100,10 @@ class UmbrellaMinigameController extends MinigameController {
             this.timer.preventExpire();
             this.endMinigame(false);
         }
-        if(!this.minigameOver())
-            $engine.audioPlaySound("drain_hit");
+        if(!this.minigameOver()) {
+            var snd = $engine.audioPlaySound("umbrella_hit",1.4);
+            snd.speed = EngineUtils.randomRange(0.6,1.5)
+        }
         this.updateScoreText();
     }
 

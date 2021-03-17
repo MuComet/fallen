@@ -49,9 +49,7 @@ class MenuIntroController extends EngineInstance {
             return true
         });
         startButton.setScript(function() {
-            CutsceneController.cutsceneSheet = "intro_cutscene_sheet";
-            CutsceneController.cutsceneComplete =  MenuIntroController.startNewGame;
-            $engine.setRoom("CutsceneRoom")
+            $engine.setRoom("IntroCutsceneRoom")
         });
         startButton.setSelected();
         
@@ -91,8 +89,7 @@ class MenuIntroController extends EngineInstance {
         });
 
         this.menuMusic = $engine.audioPlaySound("title_music",1,true)
-        this.menuMusic._source.loopStart = 10;
-        this.menuMusic._source.loopEnd = 50;
+        $engine.audioSetLoopPoints(this.menuMusic,10,50);
     }
 
     nextFrame() {
@@ -183,9 +180,6 @@ class MenuIntroController extends EngineInstance {
         if(this.timer>this.endTime && this.timer <= this.endTime+36) {
             this.depth = -10000;
         }
-        /*if(this.timer===this.endTime+1) {
-            $engine.audioPlaySound("audio/se/Snap.ogg");
-        }*/
     }
 
     draw(gui, camera) {
