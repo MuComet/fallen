@@ -49,7 +49,7 @@ class FallingObjectsController extends MinigameController {
     }
 
     shakeCamera(fac) {
-        this.cameraTimer+=fac;
+        this.cameraShakeTimer+=fac;
     }
 
     changeScore(delta) {
