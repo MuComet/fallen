@@ -213,11 +213,8 @@ class CardBoard extends EngineInstance {
             }
 
             if(!this.clicked && IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){  
-<<<<<<< Updated upstream
                 $engine.audioPlaySound("card_flip");
-=======
                 //$engine.audioPlaySound("card_flip_all");
->>>>>>> Stashed changes
                 this.clicked = true;
                 this.getSprite().tint = (0xaaafff);
                 CardMinigameController.getInstance().notifyCardClick(this);

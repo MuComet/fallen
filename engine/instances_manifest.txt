@@ -22,3 +22,5 @@ WallBuilderController Brick engine/instances/wall_building.js
 HoleMinigameController HolePlayer HolePlatform engine/instances/holes_minigame.js
 BrokenImageController PictureComponent engine/instances/broken_image_minigame.js
 PaintImageController engine/instances/paint_image_minigame.js
+
+GardenMinigameController GardenPlant GardenWorm engine/instances/garden_minigame.js

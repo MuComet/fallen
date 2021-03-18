@@ -87,3 +87,7 @@ fence_base engine/textures/fence.png 0 0
 paint_base engine/textures/paint_base.png 0.5 0
 
 spritesheet dimensions 280 110 4 1 card_faces engine/textures/card/cards_sheet.png 0.5 0.5
+
+garden_plant engine/textures/garden/gardenplant.png 0.5 0.5
+garden_worm_alive engine/textures/garden/gardenwormalive.png 0.5 0.5
+garden_worm_dead engine/textures/garden/gardenwormdead.png 0.5 0.5
