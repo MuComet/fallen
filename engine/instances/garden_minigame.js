@@ -15,7 +15,7 @@ class GardenMinigameController extends MinigameController {
         this.startTimer(60*60);
 
 
-        var text = new PIXI.Text("Memorize the card positions matching the goal card located\n at the bottom. Select as many of those cards as you can.\nThere are 6 correct cards each round.\n\n30 seconds to get 5/6 correct cards for 3 rounds in a row!\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Basically\n WORMS\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.controlsUseKeyBoard(false);
 
