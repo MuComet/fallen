@@ -20,7 +20,7 @@ class GardenMinigameController extends MinigameController {
 
         var text = new PIXI.Text("Basically\n WORMS\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
-        this.controlsUseKeyBoard(false);
+        this.controlsUseKeyBoard(true);
 
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         $engine.createManagedRenderable(this,this.progressText);
@@ -30,6 +30,9 @@ class GardenMinigameController extends MinigameController {
 
         var plant_array = [];
         this.plant_array = plant_array;
+
+        this.shakeTimer = 0;
+        this.shakeFactor = 8;
 
         for(var i = 0; i < 9; i++){
             if(i < 3){
@@ -77,7 +80,22 @@ class GardenMinigameController extends MinigameController {
         this.moveSpray();
         this.countPlants();
         this.updateProgressText();
+        this.handleShake();
         this.timer++;
+    }
+
+    handleShake() {
+        var camera = $engine.getCamera();
+        var fac = EngineUtils.interpolate(this.shakeTimer/this.shakeFactor,0,1,EngineUtils.INTERPOLATE_OUT_QUAD);
+        camera.setRotation(EngineUtils.randomRange(-0.01,0.01)*fac)
+        camera.setLocation(EngineUtils.irandomRange(-2,2) * fac, EngineUtils.irandomRange(-2,2) * fac)
+        this.shakeTimer--;
+    }
+
+    shake(factor = 20) {
+        if(this.shakeTimer < 0)
+            this.shakeTimer=0;
+        this.shakeTimer+=factor;
     }
 
     updateProgressText() {
@@ -165,12 +183,14 @@ class GardenWorm extends EngineInstance {
             this.destroy();
         }
        
-        if(IM.instanceCollisionPoint(GardenMinigameController.getInstance().x, GardenMinigameController.getInstance().y, this) && IN.keyCheckPressed("Space")){
+        if(IM.instanceCollisionPoint(GardenMinigameController.getInstance().x, GardenMinigameController.getInstance().y, this) 
+            && IN.keyCheckPressed("Space") && this.deathTime === 0){
+            GardenMinigameController.getInstance().shake();
             this.deathTime = this.wormTimer;
             this.getSprite().texture = $engine.getTexture("garden_worm_dead");
             $engine.audioPlaySound("sky_bonk");
         }
-        if(this.wormTimer > this.deathTime + 60 && this.deathTime != 0){
+        if(this.wormTimer > this.deathTime + 60 && this.deathTime !== 0){
             this.destroy();
         }
         this.wormTimer++;
