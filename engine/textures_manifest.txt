@@ -12,8 +12,10 @@ require cloud_generic_2 engine/textures/generic/cloud_generic_2.png 0.5 0.5
 require cloud_generic_3 engine/textures/generic/cloud_generic_3.png 0.5 0.5
 require cloud_generic_4 engine/textures/generic/cloud_generic_4.png 0.5 0.5
 
-spritesheet dimensions 6000 624 6 1 background_sheet engine/textures/generic/background_generic_sheet.png 0.5 0.5
-spritesheet dimensions 6000 624 6 1 background_sheet_ground engine/textures/generic/background_generic_sheet_2.png 0.5 0.5
+spritesheet dimensions 6000 624 6 1 background_sheet_1 engine/textures/backgrounds/background_generic_1.png 0.5 0.5
+spritesheet dimensions 6000 624 6 1 background_sheet_2 engine/textures/backgrounds/background_generic_2.png 0.5 0.5
+spritesheet dimensions 1632 624 2 1 background_wall_1 engine/textures/backgrounds/background_brick_1.png 0.5 0.5
+spritesheet dimensions 1632 624 2 1 background_ground_1 engine/textures/backgrounds/background_ground_1.png 0.5 0.5
 require spritesheet dimensions 11424 624 14 1 intro_cutscene_sheet engine/textures/intro/intro_cutscene_sheet.webp 0 0
 
 require spritesheet dimensions 576 576 4 4 limit 4 4 4 4 eson_profiles engine/textures/cutscenes/eson_profiles.png 0.5 0.5

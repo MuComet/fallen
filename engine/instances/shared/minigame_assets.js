@@ -938,23 +938,42 @@ MinigameController.controller = undefined;
 
 class ParallaxingBackground extends EngineInstance {
 
-    onCreate(type = 0) {
+    onCreate(sheet = "background_sheet_1") {
         this.parallaxFactorX = 0.25;
         this.parallaxFactorY = 0.25;
         this.x = $engine.getWindowSizeX()/2;
         this.y = $engine.getWindowSizeY()/2;
-        if(type === 0)
-            this.sprites = $engine.getTexturesFromSpritesheet("background_sheet",0,$engine.getSpritesheetLength("background_sheet"));
-        else if(type === 1)
-            this.sprites = $engine.getTexturesFromSpritesheet("background_sheet_ground",0,$engine.getSpritesheetLength("background_sheet_ground"));
-        for(var i =0;i<this.sprites.length;i++) {
-            this.sprites[i] = $engine.createRenderable(this,new PIXI.Sprite(this.sprites[i]),false);
-            this.sprites[i].x = this.x;
-            this.sprites[i].y = this.y;
+        var textures = $engine.getTexturesFromSpritesheet(sheet,0,$engine.getSpritesheetLength(sheet));
+        this.sprites = [];
+        for(var i =0;i<textures.length;i++) {
+            var sprite = $engine.createRenderable(this,new PIXI.Sprite(textures[textures.length-1-i]),false)
+            this.sprites.push(sprite)
+            sprite.x = this.x;
+            sprite.y = this.y;
         }
         this.depth = 9999999999;
+        this.invertParallax = false;
         $engine.setBackground(new PIXI.Graphics())
         $engine.setBackgroundColour(0xe2d6b3);
+    }
+
+    /**
+     * Sets how sensitive the front image is to parallax. 1 means it moves in unison with the camera
+     * and 0 means it is static.
+     * 
+     * Note that elements beyond the first image will still move if the factor is 1.
+     * If you can't have them move with the camera then you should not be using a ParallaxingBackground.
+     * 
+     * @param {Number} px The amount to move in the x direction
+     * @param {Number} py The amount to move in the y direction
+     */
+    setParallaxFactors(px, py) {
+        this.parallaxFactorX=px;
+        this.parallaxFactorY=py;
+    }
+
+    setInvertParallax(invert) {
+        this.invertParallax=invert;
     }
 
     getDx() {
@@ -968,18 +987,26 @@ class ParallaxingBackground extends EngineInstance {
     draw(gui, camera) {
         var dx = this.getDx();
         var dy = this.getDy();
-        var cx = $engine.getWindowSizeX()/2 + dx;
-        var cy = $engine.getWindowSizeY()/2 + dy;
+        var cx = $engine.getWindowSizeX()/2 + $engine.getCamera().getX();
+        var cy = $engine.getWindowSizeY()/2 + $engine.getCamera().getY();
         var facX = this.parallaxFactorX;
         var facY = this.parallaxFactorY;
-        for(var i = this.sprites.length-1;i>=0;i--) {
-            this.sprites[i].x = cx+(-dx*facX);
-            this.sprites[i].y = cy+(-dy*facY);
-            facX/=2;
-            facY/=2;
+        if(this.invertParallax) {
+            for(var i = 0;i<this.sprites.length;i++) {
+                this.sprites[i].x = cx+(-dx*facX);
+                this.sprites[i].y = cy+(-dy*facY);
+                facX/=2;
+                facY/=2;
+            }
+            
+        } else {
+            for(var i = this.sprites.length-1;i>=0;i--) {
+                this.sprites[i].x = cx+(-dx*facX);
+                this.sprites[i].y = cy+(-dy*facY);
+                facX/=2;
+                facY/=2;
+            }
         }
     }
 
 }
-ParallaxingBackground.TYPE_NORMAL = 0;
-ParallaxingBackground.TYPE_SIDWALK = 1;

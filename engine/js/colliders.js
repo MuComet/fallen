@@ -119,10 +119,13 @@ class Hitbox { // container for actual hitboxes
         this.__testForcePolygon();
         if(this.forcePolygon) {
             this.__requireValidPolygon(); // forward the call to the more appropriate method
+            return;
         } else if(!this.valid[0] || !this.__parentAligned()) { // you either know you're not valid, or you're not parent aligned
             this.__validate();
             this.__calculateBoundingBox();
         }
+        this.x = this.__parent.x;
+        this.y = this.__parent.y;
     }
 
     __requireValidPolygon() { // some operations require the polygon hitbox, so we supply this method to force the hitbox into polygon mode.
@@ -133,11 +136,12 @@ class Hitbox { // container for actual hitboxes
             this.__calculateBoundingBox();
             this.forcePolygon=s;
         }
+        this.x = this.__parent.x;
+        this.y = this.__parent.y;
     }
 
     __parentAligned() {
-        return this.x === this.__parent.x && this.y ===this.__parent.y && this.sx === this.__parent.xScale 
-                    && this.sy === this.__parent.yScale && this.rotation === this.__parent.angle;
+        return this.sx === this.__parent.xScale && this.sy === this.__parent.yScale && this.rotation === this.__parent.angle;
     }
 
     __match() {

@@ -409,13 +409,13 @@ class Scene_Engine extends Scene_Base {
 
     __lookupSounds(snd) {
         var sounds = [];
-        if(typeof(snd) === "string") {
-            for(const sound of this.__sounds) {
-                if(sound.__sourceSound.__engineAlias === snd)
-                    sounds.push(sound);
-            }
-        } else {
-            sounds.push(snd);
+        if(snd.__sourceSound) { // IMediaInstance
+            return [snd];
+        }
+        var target = snd.__engineAlias || snd; // String alias
+        for(const sound of this.__sounds) { // Sound Instances
+            if(sound.__sourceSound.__engineAlias === target)
+                sounds.push(sound);
         }
         return sounds;
     }
@@ -654,14 +654,17 @@ class Scene_Engine extends Scene_Base {
         this.__pauseMode = 1;
     }
 
+    /**
+     * Unpauses the game after it has been set to pause mode.
+     */
     unpauseGame() {
         this.__pauseMode = 0;
     }
 
-    isGamePaused() {
-        return this.__pauseMode===1;
-    }
-
+    /**
+     * Pauses the game for every single instance except for the specified instance.
+     * @param {EngineInstance} instance The immune instance
+     */
     pauseGameSpecial(instance) {
         if(!instance) {
             throw new Error("PauseGameSpecial requires a target instance to keep running");
@@ -670,6 +673,9 @@ class Scene_Engine extends Scene_Base {
         this.__pauseMode = 1;
     }
 
+    /**
+     * Unpauses the game after it has been set to pause special mode.
+     */
     unpauseGameSpecial() {
         this.__pauseMode = 0;
     }

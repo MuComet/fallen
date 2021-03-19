@@ -8796,7 +8796,6 @@ Game_Interpreter.prototype.clear = function() {
 };
 
 Game_Interpreter.prototype.setup = function(list, eventId) {
-	console.trace();
     this.clear();
     this._mapId = $gameMap.mapId();
     this._eventId = eventId || 0;

@@ -759,6 +759,11 @@ Window_Base.prototype.convertExtraEscapeCharacters = function(text) {
 		return $gameSwitches.value(parseInt(arguments[1])) === (arguments[2].toLowerCase() === "true" || arguments[2] === "1") ? arguments[3] : t;
 	}.bind(this));
 	
+	// \NL for newlines (are you kidding me RPG maker??)
+	text = text.replace(/\x1bNL/gi, function() {
+		return "\n";
+	}.bind(this));
+	
     // \AC[n]
     text = text.replace(/\x1bAC\[(\d+)\]/gi, function() {
         return this.actorClassName(parseInt(arguments[1]));

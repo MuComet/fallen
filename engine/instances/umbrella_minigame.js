@@ -14,6 +14,7 @@ class UmbrellaMinigameController extends MinigameController {
         for(var i =0;i<10;i++) { // TODO -----------------------------------------------------------------
             this.fakeOutTimes.push(EngineUtils.irandomRange(i * 6 * 60,(i+1) * 6 * 60));
         }
+        
 
         // instructions
         var text = new PIXI.Text("Left and Right arrow keys to move,\n don't touch the rain!\n\nPress Enter to cheat!",{fontFamily: 'GameFont',
@@ -22,6 +23,8 @@ class UmbrellaMinigameController extends MinigameController {
 
         this.player = new Man($engine.getWindowSizeX()/2,$engine.getWindowSizeY())
         this.umbrella = new Umbrella($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/1.4);
+
+        var bg = new ParallaxingBackground("background_sheet_2");
 
         this.timer = new MinigameTimer(60*60);
         this.timer.addOnTimerStopped(this,function(parent,expired) {
@@ -73,6 +76,7 @@ class UmbrellaMinigameController extends MinigameController {
         if(IN.mouseCheckPressed(0)) {
             new Test(IN.getMouseX(), IN.getMouseY());
         }
+        $engine.getCamera().setX(-($engine.getWindowSizeX()/2-this.player.x)/4)
     }
 
     bgsTick() {
@@ -215,7 +219,7 @@ class Man extends InstanceMover {
     }
 
     collisionCheck(x,y) {
-        return x < 0 || x > $engine.getWindowSizeX();
+        return x < -96 || x > $engine.getWindowSizeX()+96;
     }
 
     preDraw() {
@@ -282,7 +286,7 @@ class Umbrella extends EngineInstance {
     step() {
         this.angle = EngineUtils.clamp(this.dx/64,-Math.PI/4,Math.PI/4)
         for(var i =0;i<EngineUtils.clamp(-(this.endTime-75)/2,1,12);i++)
-            new Raindrop(EngineUtils.randomRange(-100,800),-64);
+            new Raindrop(EngineUtils.randomRange(-124,924),-64);
         this.timer++;
         if(this.timer>this.endTime*2) {
             this.timer=0;
@@ -396,7 +400,7 @@ class Raindrop extends EngineInstance {
         this.angle = V2D.calcDir(this.dx,this.dy)
         var dist = V2D.calcMag(this.dx,this.dy);
         this.xScale = EngineUtils.clamp(dist/12,0.25,2)
-        if(this.y>=$engine.getWindowSizeY() || this.x<0 || this.x > 816) {
+        if(this.y>=$engine.getWindowSizeY() || this.x<-128 || this.x > 944) {
             this.destroy();
         }
         var inst = IM.instancePlace(this,this.x,this.y,Umbrella)
@@ -424,6 +428,7 @@ class Raindrop extends EngineInstance {
             IM.find(Man,0).hasBeenHurt = true;
             this.destroy();
         }
+        if(IM.instanceCollision(this,this.x,this.y,Raindrop)){};
 
     }
 
