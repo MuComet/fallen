@@ -5,9 +5,10 @@ class CardMinigameController extends MinigameController {
         this.maxScore = 3;
         this.score = 0;
         this.roundscore = 0;
+        this.cheatflip = 0;
 
         
-        new ParallaxingBackground();
+        new ParallaxingBackground("background_sheet_2");
 
         this.timer = 0;
         this.attempts = 6;
@@ -29,11 +30,10 @@ class CardMinigameController extends MinigameController {
         this.progressText.y = $engine.getWindowSizeY()-30;
         this.updateProgressText();
         this.newRound();
-
     }
     
     newRound(){
-
+        this.cheatflip = 0;
         this.timer = 0;
         var card_texture = ["card_faces_1", "card_faces_2", "card_faces_3", "card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3"];
         this.goal_index = card_texture[EngineUtils.irandom(2)];      
@@ -66,11 +66,48 @@ class CardMinigameController extends MinigameController {
         this.onEngineCreate();
     }
 
+    getRandom(arr, n) {
+        var result = new Array(n),
+            len = arr.length,
+            taken = new Array(len);
+        while (n--){
+            var x = Math.floor(Math.random() * len);
+            result[n] = arr[x in taken ? taken[x] : x];
+            taken[x] = --len in taken ? taken[len] : len;
+        }
+        return result;
+    }
+
     step() {
         super.step();
         if(this.minigameOver()){
             return;
         }
+
+        if(this.hasCheated() && this.timer >= 140 && this.cheatflip == 0) {
+            var allcards = [];
+            IM.with(CardBoard, function(card){
+                allcards.push(card);
+            });
+
+            var flipcards = this.getRandom(allcards, 6);
+
+            for(var k = 0; k < 6; k++){
+                var card = flipcards[k];
+                card.delayedAction(card.x/50+card.y/100, function(card){ 
+                    card.delayedAction(card.flipTime/2, function(card) {   
+                             
+                        card.routine(card.cardFlip);
+                        card.flipTimer=card.flipTime;
+                        card.flipMode=1; 
+                    
+                    }); 
+                });
+            }
+            this.cheatflip = 1;
+        }
+
+
         if(this.timer===70) {
             IM.with(CardBoard, function(card){
                 card.delayedAction(EngineUtils.irandom(10), function(card) {
@@ -80,8 +117,8 @@ class CardMinigameController extends MinigameController {
                 });
             });
         }
+
         if(this.timer == 80){
-            
             this.getTimer().unpauseTimer();
         }
 
@@ -107,10 +144,7 @@ class CardMinigameController extends MinigameController {
         }
         if(this.score >= this.maxScore){
             this.endMinigame(true);
-        }
-        //if(this.rounds == 0 && this.score < this.maxScore){
-            //this.endMinigame(false);
-        //}     
+        }    
     }
     
 

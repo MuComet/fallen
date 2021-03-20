@@ -5,8 +5,8 @@ class GardenMinigameController extends MinigameController {
         this.score = 9;
         this.maxScore = 9;
 
-        new ParallaxingBackground();
-
+        new ParallaxingBackground("background_wall_1");
+    
         this.timer = 0;
         this.attempts = 6;
         this.waiting = false;
@@ -34,7 +34,7 @@ class GardenMinigameController extends MinigameController {
         this.shakeTimer = 0;
         this.shakeFactor = 8;
 
-        for(var i = 0; i < 9; i++){
+        for(var i = 0; i < 9; i++) {
             if(i < 3){
                 plant_array[i] = new GardenPlant(90*2+200*i, $engine.getWindowSizeY()/2 -150, i);       
             }if(i >= 3 && i < 6){
@@ -51,14 +51,10 @@ class GardenMinigameController extends MinigameController {
         this.getTimer().tickDown(frames);  
     }
 
-
     onCreate() { 
         super.onCreate();
         this.onEngineCreate();
     }
-
-
-
 
     step() {
         super.step();
@@ -72,11 +68,11 @@ class GardenMinigameController extends MinigameController {
                     spawnI = EngineUtils.irandomRange(0,8);;
                 }
             });
-            this.spawnWorm(spawnI);
-            
+            this.spawnWorm(spawnI); 
             //this.getTimer().unpauseTimer();
             this.timer = 0;
         }
+
         this.moveSpray();
         this.countPlants();
         this.updateProgressText();
@@ -157,6 +153,7 @@ class GardenMinigameController extends MinigameController {
     draw(gui, camera) {
         super.draw(gui, camera);     
         EngineDebugUtils.drawHitbox(camera,this);
+        $engine.requestRenderOnGUI(this.progressText);
     }
 
 }
