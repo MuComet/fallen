@@ -671,7 +671,7 @@ class MinigameController extends EngineInstance {
         this._minigameControllerTick();
     }
 
-    controlsUseKeyBoard(bool) {
+    controlsUseKeyboard(bool) {
         this.usingKey = bool;
     }
 

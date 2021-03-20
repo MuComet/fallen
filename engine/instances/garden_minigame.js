@@ -20,7 +20,7 @@ class GardenMinigameController extends MinigameController {
 
         var text = new PIXI.Text("Basically\n WORMS\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
-        this.controlsUseKeyBoard(true);
+        this.controlsUseKeyboard(true);
 
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         $engine.createManagedRenderable(this,this.progressText);

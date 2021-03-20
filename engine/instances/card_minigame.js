@@ -18,10 +18,11 @@ class CardMinigameController extends MinigameController {
         
         this.startTimer(30*60);
         this.getTimer().pauseTimer();
+        this.getTimer().setSurvivalMode()
 
         var text = new PIXI.Text("Memorize the card positions matching the goal card located\n at the bottom. Select as many of those cards as you can.\nThere are 6 correct cards each round.\n\n30 seconds to get 5/6 correct cards for 3 rounds in a row!\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
-        this.controlsUseKeyBoard(false);
+        this.controlsUseKeyboard(false);
 
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         $engine.createManagedRenderable(this,this.progressText);

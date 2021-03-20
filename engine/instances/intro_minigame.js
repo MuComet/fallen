@@ -3,7 +3,7 @@ class IntroMinigameController extends MinigameController {
         super.onEngineCreate();
         var text = new PIXI.Text("Use the mouse to traverse\nthe drain, grab the clog\n and make it back up without\n hitting the pipe walls",$engine.getDefaultTextStyle())
         this.setInstructionRenderable(text);
-        this.controlsUseKeyBoard(false);
+        this.controlsUseKeyboard(false);
 
         new IntroMinigameJunk(740,505);
 

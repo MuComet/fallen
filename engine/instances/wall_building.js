@@ -23,7 +23,7 @@ class WallBuilderController extends MinigameController {
         $engine.unpauseGameSpecial
         var text = new PIXI.Text("Press the keys displayed on the tile\nlay down block with correct keys\nbe fast and accurate\nwrong keys cause delay\n\nPress Enter to cheat!",$engine.getDefaultTextStyle())
         this.setInstructionRenderable(text);
-        this.controlsUseKeyBoard(true);
+        this.controlsUseKeyboard(true);
 
         this.graphicsLocationX = $engine.getWindowSizeX()/2;
         this.graphicsLocationY = 128;
