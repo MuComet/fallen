@@ -5,9 +5,10 @@ class CardMinigameController extends MinigameController {
         this.maxScore = 3;
         this.score = 0;
         this.roundscore = 0;
+        this.cheatflip = 0;
 
         
-        new ParallaxingBackground();
+        new ParallaxingBackground("background_sheet_2");
 
         this.timer = 0;
         this.attempts = 6;
@@ -29,11 +30,10 @@ class CardMinigameController extends MinigameController {
         this.progressText.y = $engine.getWindowSizeY()-30;
         this.updateProgressText();
         this.newRound();
-
     }
     
     newRound(){
-
+        this.cheatflip = 0;
         this.timer = 0;
         var card_texture = ["card_faces_1", "card_faces_2", "card_faces_3", "card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3"];
         this.goal_index = card_texture[EngineUtils.irandom(2)];      
@@ -70,6 +70,25 @@ class CardMinigameController extends MinigameController {
         super.step();
         if(this.minigameOver()){
             return;
+        }
+        // list all cards, 
+        var chance = EngineUtils.irandomRange(0,2);
+        if(this.hasCheated() && this.timer >= 140 && this.cheatflip == 0) {
+            IM.with(CardBoard, function(card){
+                card.delayedAction(card.x/50+card.y/100, function(card) {
+                    card.delayedAction(card.flipTime/2, function(card) {   
+                             
+                    var lucky = EngineUtils.irandomRange(0,2);
+                    if(lucky == chance){
+                        card.routine(card.cardFlip)
+                        card.flipTimer=card.flipTime;
+                        card.flipMode=1; 
+                    }
+                }); 
+                });
+                //card.getSprite().texture = $engine.getTexture(card.group);
+            });
+            this.cheatflip = 1;
         }
         if(this.timer===70) {
             IM.with(CardBoard, function(card){
