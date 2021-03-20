@@ -400,7 +400,7 @@ class MinigameController extends EngineInstance {
 
         this._initMusic();
 
-        this.addCheatCallback(this,function(self) {
+        this.addOnCheatCallback(this,function(self) {
             $engine.audioPlaySound("minigame_cheat")
         })
 
@@ -563,7 +563,7 @@ class MinigameController extends EngineInstance {
             if(this._timer)
                 this._timer.timerGraphic.alpha = fac // set directly because timescale.
             this.stopTimer++;
-            this.setMusicVolume(fac);
+            this._setMusicVolume(fac);
             if(this.stopTimer>this.stopTime)
                 this.gameStopped=true;
         } else {
@@ -603,7 +603,7 @@ class MinigameController extends EngineInstance {
 
     prepareResultGraphic(frame) {
         var fac = frame/45;
-        var graphic = this.getResultRenderable();
+        var graphic = this._getResultRenderable();
         var facX = EngineUtils.interpolate(fac,0,1,EngineUtils.INTERPOLATE_OUT_BACK);
         var facY = EngineUtils.interpolate(fac/2,0,1,EngineUtils.INTERPOLATE_IN_ELASTIC);
         graphic.scale.x = facX;
@@ -653,7 +653,7 @@ class MinigameController extends EngineInstance {
         }
     }
 
-    setMusicVolume(volume) {
+    _setMusicVolume(volume) {
         if(this.hasCheated())
             this.musicCheat.volume=volume;
         else
@@ -690,14 +690,14 @@ class MinigameController extends EngineInstance {
         }
 
         if(this.showingResult) {
-            $engine.requestRenderOnGUI(this.getResultRenderable())
+            $engine.requestRenderOnGUI(this._getResultRenderable())
         }
         if(this.showingResult || this.pressAnyKeyToContinueTimer>0) {
             $engine.requestRenderOnGUI(this.pressAnyKeyToContinue)
         }
     }
 
-    getResultRenderable() {
+    _getResultRenderable() {
         return this.wonMinigame ? this.resultGraphicWon : this.resultGraphicLoss;
     }
 
@@ -772,7 +772,7 @@ class MinigameController extends EngineInstance {
         return this.currentRound;
     }
 
-    addCheatCallback(parent,callback) {
+    addOnCheatCallback(parent,callback) {
         this.onCheatCallbacks.push({
             func:callback,
             caller:parent
@@ -823,7 +823,7 @@ class MinigameController extends EngineInstance {
                 this._startMusic();
                 var musicFac = EngineUtils.interpolate((this.instructionTimer-this.instructionTimerLength+this.blurFadeTime)/this.blurFadeTime,
                         0,1,EngineUtils.INTERPOLATE_OUT)
-                this.setMusicVolume(musicFac)
+                this._setMusicVolume(musicFac)
             }
         }
         if(this.instructionTimer===this.instructionTimerLength) {

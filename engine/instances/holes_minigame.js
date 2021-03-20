@@ -20,7 +20,7 @@ class HoleMinigameController extends MinigameController {
 
         this.spawnPlatforms(this.lastY*2);
 
-        this.addCheatCallback(this,function(self) {
+        this.addOnCheatCallback(this,function(self) {
             self.cameraDy*=0.6666;
             self.cameraDyChange*=0.6666;
         })
