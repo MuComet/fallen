@@ -110,6 +110,8 @@ class CutsceneController extends EngineInstance {
         this.baseTextLocation = 25;
         this.textOffset = 0;
 
+        this.hasPlayedPageFlip = false;
+
         var style = $engine.getDefaultTextStyle();
         style.align = 'left'
         style.wordWrap = true;
@@ -181,6 +183,7 @@ class CutsceneController extends EngineInstance {
         this.getSprite().texture = this.textures[this.currentFrame];
         this.maskBias=this.biases[this.currentFrame];
         this.testUpdateMusic();
+        this.hasPlayedPageFlip = false;
     }
 
     textBoxTick() { // this violates the draw contract, but honestly it's a render texture it's tied to step anyway.
@@ -345,15 +348,24 @@ class CutsceneController extends EngineInstance {
         return this.showTextBoxTimer>=this.showTextBoxTime;
     }
 
+    // called to advance the current text to the next in the list
     advance() {
-        if(this.textIndex>=this.numTexts && this.textComplete()) {
+        if(this.isTransitioning()) {
+            if(this.timer<this.transitionTime)
+                this.timer = this.transitionTime;
+            else {
+                this.timer = this.frameLength[this.currentFrame]-1;
+                this.playPageFlip();
+            }
+        } else if(this.textIndex>=this.numTexts && this.textComplete()) {
             this.currentText="";
             this.clearText();
             this.noShift=false;
             this.showTextBox(false);
             this.setPortrait(undefined);
             this.timer++;
-        } else if(this.walkingTextIndex<this.currentText.length){
+        } else if(this.walkingTextIndex<this.currentText.length) { // jump to end of text
+            this.forcePortraitCorrect();
             while(this.renderNextCharacter());
             this.forceMaskAllTextBox();
         } else {
@@ -364,11 +376,12 @@ class CutsceneController extends EngineInstance {
             this.textCharacterDelay=0;
             this.walkingTextIndex = 0;
             this.textIndex++;
-            this.preProcessText();
-            this.showTextBox(true);
+            if(!this.preProcessText())
+                this.showTextBox(true);
         }
     }
 
+    // returns true if all characters have been rendered
     renderNextCharacter() {
         this.textWaitTimer=0; // force the timer to 0.
         if(this.textComplete())
@@ -381,19 +394,30 @@ class CutsceneController extends EngineInstance {
         return true;
     }
 
+    forcePortraitCorrect() {
+        this.portraitTimer = this.portraitTime;
+        if(this.nextPortraitTexture!==undefined)
+            this.portraitImage.texture = this.nextPortraitTexture
+        this.preparePortrait();
+    }
+
     textComplete() {
         return this.walkingTextIndex>=this.currentText.length;
     }
 
     parseText() {
         while(this.tryParseCommand());
-        if(this.textWaitTimer>0)
-            return ""; // the command was a wait.
+        if(this.textWaitTimer>0) // command changed the state of the text.
+            return "";
         return this.currentText[this.walkingTextIndex++];
     }
 
+    // returns true if all text was parsed.
     preProcessText()  {
         while(this.tryParseCommand());
+        if(this.textComplete())
+            return true;
+        return false;
     }
 
     tryParseCommand() {
@@ -425,10 +449,25 @@ class CutsceneController extends EngineInstance {
                 var tex = $engine.getTexture(data.argument);
                 this.setPortrait(tex);
             }
+            if(this.textWaitTimer<=0)
+                this.textWaitTimer=1;
         } else if(txt.startsWith("__noShift")) {
+            this.setTextOffset(this.portraitImage.texture.width);
             var data = this.extractCommand(txt);
             this.walkingTextIndex+=data.length;
             this.noShift = data.argument==="1" || data.argument.toLowerCase()==="true"
+        } else if(txt.startsWith("__playSound")) {
+            var data = this.extractCommand(txt);
+            this.walkingTextIndex+=data.length;
+            var data2 = data.argument.split(",");
+            var snd = data2[0];
+            var volume = parseFloat(data2[1]);
+            var loop = data2[2]==="1" || data2[2].toLowerCase()==="true"
+            $engine.audioPlaySound(snd,volume,loop);
+        } else if(txt.startsWith("__stopSound")) {
+            var data = this.extractCommand(txt);
+            this.walkingTextIndex+=data.length;
+            $engine.audioStopSound(data.argument);
         }
         else {
             return false;
@@ -454,7 +493,7 @@ class CutsceneController extends EngineInstance {
     }
 
     step() {
-        if(IN.anyStandardInputPressed() && !IN.keyCheckPressed("Escape") && this.timer < this.frameLength[this.currentFrame]-this.transitionTime && this.timer > this.transitionTime/2) {
+        if(IN.anyStandardInputPressed() && !IN.keyCheckPressed("Escape") && this.timer < this.frameLength[this.currentFrame]-this.transitionTime/4 && this.timer > this.transitionTime/4) {
             this.advance();
         }
 
@@ -463,7 +502,7 @@ class CutsceneController extends EngineInstance {
         }
 
         // speedrun speedrun speedrun go go go go go
-        if(IN.keyCheckPressed("Escape") && this.timer > this.transitionTime && !this.wipeStarted) {
+        if(IN.keyCheckPressed("Escape") && !this.wipeStarted && !(this.currentFrame===0 && this.wipeTimer<this.transitionTime)) {
             this.out = true;
             this.wipeTimer = 0;
             this.wipeStarted=true;
@@ -478,9 +517,6 @@ class CutsceneController extends EngineInstance {
                 this.updateImage();
             } else {
                 $engine.audioFadeAll(15);
-            }
-            if(this.currentFrame===12) {
-                $engine.audioPlaySound("cutscene_snap");
             }
         } else {
             if(this.timer <= this.transitionTime) {
@@ -505,9 +541,9 @@ class CutsceneController extends EngineInstance {
                 this.blurFilter.enabled = false;
                 this.transition=false;
             }
-            if(this.frameLength[this.currentFrame]-this.timer===this.transitionTime/2 && this.currentFrame < this.frames-1) {
-                var snd = $engine.audioPlaySound("cutscene_paper",3);
-                snd.speed = EngineUtils.randomRange(0.9,1.1);
+            
+            if(this.frameLength[this.currentFrame]-this.timer===Math.floor(this.transitionTime/2)) {
+                this.playPageFlip()
             }
         }
         if(this.wipeTimer>this.transitionTime && this.wipeStarted) {
@@ -515,6 +551,14 @@ class CutsceneController extends EngineInstance {
         }
         //this.timer++;
         this.wipeTimer++;
+    }
+
+    playPageFlip() {
+        if(this.currentFrame >= this.frames-1 || this.hasPlayedPageFlip)
+            return;
+        var snd = $engine.audioPlaySound("cutscene_paper",3);
+        snd.speed = EngineUtils.randomRange(0.9,1.1);
+        this.hasPlayedPageFlip = true;
     }
 
     draw(gui, camera) {

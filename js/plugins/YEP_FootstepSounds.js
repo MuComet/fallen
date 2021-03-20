@@ -439,7 +439,7 @@ Game_CharacterBase.prototype.playFootstepSound = function(volume, pitch, pan) {
   var se = {
     name:   footstepData[0],
     volume: footstepData[1] * volume,
-    pitch:  footstepData[2] * pitch,
+    pitch:  footstepData[2] * pitch + Math.random()*50-25,
     pan:    pan.clamp(-100, 100)
   };
   AudioManager.playSe(se);

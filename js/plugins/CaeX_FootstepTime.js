@@ -56,7 +56,7 @@ CAE.X_FootstepTime = CAE.X_FootstepTime || {};
 	_.time = parseInt(_.params['Sound Interval'], 10) || 0;
 
 	// Timer methods - advance, reset, and expiry check
-	_.tick  = function(char) { if (char[PROP_TIME] > 0) char[PROP_TIME]--; };
+	_.tick  = function(char) { if (char[PROP_TIME] > 0) char[PROP_TIME]-=char.isDashing() ? 1.25 : 1; };
 	_.check = function(char) { return char[PROP_TIME] <= 0; };
 	_.reset = function(char) { char[PROP_TIME] = _.time; };
 
