@@ -2033,6 +2033,9 @@ class OwO {
     static __init() {
         UwU.addSceneChangeListener(function(lastClass, newScene) {
             OwO.__spriteMapValid=false;
+            if(UwU.mapIdChanged()) {
+                OwO.__applyUntilMapChanged();
+            }
             if(UwU.sceneIsOverworld()) { // any transition into overworld, from any other scene.
                 if(UwU.mapIdChanged()) { // changed to a new map level
                     OwO.__deallocateRenderLayer();
@@ -2092,6 +2095,21 @@ class OwO {
         colFilter.saturation = EngineUtils.interpolate(newHealth/100,0,1,EngineUtils.INTERPOLATE_OUT_QUAD)
     }
 
+    static __getPlayerHP() {
+        return $gameParty.leader().hp;
+    }
+
+    static __applyUntilTick() {
+        for(const obj of OwO.__applyFunctions){
+            obj.resolved = obj.func(obj.data);
+        }
+        OwO.__applyFunctions = OwO.__applyFunctions.filter(x => !x.resolved);
+    }
+
+    static __applyUntilMapChanged() {
+        OwO.__applyFunctions = OwO.__applyFunctions.filter(x => !x.mapOnly);
+    }
+
     // contract with overworld... if an event exists reading switch, it will reset it to false once run.
     static __setAutorunSwitch() {
         $gameSwitches.setValue(4,true);
@@ -2120,7 +2138,13 @@ class OwO {
     // continually calls func with data as the arg until it returns true, then removes it from it's list
     // mapOnly will cause it to be removed on map change if it wasn't resolved in time.
     static applyUntil(func, data, mapOnly = true) {
-
+        var obj = {
+            func:func,
+            data:data,
+            mapOnly:mapOnly,
+            resolved: false,
+        }
+        OwO.__applyFunctions.push(obj);
     }
 
     static __getWorldSprites() {
@@ -2264,7 +2288,7 @@ class OwO {
 
     static __applyAllFilters() {
         OwO.__applyMapFilters();
-        OwO.__applyPortraitFilters();
+        OwO.__applyHudFilters();
     }
 
     static __disableAllFilters() {
@@ -2284,12 +2308,14 @@ class OwO {
         OwO.getMapContainer().filters = [];
     }
 
-    /**
-     * @deprecated 
-    * doesn't work because HUD loads in late.
-    */
-    static __applyPortraitFilters() {
-        OwO.getPortrait().filters = []
+    static __applyHudFilters() {
+        OwO.applyUntil(function(data) {
+            var hungerBar = OwO.getHungerBar();
+            if(!hungerBar)
+                return false;
+            hungerBar.filters = [OwO.__hudRedGlowFilter];
+            return true;
+        },undefined,true);
     }
 
     static __disablePortraitFilters() {
@@ -2308,9 +2334,20 @@ class OwO {
         return SceneManager._scene._hud;
     }
 
-    // WARN: THIS IS DETERMINED BY HUDMAKER.
+    // HARD CODED
     static getPortrait() {
-        return OwO.getHud().children[6];
+        var hud = OwO.getHud();
+        if(!hud)
+            return undefined;
+        return hud.children[6];
+    }
+
+    // HARD CODED
+    static getHungerBar() {
+        var hud = OwO.getHud();
+        if(!hud)
+            return undefined;
+        return hud.children[3];
     }
 
     static __addUpdateFunction(_func, _filter, _event) {
@@ -2366,7 +2403,7 @@ class OwO {
     }
 
     static __rebindSpecialRenderLayer() {
-        OwO.getSpriteset().children[0].addChild(OwO.__specialRenderLayer);
+        SceneManager._scene.addChild(OwO.__specialRenderLayer);
     }
 
     static __applyParticleInit() {
@@ -2413,6 +2450,16 @@ class OwO {
             if(OwO.__specialRenderLayer.children._destroyed)
                 OwO.__specialRenderLayer.removeChildAt(i);
         }
+    }
+
+    static __hudTick() {
+        if(!UwU.sceneIsOverworld())
+            return;
+        var fac = OwO.__getPlayerHP();
+        fac = EngineUtils.interpolate(fac/20,1,0,EngineUtils.INTERPOLATE_IN_QUAD); // note: inverted so it's actually out
+        var fac2 = 2*fac*Math.abs(Math.sin(OwO.getGameTimer()/32))
+        OwO.__hudRedGlowFilter.innerStrength = fac2/2
+        OwO.__hudRedGlowFilter.outerStrength = fac2
     }
 
     static addTooltip(tip, time = 400) {
@@ -2595,6 +2642,8 @@ class OwO {
         OwO.__specialRenderLayerTick();
         if(!UwU.sceneIsMenu())
             OwO.__RPGgameTimer++;
+        OwO.__applyUntilTick();
+        OwO.__hudTick();
     }
 
     static __defaultUpdateFunc(filter, event) {
@@ -2618,15 +2667,19 @@ OwO.__renderLayerController = undefined;
 OwO.__spriteMapValid = false;
 OwO.__spriteMap = {};
 OwO.__updateFunctions = [];
+OwO.__applyFunctions = [];
 OwO.__RPGgameTimer = 0;
 OwO.__colourFilter = new PIXI.filters.AdjustmentFilter();
 OwO.__zoomBlurFilter = new PIXI.filters.ZoomBlurFilter();
+OwO.__hudRedGlowFilter = new PIXI.filters.GlowFilter();
 OwO.__zoomBlurFilter.center = new PIXI.Point(816/2,624/2);
 OwO.__zoomBlurFilter.strength = 0;
 OwO.__zoomBlurFilter.innerRadius = 300;
 OwO.__gameFilters = [OwO.__colourFilter,OwO.__zoomBlurFilter];
 OwO.__timeOfDayIndex = 11;
 OwO.__init();
+
+OwO.__hudRedGlowFilter.color = 0xff0000;
 
 class GUIScreen { // static class for stuff like the custom cursor. always running.
 

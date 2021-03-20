@@ -24,7 +24,7 @@ class UmbrellaMinigameController extends MinigameController {
         this.player = new Man($engine.getWindowSizeX()/2,$engine.getWindowSizeY())
         this.umbrella = new Umbrella($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/1.4);
 
-        var bg = new ParallaxingBackground("background_sheet_2");
+        new ParallaxingBackground("background_sheet_2");
 
         this.timer = new MinigameTimer(60*60);
         this.timer.addOnTimerStopped(this,function(parent,expired) {
