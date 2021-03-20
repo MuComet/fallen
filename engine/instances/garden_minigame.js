@@ -15,7 +15,7 @@ class GardenMinigameController extends MinigameController {
         this.startTimer(60*60);
         this.x = 90*2-100;
         this.y = $engine.getWindowSizeY()/2 -150;
-        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-25,-37,25,37));
+        this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
 
 
         var text = new PIXI.Text("Basically\n WORMS\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
@@ -164,7 +164,7 @@ class GardenWorm extends EngineInstance {
         this.y = y;
         this.index = index;
         this.setSprite(new PIXI.Sprite($engine.getTexture("garden_worm_alive")));
-        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-25,-37,25,37));
+        this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
         this.clicked = false;
         this.wormTimer = 0;
         this.wormTimerEat = 60;
@@ -201,7 +201,7 @@ class GardenPlant extends EngineInstance {
         this.index = index;
         this.score = 1;
         this.setSprite(new PIXI.Sprite($engine.getTexture("garden_plant")));
-        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-25,-37,25,37));
+        this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
         this.clicked = false;
     }
     step(){

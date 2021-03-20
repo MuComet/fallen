@@ -136,9 +136,9 @@ class Test extends EnginePhysicsInstance {
         this.x = x;
         this.y = y;
         const phys = Matter.Bodies.rectangle(x,y,128,64, { restitution: 0.8 });
-        this.setHitbox(new Hitbox(this, new RectangeHitbox(this,-64,-32,64,32)))
+        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-64,-32,64,32)))
         this.attachPhysicsObject(this.physicsObjectFromHitbox({ restitution: 0.8 }));
-        this.setHitbox(new Hitbox(this, new RectangeHitbox(this,-734/2,-245/2,734/2,245/2)))
+        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-734/2,-245/2,734/2,245/2)))
         this.setSprite(new PIXI.Sprite($engine.getTexture("button_new_game_1")))
         this.xScale = 0.1743869;
         this.yScale = 0.5224489/2;
@@ -163,7 +163,7 @@ class Man extends InstanceMover {
     onEngineCreate() {
         super.onEngineCreate();
         this.dx=0;
-        this.hitbox = new Hitbox(this, new RectangeHitbox(this,-32,-128,32,0))
+        this.hitbox = new Hitbox(this, new RectangleHitbox(this,-32,-128,32,0))
         this.setSprite(new PIXI.Sprite($engine.getTexture("man")))
         this.maxVelocity=14;
         this.turnLagStop=5;
@@ -382,7 +382,7 @@ class Raindrop extends EngineInstance {
         this.angle = V2D.calcDir(this.dx,this.dy)
         var dist = V2D.calcMag(this.dx,this.dy);
         this.xScale = EngineUtils.clamp(dist/6,0,2)
-        this.hitbox = new Hitbox(this, new RectangeHitbox(this,0,-1,16,1))
+        this.hitbox = new Hitbox(this, new RectangleHitbox(this,0,-1,16,1))
         this.setSprite(new PIXI.Sprite($engine.getTexture("raindrop")))
     }
 

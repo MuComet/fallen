@@ -72,7 +72,7 @@ class HolePlayer extends InstanceMover {
         this.dy = 0;
         this.grav = 0.25;
         this.setSprite(new PIXI.Sprite($engine.getTexture("falling_rock_rocky_1")))
-        this.setHitbox(new Hitbox(this,new RectangeHitbox(this, -32,-64,32,0)));
+        this.setHitbox(new Hitbox(this,new RectangleHitbox(this, -32,-64,32,0)));
         this.allowSnapUp=false;
         this.turnLag = 2;
         this.turnLagStop=12;
@@ -146,9 +146,9 @@ class HolePlatform extends EngineInstance {
         this.x = x;
         this.y = y;
         if(type) {
-            this.setHitbox(new Hitbox(this,new RectangeHitbox(this,-1024,-32,-holeWidth,32)))
+            this.setHitbox(new Hitbox(this,new RectangleHitbox(this,-1024,-32,-holeWidth,32)))
         } else {
-            this.setHitbox(new Hitbox(this,new RectangeHitbox(this,holeWidth,-32,1024,32)))
+            this.setHitbox(new Hitbox(this,new RectangleHitbox(this,holeWidth,-32,1024,32)))
         }
     }
 

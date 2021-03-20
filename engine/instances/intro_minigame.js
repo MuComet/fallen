@@ -281,7 +281,7 @@ class IntroMinigameJunk extends EngineInstance {
         this.grabbedTimer = 0;
 
         this.setSprite(new PIXI.Sprite($engine.getTexture("tutorial_junk")));
-        this.setHitbox(new Hitbox(this, new RectangeHitbox(this,-65,-65,65,65)))
+        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-65,-65,65,65)))
         this.wobble();
     }
 

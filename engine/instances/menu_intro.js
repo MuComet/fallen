@@ -329,7 +329,7 @@ class RisingSprite extends EngineInstance {
 
 class MainMenuButton extends EngineInstance {
     onEngineCreate() {
-        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-368,-125,368,125));
+        this.hitbox = new Hitbox(this,new RectangleHitbox(this,-368,-125,368,125));
         this.alpha = 0;
         this.enabled = false;
         this.script = undefined;

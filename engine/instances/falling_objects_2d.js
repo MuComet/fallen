@@ -81,7 +81,7 @@ class FallingObjectsPlayer extends InstanceMover {
         this.addControlButtons("KeyW","KeyA","KeyS","KeyD")
         this.addControlButtons("ArrowUp","ArrowLeft","ArrowDown","ArrowRight")
         this.setSprite(new PIXI.Sprite($engine.getTexture("falling_rock_rocky_1")))
-        this.setHitbox(new Hitbox(this,new RectangeHitbox(this,-32,-64,32,0)));
+        this.setHitbox(new Hitbox(this,new RectangleHitbox(this,-32,-64,32,0)));
         this.x = x;
         this.y = y;
         this.drag=0.1;
@@ -137,7 +137,7 @@ class FallingObject extends EngineInstance {
         this.yStart = y;
         this.dr = EngineUtils.randomRange(-0.01,0.01);
         this.setSprite(new PIXI.Sprite($engine.getTexture(spr)));
-        this.setHitbox(new Hitbox(this,new RectangeHitbox(this,-32,-32,32,32)));
+        this.setHitbox(new Hitbox(this,new RectangleHitbox(this,-32,-32,32,32)));
         this.depth = good ? -400 : -750; // use for height and render.
         this.maxDepth = -364
         this.dz = good ? 1 :4;

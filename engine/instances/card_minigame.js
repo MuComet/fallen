@@ -203,7 +203,7 @@ class CardBoard extends EngineInstance {
         this.group = index;
         this.score = 0;
         this.setSprite(new PIXI.Sprite($engine.getTexture(index)));
-        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-35,-55,35,55));
+        this.hitbox = new Hitbox(this,new RectangleHitbox(this,-35,-55,35,55));
         this.clicked = false;
         this.totalclicks = 0;
         this.flipTimer = -1;

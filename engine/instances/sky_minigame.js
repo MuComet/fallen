@@ -119,7 +119,7 @@ class SkyBuildPlayer extends EngineInstance {
         this.activated = true;
         this.nextnext = IM.find(SkyBuildPlayer, SkyMinigameController.nextBlock);
         this.setSprite(new PIXI.Sprite($engine.getTexture("falling_tower_1")))
-        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-45,2,45,100));
+        this.hitbox = new Hitbox(this,new RectangleHitbox(this,-45,2,45,100));
         this.dropping = false;
         this.randomOffset = EngineUtils.irandom(120);
         this.swingMove();
@@ -265,7 +265,7 @@ class FallingTowerPlatform extends SkyBuildPlayer {
         this.y = y;
         
         this.setSprite(new PIXI.Sprite($engine.getTexture("sky_platform")));
-        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-150,10,150,35));
+        this.hitbox = new Hitbox(this,new RectangleHitbox(this,-150,10,150,35));
     }
 
     step() { 

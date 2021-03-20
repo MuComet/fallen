@@ -423,7 +423,7 @@ class PolygonHitbox extends BaseHitbox{
     }
 }
 
-class RectangeHitbox extends BaseHitbox {
+class RectangleHitbox extends BaseHitbox {
     constructor(parent, x1,y1,x2,y2) {
         super(parent);
         this.type = Hitbox.TYPE_RECTANGLE

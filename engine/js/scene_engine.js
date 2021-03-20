@@ -4,6 +4,7 @@ var $engine;
 /** @type {Object} */
 var $__engineData = {}
 $__engineData.__textureCache = {};
+$__engineData.__textureAnimationCache = {};
 $__engineData.__soundCache = {};
 $__engineData.__spritesheets = {};
 $__engineData.__haltAndReturn = false;
@@ -805,15 +806,15 @@ class Scene_Engine extends Scene_Base {
 
             var lastFrame = this.__timescaleFraction-1 < 0;
 
+            if(lastFrame) {
+                IN.__update();
+            }
+
             IM.__timescaleImplicit();
 
             this.__clearGraphics();
             this.__doPhysicsTick();
             IM.__doSimTick(lastFrame);
-
-            if(lastFrame) {
-                IN.__update();
-            }
 
             if(this.__pauseMode !==1)
                 this.__gameTimer++;
@@ -881,7 +882,7 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
-     * Finds and returns the texture with the specified name from the texture cache. To access individual frames of a spritesheet directly
+     * Finds and returns the texture with the specified name from the texture cache. If you want an image from a spritesheet,
      * use the name in textures manifest followed by _n where n is the 0 based index of the frame you want.
      * @param {String} name The name of the texture as defined in textures_manifest.txt
      */
@@ -894,6 +895,21 @@ class Scene_Engine extends Scene_Base {
             console.error(str)
         }
         return tex;
+    }
+
+    /**
+     * Finds and returns an array of textures with the specified name from the texture animation cache.
+     * @param {String} name The name of the animation as defined in textures_manifest.txt
+     */
+    getAnimation(name) {
+        var anim = $__engineData.__textureAnimationCache[name];
+        if(!anim) {
+            var str = "Unable to find animation for name: "+String(name)+". Did you remember to include the animation in the manifest?"
+            if($__engineData.__debugRequireTextures)
+                throw new Error(str);
+            console.error(str)
+        }
+        return anim;
     }
 
     /**
@@ -1503,6 +1519,7 @@ __loadTexture = function(obj, texObj, update) {
         const tex = PIXI.Texture.from(texObj.texPath);
         tex.on('update',() => {
             __generateTexturesFromSheet(tex, texObj, spritesheet);
+            __generateAnimationsFromSheet(texObj, spritesheet);
             update();
         });
 
@@ -1515,8 +1532,7 @@ __loadTexture = function(obj, texObj, update) {
             frames.push(frameTexture);
         }
 
-        const anim = new PIXI.AnimatedSprite(frames); // loaded immediately.
-        $__engineData.__textureCache[texObj.texName]=anim;
+        $__engineData.__textureAnimationCache[texObj.texName]=frames;
 
     } else {
         obj.textures++;
@@ -1554,6 +1570,17 @@ __generateTexturesFromSheet = function(texture, texObj, spritesheet) { // replac
     $__engineData.__spritesheets[texObj.texName] = idx; // store the amount fo frames on a spritesheet
 }
 
+__generateAnimationsFromSheet = function(texObj, spritesheet) {
+    var baseName = texObj.texName + "_";
+    for(const anim of spritesheet.anims) {
+        var frames = [];
+        var name = anim.animName;
+        for(const idx of anim.animFrames)
+            frames.push($engine.getTexture(baseName+String(idx)));
+        $__engineData.__textureAnimationCache[name] = frames;
+    }
+}
+
 __parseTextureObject = function(texObj) {
     var argsParsed = [];
     var args = texObj.texArgs;
@@ -1574,7 +1601,7 @@ __parseTextureObject = function(texObj) {
 __parseAnimation = function(argsParsed, args, i) {
     var texNames = [];
     i++;
-    for(;i<args.length;i++) {
+    for(;i<args.length-1;i++) {
         texNames.push(args[i]);
     }
     argsParsed.push({
@@ -1608,19 +1635,16 @@ __parseSpritesheet = function(argsParsed, args, i) {
                 limit.push(parseInt(args[++i]));
             }
         } else if(arg==="animate") {
-            var numAnimations = parseInt(args[++i]);
-            for(var k =0;k<numAnimations;k++) {
-                const animationName = args[++i];
-                const animationLength = parseInt(args[++i]);
-                const animationFrames = [];
-                for(var j =0;j<animationLength;j++) {
-                    animationFrames.push(parseInt(args[++i]));
-                }
-                animations.push({
-                    animName: animationName,
-                    animFrames: animationFrames,
-                });
+            const animationName = args[++i];
+            const animationLength = parseInt(args[++i]);
+            const animationFrames = [];
+            for(var j =0;j<animationLength;j++) {
+                animationFrames.push(parseInt(args[++i]));
             }
+            animations.push({
+                animName: animationName,
+                animFrames: animationFrames,
+            });
         }
     }
     argsParsed.push( {

@@ -309,16 +309,13 @@ class EngineInstance {
      * Draw contract: Do not edit any variables in this method, only read them.
      * 
      * Draw is the method that you can use to render more advanced objects to the screen. It is called once per frame (60 times per second) reguardless of
-     * whether or not the game is currently paused. Note that anything created using $engine.createRenderable() is
+     * whether or not the game is currently paused and reguardless of the current timescale. Note that anything created using $engine.createRenderable() is
      * automaitcally rendered to the screen without any intervention. This method exists if you need to modify your renderable such as telling
      * a Graphics to draw a line.
      * 
      * If you wish to draw to the GUI layer, you may call $engine.requestRenderToGUI() which will cause the specified
      * renderable to be rendered on the GUI layer on this specific frame. The GUI layer renders 1:1 with the canvas. i.e.
      * 0,0 is the top left and $engine.getWindowSizeX(), $engine.getWindowSizeY() is the bottom right.
-     * 
-     * Note that because sorting happens before this event is run, attempting to change the depth of this instance during
-     * this event will not change the depth until next frame
      * 
      * This event is the last event to run.
      * 

@@ -45,7 +45,7 @@ class RockDodgingPlayer extends EngineInstance {
         this.y = y;
         this.score = 10;
         this.setSprite(new PIXI.Sprite($engine.getTexture("falling_rock_rocky_1")))
-        this.hitbox = new Hitbox(this,new RectangeHitbox(this, -32,-64,32,0));
+        this.hitbox = new Hitbox(this,new RectangleHitbox(this, -32,-64,32,0));
     }
 
     step() {
@@ -76,7 +76,7 @@ class FallingRock extends EngineInstance {
         this.y = y;
         this.speed = speed;
         this.setSprite(new PIXI.Sprite($engine.getTexture("falling_rock_1")))
-        this.hitbox = new Hitbox(this,new RectangeHitbox(this,-32,-32,32,32));
+        this.hitbox = new Hitbox(this,new RectangleHitbox(this,-32,-32,32,32));
     }
 
     step() {

@@ -1,31 +1,43 @@
 class TestInstance2 extends EngineInstance {
-    onEngineCreate() {
-        this.depth = 1
-        $engine.createRenderable(this,new PIXI.Sprite($engine.getTexture("default")))
-        this.hitbox = new Hitbox(this, new RectangeHitbox(this,-32,-32,32,32))
-        this.xScale=5;
-        this.yScale=5;
-    }
+	onEngineCreate() {
+		this.setSprite(new PIXI.Sprite($engine.getTexture("man")))
+		this.velX = 0;
+		this.accel = 1;
+		this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-25,-25,25,25)));
+		this.grabbed = false;
+}
 
-    onCreate(x,y) {
-        this.x=x;
-        this.y=y;
-        this.onEngineCreate();
-    }
+onCreate() {
+		this.onEngineCreate();
+// do stuff
+	
+}
 
-    step() {
-        this.angle+=0.01
-        /*
-        if(Input.isPressed('left')) {
-            this.xScale = 1;
-        }
-        if(Input.isPressed('right')) {
-            this.xScale=20;
-        }*/
-    }
+step() {
 
-    draw(gui,camera) {
-        EngineDebugUtils.drawHitbox(camera,this);
-        EngineDebugUtils.drawBoundingBox(camera,this);
-    }
+	if(IN.keyCheck("KeyA"))
+		this.velX-=this.accel;
+		if(IN.keyCheck("KeyD"))
+		this.velX+=this.accel;
+	this.x+=this.velX;
+	if(this.x<0 || this.x > $engine.getWindowSizeX())
+		this.velX = 0; 
+	this.x = EngineUtils.clamp(this.x,0,$engine.getWindowSizeX())
+
+	if(!this.grabbed && IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(),IN.getMouseY(),this)) {
+		this.grabbed = true;
+}
+
+if(IN.mouseCheckReleased(0) && this.grabbed)
+	this.grabbed = false;
+
+if(this.grabbed) {
+		this.x = IN.getMouseX();
+this.y = IN.getMouseY();
+}
+}
+
+draw(gui,camera) {
+	EngineDebugUtils.drawHitbox(camera, this)
+}
 }

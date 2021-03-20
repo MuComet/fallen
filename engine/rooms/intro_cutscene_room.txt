@@ -34,10 +34,6 @@ block extern music
 10 intro4
 endblock
 
-block extern sounds
-
-endblock
-
 block extern text
 <none>
 __portrait[eson_profiles_0]Ah, I'm so close! I can already taste the bistro!
