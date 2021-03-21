@@ -24,7 +24,9 @@ class UmbrellaMinigameController extends MinigameController {
         this.player = new Man($engine.getWindowSizeX()/2,$engine.getWindowSizeY())
         this.umbrella = new Umbrella($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/1.4);
 
-        new ParallaxingBackground("background_sheet_2");
+        var bg = new ParallaxingBackground("background_sheet_2");
+
+        bg.applyToAll(x=> x.tint = 0x95aac0);
 
         this.timer = new MinigameTimer(60*60);
         this.timer.addOnTimerStopped(this,function(parent,expired) {
@@ -52,8 +54,8 @@ class UmbrellaMinigameController extends MinigameController {
     }
 
     setupBGS() {
-        this.rainSound1 = $engine.audioPlaySound("umbrella_rain_1",1,true);
-        this.rainSound2 = $engine.audioPlaySound("umbrella_rain_2",1,true);
+        this.rainSound1 = $engine.audioPlaySound("umbrella_rain_1",1.25,true);
+        this.rainSound2 = $engine.audioPlaySound("umbrella_rain_2",1.25,true);
         this.rainSound1.volume = 0;
         $engine.audioPauseSound(this.rainSound1);
         $engine.audioPauseSound(this.rainSound2);
@@ -73,15 +75,15 @@ class UmbrellaMinigameController extends MinigameController {
         if(this.minigameOver())
             return;
         this.bgsTick();
-        if(IN.mouseCheckPressed(0)) {
+        /*if(IN.mouseCheckPressed(0)) {
             new Test(IN.getMouseX(), IN.getMouseY());
-        }
+        }*/
         $engine.getCamera().setX(-($engine.getWindowSizeX()/2-this.player.x)/4)
     }
 
     bgsTick() {
         var dx = this.umbrella.x - this.player.x;
-        if(Math.abs(dx)>64) {
+        if(Math.abs(dx)>64 * (this.hasCheated() ? 1.5 : 1)) {
             this.bgsTimer++;
         } else {
             this.bgsTimer--;
@@ -163,12 +165,24 @@ class Man extends InstanceMover {
     onEngineCreate() {
         super.onEngineCreate();
         this.dx=0;
-        this.hitbox = new Hitbox(this, new RectangleHitbox(this,-32,-128,32,0))
-        this.setSprite(new PIXI.Sprite($engine.getTexture("man")))
+        this.hitbox = new Hitbox(this, new RectangleHitbox(this,-52,-400,52,0))
         this.maxVelocity=14;
         this.turnLagStop=5;
         this.turnLag=1;
         this.hasBeenHurt=false;
+        this.animationWalk = $engine.getAnimation("eson_walk_cat");
+        this.animationStand = [$engine.getTexture("eson_walk_cat_0")];
+        this.animation = $engine.createRenderable(this,new PIXI.extras.AnimatedSprite(this.animationStand));
+        this.animation.animationSpeed = 0.1;
+
+        this.xScale = 0.3;
+        this.yScale = 0.3;
+
+        this.baseXScale = this.xScale;
+
+        this.depth = -2
+
+        this.setSprite(this.animation);
     }
 
     onCreate(x,y) {
@@ -178,6 +192,7 @@ class Man extends InstanceMover {
     }
 
     step() {
+        this.animation.update(1)
         this.hasBeenHurt=false;
         super.step();
         var accel = [0,0]
@@ -189,6 +204,17 @@ class Man extends InstanceMover {
         }
 
         this.move(accel,this.vel);
+
+        if(Math.abs(this.vel[0])<0.1) {
+            this.setAnimation(this.animationStand);
+        } else {
+            this.setAnimation(this.animationWalk)
+            this.animation.animationSpeed = this.vel[0]/(this.maxVelocity*7.5);
+        }
+
+        var sign = Math.sign(this.vel[0]);
+        if(sign!==0)
+            this.xScale = sign * this.baseXScale;
 
         /*$engine.getCamera().setScaleX($engine.getCamera().getScaleX()-IN.getWheel()/1000);
         
@@ -212,6 +238,13 @@ class Man extends InstanceMover {
         //console.log(IN.getMouseX(),IN.getMouseY());
 
         //console.log(IN.getMouseX(),IN.getMouseY(), $engine.getCamera().getX(), $engine.getCamera().getY());
+    }
+
+    setAnimation(anim) {
+        if(this.animation.textures === anim)
+            return;
+        this.animation.textures = anim;
+        this.animation._currentTime = 0;
     }
 
     canControl() {
@@ -238,8 +271,6 @@ class Man extends InstanceMover {
 
 class Umbrella extends EngineInstance {
     onEngineCreate() {
-        this.xScale=3;
-        this.yScale=3;
         this.timer = 90;
         this.endTime = 75;
         this.rx = this.x;
@@ -248,11 +279,17 @@ class Umbrella extends EngineInstance {
         this.sy = this.y;
         this.dx = 0;
         this.dy = 0;
-        this.setHitbox(new Hitbox(this,new PolygonHitbox(this,new Vertex(-32,-6),new Vertex(32,-6),new Vertex(32,-13),
-            new Vertex(16,-27),new Vertex(0,-29),new Vertex(-16,-27),new Vertex(-32,-13))));
+        this.setHitbox(new Hitbox(this,new PolygonHitbox(this, new Vertex(-304,-32),new Vertex(-288,-96),new Vertex(-272,-113),
+                                new Vertex(-251,-129),new Vertex(-206,-142),new Vertex(-152,-146),
+                                new Vertex(-127,-150),new Vertex(-100,-157),new Vertex(-59,-176),
+                                new Vertex(-37,-191),new Vertex(-12,-214),new Vertex(-2,-223),
+                                new Vertex(2,-223),new Vertex(12,-214), new Vertex(37,-191),
+                                new Vertex(59,-176),new Vertex(100,-157), new Vertex(127,-150),
+                                new Vertex(152,-146),new Vertex(206,-142), new Vertex(251,-129),
+                                new Vertex(272,-113),new Vertex(288,-96),new Vertex(304,-32))))
         this.setSprite(new PIXI.Sprite($engine.getTexture("umbrella")))
         this.depth = -1;
-        this.wide = 4.5;
+        this.wide = 1.5;
         this.wideTimer = 0;
         this.endWideTime = 30;
 
@@ -263,6 +300,11 @@ class Umbrella extends EngineInstance {
         this.fakeX = 0;
         this.fakeY = 0;
         this.timesSinceLastFake=0;
+
+        this.baseXScale = 0.3;
+        this.baseYScale = 0.3;
+        this.xScale = 0.3;
+        this.yScale = 0.3;
     }
 
     onCreate(x,y) {
@@ -277,7 +319,7 @@ class Umbrella extends EngineInstance {
         } while(Math.abs(this.rx-this.x)<$engine.getWindowSizeX()/4) // must be at least 1/4 of the screen
         // rx can be no greater than 66% of the screen
         this.rx = EngineUtils.clamp(this.rx,this.x-$engine.getWindowSizeX()/2,this.x+$engine.getWindowSizeX()/1.5)
-        this.ry = EngineUtils.randomRange(200+5*(this.endTime-15),264+5*(this.endTime-15));
+        this.ry = EngineUtils.randomRange(100+5*(this.endTime-15),164+5*(this.endTime-15));
         
         this.sx = this.x;
         this.sy = this.y;
@@ -360,8 +402,8 @@ class Umbrella extends EngineInstance {
         }
         var controller = UmbrellaMinigameController.getInstance();
         if(controller.hasCheated() && this.wideTimer<=this.endWideTime) {
-            this.xScale = EngineUtils.interpolate(this.wideTimer/this.endWideTime,3,this.wide,EngineUtils.INTERPOLATE_SMOOTH)
-            this.yScale = EngineUtils.interpolate(this.wideTimer/this.endWideTime,3,this.wide,EngineUtils.INTERPOLATE_SMOOTH)
+            this.xScale = EngineUtils.interpolate(this.wideTimer/this.endWideTime,this.baseXScale,this.baseXScale*this.wide,EngineUtils.INTERPOLATE_SMOOTH)
+            this.yScale = EngineUtils.interpolate(this.wideTimer/this.endWideTime,this.baseXScale,this.baseYScale*this.wide,EngineUtils.INTERPOLATE_SMOOTH)
             this.wideTimer++;
         }
     }
@@ -428,7 +470,6 @@ class Raindrop extends EngineInstance {
             IM.find(Man,0).hasBeenHurt = true;
             this.destroy();
         }
-        if(IM.instanceCollision(this,this.x,this.y,Raindrop)){};
 
     }
 

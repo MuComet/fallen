@@ -995,6 +995,15 @@ class ParallaxingBackground extends EngineInstance {
         this.parallaxFactorY=py;
     }
 
+    /**
+     * Applies the function to all elements of this ParallaxingBackground
+     * @param {Function} func The function to apply
+     */
+    applyToAll(func) {
+        for(const spr of this.sprites)
+            func(spr);
+    }
+
     setInvertParallax(invert) {
         this.invertParallax=invert;
     }

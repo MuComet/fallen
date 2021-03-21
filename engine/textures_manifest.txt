@@ -50,7 +50,9 @@ arrow engine/textures/generic/arrow.png 0 0.5
 
 man engine/textures/man.png 0.5 1
 raindrop engine/textures/rain_drop.png 0 0.5
-umbrella engine/textures/umbrella.png 0.5 0.5
+umbrella engine/textures/umbrella/umbrella.png 0.5 0.5
+spritesheet dimensions 2400 607 4 1 animate eson_walk_cat 4 1 2 3 2 eson_walk_cat engine/textures/umbrella/eson_walk_cat.png 0.5 1
+
 drawing_minigame_1 engine/textures/drawing1.png 0.5 0.5
 drawing_minigame_2 engine/textures/drawing2.png 0.5 0.5
 drawing_minigame_3 engine/textures/drawing3.png 0.5 0.5
