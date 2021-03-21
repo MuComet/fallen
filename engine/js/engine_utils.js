@@ -225,6 +225,31 @@ class EngineUtils {
         return array[EngineUtils.irandom(array.length-1)];
     }
 
+
+    // this code is a javascript implementation of Mulberry32, ported by bryc https://stackoverflow.com/users/815680/bryc
+    // https://stackoverflow.com/a/47593316
+    /**
+     * Creates and returns a new random number generator from the given seed.
+     * 
+     * The random number generator can be called as many times as needed using function call syntax
+     * 
+     * i.e.
+     * 
+     * var RNG = EngineUtils.randomNumberGenerator(0);
+     * 
+     * var number = RNG();
+     * 
+     * @param {Number} seed The initial seed to use.
+     */
+    static randomNumberGenerator(seed) {
+        return function() {
+            var t = seed += 0x6D2B79F5;
+            t = Math.imul(t ^ t >>> 15, t | 1);
+            t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        }
+    }
+
     /**
      * Interpolates between min and max given a certain interpolation function and a normalized input value.
      * 

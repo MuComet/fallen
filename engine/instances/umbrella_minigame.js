@@ -23,12 +23,13 @@ class UmbrellaMinigameController extends MinigameController {
                         fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
         this.setInstructionRenderable(text)
 
-        this.player = new Man($engine.getWindowSizeX()/2,$engine.getWindowSizeY())
-        this.umbrella = new Umbrella($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/1.4);
+        this.player = new UmbrellaPlayer($engine.getWindowSizeX()/2,$engine.getWindowSizeY())
+        this.umbrella = new Umbrella($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/1.6);
 
         var bg = new ParallaxingBackground("background_sheet_2");
 
         bg.applyToAll(x=> x.tint = 0x95aac0);
+        bg.removeIndex(1) // delete the clouds
 
         this.timer = new MinigameTimer(60*60);
         this.timer.addOnTimerStopped(this,function(parent,expired) {
@@ -163,11 +164,11 @@ class Test extends EnginePhysicsInstance {
     }
 }
 
-class Man extends InstanceMover {
+class UmbrellaPlayer extends InstanceMover {
     onEngineCreate() {
         super.onEngineCreate();
         this.dx=0;
-        this.hitbox = new Hitbox(this, new RectangleHitbox(this,-52,-400,52,0))
+        this.hitbox = new Hitbox(this, new RectangleHitbox(this,-42,-400,42,0))
         this.maxVelocity=14;
         this.turnLagStop=5;
         this.turnLag=1;
@@ -177,8 +178,8 @@ class Man extends InstanceMover {
         this.animation = $engine.createRenderable(this,new PIXI.extras.AnimatedSprite(this.animationStand));
         this.animation.animationSpeed = 0.1;
 
-        this.xScale = 0.3;
-        this.yScale = 0.3;
+        this.xScale = 0.4;
+        this.yScale = 0.4;
 
         this.baseXScale = this.xScale;
 
@@ -303,10 +304,10 @@ class Umbrella extends EngineInstance {
         this.fakeY = 0;
         this.timesSinceLastFake=0;
 
-        this.baseXScale = 0.3;
-        this.baseYScale = 0.3;
         this.xScale = 0.3;
         this.yScale = 0.3;
+        this.baseXScale = this.xScale;
+        this.baseYScale = this.yScale;
     }
 
     onCreate(x,y) {
@@ -321,7 +322,7 @@ class Umbrella extends EngineInstance {
         } while(Math.abs(this.rx-this.x)<$engine.getWindowSizeX()/4) // must be at least 1/4 of the screen
         // rx can be no greater than 66% of the screen
         this.rx = EngineUtils.clamp(this.rx,this.x-$engine.getWindowSizeX()/2,this.x+$engine.getWindowSizeX()/1.5)
-        this.ry = EngineUtils.randomRange(100+5*(this.endTime-15),164+5*(this.endTime-15));
+        this.ry = EngineUtils.randomRange(100+4.5*(this.endTime-15),164+4.5*(this.endTime-15));
         
         this.sx = this.x;
         this.sy = this.y;
@@ -467,9 +468,9 @@ class Raindrop extends EngineInstance {
         if(IM.instanceCollision(this,this.x,this.y,Test)) {
             this.destroy();
         }
-        if(IM.instanceCollision(this,this.x,this.y,Man)) {
+        if(IM.instanceCollision(this,this.x,this.y,UmbrellaPlayer)) {
             UmbrellaMinigameController.getInstance().decrementScore();
-            IM.find(Man,0).hasBeenHurt = true;
+            IM.find(UmbrellaPlayer,0).hasBeenHurt = true;
             this.destroy();
         }
 

@@ -716,12 +716,12 @@ class MinigameController extends EngineInstance {
 
     setControls(keyboard, mouse) {
         if(keyboard && mouse) {
-            this.keyIcon.x = $engine.getWindowSizeX()/2-64;
-            this.mouseIcon.x = $engine.getWindowSizeX()/2+64;
+            this.keyIcon.x = $engine.getWindowSizeX()/2-64-this.keyIcon.width/2;
+            this.mouseIcon.x = $engine.getWindowSizeX()/2+64-this.mouseIcon.width/2;
         } else if(keyboard) {
-            this.keyIcon.x = $engine.getWindowSizeX()/2;
+            this.keyIcon.x = $engine.getWindowSizeX()/2-this.keyIcon.width/2;
         } else if(mouse) {
-            this.mouseIcon.x = $engine.getWindowSizeX()/2;
+            this.mouseIcon.x = $engine.getWindowSizeX()/2-this.mouseIcon.width/2;
         }
 
 
@@ -858,25 +858,33 @@ class MinigameController extends EngineInstance {
 
     _handleInstruction() {
         this.instructionTimer++;
+        // showing instruction tick
         if(this.instructionTimer<this.instructionTimerLength) {
             if(((IN.anyStandardInputPressed() && this.instructionTimer>18) || IN.keyCheckPressed("Space") || IN.keyCheckPressed("Enter")) 
                             && this.instructionTimer < this.instructionTimerLength-this.blurFadeTime) {
                 this.instructionTimer = this.instructionTimerLength-this.blurFadeTime; // skip;
             }
+            // fade out the instruction graphic
             if(this.instructionTimer>=this.instructionTimerLength-this.blurFadeTime) {
                 var stren = EngineUtils.interpolate((this.instructionTimer-this.instructionTimerLength+this.blurFadeTime)/this.blurFadeTime,
                                                     this.blurFilterStrength,0,EngineUtils.INTERPOLATE_SMOOTH)
                 this.blurFilter.blur = stren
                 this.instructionContainter.alpha = stren/this.blurFilterStrength
                 this.blurFilterInstruction.blur = (1-(stren/this.blurFilterStrength))*40;
-                this._startMusic();
-                var musicFac = EngineUtils.interpolate((this.instructionTimer-this.instructionTimerLength+this.blurFadeTime)/this.blurFadeTime,
+                
+                var volumeFac = EngineUtils.interpolate((this.instructionTimer-this.instructionTimerLength+this.blurFadeTime)/this.blurFadeTime,
                         0,1,EngineUtils.INTERPOLATE_OUT)
-                this._setMusicVolume(musicFac)
-                $engine.audioSetVolume(this.ambience,1-musicFac)
+                //this._setMusicVolume(musicFac)
+                $engine.audioSetVolume(this.ambience,1-volumeFac)
             }
+            // play start sound when moving to next sequence
             if(this.instructionTimer===this.instructionTimerLength-this.blurFadeTime)
                 $engine.audioPlaySound("minigame_start")
+        } else if (this.instructionTimer-this.blurFadeTime <= this.instructionTimerLength) {
+            // fade in music AFTER the game starts
+            this._startMusic();
+            var musicFac = EngineUtils.interpolate((this.instructionTimer-this.instructionTimerLength)/this.blurFadeTime,0,1,EngineUtils.INTERPOLATE_OUT_QUAD)
+            this._setMusicVolume(musicFac)
         }
         if(this.instructionTimer===this.instructionTimerLength) {
             this.showingInstructions=false;
@@ -884,6 +892,7 @@ class MinigameController extends EngineInstance {
                 $engine.getCamera().removeFilter(this.blurFilter);
             this._onGameStart();
             $engine.unpauseGame();
+            this._startMusic();
         }
 
         this._preGameAmbience();
@@ -1043,6 +1052,14 @@ class ParallaxingBackground extends EngineInstance {
         this.invertParallax = false;
         $engine.setBackground(new PIXI.Graphics())
         $engine.setBackgroundColour(0xe2d6b3);
+    }
+
+    /**
+     * Removes the specified sprite at index from the ParallaxingBackground.
+     * @param {Number} idx The index of the sprite to delete
+     */
+    removeIndex(idx) {
+        $engine.removeRenderable(this.sprites.splice(idx,1)[0])
     }
 
     /**
