@@ -81,6 +81,7 @@ class IntroMinigameController extends MinigameController {
         })
 
         this.disableCheating();
+
     }
 
     notifyFramesSkipped(frames) {

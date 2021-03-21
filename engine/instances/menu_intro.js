@@ -9,8 +9,13 @@ class MenuIntroController extends EngineInstance {
 
         this.frames = 0;
         this.startTime = window.performance.now(); // overwritten later...
-        this.startTimeOffset = 20;
-        this.timeCorrection=0; // in case they minimize...
+
+        this.perfTime = 0;
+        this.framesSampled = 0;
+
+        this.renderedFrames = 0;
+
+        this.sampling = false;
         UwU.addRenderListener(this.nextFrame);
 
         $__engineData.__readyOverride=false;
@@ -98,15 +103,48 @@ class MenuIntroController extends EngineInstance {
 
         this.menuMusic = $engine.audioPlaySound("title_music",1,true)
         $engine.audioSetLoopPoints(this.menuMusic,10,50);
+
+        this.renderTexture = $engine.createManagedRenderable(this, PIXI.RenderTexture.create($engine.getWindowSizeX(),$engine.getWindowSizeY()));
+        this.brush = $engine.createManagedRenderable(this,new PIXI.Container());
+        for(var i =0;i<250;i++) {
+            var child = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("intro_background")))
+            child.x = EngineUtils.irandomRange(-2048,2048);
+            child.y = EngineUtils.irandomRange(-2048,2048);
+            child.rotation = EngineUtils.randomRange(-2048,2048);
+            this.brush.addChild(child);
+        }
+        this.brush.filters = [new PIXI.filters.BlurFilter(),new PIXI.filters.ZoomBlurFilter()];
+        this.sample(); // prepare for samples later.
+    }
+
+    // low perforance check. basically a couple sprites to the screen to make the GPU have a stroke.
+    sample() {
+        for(var k =0;k<5;k++) {
+            $engine.getRenderer().render(this.brush,this.renderTexture,false,null,false);
+        }
+    }
+
+    testPerformance() {
+        this.perfTime = window.performance.now() - this.perfTime;
+        console.log(this.perfTime);
     }
 
     nextFrame() {
         var inst =MinigameController.getInstance()
-        if(inst.timer>inst.endTime+inst.startTimeOffset)
-        inst.frames++;
+        if(inst.sampling) {
+            inst.renderedFrames++;
+            if(inst.renderedFrames>15) {
+                inst.sampling = false;
+                inst.testPerformance();
+            }
+        }
     }
 
     step() {
+        if(this.sampling) {
+            this.simulatedFrames++;
+        }
+
         if(IN.anyKeyPressed() && this.timer < this.endTime) {
             this.endTime=this.timer;
         }
@@ -204,10 +242,18 @@ class MenuIntroController extends EngineInstance {
         this.graphics.clear();
         if(this.timer>this.endTime && this.timer <= this.endTime+36) {
             this.graphics.beginFill(0xffffff);
-            if(this.timer-this.endTime<12)
+            if(this.timer-this.endTime<12) { // drawing of the while fade, but also the performance sampling
+                if(this.timer-this.endTime===1) {
+                    this.perfTime=window.performance.now();
+                    this.sampling = true; // we sample 15 frames from this point forward.
+                }
                 this.graphics.alpha=1;
-            else
+                if((this.timer-this.endTime)%3 == 0) {
+                    this.sample();
+                }
+            } else {
                 this.graphics.alpha=1-this.interp((this.timer-this.endTime-12)/24,0,1)
+            }
             this.graphics.drawRect(0,0,$engine.getWindowSizeX(),$engine.getWindowSizeY())
             this.graphics.endFill()
         }
