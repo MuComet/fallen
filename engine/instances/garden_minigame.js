@@ -4,6 +4,7 @@ class GardenMinigameController extends MinigameController {
         super.onEngineCreate();
         this.score = 9;
         this.maxScore = 9;
+        this.wormsmissed = 0;
 
         new ParallaxingBackground("background_wall_1");
     
@@ -12,13 +13,13 @@ class GardenMinigameController extends MinigameController {
         this.waiting = false;
         this.waitTimer = 0;
         
-        this.startTimer(60*60);
+        this.startTimer(30*60);
+        this.getTimer().setSurvivalMode();
         this.x = 90*2-100;
         this.y = $engine.getWindowSizeY()/2 -150;
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
 
-
-        var text = new PIXI.Text("Basically\n WORMS\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Basically\n WORMS\nYou must keep at least 4 plants alive\nAND miss at most 10 worms\nPress ENTER to cheat",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.controlsUseKeyboard(true);
 
@@ -97,8 +98,7 @@ class GardenMinigameController extends MinigameController {
     updateProgressText() {
         this.progressText.text = "Progress: "+String(this.score+" / "+String(this.maxScore));
     }
-
-
+  
     countPlants(){
         var temp_score = 0;
         for(var i = 0; i < 9; i++){
@@ -107,7 +107,7 @@ class GardenMinigameController extends MinigameController {
             }
         }
         this.score = temp_score;
-        if(this.score <= 0){
+        if(this.score < 4 || this.wormsmissed >= 10){
             this.getTimer().pauseTimer();
             this.endMinigame(false);
         }
@@ -124,6 +124,7 @@ class GardenMinigameController extends MinigameController {
     }
 
     moveSpray(){
+
         if(IN.keyCheckPressed("ArrowRight") && this.x <= 90*2+200){
             this.x += 200;
         }
@@ -177,6 +178,7 @@ class GardenWorm extends EngineInstance {
         //}
         if(this.wormTimer >= this.wormTimerEat && this.deathTime === 0){            
             GardenMinigameController.getInstance().plant_array[this.index] = undefined;
+            GardenMinigameController.getInstance().wormsmissed++;
             this.destroy();
         }
        
