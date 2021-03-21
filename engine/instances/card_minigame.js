@@ -7,8 +7,8 @@ class CardMinigameController extends MinigameController {
         this.roundscore = 0;
         this.cheatflip = 0;
 
-        
-        new ParallaxingBackground("background_sheet_2");
+        var background = new PIXI.Sprite($engine.getTexture("background_table_cards"));
+        $engine.setBackground(background);
 
         this.timer = 0;
         this.attempts = 6;

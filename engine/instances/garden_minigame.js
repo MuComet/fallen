@@ -95,13 +95,13 @@ class GardenMinigameController extends MinigameController {
     handleShake() {
         var camera = $engine.getCamera();
         var fac = EngineUtils.interpolate(this.shakeTimer/this.shakeFactor,0,1,EngineUtils.INTERPOLATE_OUT_QUAD);
-        camera.setRotation(EngineUtils.randomRange(-0.01,0.01)*fac)
-        camera.setLocation(EngineUtils.irandomRange(-2,2) * fac, EngineUtils.irandomRange(-2,2) * fac)
+        camera.setRotation(EngineUtils.randomRange(-0.01,0.01)*fac);
+        camera.setLocation(EngineUtils.irandomRange(-2,2) * fac, EngineUtils.irandomRange(-2,2) * fac);
         this.shakeTimer--;
     }
 
     shake(factor = 20) {
-        if(this.shakeTimer < 0)
+        if(this.shakeTimer < 0);
             this.shakeTimer=0;
         this.shakeTimer+=factor;
     }
