@@ -33,7 +33,7 @@ class GardenMinigameController extends MinigameController {
 
         var text = new PIXI.Text("Basically\n WORMS\nYou may lose at most 5 plants \nAND miss at most 10 worms\nPress ENTER to cheat",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
-        this.controlsUseKeyboard(true);
+        this.setControls(true,false);
 
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         $engine.createManagedRenderable(this,this.progressText);
@@ -165,7 +165,7 @@ class GardenMinigameController extends MinigameController {
     draw(gui, camera) {
         super.draw(gui, camera);     
         //EngineDebugUtils.drawHitbox(camera,this);
-        $engine.requestRenderOnGUI(this.progressText);
+        $engine.requestRenderOnCameraGUI(this.progressText);
     }
 
 }

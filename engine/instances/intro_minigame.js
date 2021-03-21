@@ -3,9 +3,10 @@ class IntroMinigameController extends MinigameController {
         super.onEngineCreate();
         var text = new PIXI.Text("Use the mouse to traverse\nthe drain, grab the clog\n and make it back up without\n hitting the pipe walls",$engine.getDefaultTextStyle())
         this.setInstructionRenderable(text);
-        this.controlsUseKeyboard(false);
 
         new IntroMinigameJunk(740,505);
+
+        this.setControls(false,true);
 
         // we have a hitbox creator tool i'm not crazy.
         this.hitbox1 = new Hitbox(this,new PolygonHitbox(this,new Vertex(0,0),new Vertex(13,0),new Vertex(18,30),new Vertex(41,63),new Vertex(64,83),

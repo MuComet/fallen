@@ -11,6 +11,12 @@ class CrateMinigameController extends MinigameController {
         this.totalWidth = sizeX * columns;
         this.totalHeight = sizeY * rows;
 
+        this.setControls(false,true);
+
+        this.depthIndex = -1;
+
+        this.lastInst = undefined;
+
         this.lampSprite = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("lamp_mask")));
 
         var arr = [];
@@ -153,6 +159,20 @@ class CrateMinigameController extends MinigameController {
         var sy = EngineUtils.clamp(IN.getMouseYGUI(),0,$engine.getWindowSizeY());
         this.lampSprite.x = sx;
         this.lampSprite.y = sy;
+
+        var fac2 = Math.abs(Math.sin($engine.getGlobalTimer()/16));
+        this.glowFilter.innerStrength = fac2;
+        var inst = IM.instancePosition(IN.getMouseX(),IN.getMouseY(),Crate);
+        if(this.lastInst) {
+            this.lastInst.getSprite().filters = [];
+        }
+        if(inst) {
+            this.lastInst = inst;
+            inst.getSprite().filters = [this.glowFilter]
+            inst.depth = --this.depthIndex;
+        }
+
+        
     }
 
     draw(gui, camera) {

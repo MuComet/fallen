@@ -258,7 +258,7 @@ class MinigameTimer extends EngineInstance {
 
     draw(gui, camera) {
         if(this.visible) {
-            $engine.requestRenderOnGUI(this.timerGraphic);
+            $engine.requestRenderOnCameraGUI(this.timerGraphic);
         }
     }
 
@@ -312,12 +312,14 @@ class MinigameController extends EngineInstance {
 
         this.continueGameOverSequence = false;
 
+        this.usingPreGameAmbience = true;
+
         this._timer = undefined;
 
         this.wonMinigame = false;
 
         this.instructionTimer = 0;
-        this.instructionTimerLength = 60*30; // 30 seconds at most
+        this.instructionTimerLength = 60*60*60; // one hour at most
         this.showingInstructions = true;
 
         this.cheated = false;
@@ -339,13 +341,12 @@ class MinigameController extends EngineInstance {
 
         this.pressAnyKeyToContinueTimer = 0;
 
-
-        this.KeyIcon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_key_icon")));
-        this.MouseIcon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_mouse_icon")));
-        this.KeyIcon.x = $engine.getWindowSizeX()/2 + 275;
-        this.KeyIcon.y = 400;
-        this.MouseIcon.x = $engine.getWindowSizeX()/2 + 275;
-        this.MouseIcon.y = 400;
+        this.keyIcon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_key_icon")));
+        this.mouseIcon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_mouse_icon")));
+        this.keyIcon.x = $engine.getWindowSizeX()/2 + 275;
+        this.keyIcon.y = 64;
+        this.mouseIcon.x = $engine.getWindowSizeX()/2 + 275;
+        this.mouseIcon.y = 64;
 
         this.onCheatCallbacks  = [];
         this.onGameStartCallbacks = [];
@@ -359,11 +360,11 @@ class MinigameController extends EngineInstance {
 
         this.allowActivateCheat = true;
 
-        this.musicStandard = undefined;
-        this.musicStandardReference = undefined;
+        this.usingPreGameAmbience = true;
 
+        this.ambience = undefined
+        this.musicStandard = undefined;
         this.musicCheat = undefined;
-        this.musicCheatReference = undefined;
 
         this.preventEndOnTimerExpire = false;
         this.roundMode = 0;
@@ -381,9 +382,17 @@ class MinigameController extends EngineInstance {
         this.blurFilterInstruction = new PIXI.filters.BlurFilter(8,4,3,15);
         this.blurFilterInstruction.blur = 0
         this.blurFilterInstruction.repeatEdgePixels=true;
+        this.blurFilterInstruction.quality = 4
         this.blurFilterCheat = new PIXI.filters.BlurFilter(8,4,3,15);
         this.blurFilterCheat.blur = 0
         this.blurFilterCheat.repeatEdgePixels=true;
+        this.blurFilterCheat.quality = 4
+
+        this.instructionContainter = $engine.createManagedRenderable(this,new PIXI.Container());
+        this.cheatContainer = $engine.createManagedRenderable(this,new PIXI.Container());
+
+        this.instructionContainter.filters = [this.blurFilterInstruction];
+        this.cheatContainer.filters = [this.blurFilterCheat];
 
         if(!$engine.isLow()) {
             $engine.getCamera().addFilter(this.blurFilter);
@@ -399,6 +408,8 @@ class MinigameController extends EngineInstance {
         this.setCheatRenderable(new PIXI.Sprite($engine.getTexture("gui_cheat_graphic")))
         this.instructionImage = undefined;
         this.setInstructionRenderable(new PIXI.Sprite($engine.getTexture("title_card")));
+
+        this.setControls(false,false);
 
         this._initMusic();
 
@@ -423,14 +434,23 @@ class MinigameController extends EngineInstance {
         this.allowActivateCheat=false;
     }
 
+    disablePreGameAmbience() {
+        this.usingPreGameAmbience = false;
+    }
+
     _initMusic() {
         this.musicStandard = $engine.audioPlaySound("minigame_music",1,true)
         $engine.audioSetLoopPoints(this.musicStandard,8,56)
         $engine.audioPauseSound(this.musicStandard)
 
-        this.musicCheat = $engine.audioPlaySound("minigame_music_cheat",0,true)
+        this.musicCheat = $engine.audioPlaySound("minigame_music_cheat",1,true)
+        $engine.audioSetVolume(this.musicCheat,0); // this call is because the engine uses the input volume for future calculations.
         $engine.audioSetLoopPoints(this.musicCheat,8,56)
         $engine.audioPauseSound(this.musicCheat)
+
+        this.ambience = $engine.audioPlaySound("minigame_ambience",1,true,EngineUtils.random(111),111)
+        $engine.audioSetLoopPoints(this.ambience,0,111)
+        $engine.audioSetVolume(this.ambience,0);
     }
 
     _startMusic() {
@@ -624,7 +644,7 @@ class MinigameController extends EngineInstance {
             this.showPressAnyKey();
         }
 
-        if(frame > 90 && !$engine.isBusy() && IN.anyInputPressed()) {
+        if(frame > 90 && !$engine.isBusy() && IN.anyStandardInputPressed()) {
             $engine.audioFadeAll();
             $engine.fadeOutAll();
             $engine.endGame();
@@ -665,9 +685,9 @@ class MinigameController extends EngineInstance {
 
     _setMusicVolume(volume) {
         if(this.hasCheated())
-            this.musicCheat.volume=volume;
+            $engine.audioSetVolume(this.musicCheat,volume)
         else
-            this.musicStandard.volume=volume;
+            $engine.audioSetVolume(this.musicStandard,volume)
     }
 
     advanceGameOver() {
@@ -694,22 +714,28 @@ class MinigameController extends EngineInstance {
         this._minigameControllerTick();
     }
 
-    controlsUseKeyboard(bool) {
-        this.usingKey = bool;
+    setControls(keyboard, mouse) {
+        if(keyboard && mouse) {
+            this.keyIcon.x = $engine.getWindowSizeX()/2-64;
+            this.mouseIcon.x = $engine.getWindowSizeX()/2+64;
+        } else if(keyboard) {
+            this.keyIcon.x = $engine.getWindowSizeX()/2;
+        } else if(mouse) {
+            this.mouseIcon.x = $engine.getWindowSizeX()/2;
+        }
+
+
+        this.keyIcon.visible = keyboard;
+        this.mouseIcon.visible = mouse;
     }
 
     draw(gui, camera) {
         if(this.showingInstructions) {
-            $engine.requestRenderOnGUI(this.instructionImage);
-            if(this.usingKey){
-                $engine.requestRenderOnGUI(this.KeyIcon);
-            }else{
-                $engine.requestRenderOnGUI(this.MouseIcon);
-            }
+            $engine.requestRenderOnGUI(this.instructionContainter);
         }
 
         if(this.showingCheat) {
-            $engine.requestRenderOnGUI(this.cheatImage)
+            $engine.requestRenderOnGUI(this.cheatContainer)
         }
 
         if(this.showingResult) {
@@ -833,7 +859,7 @@ class MinigameController extends EngineInstance {
     _handleInstruction() {
         this.instructionTimer++;
         if(this.instructionTimer<this.instructionTimerLength) {
-            if(((IN.anyInputPressed() && this.instructionTimer>18) || IN.keyCheckPressed("Space") || IN.keyCheckPressed("Enter")) 
+            if(((IN.anyStandardInputPressed() && this.instructionTimer>18) || IN.keyCheckPressed("Space") || IN.keyCheckPressed("Enter")) 
                             && this.instructionTimer < this.instructionTimerLength-this.blurFadeTime) {
                 this.instructionTimer = this.instructionTimerLength-this.blurFadeTime; // skip;
             }
@@ -841,13 +867,16 @@ class MinigameController extends EngineInstance {
                 var stren = EngineUtils.interpolate((this.instructionTimer-this.instructionTimerLength+this.blurFadeTime)/this.blurFadeTime,
                                                     this.blurFilterStrength,0,EngineUtils.INTERPOLATE_SMOOTH)
                 this.blurFilter.blur = stren
-                this.instructionImage.alpha = stren/this.blurFilterStrength
+                this.instructionContainter.alpha = stren/this.blurFilterStrength
                 this.blurFilterInstruction.blur = (1-(stren/this.blurFilterStrength))*40;
                 this._startMusic();
                 var musicFac = EngineUtils.interpolate((this.instructionTimer-this.instructionTimerLength+this.blurFadeTime)/this.blurFadeTime,
                         0,1,EngineUtils.INTERPOLATE_OUT)
                 this._setMusicVolume(musicFac)
+                $engine.audioSetVolume(this.ambience,1-musicFac)
             }
+            if(this.instructionTimer===this.instructionTimerLength-this.blurFadeTime)
+                $engine.audioPlaySound("minigame_start")
         }
         if(this.instructionTimer===this.instructionTimerLength) {
             this.showingInstructions=false;
@@ -856,6 +885,40 @@ class MinigameController extends EngineInstance {
             this._onGameStart();
             $engine.unpauseGame();
         }
+
+        this._preGameAmbience();
+
+        var time = 30;
+        var bobTime = 90;
+        if(this.instructionTimer<bobTime) {
+            var check =this.instructionTimer%time<time/2
+            if(check) {
+                this.keyIcon.tint = 0xcfcfcf;
+                this.mouseIcon.tint = 0xcfcfcf;
+            } else {
+                this.keyIcon.tint = 0xffffff;
+                this.mouseIcon.tint = 0xffffff;
+            }
+            var fac= EngineUtils.interpolate(Math.abs((this.instructionTimer%time)-time/2)/(time/2),0,0.04,EngineUtils.INTERPOLATE_OUT_QUAD)
+            var fac2 = EngineUtils.interpolate((this.instructionTimer-(bobTime-time))/time,1,0,EngineUtils.INTERPOLATE_SMOOTH);
+            fac*=fac2
+            this.keyIcon.scale.y = 1+fac;
+            this.mouseIcon.scale.y = 1+fac;
+            this.keyIcon.scale.x = 1-fac;
+            this.mouseIcon.scale.x = 1-fac;
+            this.keyIcon.y = 64 - fac*128;
+            this.mouseIcon.y = 64 - fac*128;
+            this.keyIcon.rotation = (fac*-0.02*fac2)*25;
+            this.mouseIcon.rotation = (fac*-0.02*fac2)*25;
+        }
+    }
+
+    _preGameAmbience() {
+        if(this.instructionTimer>60)
+            return;
+        var fac = EngineUtils.interpolate(this.instructionTimer/60,0,1,EngineUtils.INTERPOLATE_SMOOTH);
+
+        $engine.audioSetVolume(this.ambience,fac);
     }
 
     _handleCheat() {
@@ -927,10 +990,11 @@ class MinigameController extends EngineInstance {
         this.instructionImage.y = $engine.getWindowSizeY()/2;
         this.instructionImage.anchor.x = 0.5;
         this.instructionImage.anchor.y = 0.5; 
-        //this.instructionImage.addChild(this.KeyIcon, this.MouseIcon);
         $engine.createManagedRenderable(this,renderable);
-        this.KeyIcon.filters = [this.blurFilterInstruction];
-        this.MouseIcon.filters = [this.blurFilterInstruction];
+        this.instructionContainter.removeChildren();
+        this.instructionContainter.addChild(renderable);
+        this.instructionContainter.addChild(this.keyIcon)
+        this.instructionContainter.addChild(this.mouseIcon)
     }
 
     /**
@@ -941,11 +1005,12 @@ class MinigameController extends EngineInstance {
      */
     setCheatRenderable(renderable) {
         this.cheatImage = renderable;
-        this.cheatImage.filters = [this.blurFilterCheat];
         this.cheatImage.x = $engine.getWindowSizeX()/2;
         this.cheatImage.y = $engine.getWindowSizeY()/2;
         this.cheatImage.anchor.x = 0.5;
         this.cheatImage.anchor.y = 0.5;
+        this.cheatContainer.removeChildren();
+        this.cheatContainer.addChild(renderable);
         $engine.createManagedRenderable(this,renderable);
     }
 

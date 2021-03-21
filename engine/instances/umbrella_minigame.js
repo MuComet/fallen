@@ -10,6 +10,8 @@ class UmbrellaMinigameController extends MinigameController {
         $engine.createManagedRenderable(this,this.scoreText);
         this.updateScoreText();
 
+        this.setControls(true,false);
+
         this.fakeOutTimes = [];
         for(var i =0;i<10;i++) { // TODO -----------------------------------------------------------------
             this.fakeOutTimes.push(EngineUtils.irandomRange(i * 6 * 60,(i+1) * 6 * 60));
@@ -123,7 +125,7 @@ class UmbrellaMinigameController extends MinigameController {
 
     draw(gui,camera) {
         super.draw(gui,camera);
-        $engine.requestRenderOnGUI(this.scoreText);
+        $engine.requestRenderOnCameraGUI(this.scoreText);
         //EngineDebugUtils.drawPhysicsObject(camera,this.physicsFloor)
     }
 

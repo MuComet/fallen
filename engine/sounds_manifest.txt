@@ -13,6 +13,8 @@ minigame_win_cheat engine/audio/bgm/VictoryCheat.ogg BGM
 minigame_music engine/audio/bgm/Minigame.ogg BGM
 minigame_music_cheat engine/audio/bgm/MinigameCheat.ogg BGM
 
+minigame_ambience engine/audio/bgs/minigames/CountryAmbient.ogg BGS
+
 require cutscene_paper engine/audio/se/cutscene/Paper.ogg SE
 require cutscene_snap engine/audio/se/cutscene/Snap.ogg SE
 
@@ -32,6 +34,7 @@ minigame_cheat engine/audio/se/minigames/Cheat.ogg ME
 minigame_drumroll engine/audio/se/minigames/DrumRoll.ogg SE
 minigame_end engine/audio/se/minigames/GameEnd.ogg ME
 minigame_end_cheat engine/audio/se/minigames/GameEndCheat.ogg ME
+minigame_start engine/audio/se/minigames/Begin.ogg SE
 
 sky_bonk engine/audio/se/skybuild/Bonk.ogg SE
 sky_land engine/audio/se/skybuild/BuildingLanding.ogg SE

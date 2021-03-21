@@ -11,6 +11,8 @@ class DrawController extends MinigameController { // controls the minigame
         this.drawingInd = -1;
         this.drawing = false;
 
+        this.setControls(false,true);
+
         this.gameOverTimer=0;
 
         this.selectDrawings();
