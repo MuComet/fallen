@@ -2,9 +2,10 @@ class GardenMinigameController extends MinigameController {
     
     onEngineCreate() { 
         super.onEngineCreate();
-        this.score = 9;
-        this.maxScore = 9;
-        this.wormsmissed = 0;
+        this.score = 5;
+        this.maxScore = 5;
+        this.wormsmissed = 10;
+        this.wormsMax = 10;
 
         new ParallaxingBackground("background_wall_1");
     
@@ -30,7 +31,7 @@ class GardenMinigameController extends MinigameController {
 
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
 
-        var text = new PIXI.Text("Basically\n WORMS\nYou must keep at least 4 plants alive\nAND miss at most 10 worms\nPress ENTER to cheat",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Basically\n WORMS\nYou may lose at most 5 plants \nAND miss at most 10 worms\nPress ENTER to cheat",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.controlsUseKeyboard(true);
 
@@ -106,18 +107,18 @@ class GardenMinigameController extends MinigameController {
     }
 
     updateProgressText() {
-        this.progressText.text = "Progress: "+String(this.score+" / "+String(this.maxScore));
+        this.progressText.text = "Progress:  Plants Left  "+String(this.score+" / "+String(this.maxScore + "   Worms Missed  " +String(this.wormsmissed+" / "+String(this.wormsMax))));
     }
   
     countPlants(){
         var temp_score = 0;
         for(var i = 0; i < 9; i++){
-            if(this.plant_array[i] != undefined){
+            if(this.plant_array[i] == undefined){
                 temp_score++;
             }
         }
-        this.score = temp_score;
-        if(this.score < 4 || this.wormsmissed >= 10){
+        this.score = this.maxScore - temp_score;
+        if(this.score <= 0 || this.wormsmissed <= 0){
             this.getTimer().pauseTimer();
             this.endMinigame(false);
         }
@@ -187,7 +188,7 @@ class GardenWorm extends EngineInstance {
 
         if(this.wormTimer >= this.wormTimerEat && this.deathTime === 0){            
             GardenMinigameController.getInstance().plant_array[this.index] = undefined;
-            GardenMinigameController.getInstance().wormsmissed++;
+            GardenMinigameController.getInstance().wormsmissed--;
             this.destroy();
         }
 
