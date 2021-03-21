@@ -158,6 +158,9 @@ class CardMinigameController extends MinigameController {
 
     notifyCardClick() {
         this.attempts--;
+        var inv = 6-this.attempts
+        var sound = "card_select_"+String(inv);
+        $engine.audioPlaySound(sound);
         if(this.attempts == 0){
             this.getTimer().pauseTimer();
             this.waiting = true;
@@ -240,16 +243,14 @@ class CardBoard extends EngineInstance {
         //this.cardFlip();
         if(CardMinigameController.getInstance().timer > 80){
             CardMinigameController.getInstance().updateProgressText();
-            if(IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){
+            if(IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){ // change tint when hovered
                 //this.getSprite().tint = (0xaaafff);
-                if(this.clicked == false){
+                if(this.clicked === false) {
                     this.getSprite().tint = (0xffffff);
                 }
             }
 
             if(!this.clicked && IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){  
-                $engine.audioPlaySound("card_flip");
-                //$engine.audioPlaySound("card_flip_all");
                 this.clicked = true;
                 this.getSprite().tint = (0xaaafff);
                 CardMinigameController.getInstance().notifyCardClick(this);
