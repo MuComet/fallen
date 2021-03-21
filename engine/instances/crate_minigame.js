@@ -58,6 +58,9 @@ class CrateMinigameController extends MinigameController {
             self.saveX = $engine.getCamera().getX();
             self.saveY = $engine.getCamera().getY();
             self.targetCrate.getSprite().filters = [self.glowFilter];
+            self.glowFilter.outerStrength = 0;
+            self.glowFilter.innerStrength = 0;
+            self.targetCrate.depth = -1;
         });
 
         this.lampSprite.x = $engine.getWindowSizeX()/2;
@@ -72,9 +75,7 @@ class CrateMinigameController extends MinigameController {
         var diffY = this.saveY - this.targetCrate.y;
 
         var fac2 = Math.abs(Math.sin($engine.getGlobalTimer()/16)) * 8 + 1;
-        this.glowFilter.innerStrength = fac2;
-        this.glowFilter.outerStrength = 0;
-        this.targetCrate.depth = -1;
+        this.glowFilter.innerStrength = fac2 * (1-fac);
 
         $engine.getCamera().setLocation(this.targetCrate.x-(1-fac)*$engine.getWindowSizeX()/2+diffX * fac,
                                         this.targetCrate.y-(1-fac)*$engine.getWindowSizeY()/2+diffY * fac)
