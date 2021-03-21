@@ -1,4 +1,7 @@
 class MenuIntroController extends EngineInstance {
+
+    // important note: This class, by nature of having to deal with engine start, is allowed access to engine data.
+
     onEngineCreate() {
 
         // please never do this in actual minigame code -- hook into minigamecontroller
@@ -10,13 +13,15 @@ class MenuIntroController extends EngineInstance {
         this.timeCorrection=0; // in case they minimize...
         UwU.addRenderListener(this.nextFrame);
 
+        $__engineData.__readyOverride=false;
+
         this.letters = [];
         //var locX = [37,159,308,451,522,671];
-        var locX = [25,142,306,453,532,685];
-        var locY = [175,255,165,255,165,205];
-        var offsets = [14, 36, 27, 42, 20, 55]
-        for(var i =1;i<=6;i++) {
-            let letter = new Letter(i,locX[i-1]*0.5+230,locY[i-1]*0.5)
+        var locX = [60, 160, 290, 418, 544, 660, 785, 900];
+        var locY = [290, 281, 270, 250, 250, 260, 282, 300];
+        var offsets = [42, 36, 27, 42, 20, 32,25,37]
+        for(var i =1;i<=8;i++) {
+            let letter = new Letter(i,locX[i-1]*0.6+115,locY[i-1]*0.6)
             letter.randomOffset = offsets[i-1]
             letter.randomOffsetAngle = EngineUtils.randomRange(-0.34,0.34)
             letter.xRandStart = letter.xStart+EngineUtils.randomRange(-24,24)
@@ -25,6 +30,9 @@ class MenuIntroController extends EngineInstance {
         }
         this.timer = 0;
         $engine.setBackgroundColour(0x65ceeb)
+        this.bg = new PIXI.Sprite($engine.getTexture("intro_background"))
+        this.bg.x = -92;
+        $engine.setBackground(this.bg)
         this.graphics = $engine.createRenderable(this,new PIXI.Graphics())
         this.endTime = 300;
         this.nextCloud = 0;
@@ -128,6 +136,11 @@ class MenuIntroController extends EngineInstance {
         this.nextLeaf--;
         if(this.nextLeaf<=0) {
             let leaf = new RisingSprite(EngineUtils.random($engine.getWindowSizeX()),$engine.getRandomTextureFromSpritesheet("leaf_particles"))
+            leaf.rotateFactor = 10;
+            leaf.changeScale(0.5,0.5)
+            leaf.flipHoriz = true;
+            leaf.flipVert = true;
+            leaf.speed*=EngineUtils.randomRange(1.6,3);
             this.nextLeaf = EngineUtils.irandomRange(12,24);
             if(this.timer<this.endTime) {
                 leaf.alpha = 0;
@@ -138,17 +151,17 @@ class MenuIntroController extends EngineInstance {
             if(this.timer===this.endTime+1) {
                 IM.with(RisingSprite, function(cloud){cloud.alpha = 1});
                 IM.with(MainMenuButton, function(button){button.enable()})
-                for(var i=0;i<6;i++) {
+                for(var i=0;i<8;i++) {
                     var letter = this.letters[i]
                     letter.y = letter.destY
                     letter.x = letter.destX
                     letter.angle = 0;
                 }
             }
-            for(var i =0;i<6;i++)
+            for(var i =0;i<8;i++)
                 this.letters[i].floatRandom();
         } else {
-            for(var i=0;i<6;i++) {
+            for(var i=0;i<8;i++) {
                 var letter = this.letters[i]
                 if(this.timer>=letter.randomOffset) {
                     var val = (this.timer-letter.randomOffset)/(this.endTime-letter.randomOffset)
@@ -158,6 +171,11 @@ class MenuIntroController extends EngineInstance {
                 }
             }
         }
+
+        var mouseOffset = $engine.getWindowSizeX()/2-IN.getMouseX();
+        var diff = (this.bg.x + 92 - (this.bg.x - mouseOffset)/16);
+
+        this.bg.x -= diff/128
 
         if(this.isFading) {
             this.fadeTimer++;
@@ -257,9 +275,9 @@ class Letter extends EngineInstance {
     }
 
     onCreate(ind,x,y) {
-        this.setSprite(new PIXI.Sprite($engine.getTexture("intro_"+String(ind))))
-        this.xScale=0.5;
-        this.yScale=0.5;
+        this.setSprite(new PIXI.Sprite($engine.getTexture("t"+String(ind))))
+        this.xScale=1/2;
+        this.yScale=1/2;
         this.xStart = x;
         this.yStart = y;
         this.x = x;
@@ -305,11 +323,18 @@ class RisingSprite extends EngineInstance {
         var sc = (1-dist/800)*0.25
         this.xScale = EngineUtils.irandom(1) ? sc : -sc
         this.yScale = sc
+        this.baseXScale = this.xScale;
+        this.baseYScale = this.yScale;
         this.onEngineCreate();
 
         this.setSprite(new PIXI.Sprite(texture))
 
         this.randRot = EngineUtils.random(60)
+        this.rotateFactor = 1;
+        this.flipHoriz = false;
+        this.flipVert = false;
+        this.rand1 = EngineUtils.random(50);
+        this.rand2 = EngineUtils.random(50);
 
         var f1 = new PIXI.filters.BlurFilter();
         f1.blur = EngineUtils.clamp(Math.abs(dist/600)*8,0,5);
@@ -318,12 +343,25 @@ class RisingSprite extends EngineInstance {
         this.getSprite().filters = [f1]
     }
 
+    changeScale(sx,sy) {
+        this.xScale*=sx;
+        this.yScale*=sy;
+        this.baseXScale=this.xScale;
+        this.baseYScale=this.yScale;
+    }
+
     step() {
         this.y-=this.speed;
         this.getSprite().tint = 0xffffff
         if(this.y<=-120)
             this.destroy();
-        this.angle = this.baseAngle+Math.sin(this.randRot+$engine.getGameTimer()/32)/16;
+        this.angle = this.baseAngle+Math.sin(this.randRot+$engine.getGameTimer()/32)/16 * this.rotateFactor;
+        if(this.flipHoriz) {
+            this.xScale = this.baseXScale * Math.cos(this.rand1 + $engine.getGameTimer()/43);
+        }
+        if(this.flipVert) {
+            this.yScale = this.baseYScale * Math.cos(this.rand2 + $engine.getGameTimer()/31);
+        }
     }
 }
 

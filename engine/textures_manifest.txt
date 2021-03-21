@@ -1,11 +1,15 @@
 require spritesheet dimensions 800 400 4 2 leaf_particles engine/textures/generic/leaf_particles_sheet.png 0.5 0.5
 
-require intro_1 engine/textures/intro/intro_1.png 0.5 0.5
-require intro_2 engine/textures/intro/intro_2.png 0.5 0.5
-require intro_3 engine/textures/intro/intro_3.png 0.5 0.5
-require intro_4 engine/textures/intro/intro_4.png 0.5 0.5
-require intro_5 engine/textures/intro/intro_5.png 0.5 0.5
-require intro_6 engine/textures/intro/intro_6.png 0.5 0.5
+require t1 engine/textures/intro/t1.png 0.5 0.5
+require t2 engine/textures/intro/t2.png 0.5 0.5
+require t3 engine/textures/intro/t3.png 0.5 0.5
+require t4 engine/textures/intro/t4.png 0.5 0.5
+require t5 engine/textures/intro/t5.png 0.5 0.5
+require t6 engine/textures/intro/t6.png 0.5 0.5
+require t7 engine/textures/intro/t7.png 0.5 0.5
+require t8 engine/textures/intro/t8.png 0.5 0.5
+
+require intro_background engine/textures/intro/background_sky.png 0 0
 
 require cloud_generic_1 engine/textures/generic/cloud_generic_1.png 0.5 0.5
 require cloud_generic_2 engine/textures/generic/cloud_generic_2.png 0.5 0.5

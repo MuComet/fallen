@@ -18,6 +18,7 @@ $__engineData.autoSetWriteBackIndex = -1;
 $__engineData.loadRoom = "MenuIntro";
 $__engineData.__lowPerformanceMode = false;
 $__engineData.__overrideRoom = undefined;
+$__engineData.__readyOverride = true;
 
 
 // things to unbork:
@@ -786,6 +787,16 @@ class Scene_Engine extends Scene_Base {
         $__engineData.__haltAndReturn=false;
     }
 
+    /**
+     * RPG maker functions, do not call.
+     * Allows for the engine to wait until fully ready to prevent errors from early start.
+     * 
+     * @returns True if the engine is fully ready to start, or if early start is enabled and is early ready
+     */
+    isReady() {
+        return super.isReady() && ($__engineData.__fullyReady || $__engineData.__readyOverride);
+    }
+
     __resumeAudio() {
         if (this.prevBgm !== null) {
             AudioManager.replayBgm(this.prevBgm);
@@ -1126,7 +1137,12 @@ class Scene_Engine extends Scene_Base {
         return this.__background;
     }
 
-    setBackground(background, autoDestroy) { // expects any PIXI renderable. renders first.
+    /**
+     * Sets a renderable to be rendered in the background.
+     * @param {PIXI.DisplayObject} background The background to use
+     * @param {Boolean | true} autoDestroy Whether or not to auto destroy this background when the game ends or a new background is set.
+     */
+    setBackground(background, autoDestroy=true) { // expects any PIXI renderable. renders first.
         if(this.__autoDestroyBackground) {
             for(const child of this.__backgroundContainer.children)
                 this.freeRenderable(child);
