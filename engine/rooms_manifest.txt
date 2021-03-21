@@ -14,3 +14,4 @@ HoleMinigameRoom engine/rooms/holes_room.txt
 BrokenImageMinigameRoom engine/rooms/broken_image_room.txt
 PaintImageMinigameRoom engine/rooms/paint_image_room.txt
 GardenRoom engine/rooms/garden_room.txt
+CrateRoom engine/rooms/crate_room.txt
