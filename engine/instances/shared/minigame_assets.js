@@ -310,6 +310,8 @@ class MinigameController extends EngineInstance {
         this.gameStoppedFrameTimer = 0;
         this.winLossTimer = 0;
 
+        this.continueGameOverSequence = false;
+
         this._timer = undefined;
 
         this.wonMinigame = false;
@@ -559,21 +561,29 @@ class MinigameController extends EngineInstance {
             if(this.failedMinigame) {
                 this.adjustmentFilter.saturation = fac;
                 $engine.setTimescale(fac)
+                if(this._timer)
+                    this._timer.timerGraphic.alpha = fac // set directly because timescale.
+            } else {
+                if(this._timer)
+                    this._timer.alpha = fac;
             }
-            if(this._timer)
-                this._timer.timerGraphic.alpha = fac // set directly because timescale.
+            
             this.stopTimer++;
             this._setMusicVolume(fac);
             if(this.stopTimer>this.stopTime)
                 this.gameStopped=true;
         } else {
-            this.onMinigameComplete(this.gameStoppedFrameTimer)
+            if(!this.continueGameOverSequence) {
+                this.onMinigameComplete(this.winLossTimer)
+                this.winLossTimer++;
+                return;
+            }
 
             var fac = EngineUtils.interpolate(this.gameStoppedFrameTimer/this.blurFadeTime,0,1,EngineUtils.INTERPOLATE_SMOOTH)
             this.blurFilter.blur = fac*this.blurFilterStrength
 
             if(this.gameStoppedFrameTimer >= 90) {
-                this.prepareResultGraphic(this.gameStoppedFrameTimer-90)
+                this.handleResults(this.gameStoppedFrameTimer-90)
             }
 
             if(this.gameStoppedFrameTimer===90) {
@@ -601,7 +611,7 @@ class MinigameController extends EngineInstance {
         }
     }
 
-    prepareResultGraphic(frame) {
+    handleResults(frame) {
         var fac = frame/45;
         var graphic = this._getResultRenderable();
         var facX = EngineUtils.interpolate(fac,0,1,EngineUtils.INTERPOLATE_OUT_BACK);
@@ -614,7 +624,7 @@ class MinigameController extends EngineInstance {
             this.showPressAnyKey();
         }
 
-        if((frame > 90 && !$engine.isBusy() && IN.anyInputPressed())) {
+        if(frame > 90 && !$engine.isBusy() && IN.anyInputPressed()) {
             $engine.audioFadeAll();
             $engine.fadeOutAll();
             $engine.endGame();
@@ -660,7 +670,20 @@ class MinigameController extends EngineInstance {
             this.musicStandard.volume=volume;
     }
 
-    onMinigameComplete(frames) {};
+    advanceGameOver() {
+        this.continueGameOverSequence = true;
+    }
+
+    /**
+     * Overridable:
+     * 
+     * Called once per frame starting when the minigame has fully ended and control is handed to the controller.
+     * 
+     * @param {Number} frames The amount of frames since the minigame has ended.
+     */
+    onMinigameComplete(frames) {
+        this.advanceGameOver();
+    };
 
     timescaleImmuneStep() {
         this._winLossTick();

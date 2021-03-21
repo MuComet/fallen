@@ -96,3 +96,8 @@ background_table_cards engine/textures/backgrounds/background_table_cards.png 0 
 garden_plant engine/textures/garden/gardenplant.png 0.5 0.5
 garden_worm_alive engine/textures/garden/gardenwormalive.png 0.5 0.5
 garden_worm_dead engine/textures/garden/gardenwormdead.png 0.5 0.5
+
+wall_tile engine/textures/crate/wall_tile.png 0 0
+crate_normal engine/textures/crate/crate_normal.png 0 0
+crate_marked engine/textures/crate/crate_marked.png 0 0
+lamp_mask engine/textures/crate/mask.png 0.5 0.5

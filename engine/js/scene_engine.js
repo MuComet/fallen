@@ -734,6 +734,9 @@ class Scene_Engine extends Scene_Base {
         for(const camera of this.__cameras) {
             this.freeRenderable(camera);
             this.freeRenderable(camera.getCameraGraphics());
+            this.freeRenderable(camera.__getCameraRenderContainer());
+            this.freeRenderable(camera.__renderContainer);
+            this.freeRenderable(camera.__cameraGUI);
         }
         if(this.__autoDestroyBackground) {
             for(const child of this.__backgroundContainer.children)
@@ -810,7 +813,7 @@ class Scene_Engine extends Scene_Base {
     __doSimTick() {
         var start = window.performance.now();
 
-        var renderedOnce = this.__timescaleFraction-1>=0;
+        var simulatedOnce = this.__timescaleFraction-1>=0;
 
         while(this.__timescaleFraction-1>=0) {
             this.__timescaleFraction--;
@@ -835,8 +838,9 @@ class Scene_Engine extends Scene_Base {
             IM.__timescaleImmuneStep();
         }
 
-        if(!renderedOnce) {
+        if(!simulatedOnce) {
             IM.__draw();
+            IN.__update();
         }
 
         this.__prepareRenderToCameras();
@@ -1167,7 +1171,6 @@ class Scene_Engine extends Scene_Base {
             if(!this.__enabledCameras[i])
                 continue;
             var camera = this.__cameras[i];
-            camera.removeChildren(); // old code, can clean up
 
 
             // STOP: The following code ONLY works because it was checked against PIXIJS containers.
@@ -1196,10 +1199,6 @@ class Scene_Engine extends Scene_Base {
                 }
                 return d
             })
-
-            camera.addChild(renderContainer);
-            camera.addChild(camera.getCameraGraphics());
-            camera.addChild(camera.__cameraGUI);
         }
     }
 
@@ -2502,7 +2501,7 @@ class OwO {
         if(!UwU.sceneIsOverworld())
             return;
         var fac = OwO.__getPlayerHP();
-        fac = EngineUtils.interpolate(fac/20,1,0,EngineUtils.INTERPOLATE_IN_QUAD); // note: inverted so it's actually out
+        fac = EngineUtils.interpolate(fac/25,1,0,EngineUtils.INTERPOLATE_IN_QUAD); // note: inverted so it's actually out
         var fac2 = 2*fac*Math.abs(Math.sin(OwO.getGameTimer()/32))
         OwO.__hudRedGlowFilter.innerStrength = fac2/2
         OwO.__hudRedGlowFilter.outerStrength = fac2

@@ -295,8 +295,8 @@ class EngineUtils {
                 return diff*(-Math.pow(2, -10 * val) + 1) + min;
             case(EngineUtils.INTERPOLATE_SMOOTH_EXPONENTIAL):
                 if ((val+=val) < 1) 
-                    return 1/2 * Math.pow(2, 10 * (val - 1));
-                return 1/2 * (-Math.pow(2, -10 * --val) + 2);
+                    return diff * (1/2 * Math.pow(2, 10 * (val - 1))) + min;
+                return diff * (1/2 * (-Math.pow(2, -10 * (val-1)) + 2)) + min;
         }
     }
 }

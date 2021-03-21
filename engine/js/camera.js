@@ -7,14 +7,22 @@ class Camera extends PIXI.Container {
         this.engineX = this.x;
         this.engineY = this.y;
         this.angle = 0;
-        this.setLocation(x,y);
-        this.setDimensions(w,h);
-        this.setRotation(r);
         this.filters = [];
         this.__filters = [];
+        this.__cameraRenderContainer = new PIXI.Container();
         this.__cameraGraphics = new PIXI.Graphics(); // shared graphics, always draws on top of everything.
         this.__renderContainer = new PIXI.Container();
         this.__cameraGUI = new PIXI.Container(); // bit of a dumb fix for GUI elements that should blur with the minigame.
+
+        this.__cameraRenderContainer.addChild(this.__renderContainer);
+        this.__cameraRenderContainer.addChild(this.__cameraGraphics);
+
+        this.addChild(this.__cameraRenderContainer)
+        this.addChild(this.__cameraGUI)
+
+        this.setLocation(x,y);
+        this.setDimensions(w,h);
+        this.setRotation(r);
     }
 
     addFilter(screenFilter, removeOnRoomChange = true, name = "ENGINE_DEFAULT_FILTER_NAME") {
@@ -54,6 +62,10 @@ class Camera extends PIXI.Container {
         return this.__renderContainer;
     }
 
+    __getCameraRenderContainer() {
+        return this.__cameraRenderContainer;
+    }
+
     /**
      * Sets the main container of this Camera. Useful for special rendering like PIXI.projection.Container2d.
      * @param {PIXI.DisplayObject} renderable The new container
@@ -77,9 +89,9 @@ class Camera extends PIXI.Container {
         off.rotate(this.angle);
         off.translate(-dx,-dy)
 
-        this.rotation = this.angle;
-        this.x = -this.engineX - off.x;
-        this.y = -this.engineY - off.y;
+        this.__cameraRenderContainer.rotation = this.angle;
+        this.__cameraRenderContainer.x = -this.engineX - off.x;
+        this.__cameraRenderContainer.y = -this.engineY - off.y;
     }
 
     __getCenter() {
@@ -126,8 +138,8 @@ class Camera extends PIXI.Container {
 
     setScale(sx, sy) {
         IN.__validMouse = false;
-        this.scale.x = sx;
-        this.scale.y = sy;
+        this.__cameraRenderContainer.scale.x = sx;
+        this.__cameraRenderContainer.scale.y = sy;
     }
 
     setDimensions(w,h) {
@@ -201,7 +213,7 @@ class Camera extends PIXI.Container {
     }
 
     __reportMouse(point,global) {
-        return Graphics._renderer.plugins.interaction.mouse.getLocalPosition(this,point,global);
+        return Graphics._renderer.plugins.interaction.mouse.getLocalPosition(this.__cameraRenderContainer,point,global);
     }
 
 
