@@ -12,7 +12,6 @@ class CardMinigameController extends MinigameController {
 
         this.timer = 0;
         this.attempts = 6;
-        //this.rounds = 3;
         this.waiting = false;
         this.waitTimer = 0;
         
