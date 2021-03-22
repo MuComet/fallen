@@ -21,7 +21,7 @@ class CrateMinigameController extends MinigameController {
 
         this.destroyTimer = 0;
 
-        this.destroyDelay = 2;
+        this.destroyDelay = 4;
 
         this.destroyTarget = undefined;
 
@@ -80,6 +80,8 @@ class CrateMinigameController extends MinigameController {
             self.targetCrate.depth = -1;
             if(this.lastInst)
                 this.lastInst.filters = [];
+
+            self.destroyTarget=undefined;
         });
 
         this.lampSprite.x = $engine.getWindowSizeX()/2;
@@ -179,8 +181,11 @@ class CrateMinigameController extends MinigameController {
             this.x =IN.getMouseX();
             this.y =IN.getMouseY();
             if(this.destroyTimer>=this.destroyDelay) {
-                if(this.destroyTarget) {
+                var oldTarget = this.destroyTarget; // because the engine does not immediately remove instances from the world, we must
+                if(this.destroyTarget) { // temporarily remove this instance from the pool when checking.
                     this.destroyTarget.destroy();
+                    var saveTargetX = this.destroyTarget.x;
+                    this.destroyTarget.x = 9999999; // get outta here.
                 }
                 var saveX = this.targetCrate.x;
                 this.targetCrate.x = 999999999999;
@@ -190,11 +195,17 @@ class CrateMinigameController extends MinigameController {
                 this.destroyTarget = IM.instanceNearestPoint(this.x,this.y,...instances);
                 if(this.destroyTarget) {
                     this.destroyTimer=0;
-                    this.destroyTarget.getSprite().tint = 0;
+                }
+                if(oldTarget) {
+                    oldTarget.x = saveTargetX;
                 }
             }
+            if(this.destroyTarget) {
+                var col = Math.round(this.destroyTarget.originalTintFactor * (1-this.destroyTimer/this.destroyDelay));
+                this.destroyTarget.getSprite().tint = (col<<16) | (col<<8) | col
+            }
 
-        } else {
+        } else if(!this.hasCheated()){
             var inst = IM.instancePosition(IN.getMouseX(),IN.getMouseY(),Crate);
             if(this.lastInst) {
                 this.lastInst.getSprite().filters = [];
@@ -229,11 +240,14 @@ class Crate extends EngineInstance {
         this.marked = mark;
         var texture = undefined;
         if(mark) 
-            texture = $engine.getTexture("crate_marked");
+            texture = $engine.getRandomTextureFromSpritesheet("crate_marked");
         else
-            texture = $engine.getTexture("crate_normal");
+            texture = $engine.getRandomTextureFromSpritesheet("crate_normal");
 
         this.setSprite(new PIXI.Sprite(texture));
+        var r = EngineUtils.irandomRange(178,255);
+        this.originalTintFactor = r;
+        this.getSprite().tint = (r<<16) | (r<<8) | r; // add some variation via a brightness adjustment
         this.setHitbox(new Hitbox(this, new RectangleHitbox(this,0,0,64,64)));
     }
 

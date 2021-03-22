@@ -67,9 +67,6 @@ tutorial_junk engine/textures/tutorial/junk.png 0.5 0.5
 spritesheet dimensions 2448 624 3 1 tutorial_sheet engine/textures/tutorial/tutorial_sheet.png 0.5 0.5
 zone_restart engine/textures/tutorial/zone.png 0.5 0
 
-
-
-
 falling_object_spike engine/textures/falling_object/spike.png 0.5 0.5
 falling_object_flower engine/textures/falling_object/flower.png 0.5 0.5
 falling_object_shadow engine/textures/falling_object/shadow.png 0.5 0.5
@@ -100,6 +97,6 @@ garden_worm_alive engine/textures/garden/gardenwormalive.png 0.5 0.5
 garden_worm_dead engine/textures/garden/gardenwormdead.png 0.5 0.5
 
 wall_tile engine/textures/crate/wall_tile.png 0 0
-crate_normal engine/textures/crate/crate_normal.png 0 0
-crate_marked engine/textures/crate/crate_marked.png 0 0
+spritesheet dimensions 192 64 3 1 crate_normal engine/textures/crate/crate_sprites_normal.png 0 0
+spritesheet dimensions 192 64 3 1 crate_marked engine/textures/crate/crate_sprites_marked.png 0 0
 lamp_mask engine/textures/crate/mask.png 0.5 0.5

@@ -879,7 +879,7 @@ class MinigameController extends EngineInstance {
             }
             // play start sound when moving to next sequence
             if(this.instructionTimer===this.instructionTimerLength-this.blurFadeTime)
-                $engine.audioPlaySound("minigame_start")
+                $engine.audioPlaySound("minigame_start",0.75)
         } else if (this.instructionTimer-this.blurFadeTime <= this.instructionTimerLength) {
             // fade in music AFTER the game starts
             this._startMusic();
