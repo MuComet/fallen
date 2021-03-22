@@ -8,6 +8,10 @@ class IntroMinigameController extends MinigameController {
 
         this.setControls(false,true);
 
+        this.startText = $engine.createManagedRenderable(this, new PIXI.Text("Start here!",$engine.getDefaultSubTextStyle()));
+        this.startText.x = 270;
+        this.startText.y = 13;
+
         // we have a hitbox creator tool i'm not crazy.
         this.hitbox1 = new Hitbox(this,new PolygonHitbox(this,new Vertex(0,0),new Vertex(13,0),new Vertex(18,30),new Vertex(41,63),new Vertex(64,83),
         new Vertex(71,92),new Vertex(74,125),new Vertex(80,301),new Vertex(91,318),new Vertex(109,327),new Vertex(138,333),new Vertex(239,332),
@@ -217,13 +221,32 @@ class IntroMinigameController extends MinigameController {
                 .lineTo(zone.x+zone.width/2,zone.y+zone.height)
                 .lineTo(zone.x-zone.width/2,zone.y+zone.height)
                 .lineTo(zone.x-zone.width/2,zone.y)
+
+        if(!this.hasGoal) {
+            this.startText.text = "Start here!"
+        } else {
+            this.startText.text = "Bring the junk here!"
+        }
+
+        var dir = -Math.PI;
+        var fac2 = Math.abs(Math.sin($engine.getGameTimer()/16))/8 + 0.25
+        this.arrowGraphic.scale.set(fac2)
+        this.arrowGraphic.x = this.zoneSprite.x + 160 + V2D.lengthDirX(dir,8+fac2*30);
+        this.arrowGraphic.y = this.zoneSprite.y+this.zoneSprite.height/2 - V2D.lengthDirY(dir,8+fac2*30);
+        this.arrowGraphic.rotation = dir;
+        this.arrowGraphic.alpha = fac;
+        $engine.requestRenderOnCameraGUI(this.arrowGraphic)
+
+        this.startText.alpha = fac;
+        this.startText.scale.x = 1+fac2/2;
+        $engine.requestRenderOnCameraGUI(this.startText)
     }
 
     mouseInZoneBounds() {
         var mx = IN.getMouseXGUI();
         var my = IN.getMouseYGUI();
         var zone = this.zoneSprite;
-        return mx > zone.x-zone.width/2 && mx < zone.x + zone.width/2 && my > zone.y && my < zone.y+zone.height;
+        return mx > zone.x-zone.width/2-4 && mx < zone.x + zone.width/2 + 4 && my > zone.y - 4 && my < zone.y+zone.height + 16;
     }
 
     parallax() {
@@ -233,22 +256,6 @@ class IntroMinigameController extends MinigameController {
         this.sprites[2].y = $engine.getWindowSizeY()/2-diffY
         this.sprites[0].x = $engine.getWindowSizeX()/2+diffX/8
         this.sprites[0].y = $engine.getWindowSizeY()/2+diffY/8
-    }
-
-    drawArrow() {
-        var dir = 0;
-        var goal = IM.find(IntroMinigameJunk);
-        if(!this.valid || this.hasGoal) {
-            dir = V2D.calcDir(this.zoneSprite.x-IN.getMouseXGUI(),this.zoneSprite.y-IN.getMouseYGUI())
-        } else {
-            dir = V2D.calcDir(goal.x-IN.getMouseXGUI(),goal.y-IN.getMouseYGUI())
-        }
-        var fac = Math.abs(Math.sin($engine.getGameTimer()/16))/8 + 0.25
-        this.arrowGraphic.scale.set(fac)
-        this.arrowGraphic.x = IN.getMouseXGUI() + V2D.lengthDirX(dir,8+fac*30);
-        this.arrowGraphic.y = IN.getMouseYGUI() - V2D.lengthDirY(dir,8+fac*30);
-        this.arrowGraphic.rotation = dir;
-        $engine.requestRenderOnCameraGUI(this.arrowGraphic)
     }
 
     draw(gui, camera) {
@@ -261,7 +268,6 @@ class IntroMinigameController extends MinigameController {
         this.renderTrail();
         this.renderHit(camera);
         this.renderRestartZone(camera);
-        this.drawArrow();
     }
 }
 

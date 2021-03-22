@@ -3,9 +3,8 @@ class WallBuilderController extends MinigameController {
     onEngineCreate() {
         super.onEngineCreate();
         this.possibleLetters = [];
-        for(var i =0;i<26;i++) {
-            this.possibleLetters.push("Key"+String.fromCharCode(i+65))
-        }
+        this.possibleLetters.push("KeyD","KeyF","KeyJ","KeyK");
+        this.lastLetter = "";
         this.delayToNext = 999;
         this.maxDelayToNext = 60; // if you mess up
         this.currentKey = "";
@@ -21,9 +20,9 @@ class WallBuilderController extends MinigameController {
         var bg = new ParallaxingBackground("background_sheet_2"); // make the background
         bg.setParallaxFactors(1,1);
         $engine.unpauseGameSpecial
-        var text = new PIXI.Text("Press the keys displayed on the tile\nlay down block with correct keys\nbe fast and accurate\nwrong keys cause delay\n\nPress Enter to cheat!",$engine.getDefaultTextStyle())
+        var text = new PIXI.Text("Press the keys displayed on the tile\nlay down block with correct keys\nKeys can only be one of DFJK\nbe fast and accurate\nwrong keys cause delay\n\nPress Enter to cheat!",$engine.getDefaultTextStyle())
         this.setInstructionRenderable(text);
-        this.controlsUseKeyboard(true);
+        this.setControls(true,false);
 
         this.graphicsLocationX = $engine.getWindowSizeX()/2;
         this.graphicsLocationY = 128;
@@ -102,17 +101,16 @@ class WallBuilderController extends MinigameController {
         return rope;
     }
 
-    onMinigameComplete(frames) {
-        //console.log(frames);
-    }
-
     onCreate() {
         super.onCreate();
         this.onEngineCreate();
     }
 
     next() {
-        this.currentKey = EngineUtils.randomFromArray(this.possibleLetters);
+        do {
+            this.currentKey = EngineUtils.randomFromArray(this.possibleLetters);
+        } while(this.currentKey===this.lastLetter)
+        this.lastLetter=this.currentKey;
     }
 
     updateText() {
@@ -154,6 +152,8 @@ class WallBuilderController extends MinigameController {
     }
 
     keyIncorrect() {
+        this.spawnFadingLetter(true);
+        
         var times = 1;
         if(this.hasCheated()) {
             times = 3;
@@ -168,7 +168,9 @@ class WallBuilderController extends MinigameController {
         //this.spawnFadingLetter(false);
         this.delayToNext=0;
         this.errorTimer=0;
-        this.flipTimer=0;
+        this.flipTimer=this.flipTime+this.errorTime;
+        this.next();
+        this.letterText.visible = false;
     }
 
     spawnBrick(valid) {

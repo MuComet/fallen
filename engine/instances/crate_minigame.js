@@ -1,21 +1,29 @@
 class CrateMinigameController extends MinigameController {
     onEngineCreate() {
         super.onEngineCreate();
-        var sizeX = 64;
-        var sizeY = 64;
+        this.sizeX = 64;
+        this.sizeY = 64;
         var rows = 26;
         var columns = 26;
         var totalSpaces = rows*columns;
         var totalCrates = 512;
 
-        this.totalWidth = sizeX * columns;
-        this.totalHeight = sizeY * rows;
+        this.totalWidth = this.sizeX * columns;
+        this.totalHeight = this.sizeY * rows;
 
         this.setControls(false,true);
 
         this.depthIndex = -1;
 
         this.lastInst = undefined;
+
+        this.setHitbox(new Hitbox(this, new RectangleHitbox(this, -128,-128,128,128)))
+
+        this.destroyTimer = 0;
+
+        this.destroyDelay = 2;
+
+        this.destroyTarget = undefined;
 
         this.lampSprite = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("lamp_mask")));
 
@@ -35,13 +43,13 @@ class CrateMinigameController extends MinigameController {
         for(var i = 0;i<totalSpaces;i++) {
             if(!arr[i])
                 continue;
-            var xx = sizeX * (i % columns);
-            var yy = sizeY * Math.floor(i / columns);
+            var xx = this.sizeX * (i % columns);
+            var yy = this.sizeY * Math.floor(i / columns);
             arr[i].x=xx;
             arr[i].y=yy;
         }
 
-        this.setupBackground(sizeX * columns, sizeY * rows);
+        this.setupBackground(this.sizeX * columns, this.sizeY * rows);
 
         this.mx = 0;
         this.my = 0;
@@ -55,6 +63,9 @@ class CrateMinigameController extends MinigameController {
         this.addOnCheatCallback(this,function(self) {
             self.lampSprite.scale.x = 1.5;
             self.lampSprite.scale.y = 1.5;
+            if(this.lastInst) {
+                this.lastInst.getSprite().filters = [];
+            }
         })
 
         this.saveX = 0;
@@ -67,6 +78,8 @@ class CrateMinigameController extends MinigameController {
             self.glowFilter.outerStrength = 0;
             self.glowFilter.innerStrength = 0;
             self.targetCrate.depth = -1;
+            if(this.lastInst)
+                this.lastInst.filters = [];
         });
 
         this.lampSprite.x = $engine.getWindowSizeX()/2;
@@ -92,7 +105,7 @@ class CrateMinigameController extends MinigameController {
 
     setupBackground(width, height) {
         var bg = new PIXI.extras.TilingSprite($engine.getTexture("wall_tile"),width, height);
-        this.setSprite(bg);
+        $engine.createRenderable(this,bg,false)
     }
 
     notifyFramesSkipped(frames) {
@@ -162,16 +175,38 @@ class CrateMinigameController extends MinigameController {
 
         var fac2 = Math.abs(Math.sin($engine.getGlobalTimer()/16));
         this.glowFilter.innerStrength = fac2;
-        var inst = IM.instancePosition(IN.getMouseX(),IN.getMouseY(),Crate);
-        if(this.lastInst) {
-            this.lastInst.getSprite().filters = [];
-        }
-        if(inst) {
-            this.lastInst = inst;
-            inst.getSprite().filters = [this.glowFilter]
-            inst.depth = --this.depthIndex;
+        if(this.hasCheated()) {
+            this.x =IN.getMouseX();
+            this.y =IN.getMouseY();
+            if(this.destroyTimer>=this.destroyDelay) {
+                if(this.destroyTarget) {
+                    this.destroyTarget.destroy();
+                }
+                var saveX = this.targetCrate.x;
+                this.targetCrate.x = 999999999999;
+                var instances = IM.instanceCollisionList(this,this.x,this.y,Crate);
+                this.targetCrate.x = saveX;
+
+                this.destroyTarget = IM.instanceNearestPoint(this.x,this.y,...instances);
+                if(this.destroyTarget) {
+                    this.destroyTimer=0;
+                    this.destroyTarget.getSprite().tint = 0;
+                }
+            }
+
+        } else {
+            var inst = IM.instancePosition(IN.getMouseX(),IN.getMouseY(),Crate);
+            if(this.lastInst) {
+                this.lastInst.getSprite().filters = [];
+            }
+            if(inst) {
+                this.lastInst = inst;
+                inst.getSprite().filters = [this.glowFilter]
+                inst.depth = --this.depthIndex;
+            }
         }
 
+        this.destroyTimer++;
         
     }
 
@@ -179,6 +214,11 @@ class CrateMinigameController extends MinigameController {
         super.draw(gui,camera);
         $engine.requestRenderOnCameraGUI(this.lampSprite);
 
+        if(this.destroyTarget) {
+            camera.moveTo(this.x,this.y)
+            camera.lineStyle(4,0xff0000);
+            camera.lineTo(this.destroyTarget.x+this.sizeX/2,this.destroyTarget.y+this.sizeY/2);
+        }
     }
 
 }
@@ -199,7 +239,8 @@ class Crate extends EngineInstance {
 
     step() {
         if(IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)) {
-            CrateMinigameController.getInstance().endMinigame(this.marked);
+            if(!CrateMinigameController.getInstance().hasCheated() || this.marked) // if they cheat, don't let them accidently click a wrong crate
+                CrateMinigameController.getInstance().endMinigame(this.marked);
         }
     }
 

@@ -716,12 +716,12 @@ class MinigameController extends EngineInstance {
 
     setControls(keyboard, mouse) {
         if(keyboard && mouse) {
-            this.keyIcon.x = $engine.getWindowSizeX()/2-64-this.keyIcon.width/2;
-            this.mouseIcon.x = $engine.getWindowSizeX()/2+64-this.mouseIcon.width/2;
+            this.keyIcon.x = $engine.getWindowSizeX()/2-64;
+            this.mouseIcon.x = $engine.getWindowSizeX()/2+64;
         } else if(keyboard) {
-            this.keyIcon.x = $engine.getWindowSizeX()/2-this.keyIcon.width/2;
+            this.keyIcon.x = $engine.getWindowSizeX()/2;
         } else if(mouse) {
-            this.mouseIcon.x = $engine.getWindowSizeX()/2-this.mouseIcon.width/2;
+            this.mouseIcon.x = $engine.getWindowSizeX()/2;
         }
 
 

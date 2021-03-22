@@ -133,6 +133,7 @@ class SkyBuildPlayer extends EngineInstance {
         this.lastX = 0;
         this.lastDir = 0;
         this.fallPlayed = false;
+        this.targetXDiff = 0;
         for(var i =0;i<1000;i++) {
             this.registerInterpolationVariable("x","xInterp");
             this.registerInterpolationVariable("y","yInterp");
@@ -141,8 +142,7 @@ class SkyBuildPlayer extends EngineInstance {
 
     swingMove() {
         var controller = SkyMinigameController.getInstance();
-        var val = controller.hasCheated() ? 0.5 : 1;
-        var sin = Math.sin($engine.getGameTimer()/EngineUtils.clamp(32-SkyMinigameController.score * val,3.5,32) + this.randomOffset);
+        var sin = Math.sin($engine.getGameTimer()/EngineUtils.clamp(32-SkyMinigameController.score,3.5,32) + this.randomOffset);
         this.angle = -sin/2;
         var angle2 = Math.PI*3/2+sin/2;
         this.lastX=this.x;
@@ -186,7 +186,11 @@ class SkyBuildPlayer extends EngineInstance {
             } else {
                 var fac = this.shakeTimer/this.shakeTime; // % way through shake.
                 this.angle = EngineUtils.interpolate(fac,this.dropAngle,0,EngineUtils.INTERPOLATE_OUT) + EngineUtils.randomRange(-0.125,0.125)*(1-fac);
-                this.x = this.dropX + EngineUtils.randomRange(-18,18) * (1-fac)
+                var offset = 0;
+                if(SkyMinigameController.getInstance().hasCheated()) {
+                    offset = EngineUtils.interpolate(fac,0,this.targetXDiff, EngineUtils.INTERPOLATE_OUT_QUAD)
+                }
+                this.x = this.dropX + EngineUtils.randomRange(-18,18) * (1-fac) + offset;
                 this.y = this.dropY + EngineUtils.randomRange(-18,18) * (1-fac)
                 this.shakeTimer++;
             }
@@ -201,6 +205,7 @@ class SkyBuildPlayer extends EngineInstance {
             this.dropAngle = this.angle
             SkyMinigameController.getInstance().getTimer().pauseTimer();
             $engine.audioPlaySound("sky_wobble");
+            this.targetXDiff = EngineUtils.clamp(this.nextnext.x-this.x,-40,40);
         }
 
 

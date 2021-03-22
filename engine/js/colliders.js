@@ -91,12 +91,12 @@ class Hitbox { // container for actual hitboxes
     }
 
     distanceToHitboxSq(hitbox) {
-        var hb = hitbox.getHitbox();
-        return this.getHitbox().__distanceToHitboxSq(hb);
+        var hb = hitbox.getPolygonHitbox();
+        return this.getPolygonHitbox().distanceToHitboxSq(hb);
     }
 
     distanceToPointSq(x,y) {
-        return this.getHitbox().__distanceToPointSq(x,y);
+        return this.getPolygonHitbox().distanceToPointSq(new EngineLightweightPoint(x,y));
     }
 
     doCollision(hitbox, x,y) { // does collision directly, ignores bounding box
@@ -256,19 +256,19 @@ class BaseHitbox {
     }
 
     __getBoundingBox() {
-        throw new Error("CBB Not implemented");
+        throw new Error("Get bounding box Not implemented");
     }
 
     __validate(hitboxContainer) {
-        throw new Error("V Not implemented");
+        throw new Error("Validate Not implemented");
     }
 
-    __distanceToHitboxSq(hitbox) {
-        throw new Error("DTHS Not implemented");
+    distanceToHitboxSq(hitbox) {
+        throw new Error("Distance to hitbox squared Not implemented");
     }
 
-    __distanceToPointSq(x,y) {
-        throw new Error("DTPS Not implemented");
+    distanceToPointSq(x,y) {
+        throw new Error("Distance to point squared Not implemented");
     }
 
     getParent() {
@@ -388,7 +388,7 @@ class PolygonHitbox extends BaseHitbox{
         for(var i =0;i<otherLen;i++)
             for(var k = 0;k<ourLen;k++)
                 min = Math.min(min,EngineUtils.distanceToLineSq(this.__getAbsolutePoint(k),otherPoly.__getAbsolutePoint(i),otherPoly.__getAbsolutePoint((i+1)%otherLen)));
-        return Math.sqrt(min);
+        return min;
     }
 
     distanceToPointSq(v1) {
@@ -396,9 +396,9 @@ class PolygonHitbox extends BaseHitbox{
         var len = this.__getNumPoints();
         var min = 999999999;
         for(var i =0;i<len;i++) {
-            min = Math.min(min,EngineUtils.distanceToLineSq(v1,this.__getAbsolutePoint(i),this.__getAbsolutePoint((i+1)%ourLen)))
+            min = Math.min(min,EngineUtils.distanceToLineSq(v1,this.__getAbsolutePoint(i),this.__getAbsolutePoint((i+1)%len)))
         }
-        return Math.sqrt(min);
+        return min;
 
     }
 

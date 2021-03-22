@@ -6,12 +6,9 @@ class MenuIntroController extends EngineInstance {
 
         // please never do this in actual minigame code -- hook into minigamecontroller
         MinigameController.controller = this;
-
-        this.frames = 0;
         this.startTime = window.performance.now(); // overwritten later...
 
         this.perfTime = 0;
-        this.framesSampled = 0;
 
         this.renderedFrames = 0;
 
@@ -119,14 +116,13 @@ class MenuIntroController extends EngineInstance {
 
     // low perforance check. basically a couple sprites to the screen to make the GPU have a stroke.
     sample() {
-        for(var k =0;k<5;k++) {
+        for(var k =0;k<10;k++) {
             $engine.getRenderer().render(this.brush,this.renderTexture,false,null,false);
         }
     }
 
     testPerformance() {
         this.perfTime = window.performance.now() - this.perfTime;
-        console.log(this.perfTime);
     }
 
     nextFrame() {
@@ -299,14 +295,10 @@ class MenuIntroController extends EngineInstance {
     }
 
     onRoomEnd() {
-        var time = window.performance.now();
-        var diff = time - this.startTime - this.timeCorrection;
-        var frameTime = diff/this.frames;
-        console.log(frameTime)
-        if(frameTime >= 17.25) {
+        if(this.perfTime > 550) {
             if(!$engine.isLow()) {
                 console.warn("It looks like you're playing on a low spec system... The game will automatically lower render quality to account for this.")
-                console.warn("Average frame time: "+String(frameTime)+"ms")
+                console.warn("Test render took "+String(this.perfTime)+" ms...");
             }
             $engine.setLowPerformanceMode(true)
         }

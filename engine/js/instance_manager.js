@@ -142,7 +142,7 @@ class IM {
         if(IM.__cleanupList.length!==0) { // don't waste CPU if there's nothing to update...
             IM.__objects=IM.__objects.filter(x=>x.__alive);
             //IM.__objectsSorted=IM.__objectsSorted.filter(x=>x.__alive);
-            for(var i =1;i<=IM.__numRegisteredClasses;i++) { // only filter lists that were changed
+            for(var i =1;i<=IM.__numRegisteredClasses+1;i++) { // only filter lists that were changed
                 if(IM.__alteredLists[i])
                     IM.__accessMap[i] = IM.__accessMap[i].filter(x => x.__alive)
                 IM.__alteredLists[i] = false;

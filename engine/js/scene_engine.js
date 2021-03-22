@@ -2692,7 +2692,7 @@ class OwO {
     }
 
     static __defaultUpdateFunc(filter, event) {
-        var dist = 4;
+        var dist = 5;
         var strength = 4;
         var newStrength = EngineUtils.interpolate((dist-EngineUtils.clamp(OwO.distanceToPlayer(event),0,dist))/dist,0,strength,EngineUtils.INTERPOLATE_OUT);
         var correction = Math.sin(OwO.getGameTimer()/18)*0.25 + 0.75; // between 0.5 and 1
