@@ -168,7 +168,7 @@ class UmbrellaPlayer extends InstanceMover {
     onEngineCreate() {
         super.onEngineCreate();
         this.dx=0;
-        this.hitbox = new Hitbox(this, new RectangleHitbox(this,-42,-400,42,0))
+        this.hitbox = new Hitbox(this, new RectangleHitbox(this,-64,-364,64,-128))
         this.maxVelocity=14;
         this.turnLagStop=5;
         this.turnLag=1;
