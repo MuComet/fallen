@@ -68,7 +68,8 @@ class MinigameTimer extends EngineInstance {
      * Registers a function with this timer that will be called when the timer is stopped for any reason.
      * 
      * @param {EngineInstance} par The parent instance for variable access reasons
-     * @param {Function} f The function to call, with the first argument being par and the second being whether or not the timer expired (true) or if it was forced to stop by stopTimer() (false)
+     * @param {Function} f The function to call, with the first argument being par and the second being whether or not the timer 
+     *                      expired (true) or if it was forced to stop by stopTimer() (false)
      */
     addOnTimerStopped(par, f) {
         this.onTimerUp.push({parent:par, func:f});
@@ -339,6 +340,24 @@ class MinigameController extends EngineInstance {
         this.pressAnyKeyToContinue.anchor.x = 0.5;
         this.pressAnyKeyToContinue.anchor.y = 1;
 
+        this.cheatTooltipGraphicsMask = $engine.createManagedRenderable(this,new PIXI.Graphics());
+        this.cheatTooltipGraphicsMask.y = $engine.getWindowSizeY()*3/4;
+
+        this.cheatTooltip = $engine.createManagedRenderable(this, new PIXI.Text("",$engine.getDefaultTextStyle()));
+        this.cheatTooltip.anchor.x = 0.5;
+        this.cheatTooltip.anchor.y = 0.5;
+        this.cheatTooltip.x = $engine.getWindowSizeX()/2;
+        this.cheatTooltip.y = $engine.getWindowSizeY()*3/4;
+
+        this.setCheatTooltip("PLEASE SET THE CHEAT TOOLTIP!")
+
+        this.cheatTooltip.mask = this.cheatTooltipGraphicsMask
+
+        this.lossReason = $engine.createManagedRenderable(this, new PIXI.Text("PLEASE SET LOSS REASON",$engine.getDefaultTextStyle()));
+        this.lossReason.anchor.x = 0.5;
+        this.lossReason.x = $engine.getWindowSizeX()/2;
+        this.lossReason.y = -128;
+
         this.pressAnyKeyToContinueTimer = 0;
 
         this.keyIcon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_key_icon")));
@@ -477,6 +496,13 @@ class MinigameController extends EngineInstance {
         this._timer.setTextMode();
     }
 
+    /**
+     * Starts the game end sequence if applicable. This method does nothing in terms of actually setting off
+     * listeners, it is only a way for the timer to communicate with the controller.
+     * 
+     * @param {MinigameController} self The minigameController
+     * @param {Boolean} expired Whether or not the timer expiered naturally
+     */
     _onMinigameEnd(self, expired) {
         if(this.roundMode) {
             if(this.rounds < this.maxRounds) {
@@ -495,6 +521,10 @@ class MinigameController extends EngineInstance {
         
     }
 
+    /**
+     * Executes the minigame over sequence. Sets write back values, starts music, and fires listeners.
+     * @param {Boolean} won Whether or not you won the minigame
+     */
     _onMinigameEndNoTimer(won) {
         if(this.failedMinigame || this.wonMinigame)
             return;
@@ -533,6 +563,18 @@ class MinigameController extends EngineInstance {
 
     getTimer() {
         return this._timer;
+    }
+
+    setCheatTooltip(tooltip) {
+        this.cheatTooltip.text = tooltip;
+        this.cheatTooltipGraphicsMask.clear();
+        this.cheatTooltipGraphicsMask.beginFill(0xffffff);
+        this.cheatTooltipGraphicsMask.drawRect(-this.cheatTooltip.width,-64,this.cheatTooltip.width,128)
+        this.cheatTooltipGraphicsMask.endFill();
+    }
+
+    setLossReason(reason) {
+        this.lossReason.text = reason;
     }
 
     /**
@@ -624,8 +666,7 @@ class MinigameController extends EngineInstance {
                 }
                 
                 // we have to specify this afterwards so the sound will start at 0
-                snd._source.loopStart = 6;
-                snd._source.loopEnd = 22;
+                $engine.audioSetLoopPoints(snd,6,22);
             }
             this.gameStoppedFrameTimer++;
         }
@@ -638,6 +679,12 @@ class MinigameController extends EngineInstance {
         var facY = EngineUtils.interpolate(fac/2,0,1,EngineUtils.INTERPOLATE_IN_ELASTIC);
         graphic.scale.x = facX;
         graphic.scale.y = facY;
+
+        if(!this.wonMinigame) {
+            var fac2 = (frame-45)/45;
+            var lossReasonY = EngineUtils.interpolate(fac2,$engine.getWindowSizeY(),$engine.getWindowSizeY()*3/4,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+            this.lossReason.y = lossReasonY;
+        }
 
         
         if(frame === 90) {
@@ -740,6 +787,7 @@ class MinigameController extends EngineInstance {
 
         if(this.showingResult) {
             $engine.requestRenderOnGUI(this._getResultRenderable())
+            $engine.requestRenderOnGUI(this.lossReason);
         }
         if(this.showingResult || this.pressAnyKeyToContinueTimer>0) {
             $engine.requestRenderOnGUI(this.pressAnyKeyToContinue)
@@ -828,6 +876,13 @@ class MinigameController extends EngineInstance {
         });
     }
 
+    /**
+     * Adds a listener to be called when the minigame starts. The start point of the minigame is when
+     * the user closes the instructions dialog and it completely fades out.
+     * 
+     * @param {EngineInstance} parent The calling instance
+     * @param {Function} callback The callback to exectue
+     */
     addOnGameStartCallback(parent,callback) {
         this.onGameStartCallbacks.push({
             func:callback,
@@ -835,6 +890,13 @@ class MinigameController extends EngineInstance {
         });
     }
 
+    /**
+     * Adds a listener to be called when the minigame is ended for any reason. This includes a timer up
+     * and a manual call to end the minigame
+     * 
+     * @param {EngineInstance} parent The calling instance
+     * @param {Function} callback The callback to exectue
+     */
     addOnGameEndCallback(parent,callback) {
         this.onGameEndCallbacks.push({
             func:callback,
@@ -942,6 +1004,7 @@ class MinigameController extends EngineInstance {
 
         this.blurFilter.blur = (1-fac) * this.blurFilterStrength
 
+        // handle scale / rotation / blur of cheat
         if(this.cheatTimer < this.cheatTimerLength-fadeTime) {
             this.blurFilterCheat.blur = 0
             var scaleFac = EngineUtils.interpolate(this.cheatTimer/fadeTime,0,1,EngineUtils.INTERPOLATE_OUT_BACK);
@@ -957,12 +1020,28 @@ class MinigameController extends EngineInstance {
             this.blurFilterCheat.blur = fac * this.blurFilterStrength
         }
         this.cheatImage.rotation = Math.sin($engine.getGlobalTimer()/16)/48
+        this.cheatTooltip.rotation = Math.sin($engine.getGlobalTimer()/16)/48
+
+        // draw the tooltip;
+        if(this.cheatTimer > 20) {
+            var width = this.cheatTooltip.width;
+            var xStart = $engine.getWindowSizeX()/2-width/2;
+            var xEnd = xStart + width;
+            var textFac = EngineUtils.interpolate((this.cheatTimer-20)/60,xStart,xEnd,EngineUtils.INTERPOLATE_SMOOTH_EXPONENTIAL);
+            this.cheatTooltipGraphicsMask.x = textFac
+        }
+        this.cheatTooltip.scale.y = Math.cos($engine.getGlobalTimer()/13)/32+1
+        this.cheatTooltip.scale.x = Math.sin($engine.getGlobalTimer()/11)/32+1-1/32
+
         if(this.cheatTimer===this.cheatTimerLength) {
             this.showingCheat=false;
             if(!$engine.isLow())
                 $engine.getCamera().removeFilter(this.blurFilter);
             $engine.unpauseGame();
         }
+
+
+        // handle volume
         var len = (this.cheatTimerLength+60)
         var fac2 = EngineUtils.interpolate(Math.abs((this.cheatTimer / (len/2))-1),0.075,1,EngineUtils.INTERPOLATE_IN)
         var fac = EngineUtils.interpolate(this.cheatTimer / len,0,1,EngineUtils.INTERPOLATE_SMOOTH);
@@ -1020,6 +1099,8 @@ class MinigameController extends EngineInstance {
         this.cheatImage.anchor.y = 0.5;
         this.cheatContainer.removeChildren();
         this.cheatContainer.addChild(renderable);
+        this.cheatContainer.addChild(this.cheatTooltip);
+        this.cheatContainer.addChild(this.cheatTooltipGraphicsMask);
         $engine.createManagedRenderable(this,renderable);
     }
 

@@ -23,6 +23,8 @@ class WallBuilderController extends MinigameController {
         var text = new PIXI.Text("Press the keys displayed on the tile\nlay down block with correct keys\nKeys can only be one of DFJK\nbe fast and accurate\nwrong keys cause delay\n\nPress Enter to cheat!",$engine.getDefaultTextStyle())
         this.setInstructionRenderable(text);
         this.setControls(true,false);
+        this.setCheatTooltip("Two helping hands!");
+        this.setLossReason("fdfkjdjdfkjkjdjfkjdf.") // only one way to lose
 
         this.graphicsLocationX = $engine.getWindowSizeX()/2;
         this.graphicsLocationY = 128;
@@ -39,6 +41,7 @@ class WallBuilderController extends MinigameController {
         this.letterText.anchor.set(0.5,0.5);
         this.letterText.x = this.graphicsLocationX;
         this.letterText.y = this.graphicsLocationY;
+
 
         this.flipTimer = 0;
         this.flipTime = 20;

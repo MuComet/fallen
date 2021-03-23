@@ -19,6 +19,8 @@ $__engineData.loadRoom = "MenuIntro";
 $__engineData.__lowPerformanceMode = false;
 $__engineData.__overrideRoom = undefined;
 $__engineData.__readyOverride = true;
+$__engineData.__shouldAutoSave = true;
+
 
 
 // things to unbork:
@@ -33,6 +35,8 @@ $__engineData.__debugPreventReturn = false;
 $__engineData.__debugLogFrameTime = false;
 $__engineData.__debugRequireAllTextures = false;
 $__engineData.__debugRequireAllSounds = false;
+$__engineData.__debugDrawAllHitboxes = false;
+$__engineData.__debugDrawAllBoundingBoxes = false;
 
 /** @type {Object} */
 var $__engineSaveData = {}; // this data is automatically read and written by RPG maker when you load a save.
@@ -697,6 +701,35 @@ class Scene_Engine extends Scene_Base {
         return $__engineData.__lowPerformanceMode;
     }
 
+    /**
+     * Saves the game into the RPG maker save. If the save fails, a notification will be displayed.
+     */
+    saveGame() {
+        $gameSystem.onBeforeSave();
+        if (DataManager.saveGame(1)) {
+            StorageManager.cleanBackup(1);
+        } else {
+            OwO.addTooltip("Warn: Autosave failed...")
+        }
+    }
+
+    /**
+     * Prevents the engine from automatically saving the game after exiting.
+     * 
+     * The autosave flag is reset between every engine run, so you must call this
+     * every time you want the engine to not save.
+     */
+    disableAutoSave() {
+        $__engineData.__shouldAutoSave = false;
+    }
+
+    /**
+     * Deletes the RPG maker save associated with the current save slot.
+     */
+    deleteSave() {
+
+    }
+
     __getPauseMode() {
         return this.__pauseMode;
     }
@@ -787,6 +820,10 @@ class Scene_Engine extends Scene_Base {
         this.__writeBack();
         this.__resumeAudio();
         this.setBackgroundColour(0);
+        if($__engineData.__shouldAutoSave)
+            this.saveGame(); // save the game
+
+        $__engineData.__shouldAutoSave=true;
         $__engineData.__haltAndReturn=false;
     }
 
@@ -1199,6 +1236,24 @@ class Scene_Engine extends Scene_Base {
                 }
                 return d
             })
+
+            var cameraGraphics = this.getCamera().getCameraGraphics();
+
+            if($__engineData.__debugDrawAllHitboxes) {
+                for(const inst of IM.__objects) {
+                    if(inst.hitbox) {
+                        EngineDebugUtils.drawHitbox(cameraGraphics,inst);
+                    }
+                }
+            }
+
+            if($__engineData.__debugDrawAllBoundingBoxes) {
+                for(const inst of IM.__objects) {
+                    if(inst.hitbox) {
+                        EngineDebugUtils.drawBoundingBox(cameraGraphics,inst);
+                    }
+                }
+            }
         }
     }
 
@@ -2392,7 +2447,7 @@ class OwO {
         var hud = OwO.getHud();
         if(!hud)
             return undefined;
-        return hud.children[3];
+        return hud.children[2];
     }
 
     static __addUpdateFunction(_func, _filter, _event) {
