@@ -121,3 +121,7 @@ arrow_left engine/textures/water/arrow_left.png 0 0
 arrow_up engine/textures/water/arrow_up.png 0 0
 arrow_right engine/textures/water/arrow_right.png 0 0
 
+green_puyo engine/textures/puyo/green_puyo.png 0.5 0.5
+blue_puyo engine/textures/puyo/blue_puyo.png 0.5 0.5
+red_puyo engine/textures/puyo/red_puyo.png 0.5 0.5
+yellow_puyo engine/textures/puyo/yellow_puyo.png 0.5 0.5
