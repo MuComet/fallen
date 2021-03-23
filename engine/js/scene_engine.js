@@ -41,6 +41,7 @@ $__engineData.__debugDrawAllBoundingBoxes = false;
 /** @type {Object} */
 var $__engineSaveData = {}; // this data is automatically read and written by RPG maker when you load a save.
 
+$__engineSaveData.__lastHealthLossWasZero = false;
 $__engineSaveData.__mapData={};
 
 const ENGINE_RETURN = {};
@@ -724,10 +725,15 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
-     * Deletes the RPG maker save associated with the current save slot.
+     * Deletes ALL rpg maker saves assocaited with Fallen
      */
     deleteSave() {
-
+        var info = DataManager.loadGlobalInfo();
+        for(var i =0;i<info.length;i++) {
+            if(info[i] && info[i].title === "Fallen")
+                info[i] = null;
+        }
+        DataManager.saveGlobalInfo(info);
     }
 
     __getPauseMode() {
@@ -1546,7 +1552,6 @@ __readTextures = function(texture_file,obj) { // already sync
 
         // parse the textObjs
         var required = [];
-        var other = [];
         for(const texObj of texData) {
             __parseTextureObject(texObj)
             if(__queryTextureObject(texObj,"require") || $__engineData.__debugRequireAllTextures) {
@@ -1601,8 +1606,10 @@ __loadTexture = function(obj, texObj, update) {
                 throw new Error("Texture "+tex+" cannot be found! make sure the texture is referenced before the animation")
             frames.push(frameTexture);
         }
-
         $__engineData.__textureAnimationCache[texObj.texName]=frames;
+        obj.textures++;
+        obj.total++;
+        update();
 
     } else {
         obj.textures++;
@@ -1757,6 +1764,11 @@ Scene_Boot.prototype.start = function() { // hijack the boot routine
         Window_TitleCommand.initCommandPosition();
     }
     this.updateDocumentTitle();
+};
+
+Scene_Gameover.prototype.gotoTitle = function() {
+    $__engineData.loadRoom="MenuIntro";
+    SceneManager.goto(Scene_Engine);
 };
 
 Scene_Boot.prototype.create = function() { // defer loading of the engine until as late as possible so that RPG maker calls are evaluated first.
@@ -2167,18 +2179,26 @@ class OwO {
 
     static __listenForHP() {
         $gameParty.leader().setHp = function(hp) {
+            var oldHp = this._hp;
             this._hp = hp;
             this.refresh();
-            OwO.__updateHP();
+            OwO.__updateHP(oldHp);
         };
     }
 
-    // re-evaluates the current HP and firest the HP changed listener.
-    static __updateHP() {
-        OwO.__notifyHPChanged($gameParty.leader().hp);
+    static __changeHpNoListener(newHp) {
+        OwO.__ignoreHpChanges = true;
+        $gameParty.leader().setHp(newHp);
+        OwO.__ignoreHpChanges = false;
     }
 
-    static __notifyHPChanged(newHealth) {
+    // re-evaluates the current HP and firest the HP changed listener.
+    static __updateHP(lastHp) {
+        if(!OwO.__ignoreHpChanges)
+            OwO.__notifyHPChanged(lastHp, $gameParty.leader().hp);
+    }
+
+    static __notifyHPChanged(oldHealth, newHealth) {
         var colFilter = OwO.getColourFilter()
         var zoomFilter = OwO.getZoomBlurFilter()
         if(newHealth<50) {
@@ -2192,7 +2212,28 @@ class OwO {
             colFilter.blue = 1;
             zoomFilter.strength = 0;
         }
+
+        var wentDown = newHealth <= oldHealth;
+
+        // i hate this logic. if you hit zero twice in a row, you die.
+        if(wentDown) {
+            if(newHealth===0) {
+                if($__engineData.__lastHealthLossWasZero) {
+                    OwO.__gameLoss();
+                } else {
+                    $__engineData.__lastHealthLossWasZero = true;
+                    OwO.__changeHpNoListener(1);
+                }
+            } else {
+                $__engineData.__lastHealthLossWasZero = false;
+            }
+        }
         colFilter.saturation = EngineUtils.interpolate(newHealth/100,0,1,EngineUtils.INTERPOLATE_OUT_QUAD)
+    }
+
+    static __gameLoss() {
+        $engine.deleteSave(); // hehe so long save
+        SceneManager.goto(Scene_Gameover)
     }
 
     static __getPlayerHP() {
@@ -2777,6 +2818,7 @@ OwO.__zoomBlurFilter.strength = 0;
 OwO.__zoomBlurFilter.innerRadius = 300;
 OwO.__gameFilters = [OwO.__colourFilter,OwO.__zoomBlurFilter];
 OwO.__timeOfDayIndex = 11;
+OwO.__ignoreHpChanges = false;
 OwO.__init();
 
 OwO.__hudRedGlowFilter.color = 0xff0000;

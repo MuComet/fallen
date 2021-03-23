@@ -571,7 +571,7 @@ class CutsceneController extends EngineInstance {
                 fac = EngineUtils.interpolate((this.frameLength[this.currentFrame]-this.timer)/this.transitionTime,1,0,EngineUtils.INTERPOLATE_OUT);
             if(fac!==0) {
                 gui.beginFill(0xffffff,fac);
-                gui.drawRect(-64,-64,$engine.getWindowSizeX()+64,$engine.getWindowSizeY()+64)
+                gui.drawRect(-64,-64,$engine.getWindowSizeX()+196,$engine.getWindowSizeY()+64)
                 gui.endFill();
             }
         }
@@ -579,10 +579,10 @@ class CutsceneController extends EngineInstance {
         gui.beginFill(0);
         if(this.out) {
             gui.drawRect(-64,$engine.getWindowSizeY() + EngineUtils.interpolate(this.wipeTimer/this.transitionTime,0,-$engine.getWindowSizeY()-16,EngineUtils.INTERPOLATE_OUT),
-                        $engine.getWindowSizeX()+64,$engine.getWindowSizeY()+16)
+                        $engine.getWindowSizeX()+196,$engine.getWindowSizeY()+16)
         } else {
             gui.drawRect(-64,EngineUtils.interpolate(this.wipeTimer/this.transitionTime,0,-$engine.getWindowSizeY()-64,EngineUtils.INTERPOLATE_IN)-16,
-                        $engine.getWindowSizeX()+64,$engine.getWindowSizeY()+16)
+                        $engine.getWindowSizeX()+196,$engine.getWindowSizeY()+16)
         }
         gui.endFill();
 

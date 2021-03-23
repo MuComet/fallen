@@ -48,8 +48,7 @@ minigame_keyboard_graphic engine/textures/minigames/minigame_icon_start2.png 0.5
 
 arrow engine/textures/generic/arrow.png 0 0.5
 
-man engine/textures/man.png 0.5 1
-raindrop engine/textures/rain_drop.png 0 0.5
+raindrop engine/textures/umbrella/rain_drop.png 0 0.5
 umbrella engine/textures/umbrella/umbrella.png 0.5 0.5
 spritesheet dimensions 2400 619 4 1 animate eson_walk_cat 4 1 2 3 2 eson_walk_cat engine/textures/umbrella/eson_walk_cat.png 0.5 1
 
@@ -73,7 +72,7 @@ falling_object_shadow engine/textures/falling_object/shadow.png 0.5 0.5
 
 wall_building_brick_1 engine/textures/wall/brick.png 0.5 1
 letter_backdrop engine/textures/wall/board.png 0.5 0.5
-wall_building_grit engine/textures/grit.png 0.5 0.5
+wall_building_grit engine/textures/wall/grit.png 0.5 0.5
 
 bar_standard engine/textures/bars/bar.png  0.5 1
 bar_standard_top engine/textures/bars/bar_top.png 0.5 0

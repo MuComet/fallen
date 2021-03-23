@@ -17,8 +17,14 @@ class IN {
                 if(e.key!==e.code) // also allow the programmer to state the meaning of a key
                     IN.__pressedKeysCarry.push(e.key)
 
+                var rpgKey =  Input.keyMapper[e.keyCode];
+                if(rpgKey) {
+                    rpgKey = "RPG"+rpgKey
+                    IN.__pressedKeysCarry.push(rpgKey);
+                }
+
                 if(IN.__debugRecordKeyPress) 
-                    console.log(e.code," :: ", e.key);
+                    console.log(e.code," :: ", e.key, "::", rpgKey);
             }
             e.__handled = true;
         });
@@ -30,6 +36,9 @@ class IN {
             IN.__releasedKeysCarry.push(e.code);
             if(e.key!==e.code)
                 IN.__releasedKeysCarry.push(e.key)
+            var rpgKey =  Input.keyMapper[e.keyCode];
+            if(rpgKey)
+                IN.__releasedKeysCarry.push("RPG"+rpgKey);
             e.__handled = true;
         });
 

@@ -35,7 +35,7 @@ class Room {
         var data = this.__extern[name];
         if(data===undefined) 
             throw new Error("External data " + name + " not found")
-        return data;
+        return [...data];
     }
 
     __putExtern(name, data) {
