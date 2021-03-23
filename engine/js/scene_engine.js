@@ -103,6 +103,7 @@ class Scene_Engine extends Scene_Base {
         this.__instanceCreationSpecial = {}; // it doesn't matter what this is so long as it's an object.
         this.__timescale = 1;
         this.__timescaleFraction = 0;
+        this.__ceilTimescale = false;
         this.__sounds = [];
 
         this.__RPGVariableTags = [];
@@ -205,6 +206,18 @@ class Scene_Engine extends Scene_Base {
         this.__timescale=scale;
         if(scale===1)
             this.resetTimescale();
+        if(scale===0 && this.__ceilTimescale)
+            this.__timescaleFraction=0.9999; // force full interp.
+    }
+
+    /**
+     * If set to true, the engine will round the timescale fraction up to 1 when
+     * the game is stopped completely.
+     * 
+     * @param {Boolean} bool Whether or not to clip timescale
+     */
+    setCeilTimescale(bool) {
+        this.__ceilTimescale = bool;
     }
 
     resetTimescale() {
@@ -858,6 +871,9 @@ class Scene_Engine extends Scene_Base {
 
         var simulatedOnce = this.__timescaleFraction-1>=0;
 
+        if(!simulatedOnce && this.__timescale===0) // timescale aligned, unless timescale is zero
+            IN.__update();
+
         while(this.__timescaleFraction-1>=0) {
             this.__timescaleFraction--;
 
@@ -881,9 +897,9 @@ class Scene_Engine extends Scene_Base {
             IM.__timescaleImmuneStep();
         }
 
-        if(!simulatedOnce) {
+        if(!simulatedOnce) { // some actions are called exactly once per frame no matter what.
+            IM.__interpolate();
             IM.__draw();
-            IN.__update();
         }
 
         this.__prepareRenderToCameras();

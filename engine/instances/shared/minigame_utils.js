@@ -46,6 +46,13 @@ class BufferedKeyInput extends EngineInstance {
 
 
 }
+/**
+ * Buffers a mouse input for the specified amount of frames
+ * 
+ * usage:
+ * 
+ * new BufferedMouseInput(button, frames)
+ */
 class BufferedMouseInput extends BufferedKeyInput {
     step() {
         this.timer++;

@@ -311,7 +311,7 @@ class MinigameController extends EngineInstance {
         this.gameStoppedFrameTimer = 0;
         this.winLossTimer = 0;
 
-        this.continueGameOverSequence = false;
+        this._continueGameOverSequence = false;
 
         this.usingPreGameAmbience = true;
 
@@ -385,7 +385,7 @@ class MinigameController extends EngineInstance {
         this.musicStandard = undefined;
         this.musicCheat = undefined;
 
-        this.preventEndOnTimerExpire = false;
+        this._preventEndOnTimerExpire = false;
         this.roundMode = 0;
         this.currentRound = 0;
         this.maxRounds = 0;
@@ -511,7 +511,7 @@ class MinigameController extends EngineInstance {
                 this._onAllRoundsOver();
             }
         }
-        if(this.preventEndOnTimerExpire)
+        if(this._preventEndOnTimerExpire)
             return;
         if((expired && self._timer.isSurvivalMode()) || (!expired && !self._timer.isSurvivalMode())) {
             self._onMinigameEndNoTimer(true);
@@ -635,7 +635,7 @@ class MinigameController extends EngineInstance {
             if(this.stopTimer>this.stopTime)
                 this.gameStopped=true;
         } else {
-            if(!this.continueGameOverSequence) {
+            if(!this._continueGameOverSequence) {
                 this.onMinigameComplete(this.winLossTimer)
                 this.winLossTimer++;
                 return;
@@ -738,7 +738,7 @@ class MinigameController extends EngineInstance {
     }
 
     advanceGameOver() {
-        this.continueGameOverSequence = true;
+        this._continueGameOverSequence = true;
     }
 
     /**
@@ -838,7 +838,7 @@ class MinigameController extends EngineInstance {
      * The game end sequence must be manually called using minigameEnd(<won>)
      */
     setPreventEndOnTimerExpire(b) {
-        this.preventEndOnTimerExpire=b;
+        this._preventEndOnTimerExpire=b;
     }
 
     /**

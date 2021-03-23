@@ -7,54 +7,63 @@ class DrawController extends MinigameController { // controls the minigame
         this.instructiontext.y = $engine.getWindowSizeY()-80;
 
         // drawing minigame has 2 versions. the external data "version" will tell us which one we're doing.
-        this.version = RoomManager.currentRoom().getExtern("version")[0]==="1";
+        this.alternate = RoomManager.currentRoom().getExtern("version")[0]==="1";
 
+        new ParallaxingBackground("background_wall_1");
+
+        this.buffer = new BufferedMouseInput(0,30);
 
         this.currentLine = undefined;
         this.drawings = [];
-        this.drawingInd = -1;
+        this.drawingInd = 0;
         this.drawing = false;
 
+        this.totalScore=0;
+
+        var text = new PIXI.Text("Click and hold to draw\nDon't let go and follow the shape outline\nDon't draw extra lines and"
+                            +"\ndont go over the lines twice\nThere are 3 total drawings\n\nPress Enter to cheat!",$engine.getDefaultTextStyle());
+        this.setInstructionRenderable(text)
         this.setControls(false,true);
+        this.setCheatTooltip("Snap time!")
 
         this.gameOverTimer=0;
 
         this.selectDrawings();
-        this.nextDrawing();
+        this.loadFirstDrawing();
+        this.drawingInd=-1;
+        this.addOnGameStartCallback(this, function(self) {
+            self.nextDrawing(); // for SE
+            this.waitTimer = 0;
+        })
         this.waitTimer = 0;
 
-        this.timer = new MinigameTimer(60*25);
-        this.timer.addOnTimerStopped(this, function(parent, bool) {
-            if(parent.currentLine)
-                parent.currentLine.endDrawing();
-            while(!parent.done) {
-                parent.nextDrawing();
-            }
-            parent.calcWin();
-            var text = parent.win ? "Win! [Avg. score "+String(parent.ts).substring(0,4)+" > 0.750]" : "Loss :( [Avg. score "+String(parent.ts).substring(0,4)+" <= 0.750]"
-            parent.timer.setGameCompleteText(text)
-            parent.timer.setGameOverText(text)
+        this.startTimer(60*20) // 20 seconds zoom zoom zoom
+
+        this.setPreventEndOnTimerExpire(true); // take direct control using below function
+
+        this.getTimer().addOnTimerStopped(this, function(self) {
+            self.finishMinigame();
         })
 
-        var text = new PIXI.Text("Click and hold to draw\nDon't let go and follow the shape outline\nDon't draw extra lines and\ndont go over the lines twice\nThere are 3 total drawings\n\nPress Enter to cheat!",$engine.getDefaultTextStyle());
-        this.setInstructionRenderable(text)
+        $engine.setCeilTimescale(true)
+    }
 
-        this.audioReference = $engine.generateAudioReference("Minigame");
-        AudioManager.playBgm(this.audioReference);
-        AudioManager.fadeInBgm(1);
+    finishMinigame() {
+        if(this.currentLine) 
+            this.currentLine.endDrawing();
+        var won = this.calcWin()>0.75;
+        if(!won) {
+            this.setLossReason("Try following the lines next time.")
+        }
+        this.endMinigame(won);
     }
 
     calcWin() {
-        this.ts = 0;
         for(var i = 0;i<3;i++) {
-            this.ts+=this.drawings[i].score;
+            this.totalScore+=this.drawings[i].score;
         }
-        this.ts/=3;
-        this.win = false;
-        if(this.ts>0.75) {
-            this.win = true;
-            $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN);
-        }
+        this.totalScore/=3;
+        return this.totalScore;
     }
 
     onCreate() {
@@ -62,8 +71,9 @@ class DrawController extends MinigameController { // controls the minigame
     }
 
     selectDrawings() {
+        var add = this.alternate ? 6 : 0
         for(var i =0;i<3;i++) {
-            var ind = EngineUtils.irandomRange(1,3);
+            var ind = EngineUtils.irandom(1)+add+i*2;
             this.drawings.push(new ShapeToDraw(ind));
         }
     }
@@ -81,68 +91,61 @@ class DrawController extends MinigameController { // controls the minigame
         $engine.audioPlaySound("draw_start")
         $engine.audioPlaySound("draw_shake",1,true)
         this.drawings[this.drawingInd].alpha = 1;
-        this.waitTimer = -9999999;
+    }
+
+    loadFirstDrawing() {
+        this.drawings[this.drawingInd].alpha = 1;
     }
 
     step() {
         super.step();
+        if(this.minigameOver())
+            return;
 
-        if(!this.timer.isTimerDone()) {
-            this.waitTimer++;
-            if(this.waitTimer<150) {
-                if(this.waitTimer<=60) {
-                    this.instructiontext.alpha=1;
-                    this.instructiontext.text = "WAIT! " + String(60-this.waitTimer)
-                } else {
-                    this.instructiontext.text = "GO!!!!"
-                    this.instructiontext.alpha = 1-(this.waitTimer-60)/40 + Math.sin(this.waitTimer/2)/2
-                    $engine.audioStopSound("draw_shake");
-                }
+        this.waitTimer++;
+        if(this.waitTimer<150) {
+            if(this.waitTimer<=60) {
+                this.instructiontext.alpha=1;
+                this.instructiontext.text = "WAIT! " + String(60-this.waitTimer)
             } else {
-                this.instructiontext.text = "";
+                this.instructiontext.text = "GO!!!!"
+                this.instructiontext.alpha = 1-(this.waitTimer-60)/40 + Math.sin(this.waitTimer/2)/2
+                $engine.audioStopSound("draw_shake");
             }
-            if(IN.mouseCheckPressed(0) && this.waitTimer >=60) {
-                this.currentLine = new DrawableLine()
-                this.currentLine.startDrawing();
-                this.currentLine.drawing = this.drawings[this.drawingInd];
-                this.drawings[this.drawingInd].line = this.currentLine;
-                this.drawing = true;
-            }
-
-            if(IN.mouseCheckReleased(0) && this.drawing) {
-                this.currentLine.endDrawing();
-                this.currentLine.display(false);
-                //this.currentLine.distanceText.alpha = 0;
-                this.drawing = false;
-                this.nextDrawing();
-                if(this.done) {
-                    this.timer.stopTimer();
-                }
-                this.waitTimer=0;
-            }
-        
         } else {
-            this.gameOverSummary();
+            this.instructiontext.text = "";
+        }
+        if(this.waitTimer >=60 && this.buffer.consumeImmedaitely()) {
+            this.currentLine = new DrawableLine()
+            this.currentLine.startDrawing();
+            this.currentLine.drawing = this.drawings[this.drawingInd];
+            this.drawings[this.drawingInd].line = this.currentLine;
+            this.drawing = true;
+        }
+
+        if(IN.mouseCheckReleased(0) && this.drawing) {
+            this.currentLine.endDrawing();
+            this.currentLine.display(false);
+            this.drawing = false;
+            this.nextDrawing();
+            if(this.done) {
+                this.finishMinigame();
+            }
+            this.waitTimer=0;
         }
     }
 
-    gameOverSummary() {
-        this.gameOverTimer++;
+    onMinigameComplete(frames) {
         for(const draw of this.drawings) {
             draw.alpha = 0;
             if(draw.line) {
                 draw.line.display(false);
-                //draw.line.distanceText.alpha = 0;
             }
         }
-        var ind = Math.floor(this.gameOverTimer/200)
+        var ind = Math.floor(frames/120)
         if(ind>=3) {
             ind = 2;
-            this.gameOverTimer=0;
-            $engine.startFadeOut(30,false)
-            $engine.endGame();
-            $engine.pauseGame();
-            AudioManager.fadeOutBgm(1)
+            this.advanceGameOver();
         }
         var draw = this.drawings[ind];
         draw.alpha = 1;
@@ -156,7 +159,7 @@ class DrawController extends MinigameController { // controls the minigame
     }
 
     notifyFramesSkipped(frames) {
-        this.timer.tickDown(frames);
+        this.getTimer().tickDown(frames);
     }
 }
 
@@ -167,10 +170,7 @@ class DrawableLine extends EngineInstance {
         this.points = [];
         this.lastPoint = undefined;
         this.totalDist = 0;
-        //this.distanceText = $engine.createRenderable(this,new PIXI.Text('TOTAL DIST: 0', { font: 'bold italic 20px Arvo', fill: '#ffffff', align: 'center', stroke: '#aaaaaa', strokeThickness: 4 }),false);
-        //this.distanceText.anchor.x=0.5
-        //this.distanceText.x = $engine.getWindowSizeX()/2;
-        //this.distanceText.y = 80;
+        this.score=0;
         this.show = true;
     }
 
@@ -180,18 +180,17 @@ class DrawableLine extends EngineInstance {
 
     step() {
         if(this.isDrawing) {
-            var point = new Vertex(IN.getMouseX(),IN.getMouseY());
+            var point = new EngineLightweightPoint(IN.getMouseX(),IN.getMouseY());
             if(DrawController.getInstance().hasCheated()) {
                 point = this.nearestPositionOnDrawing(point)
             }
             var dist = V2D.distance(point.x,point.y,this.lastPoint.x,this.lastPoint.y)
-            if(dist>2) {// arbitrary to prevent mASSIVE overdraw
+            if(dist>3.5) {// arbitrary to prevent mASSIVE overdraw
                 this.points.push(point);
                 this.totalDist+=dist;
                 this.lastPoint=point;
             }
         }
-        //this.distanceText.text = 'TOTAL DIST: '+String(this.totalDist);
     }
 
     nearestPositionOnDrawing(point) {
@@ -217,7 +216,7 @@ class DrawableLine extends EngineInstance {
 
     startDrawing() {
         this.isDrawing=true;
-        this.points.push(new Vertex(IN.getMouseX(),IN.getMouseY()))
+        this.points.push(new EngineLightweightPoint(IN.getMouseX(),IN.getMouseY()));
         this.lastPoint = this.points[0];
         $engine.audioPlaySound("draw_spray",1,true)
     }
@@ -233,7 +232,8 @@ class DrawableLine extends EngineInstance {
             return;
         var graphics = this.drawGraphics;
         if(!$engine.isLow()) {
-            graphics.lineStyle(3+Math.abs(Math.sin($engine.getGameTimer()/60)*7),0xffffff).moveTo(this.points[0].x,this.points[0].y);
+            graphics.moveTo(this.points[0].x,this.points[0].y);
+            graphics.lineStyle(12,0x424242)
             for(var i =1;i<this.points.length-1;i++) {
                 var xc = (this.points[i].x + this.points[i + 1].x) / 2;
                 var yc = (this.points[i].y + this.points[i + 1].y) / 2;
@@ -241,7 +241,8 @@ class DrawableLine extends EngineInstance {
             }
             graphics.lineTo(this.points[this.points.length-1].x,this.points[this.points.length-1].y)
 
-            graphics.lineStyle(Math.abs(Math.sin($engine.getGameTimer()/60)*2),0xaaaaaa).moveTo(this.points[0].x,this.points[0].y);
+            graphics.moveTo(this.points[0].x,this.points[0].y);
+            graphics.lineStyle(4,0x242424)
             for(var i =1;i<this.points.length-1;i++) {
                 var xc = (this.points[i].x + this.points[i + 1].x) / 2;
                 var yc = (this.points[i].y + this.points[i + 1].y) / 2;
@@ -255,12 +256,10 @@ class DrawableLine extends EngineInstance {
             }
         }
 
-        graphics.lineStyle(0,0xffffff)
-        graphics.beginFill(0xffffff);
-        graphics.drawCircle(this.points[0].x,this.points[0].y,(3+Math.abs(Math.sin($engine.getGameTimer()/60)*7))/2)
-        graphics.drawCircle(this.points[this.points.length-1].x,this.points[this.points.length-1].y,(3+Math.abs(Math.sin($engine.getGameTimer()/60)*7))/2)
-        graphics.drawCircle(this.points[0].x,this.points[0].y,Math.abs(Math.sin($engine.getGameTimer()/60)))
-        graphics.drawCircle(this.points[this.points.length-1].x,this.points[this.points.length-1].y,Math.abs(Math.sin($engine.getGameTimer()/60)))
+        graphics.lineStyle(0,0x242424)
+        graphics.beginFill(0x242424);
+        graphics.drawCircle(this.points[0].x,this.points[0].y,5)
+        graphics.drawCircle(this.points[this.points.length-1].x,this.points[this.points.length-1].y,5)
         graphics.endFill();
     }
 }
@@ -270,11 +269,13 @@ class ShapeToDraw extends EngineInstance {
     }
 
     onCreate(index) {
-        this.setSprite(new PIXI.Sprite($engine.getTexture("drawing_minigame_"+String(index))));
+        this.setSprite(new PIXI.Sprite($engine.getTexture("drawing_objects_"+String(index))));
         this.x = $engine.getWindowSizeX()/2;
         this.y = $engine.getWindowSizeY()/2;
         this.alpha = 0;
-        this.pathData = ShapeToDraw.paths[index-1];
+        this.pathData = ShapeToDraw.paths[index];
+        this.basePenalty=0;
+        this.baseScore=0;
         this.score = 0;
         this.onEngineCreate();
     }
@@ -315,9 +316,6 @@ class ShapeToDraw extends EngineInstance {
             this.basePenalty = penalty;
             score = EngineUtils.clamp(score-penalty,0,1)
         }
-
-        console.log(score);
-
         this.score = EngineUtils.clamp(score,0,1);
 
     }
