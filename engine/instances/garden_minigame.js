@@ -33,7 +33,7 @@ class GardenMinigameController extends MinigameController {
 
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
 
-        var text = new PIXI.Text("Basically\n WORMS\nYou may lose at most 5 plants \nAND miss at most 10 worms\nPress ENTER to cheat",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("NOT DONE INSTRUCTIONS!\nBasically\n WORMS\nYou may lose at most 5 plants \nAND miss at most 10 worms\nPress ENTER to cheat",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
 
@@ -147,10 +147,10 @@ class GardenMinigameController extends MinigameController {
         if(IN.keyCheckPressed("ArrowRight") && this.x <= 90*2+200){
             this.x += 200;
         }
-        else if(IN.keyCheckPressed("ArrowLeft") && this.x > 90*2){
+        if(IN.keyCheckPressed("ArrowLeft") && this.x > 90*2){
             this.x -= 200;
         }
-        else if(IN.keyCheckPressed("ArrowDown") && this.y < $engine.getWindowSizeY()/2 +150){
+        if(IN.keyCheckPressed("ArrowDown") && this.y < $engine.getWindowSizeY()/2 +150){
             if(this.x === 90*2-100 || this.x === 90*2+100 || this.x === 90*2+300){
                 this.x += 90;
             }else{
@@ -158,7 +158,7 @@ class GardenMinigameController extends MinigameController {
             }
             this.y += 150;
         }
-        else if(IN.keyCheckPressed("ArrowUp") && this.y > $engine.getWindowSizeY()/2 -150){
+        if(IN.keyCheckPressed("ArrowUp") && this.y > $engine.getWindowSizeY()/2 -150){
             if(this.x === 90*2-100 || this.x === 90*2+100 || this.x === 90*2+300){
                 this.x += 90;
             }else{

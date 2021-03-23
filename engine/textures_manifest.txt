@@ -98,11 +98,9 @@ plant_0 engine/textures/garden/plant0.png 0.5 0.5
 plant_1 engine/textures/garden/plant1.png 0.5 0.5
 plant_2 engine/textures/garden/plant2.png 0.5 0.5
 plant_3 engine/textures/garden/plant3.png 0.5 0.5
-
 selector_cloud engine/textures/garden/selector_cloud.png 0.5 0.5
 pesticide_cloud engine/textures/garden/pesticide_cloud.png 0.5 0.5
 spritesheet dimensions 4500 624 5 1 background_garden1 engine/textures/backgrounds/background_garden2.png 0.5 0.5
-
 worm_0 engine/textures/garden/worm_0000.png 0.5 0.5
 worm_1 engine/textures/garden/worm_0001.png 0.5 0.5
 worm_2 engine/textures/garden/worm_0002.png 0.5 0.5
@@ -114,9 +112,9 @@ worm_7 engine/textures/garden/worm_0007.png 0.5 0.5
 animate worm_0 worm_1 worm_2 worm_3 worm_4 worm_5 worm_7 worm_7 worm_anim
 
 
-
-
 wall_tile engine/textures/crate/wall_tile.png 0 0
 spritesheet dimensions 192 64 3 1 crate_normal engine/textures/crate/crate_sprites_normal.png 0 0
 spritesheet dimensions 192 64 3 1 crate_marked engine/textures/crate/crate_sprites_marked.png 0 0
 lamp_mask engine/textures/crate/mask.png 0.5 0.5
+
+water engine/textures/water/water.png 0.5 0.5

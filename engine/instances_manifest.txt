@@ -25,3 +25,5 @@ PaintImageController engine/instances/paint_image_minigame.js
 
 GardenMinigameController GardenPlant GardenWorm GardenHoles engine/instances/garden_minigame.js
 CrateMinigameController Crate engine/instances/crate_minigame.js
+
+WaterMinigameController engine/instances/garden_water.js
