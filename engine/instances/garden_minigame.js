@@ -144,13 +144,13 @@ class GardenMinigameController extends MinigameController {
 
     moveSpray(){
 
-        if(IN.keyCheckPressed("ArrowRight") && this.x <= 90*2+200){
+        if(IN.keyCheckPressed("RPGright") && this.x <= 90*2+200){
             this.x += 200;
         }
-        if(IN.keyCheckPressed("ArrowLeft") && this.x > 90*2){
+        if(IN.keyCheckPressed("RPGleft") && this.x > 90*2){
             this.x -= 200;
         }
-        if(IN.keyCheckPressed("ArrowDown") && this.y < $engine.getWindowSizeY()/2 +150){
+        if(IN.keyCheckPressed("RPGdown") && this.y < $engine.getWindowSizeY()/2 +150){
             if(this.x === 90*2-100 || this.x === 90*2+100 || this.x === 90*2+300){
                 this.x += 90;
             }else{
@@ -158,7 +158,7 @@ class GardenMinigameController extends MinigameController {
             }
             this.y += 150;
         }
-        if(IN.keyCheckPressed("ArrowUp") && this.y > $engine.getWindowSizeY()/2 -150){
+        if(IN.keyCheckPressed("RPGup") && this.y > $engine.getWindowSizeY()/2 -150){
             if(this.x === 90*2-100 || this.x === 90*2+100 || this.x === 90*2+300){
                 this.x += 90;
             }else{

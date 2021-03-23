@@ -892,7 +892,7 @@ class MinigameController extends EngineInstance {
 
     /**
      * Adds a listener to be called when the minigame is ended for any reason. This includes a timer up
-     * and a manual call to end the minigame
+     * and a manual call to end the minigame. Listeners are fired no matter if the minigame was won or lost.
      * 
      * @param {EngineInstance} parent The calling instance
      * @param {Function} callback The callback to exectue
@@ -1167,14 +1167,31 @@ class ParallaxingBackground extends EngineInstance {
             func(spr);
     }
 
+    /**
+     * Sets the invert staus of the ParallaxingBackground. If it is inverted, it will
+     * make the front move the slowest and the back move the fastest. Useful to emulate rotating the camera instead
+     * of moving the camera.
+     * 
+     * @param {Boolean} invert Whether or not to invert the PB
+     */
     setInvertParallax(invert) {
         this.invertParallax=invert;
     }
 
+    /**
+     * An overridable function to change how the ParallaxingBackground gets it's x location.
+     * 
+     * @returns The dx value to use for ParallaxingBackground
+     */
     getDx() {
         return $engine.getCamera().getX();
     }
 
+    /**
+     * An overridable function to change how the ParallaxingBackground gets it's y location.
+     * 
+     * @returns The dy value to use for ParallaxingBackground
+     */
     getDy() {
         return $engine.getCamera().getY();
     }

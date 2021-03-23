@@ -13,15 +13,10 @@ class UmbrellaMinigameController extends MinigameController {
         this.setControls(true,false);
 
         this.setCheatTooltip("That's one big umbrella!")
-
-        this.fakeOutTimes = [];
-        for(var i =0;i<10;i++) { // TODO -----------------------------------------------------------------
-            this.fakeOutTimes.push(EngineUtils.irandomRange(i * 6 * 60,(i+1) * 6 * 60));
-        }
         
 
         // instructions
-        var text = new PIXI.Text("Left and Right arrow keys to move,\n don't touch the rain!\n\nPress Enter to cheat!",{fontFamily: 'GameFont',
+        var text = new PIXI.Text("Walk left and right,\n don't touch the rain!\n\nPress Enter to cheat!",{fontFamily: 'GameFont',
                         fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
         this.setInstructionRenderable(text)
 
@@ -33,19 +28,8 @@ class UmbrellaMinigameController extends MinigameController {
         bg.applyToAll(x=> x.tint = 0x95aac0);
         bg.removeIndex(1) // delete the clouds
 
-        this.timer = new MinigameTimer(60*60);
-        this.timer.addOnTimerStopped(this,function(parent,expired) {
-            if(!expired)
-                $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS)
-            else   
-                $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN)
-
-            /*AudioManager.fadeOutBgm(1)
-            $engine.startFadeOut(30,false)
-            $engine.endGame();
-            $engine.pauseGame();*/
-        })
-        this.timer.setSurvivalMode();
+        this.startTimer(60*60);
+        this.getTimer().setSurvivalMode();
         $engine.setBackgroundColour(0x080820)
 
         $engine.physicsEnable();
@@ -100,15 +84,11 @@ class UmbrellaMinigameController extends MinigameController {
     }
 
     decrementScore() {
-        if(this.timer.isTimerDone())
+        if(this.minigameOver())
             return;
         this.score--;
         if(this.score<=0) {
             this.score = 0;
-            //if(!this.timer.isTimerDone())
-            //    this.timer.stopTimer();
-            this.timer.removeAllOnTimerStopped();
-            this.timer.preventExpire();
             this.setLossReason("You got hit by too many raindrops...")
             this.endMinigame(false);
         }
@@ -202,10 +182,10 @@ class UmbrellaPlayer extends InstanceMover {
         this.hasBeenHurt=false;
         super.step();
         var accel = [0,0]
-        if(IN.keyCheck('ArrowRight')) {
+        if(IN.keyCheck("RPGright")) {
             accel[0]+=1.6;
         }
-        if(IN.keyCheck('ArrowLeft')) {
+        if(IN.keyCheck("RPGleft")) {
             accel[0]-=1.6;
         }
 
@@ -311,6 +291,12 @@ class Umbrella extends EngineInstance {
         this.yScale = 0.3;
         this.baseXScale = this.xScale;
         this.baseYScale = this.yScale;
+
+        this.fakeOutTimes = [];
+        for(var i =9;i>=0;i--) {
+            this.fakeOutTimes.push(EngineUtils.irandomRange(i * 6 * 60,(i+1) * 6 * 60));
+        }
+        this.fakeIndex = 0;
     }
 
     onCreate(x,y) {
@@ -340,7 +326,8 @@ class Umbrella extends EngineInstance {
             this.timer=0;
             this.endTime = EngineUtils.clamp(this.endTime-2,25,90)
 
-            this.fake = (this.timesSinceLastFake > 8 || EngineUtils.random(1)<=0.125) && !UmbrellaMinigameController.getInstance().hasCheated(); // 10% chance for the umbrella to "fake"
+            var controller = UmbrellaMinigameController.getInstance();
+            this.fake = (controller.getTimer().getTimeRemaining()<this.fakeOutTimes[this.fakeIndex] && !controller.hasCheated());
             if(this.fake) {
                 this.fakeTime = EngineUtils.irandomRange(this.endTime/3,this.endTime/2);
                 this.hasFaked = false;
@@ -376,6 +363,7 @@ class Umbrella extends EngineInstance {
                         this.hasFaked=true;
                         this.fakeX = this.x;
                         this.fakeY = this.y;
+                        this.fakeIndex++;
                         $engine.audioPlaySound("umbrella_juke");
                     }
                     this.ry = sry // keep the old y location though
