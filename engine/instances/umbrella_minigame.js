@@ -12,6 +12,8 @@ class UmbrellaMinigameController extends MinigameController {
 
         this.setControls(true,false);
 
+        this.setCheatTooltip("That's one big umbrella!")
+
         this.fakeOutTimes = [];
         for(var i =0;i<10;i++) { // TODO -----------------------------------------------------------------
             this.fakeOutTimes.push(EngineUtils.irandomRange(i * 6 * 60,(i+1) * 6 * 60));
@@ -107,6 +109,7 @@ class UmbrellaMinigameController extends MinigameController {
             //    this.timer.stopTimer();
             this.timer.removeAllOnTimerStopped();
             this.timer.preventExpire();
+            this.setLossReason("You got hit by too many raindrops...")
             this.endMinigame(false);
         }
         if(!this.minigameOver()) {

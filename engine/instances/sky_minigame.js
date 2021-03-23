@@ -39,6 +39,8 @@ class SkyMinigameController extends MinigameController { // All classes that can
         this.setInstructionRenderable(text);
         this.setControls(true,false);
 
+        this.setCheatTooltip("Magnetic sand!")
+
         // progress
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         $engine.createManagedRenderable(this,this.progressText);
@@ -54,6 +56,10 @@ class SkyMinigameController extends MinigameController { // All classes that can
         this.drillTimer = 5*60;
         this.drillTimeBase = 8*60;
         this.drillTime = this.drillTimeBase+EngineUtils.irandomRange(-60,60);
+
+        this.addOnGameEndCallback(this,function(self) {
+            self.setLossReason("You ran out of time to drop the block...")
+        })
     } 
 
     notifyFramesSkipped(frames) {
@@ -250,6 +256,7 @@ class SkyBuildPlayer extends EngineInstance {
 
     onDestroy() {
         SkyMinigameController.getInstance().getTimer().expire();
+        SkyMinigameController.getInstance().setLossReason("Nice aim.")
     }
 
     draw(gui, camera) {     

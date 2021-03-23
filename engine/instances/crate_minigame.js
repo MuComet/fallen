@@ -1,14 +1,14 @@
 class CrateMinigameController extends MinigameController {
     onEngineCreate() {
         super.onEngineCreate();
-        this.sizeX = 64;
-        this.sizeY = 64;
+        this.sizeX = 70;
+        this.sizeY = 70;
         var rows = 26;
         var columns = 26;
         var totalSpaces = rows*columns;
         var totalCrates = 512;
 
-        this.totalWidth = this.sizeX * columns;
+        this.totalWidth = this.sizeX * columns + 38;
         this.totalHeight = this.sizeY * rows;
 
         this.setControls(false,true);
@@ -45,11 +45,11 @@ class CrateMinigameController extends MinigameController {
                 continue;
             var xx = this.sizeX * (i % columns);
             var yy = this.sizeY * Math.floor(i / columns);
-            arr[i].x=xx;
-            arr[i].y=yy;
+            arr[i].x=xx + EngineUtils.irandomRange(-8,8) + (Math.floor(i / columns)%2==0 ? EngineUtils.irandomRange(26,38) : 0);
+            arr[i].y=yy + EngineUtils.irandomRange(-8,8);
         }
 
-        this.setupBackground(this.sizeX * columns, this.sizeY * rows);
+        this.setupBackground(this.totalWidth, this.totalHeight);
 
         this.mx = 0;
         this.my = 0;
@@ -78,14 +78,17 @@ class CrateMinigameController extends MinigameController {
             self.glowFilter.outerStrength = 0;
             self.glowFilter.innerStrength = 0;
             self.targetCrate.depth = -1;
-            if(this.lastInst)
-                this.lastInst.filters = [];
+            if(self.lastInst)
+                self.lastInst.getSprite().filters = [];
 
             self.destroyTarget=undefined;
+            self.setLossReason("Next time try clicking one of the crates.")
         });
 
         this.lampSprite.x = $engine.getWindowSizeX()/2;
         this.lampSprite.y = $engine.getWindowSizeY()/2;
+
+        this.setCheatTooltip("Laser?!");
 
     }
 
@@ -252,9 +255,13 @@ class Crate extends EngineInstance {
     }
 
     step() {
+        var controller = CrateMinigameController.getInstance();
         if(IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)) {
-            if(!CrateMinigameController.getInstance().hasCheated() || this.marked) // if they cheat, don't let them accidently click a wrong crate
-                CrateMinigameController.getInstance().endMinigame(this.marked);
+            if(!controller.hasCheated() || this.marked) { // if they cheat, don't let them accidently click a wrong crate
+                controller.endMinigame(this.marked);
+                if(!this.marked)
+                    controller.setLossReason("But they all looked so similar... :(")
+            }
         }
     }
 

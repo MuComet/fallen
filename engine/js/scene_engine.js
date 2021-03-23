@@ -22,6 +22,7 @@ $__engineData.__readyOverride = true;
 $__engineData.__shouldAutoSave = true;
 
 
+
 // things to unbork:
 // re-comment out YEP speech core at 645
 // re-enable custom cursor
@@ -34,6 +35,8 @@ $__engineData.__debugPreventReturn = false;
 $__engineData.__debugLogFrameTime = false;
 $__engineData.__debugRequireAllTextures = false;
 $__engineData.__debugRequireAllSounds = false;
+$__engineData.__debugDrawAllHitboxes = false;
+$__engineData.__debugDrawAllBoundingBoxes = false;
 
 /** @type {Object} */
 var $__engineSaveData = {}; // this data is automatically read and written by RPG maker when you load a save.
@@ -1233,6 +1236,24 @@ class Scene_Engine extends Scene_Base {
                 }
                 return d
             })
+
+            var cameraGraphics = this.getCamera().getCameraGraphics();
+
+            if($__engineData.__debugDrawAllHitboxes) {
+                for(const inst of IM.__objects) {
+                    if(inst.hitbox) {
+                        EngineDebugUtils.drawHitbox(cameraGraphics,inst);
+                    }
+                }
+            }
+
+            if($__engineData.__debugDrawAllBoundingBoxes) {
+                for(const inst of IM.__objects) {
+                    if(inst.hitbox) {
+                        EngineDebugUtils.drawBoundingBox(cameraGraphics,inst);
+                    }
+                }
+            }
         }
     }
 

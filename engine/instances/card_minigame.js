@@ -31,6 +31,9 @@ class CardMinigameController extends MinigameController {
         this.progressText.y = $engine.getWindowSizeY()-30;
         this.updateProgressText();
         this.newRound();
+
+        this.setCheatTooltip("A little peeking never hurt anyone");
+        this.setLossReason("Maybe you should try flash cards next time?")
     }
     
     newRound(){

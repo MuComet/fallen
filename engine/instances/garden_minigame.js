@@ -7,7 +7,8 @@ class GardenMinigameController extends MinigameController {
         this.wormsmissed = 10;
         this.wormsMax = 10;
 
-        new ParallaxingBackground("background_garden1");
+        var bg = new ParallaxingBackground("background_garden1");
+        bg.setInvertParallax(true);
     
         this.timer = 0;
         this.attempts = 6;
@@ -36,6 +37,7 @@ class GardenMinigameController extends MinigameController {
         var text = new PIXI.Text("Basically\n WORMS\nYou may lose at most 5 plants \nAND miss at most 10 worms\nPress ENTER to cheat",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
+        this.setCheatTooltip("I found another can!")
 
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         $engine.createManagedRenderable(this,this.progressText);
@@ -129,6 +131,11 @@ class GardenMinigameController extends MinigameController {
         if(this.score <= 0 || this.wormsmissed <= 0){
             this.getTimer().pauseTimer();
             this.endMinigame(false);
+            if(this.wormsmissed<=0) {
+                this.setLossReason("You're supposed to kill the worms, they're evil.");
+            } else {
+                this.setLossReason("Plants are important, don't let them die.");
+            }
         }
     }
 
@@ -147,10 +154,12 @@ class GardenMinigameController extends MinigameController {
         if(IN.keyCheckPressed("ArrowRight") && this.x <= 90*2+200){
             this.x += 200;
         }
-        else if(IN.keyCheckPressed("ArrowLeft") && this.x > 90*2){
+
+        if(IN.keyCheckPressed("ArrowLeft") && this.x > 90*2){
             this.x -= 200;
         }
-        else if(IN.keyCheckPressed("ArrowDown") && this.y < $engine.getWindowSizeY()/2 +150){
+
+        if(IN.keyCheckPressed("ArrowDown") && this.y < $engine.getWindowSizeY()/2 +150){
             if(this.x === 90*2-100 || this.x === 90*2+100 || this.x === 90*2+300){
                 this.x += 90;
             }else{
@@ -158,7 +167,8 @@ class GardenMinigameController extends MinigameController {
             }
             this.y += 150;
         }
-        else if(IN.keyCheckPressed("ArrowUp") && this.y > $engine.getWindowSizeY()/2 -150){
+        
+        if(IN.keyCheckPressed("ArrowUp") && this.y > $engine.getWindowSizeY()/2 -150){
             if(this.x === 90*2-100 || this.x === 90*2+100 || this.x === 90*2+300){
                 this.x += 90;
             }else{
