@@ -23,5 +23,5 @@ HoleMinigameController HolePlayer HolePlatform engine/instances/holes_minigame.j
 BrokenImageController PictureComponent engine/instances/broken_image_minigame.js
 PaintImageController engine/instances/paint_image_minigame.js
 
-GardenMinigameController GardenPlant GardenWorm engine/instances/garden_minigame.js
+GardenMinigameController GardenPlant GardenWorm GardenHoles engine/instances/garden_minigame.js
 CrateMinigameController Crate engine/instances/crate_minigame.js

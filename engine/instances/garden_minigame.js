@@ -7,7 +7,7 @@ class GardenMinigameController extends MinigameController {
         this.wormsmissed = 10;
         this.wormsMax = 10;
 
-        new ParallaxingBackground("background_wall_1");
+        new ParallaxingBackground("background_garden1");
     
         this.timer = 0;
         this.attempts = 6;
@@ -19,10 +19,12 @@ class GardenMinigameController extends MinigameController {
         this.x = 90*2-100;
         this.y = $engine.getWindowSizeY()/2 -150;
 
-        this.setSprite(new PIXI.Sprite($engine.getTexture("falling_object_flower")));
-        this.sprite2 = new PIXI.Sprite($engine.getTexture("falling_object_flower"));
+        this.sprite = new PIXI.Sprite($engine.getTexture("selector_cloud"));
+        $engine.createRenderable(this, this.sprite, true);
+        this.sprite.dx = 27;
+        this.sprite2 = new PIXI.Sprite($engine.getTexture("selector_cloud"));
         $engine.createRenderable(this, this.sprite2, true);
-        this.sprite2.dx = 200;
+        this.sprite2.dx = 200+27;
         this.sprite2.visible = false;
 
         this.addOnCheatCallback(this, function(selector){
@@ -44,16 +46,22 @@ class GardenMinigameController extends MinigameController {
         var plant_array = [];
         this.plant_array = plant_array;
 
+        var plant_sprites = ["plant_0", "plant_1", "plant_2", "plant_3"];
+        this.plant_sprites = plant_sprites;
+
         this.shakeTimer = 0;
         this.shakeFactor = 8;
 
         for(var i = 0; i < 9; i++) {
             if(i < 3){
-                plant_array[i] = new GardenPlant(90*2+200*i, $engine.getWindowSizeY()/2 -150, i);       
+                plant_array[i] = new GardenPlant(90*2+200*i, $engine.getWindowSizeY()/2 -150, i);
+                new GardenHoles(90*2+200*i, $engine.getWindowSizeY()/2 -150);        
             }if(i >= 3 && i < 6){
                 plant_array[i] = new GardenPlant(90*3+200*(i-3), $engine.getWindowSizeY()/2, i);
+                new GardenHoles(90*3+200*(i-3), $engine.getWindowSizeY()/2);
             }if(i >= 6 && i < 9){
                 plant_array[i] = new GardenPlant(90*2+200*(i-6), $engine.getWindowSizeY()/2 +150, i);
+                new GardenHoles(90*2+200*(i-6), $engine.getWindowSizeY()/2 +150);
             }
         }
         this.updateProgressText();
@@ -170,22 +178,39 @@ class GardenMinigameController extends MinigameController {
 
 }
 
-class GardenWorm extends EngineInstance {
-    onCreate(x,y,index) {
+class GardenHoles extends EngineInstance {
+    onCreate(x,y) {
         this.depth = 10;
         this.x = x-100;
         this.y = y;
+        this.setSprite(new PIXI.Sprite($engine.getTexture("worm_0")));
+    }
+}
+
+
+class GardenWorm extends EngineInstance {
+    onCreate(x,y,index) {
+        this.depth = 10;
+
         this.index = index;
-        this.setSprite(new PIXI.Sprite($engine.getTexture("garden_worm_alive")));
+        this.animation = $engine.createRenderable(this,new PIXI.extras.AnimatedSprite($engine.getAnimation("worm_anim")));
+        this.animation.animationSpeed = 0.12;
+        this.x = x-100;
+        this.y = y;
+        this.setSprite(this.animation);
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
         this.clicked = false;
         this.wormTimer = 0;
         this.wormTimerEat = 60;
         this.deathTime = 0;
+        
     }
 
     step(){
-
+        if(this.deathTime === 0){
+            this.animation.update(1);
+        }
+        
         if(this.wormTimer >= this.wormTimerEat && this.deathTime === 0){            
             GardenMinigameController.getInstance().plant_array[this.index] = undefined;
             GardenMinigameController.getInstance().wormsmissed--;
@@ -226,13 +251,13 @@ class GardenPlant extends EngineInstance {
         this.y = y;
         this.index = index;
         this.score = 1;
-        this.setSprite(new PIXI.Sprite($engine.getTexture("garden_plant")));
+        this.setSprite(new PIXI.Sprite($engine.getTexture(GardenMinigameController.getInstance().plant_sprites[EngineUtils.irandomRange(1,3)])));
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
         this.clicked = false;
     }
     step(){
         if(GardenMinigameController.getInstance().plant_array[this.index] === undefined){
-            this.destroy();
+            this.getSprite().texture = $engine.getTexture(GardenMinigameController.getInstance().plant_sprites[0]);
         }
     }
 }
