@@ -202,8 +202,7 @@ class GardenWorm extends EngineInstance {
         this.clicked = false;
         this.wormTimer = 0;
         this.wormTimerEat = 60;
-        this.deathTime = 0;
-        
+        this.deathTime = 0;    
     }
 
     step(){

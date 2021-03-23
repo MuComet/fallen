@@ -144,7 +144,7 @@ class WaterMinigameController extends MinigameController {
 
 
     updateProgressText() {
-        this.progressText.text = "Progress:  Tiles Missed  "+String(this.score+" / "+String(this.maxScore));
+        this.progressText.text = "Progress:  Plants Alive  "+String(this.score+" / "+String(this.maxScore));
     }
   
 
@@ -164,7 +164,7 @@ class ddrTiles extends EngineInstance {
         this.x = x + this.arrow*120;
         this.y = y;
         this.speed = 6;
-        this.setSprite(new PIXI.Sprite($engine.getTexture(GardenMinigameController.getInstance().ddr_tiles[this.arrow])));
+        this.setSprite(new PIXI.Sprite($engine.getTexture(WaterMinigameController.getInstance().ddr_tiles[this.arrow])));
         this.clicked = false;
     }
 
@@ -172,6 +172,13 @@ class ddrTiles extends EngineInstance {
         this.y += this.speed;
         if(this.y - 24 >= $engine.getWindowSizeY() - 140){
             WaterMinigameController.getInstance().score--;
+            //var plant = IM.randomInstance(WaterPlant);
+            var index = EngineUtils.irandomRange(0, WaterMinigameController.getInstance().plant_array.length-1);
+            var plant = WaterMinigameController.getInstance().plant_array[index];
+            console.log(plant);
+            plant.getSprite().texture = $engine.getTexture("plant_0");
+            WaterMinigameController.getInstance().plant_array.splice(index, 1);
+
             this.destroy();
         }
     }
@@ -183,14 +190,9 @@ class WaterPlant extends EngineInstance {
         this.y = y;
         this.index = index;
         this.score = 1;
-        this.setSprite(new PIXI.Sprite($engine.getTexture(GardenMinigameController.getInstance().plant_sprites[EngineUtils.irandomRange(1,3)])));
+        this.setSprite(new PIXI.Sprite($engine.getTexture(WaterMinigameController.getInstance().plant_sprites[EngineUtils.irandomRange(1,3)])));
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
         this.clicked = false;
-    }
-    step(){
-        if(WaterMinigameController.getInstance().plant_array[this.index] === undefined){
-            this.getSprite().texture = $engine.getTexture(WaterMinigameController.getInstance().plant_sprites[0]);
-        }
     }
 }
 

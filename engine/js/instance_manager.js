@@ -621,6 +621,16 @@ class IM {
             script(inst, other);
     }
 
+     /**
+     * Returns a random instance from the target class, runs on all instances that match target.
+     *  
+     * @param {EngineInstance} target The target instance, or class.
+     */
+    static randomInstance(target) {
+        var instances = IM.__queryObjects(target);
+        return EngineUtils.randomFromArray(instances);
+    }
+
 }
 
 IM.__accessMap = [];        // indexes every single instance with oid being the key and an array of all those instances being the value
