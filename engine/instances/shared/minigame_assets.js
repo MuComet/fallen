@@ -458,11 +458,11 @@ class MinigameController extends EngineInstance {
     }
 
     _initMusic() {
-        this.musicStandard = $engine.audioPlaySound("minigame_music",1,true)
+        this.musicStandard = $engine.audioPlaySound("minigame_music",0.5,true)
         $engine.audioSetLoopPoints(this.musicStandard,8,56)
         $engine.audioPauseSound(this.musicStandard)
 
-        this.musicCheat = $engine.audioPlaySound("minigame_music_cheat",1,true)
+        this.musicCheat = $engine.audioPlaySound("minigame_music_cheat",0.5,true)
         $engine.audioSetVolume(this.musicCheat,0); // this call is because the engine uses the input volume for future calculations.
         $engine.audioSetLoopPoints(this.musicCheat,8,56)
         $engine.audioPauseSound(this.musicCheat)
@@ -1141,6 +1141,17 @@ class ParallaxingBackground extends EngineInstance {
      */
     removeIndex(idx) {
         $engine.removeRenderable(this.sprites.splice(idx,1)[0])
+    }
+
+    /**
+     * Adds the specific sprite onto this ParallaxingBackground.
+     * 
+     * @param {Number} idx The index to add at
+     * @param {PIXI.DisplayObject} newSprite The new sprite to render
+     */
+    addIndex(idx,newSprite) {
+        $engine.createRenderable(this,newSprite);
+        $engine.changeRenderableIndex(this, newSprite, idx);
     }
 
     /**

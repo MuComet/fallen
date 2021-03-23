@@ -90,7 +90,7 @@ class WaterMinigameController extends MinigameController {
             return;
         }
         if(this.timer === 30){
-            new ddrTiles(149, 100, 0);
+            new DDRTiles(149, 100, 0);
             this.timer = 0;
         }
 
@@ -109,7 +109,7 @@ class WaterMinigameController extends MinigameController {
     }
 
     tileHit() {
-        var current_tile = IM.find(ddrTiles, 0);
+        var current_tile = IM.find(DDRTiles, 0);
         if(current_tile === undefined || this.penalty != 0){
             return;
         }
@@ -157,7 +157,7 @@ class WaterMinigameController extends MinigameController {
 }
 
 
-class ddrTiles extends EngineInstance {
+class DDRTiles extends EngineInstance {
     onCreate(x,y) {
         this.depth = -10;
         this.arrow = EngineUtils.irandomRange(0,3);

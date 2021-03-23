@@ -621,14 +621,16 @@ class IM {
             script(inst, other);
     }
 
-     /**
-     * Returns a random instance from the target class, runs on all instances that match target.
+
+    /**
+     * Queries the InstanceManager's internal list of objects and returns all instances that are
+     * of type target or a child or target.
      *  
-     * @param {EngineInstance} target The target instance, or class.
+     * @param {EngineInstance} target The target instance or class.
+     * @returns A non null array of all the instances that match the specified query.
      */
-    static randomInstance(target) {
-        var instances = IM.__queryObjects(target);
-        return EngineUtils.randomFromArray(instances);
+    static findAll(target) {
+        return [...IM.__queryObjects(target)]; // place in new array to prevent tampering with internal access map.
     }
 
 }

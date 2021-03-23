@@ -20,8 +20,8 @@ class UmbrellaMinigameController extends MinigameController {
                         fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
         this.setInstructionRenderable(text)
 
-        this.player = new UmbrellaPlayer($engine.getWindowSizeX()/2,$engine.getWindowSizeY())
-        this.umbrella = new Umbrella($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/1.6);
+        this.player = new UmbrellaPlayer($engine.getWindowSizeX()/2,$engine.getWindowSizeY()-32)
+        this.umbrella = new Umbrella($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/1.6-32);
 
         var bg = new ParallaxingBackground("background_sheet_2");
 
@@ -89,7 +89,7 @@ class UmbrellaMinigameController extends MinigameController {
         this.score--;
         if(this.score<=0) {
             this.score = 0;
-            this.setLossReason("You got hit by too many raindrops...")
+            this.setLossReason("How hard is it to just stay under the umbrella???")
             this.endMinigame(false);
         }
         if(!this.minigameOver()) {
@@ -127,7 +127,7 @@ class Test extends EnginePhysicsInstance {
         this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-64,-32,64,32)))
         this.attachPhysicsObject(this.physicsObjectFromHitbox({ restitution: 0.8 }));
         this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-734/2,-245/2,734/2,245/2)))
-        this.setSprite(new PIXI.Sprite($engine.getTexture("button_new_game_1")))
+        this.setSprite(new PIXI.Sprite($engine.getRandomTextureFromSpritesheet("rain_sprites")))
         this.xScale = 0.1743869;
         this.yScale = 0.5224489/2;
     }
@@ -311,7 +311,7 @@ class Umbrella extends EngineInstance {
         } while(Math.abs(this.rx-this.x)<$engine.getWindowSizeX()/4) // must be at least 1/4 of the screen
         // rx can be no greater than 66% of the screen
         this.rx = EngineUtils.clamp(this.rx,this.x-$engine.getWindowSizeX()/2,this.x+$engine.getWindowSizeX()/1.5)
-        this.ry = EngineUtils.randomRange(100+4.5*(this.endTime-15),164+4.5*(this.endTime-15));
+        this.ry = EngineUtils.randomRange(72+4.5*(this.endTime-15),132+4.5*(this.endTime-15));
         
         this.sx = this.x;
         this.sy = this.y;
@@ -418,8 +418,9 @@ class Raindrop extends EngineInstance {
         this.angle = V2D.calcDir(this.dx,this.dy)
         var dist = V2D.calcMag(this.dx,this.dy);
         this.xScale = EngineUtils.clamp(dist/6,0,2)
-        this.hitbox = new Hitbox(this, new RectangleHitbox(this,0,-1,16,1))
-        this.setSprite(new PIXI.Sprite($engine.getTexture("raindrop")))
+        this.hitbox = new Hitbox(this, new RectangleHitbox(this,0,-1,8,1))
+        this.setSprite(new PIXI.Sprite($engine.getRandomTextureFromSpritesheet("rain_sprites")))
+        this.yScale = 0.5;
     }
 
     onCreate(x,y) {

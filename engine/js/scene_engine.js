@@ -1123,10 +1123,44 @@ class Scene_Engine extends Scene_Base {
      * @param {PIXI.DisplayObject} renderable The renderable to remove
      */
     removeRenderable(renderable) {
+        var parent = renderable.__parent;
         renderable.__parent.__renderables.splice(renderable.__parent.__renderables.indexOf(renderable),1); // remove from parent
         renderable.__parent=null; // leave it to be cleaned up eventually
         this.getCamera().__getRenderContainer().removeChild(renderable);
         this.freeRenderable(renderable)
+        this.__recalculateRenderableIndices(parent);
+    }
+
+    /**
+     * Changes the internal index of the specified renderable, which changes the order that it is drawn in
+     * relative to other sprites in this isntance.
+     * 
+     * @param {EngineInstance} parent The parent EngineInstance that was used to create the Renderable
+     * @param {PIXI.DisplayObject} renderable The renderable to move
+     * @param {Number} newIndex The new index to place this renderable at.
+     */
+    changeRenderableIndex(parent, renderable, newIndex) {
+        var currentIdx = parent.__renderables.indexOf(renderable);
+        if(currentIdx === -1)
+            throw new Error("Cannot change index of renderable that does not belong to the target instance.")
+        if(newIndex >= parent.__renderables.length)
+            throw new Error("New index for renderable is outside the range of valid range")
+
+        parent.__renderables.splice(currentIdx,1); // remove
+        parent.__renderables.splice(newIndex,0,renderable); // place at index
+
+        this.__recalculateRenderableIndices(parent);
+    }
+
+    /**
+     * This function does nothing productive, but is used infrequently enough and could
+     * ultimately support more functions later that it's worth using.
+     * 
+     * @param {EngineInstance} parent The instance which owns the renderables.
+     */
+    __recalculateRenderableIndices(parent) {
+        for(var i =0;i<parent.__renderables.length;i++)
+            parent.__renderables[i].__idx = i;
     }
 
     /** 
