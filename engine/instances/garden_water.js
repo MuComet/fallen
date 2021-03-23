@@ -1,8 +1,8 @@
 class WaterMinigameController extends MinigameController {
     onEngineCreate() { 
         super.onEngineCreate();
-        this.score = 0;
-        this.maxScore = 15;
+        this.score = 12;
+        this.maxScore = 12;
       
 
         new ParallaxingBackground("background_garden1");
@@ -12,21 +12,35 @@ class WaterMinigameController extends MinigameController {
         this.waiting = false;
         this.waitTimer = 0;
         
-        this.startTimer(300*60);
+        this.startTimer(30*60);
         this.getTimer().setSurvivalMode();
-        this.x = $engine.getWindowSizeY()/2;
-        this.y = $engine.getWindowSizeY()/2 -150;
+        this.x = 149;
+        this.y = $engine.getWindowSizeY() -180;
 
-        var ddr_tiles = [];
+        var ddr_tiles = ["arrow_down", "arrow_left", "arrow_up", "arrow_right"];
         this.ddr_tiles = ddr_tiles;
 
-        this.sprite = new PIXI.Sprite($engine.getTexture("water"));
-        $engine.createRenderable(this, this.sprite, true);
+        this.sprite0 = new PIXI.Sprite($engine.getTexture("arrow_down"));
+        $engine.createRenderable(this, this.sprite0, true);
+        this.sprite1 = new PIXI.Sprite($engine.getTexture("arrow_left"));
+        $engine.createRenderable(this, this.sprite1, true);
+        this.sprite1.dx = 120;
+
+
+        this.sprite2 = new PIXI.Sprite($engine.getTexture("arrow_up"));
+        $engine.createRenderable(this, this.sprite2, true);
+        this.sprite2.dx = 240;
+        this.sprite3 = new PIXI.Sprite($engine.getTexture("arrow_right"));
+        $engine.createRenderable(this, this.sprite3, true);
+        this.sprite3.dx = 360;
+
+
 
 
         this.addOnCheatCallback(this, function(selector){
 
         });
+
 
         //this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
 
@@ -55,38 +69,52 @@ class WaterMinigameController extends MinigameController {
     }
 
     step() {
+        this.timer++;
         super.step();
         if(this.minigameOver()){
             return;
         }
-        if(this.timer === 60){
-            new ddrTiles(300, 100, 0);
+        if(this.timer === 20){
+            new ddrTiles(149, 100, 0);
+
+            //new ddrTiles(149, 100, 0);
+
+
             this.timer = 0;
         }
-        this.moveWater();
+        if(this.score <= 0){
+            this.getTimer().pauseTimer();
+            this.endMinigame(false);
+        }
+
+        this.tileHit();
         this.updateProgressText();
-        this.timer++;
+
     }
 
-    moveWater(){
-
-        if(IN.keyCheckPressed("ArrowRight") && this.x <= 90*2+200){
-            this.x += 200;
+    tileHit() {
+        var current_tile = IM.find(ddrTiles, 0);
+        if(current_tile === undefined){
+            return;
         }
-        else if(IN.keyCheckPressed("ArrowLeft") && this.x > 90*2){
-            this.x -= 200;
-        }else if(IN.keyCheckPressed("ArrowDown") && this.y < $engine.getWindowSizeY()/2 +150){
-            if(this.x === 90*2-100 || this.x === 90*2+100 || this.x === 90*2+300){
-                this.x += 90;
-            }else{
-                this.x -= 90;
+        if($engine.getWindowSizeY() -220 <= current_tile.y && current_tile.y <= $engine.getWindowSizeY()){
+            if(IN.keyCheckPressed("ArrowRight") && current_tile.arrow === 3){
+                current_tile.getSprite().tint = (0xaaafff);
+                current_tile.destroy();
             }
-            this.y += 150;
-        }
-        else if(IN.keyCheckPressed("ArrowUp") && this.y > $engine.getWindowSizeY()/2 -150){
-
-        }
-        
+            if(IN.keyCheckPressed("ArrowLeft") && current_tile.arrow === 1){
+                current_tile.getSprite().tint = (0xaaafff);
+                current_tile.destroy();
+            }
+            if(IN.keyCheckPressed("ArrowDown") && current_tile.arrow === 0){
+                current_tile.getSprite().tint = (0xaaafff);
+                current_tile.destroy();
+            }
+            if(IN.keyCheckPressed("ArrowUp") && current_tile.arrow === 2){
+                current_tile.getSprite().tint = (0xaaafff);
+                current_tile.destroy();
+            }
+        }    
     }
 
 
@@ -106,13 +134,13 @@ class WaterMinigameController extends MinigameController {
 
 
 class ddrTiles extends EngineInstance {
-    onCreate(x,y,index) {
-        this.depth = 10;
-        this.index = index;
-        this.x = x-100;
+    onCreate(x,y) {
+        this.depth = -10;
+        this.arrow = EngineUtils.irandomRange(0,3);
+        this.x = x + this.arrow*120;
         this.y = y;
-        this.speed = 4;
-        this.setSprite(new PIXI.Sprite($engine.getTexture(GardenMinigameController.getInstance().ddr_tiles[EngineUtils.irandomRange(1,3)])));
+        this.speed = 6;
+        this.setSprite(new PIXI.Sprite($engine.getTexture(GardenMinigameController.getInstance().ddr_tiles[this.arrow])));
 
         //this.hitbox = new Hitbox(this,new RectangleHitbox(this,-24,-24,24,24));
         this.clicked = false;
