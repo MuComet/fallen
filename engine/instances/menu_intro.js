@@ -41,6 +41,7 @@ class MenuIntroController extends EngineInstance {
         this.nextLeaf = 0;
 
         this.isFading=false;
+        $engine.startFadeIn();
 
         // overwrite the mouse location, PIXI doesn't update immedaitely...
         IN.getMouseX()

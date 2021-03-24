@@ -81,7 +81,7 @@ class DrawController extends MinigameController { // controls the minigame
     nextDrawing() {
         this.drawingInd++;
         if(this.drawingInd>0) {
-            this.drawings[this.drawingInd-1].alpha = 0;
+            this.drawings[this.drawingInd-1].hideDrawing();
             this.drawings[this.drawingInd-1].calculateScore();
         }
         if(this.drawingInd>=3) {
@@ -90,7 +90,7 @@ class DrawController extends MinigameController { // controls the minigame
         }
         $engine.audioPlaySound("draw_start")
         $engine.audioPlaySound("draw_shake",1,true)
-        this.drawings[this.drawingInd].alpha = 1;
+        this.drawings[this.drawingInd].showDrawing();
     }
 
     loadFirstDrawing() {
@@ -236,7 +236,7 @@ class DrawableLine extends EngineInstance {
         var graphics = this.drawGraphics;
         if(!$engine.isLow()) {
             graphics.moveTo(this.points[0].x,this.points[0].y);
-            graphics.lineStyle(12,0x424242)
+            graphics.lineStyle(12,0xdfdfdf)
             for(var i =1;i<this.points.length-1;i++) {
                 var xc = (this.points[i].x + this.points[i + 1].x) / 2;
                 var yc = (this.points[i].y + this.points[i + 1].y) / 2;
@@ -245,7 +245,7 @@ class DrawableLine extends EngineInstance {
             graphics.lineTo(this.points[this.points.length-1].x,this.points[this.points.length-1].y)
 
             graphics.moveTo(this.points[0].x,this.points[0].y);
-            graphics.lineStyle(4,0x242424)
+            graphics.lineStyle(4,0xbfbfbf)
             for(var i =1;i<this.points.length-1;i++) {
                 var xc = (this.points[i].x + this.points[i + 1].x) / 2;
                 var yc = (this.points[i].y + this.points[i + 1].y) / 2;
@@ -259,8 +259,8 @@ class DrawableLine extends EngineInstance {
             }
         }
 
-        graphics.lineStyle(0,0x242424)
-        graphics.beginFill(0x242424);
+        graphics.lineStyle(0,0xdfdfdf)
+        graphics.beginFill(0xdfdfdf);
         graphics.drawCircle(this.points[0].x,this.points[0].y,5)
         graphics.drawCircle(this.points[this.points.length-1].x,this.points[this.points.length-1].y,5)
         graphics.endFill();
@@ -280,7 +280,48 @@ class ShapeToDraw extends EngineInstance {
         this.basePenalty=0;
         this.baseScore=0;
         this.score = 0;
+        this.graphicsMask = $engine.createRenderable(this, new PIXI.Graphics(),true);
+        var pz = this.pathData.path[0];
+        this.graphicsMask.moveTo(pz.x,pz.y);
+        this.getSprite().mask = this.graphicsMask;
         this.onEngineCreate();
+        this.setupTimer = 0;
+        this.lastIdx = 0;
+        this.inTime = 60;
+        this.showing = false;
+    }
+
+    showDrawing() {
+        this.alpha = 1;
+        this.showing = true;
+    }
+
+    hideDrawing() {
+        this.alpha = 0;
+    }
+
+    step() {
+        if(this.setupTimer>=this.inTime || !this.showing)
+            return;
+        var newLoc = EngineUtils.interpolate(++this.setupTimer/this.inTime,0,this.pathData.path.length,EngineUtils.INTERPOLATE_SMOOTH_QUAD);
+        var newLocFloor = Math.floor(newLoc)
+
+        this.graphicsMask.beginFill(0xffffff);
+        for(var i = this.lastIdx;i<newLocFloor;i++) {
+            var loc = this.pathData.path[i];
+            this.graphicsMask.drawCircle(loc.x,loc.y,10)
+        }
+
+        if(newLocFloor<this.pathData.path.length-1) { //only if we're not on the last one
+            var fac = newLoc%1;
+            var loc1 = this.pathData.path[newLocFloor];
+            var loc2 = this.pathData.path[newLocFloor+1];
+            var ix = EngineUtils.interpolate(fac,loc1.x,loc2.x,EngineUtils.INTERPOLATE_LINEAR)
+            var iy = EngineUtils.interpolate(fac,loc1.y,loc2.y,EngineUtils.INTERPOLATE_LINEAR)
+            this.graphicsMask.drawCircle(ix,iy,10)
+        }
+        
+        this.lastIdx=newLocFloor;
     }
 
     calculateScore() {

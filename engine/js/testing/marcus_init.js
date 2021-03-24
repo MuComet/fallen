@@ -1,4 +1,4 @@
-$__engineData.loadRoom = "CrateRoom"
+$__engineData.loadRoom = "GameOverRoom"
 $__engineData.__debugPreventReturn=true;
 $__engineData.__debugRequireAllTextures = true;
 $__engineData.__debugRequireAllSounds = true;

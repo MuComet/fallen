@@ -42,7 +42,7 @@ $__engineData.__debugDrawAllBoundingBoxes = false;
 var $__engineSaveData = {}; // this data is automatically read and written by RPG maker when you load a save.
 
 $__engineSaveData.__nextStaminaLossKills = false;
-$__engineSaveData.__lastMinigameOutcome = 0;
+$__engineSaveData.__lastMinigameOutcome = -1;
 $__engineSaveData.__mapData={};
 
 const ENGINE_RETURN = {};
@@ -50,6 +50,8 @@ ENGINE_RETURN.LOSS = 0;
 ENGINE_RETURN.WIN = 1;
 ENGINE_RETURN.NO_CHEAT = 0;
 ENGINE_RETURN.CHEAT = 1;
+
+// convenience functions for overworld progammers.
 
 const SET_ENGINE_ROOM = function(room) {
     $__engineData.loadRoom = room;
@@ -245,7 +247,7 @@ class Scene_Engine extends Scene_Base {
             this.__endAndReturn()
 
         // ENGINE
-        if(this.__shouldChangeRooms)
+        if(this.__shouldChangeRooms && !this.isBusy())
             this.__setRoom(this.__nextRoom);
 
         this.__timescaleFraction+=this.__timescale;
@@ -381,12 +383,21 @@ class Scene_Engine extends Scene_Base {
      * Sets the volume of the sound, taking into account the original volume of the sound when created.
      * 
      * It is highly recommended to only use this method to set sounds, as it is repsective of RPG maker's volume settings.
+     * and prevents 0 volume bug
      * 
      * @param {IMediaInstance} snd The sound
      * @param {Number} volume The new volume
      */
     audioSetVolume(snd, volume) {
-        snd.volume = snd.__srcVolume*volume;
+        var newVol = snd.__srcVolume*volume
+        // This might seem redundant but removing it causes PIXIJS to have a stoke in some sitations.
+        if(newVol===0) {
+            snd.muted = true;
+            snd.volume = 0;
+        } else {
+            snd.muted = false;
+            snd.volume = newVol;
+        }
     }
 
     /**
@@ -630,6 +641,14 @@ class Scene_Engine extends Scene_Base {
         $__engineData.__overrideRoom = newRoom;
     }
 
+    /**
+     * Requests that at the start of the next frame, the current room be changed to
+     * the specified room.
+     * 
+     * If a call was already made to change rooms, the new request will be ignored.
+     * 
+     * @param {String} newRoom The name of the room to go to
+     */
     setRoom(newRoom) {
         if(!RoomManager.roomExists(newRoom))
             throw new Error("Attemping to change to non existent room "+newRoom);
@@ -660,6 +679,10 @@ class Scene_Engine extends Scene_Base {
         return Graphics._renderer;
     }
 
+    /**
+     * Requests that the engine is terminated and control is returned back
+     * to the overworld at the start of the next frame.
+     */
     endGame() {
         $__engineData.__haltAndReturn=true;
     }
@@ -2300,7 +2323,8 @@ class OwO {
 
     static __gameLoss() {
         $engine.deleteSave(); // hehe so long save
-        SceneManager.goto(Scene_Gameover)
+        $__engineData.loadRoom="GameOverRoom"
+        SceneManager.goto(Scene_Engine)
     }
 
     static __getPlayerHP() {
