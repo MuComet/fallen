@@ -33,7 +33,7 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
 
         // instructions
 
-        var text = new PIXI.Text("Place the same-coloured blobs 4 in a row to pop them. Try to get a chain of 10!\nPress Enter to cheat!",{ fontFamily: 'Helvetica',
+        var text = new PIXI.Text("Place the same-coloured blobs 4 in a row to pop them. Try to get a chain of 10!\n Rotate with Z and X and move with the arrow keys.\nPress Enter to cheat!",{ fontFamily: 'Helvetica',
                         fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
 
         this.setInstructionRenderable(text)
@@ -227,10 +227,10 @@ class PuyoBoard extends EngineInstance {
         for(i = 0; i <= 5; i++){
             for(j = 0; j < droppedColumns[i]; j++){
                 var row = 13 - columns[i] - j;
-                var puyos = this.surroundings(row, i, 0, board[row][i].getPuyo().getColour());
+                var puyos = this.surroundings(row, i, 0, this.board[row][i].getPuyo().getColour());
                 if(puyos >= 4){
                     chain = true;
-                    this.pop(row, i, 0, board[row][i].getPuyo().getColour());
+                    this.pop(row, i, 0, this.board[row][i].getPuyo().getColour());
                 }
             }
         }
