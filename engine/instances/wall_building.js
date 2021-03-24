@@ -3,7 +3,8 @@ class WallBuilderController extends MinigameController {
     onEngineCreate() {
         super.onEngineCreate();
         this.possibleLetters = [];
-        this.possibleLetters.push("KeyD","KeyF","KeyJ","KeyK");
+        for(var i = 0;i<26;i++)
+            this.possibleLetters.push("Key"+String.fromCharCode(i+65));
         this.lastLetter = "";
         this.delayToNext = 999;
         this.maxDelayToNext = 60; // if you mess up
@@ -20,11 +21,11 @@ class WallBuilderController extends MinigameController {
         var bg = new ParallaxingBackground("background_sheet_2"); // make the background
         bg.setParallaxFactors(1,1);
         $engine.unpauseGameSpecial
-        var text = new PIXI.Text("Press the keys displayed on the tile\nlay down block with correct keys\nKeys can only be one of DFJK\nbe fast and accurate\nwrong keys cause delay\n\nPress Enter to cheat!",$engine.getDefaultTextStyle())
+        var text = new PIXI.Text("Press the keys displayed on the tile\nlay down block with correct keys\nbe fast and accurate\nwrong keys cause delay\n\nPress Enter to cheat!",$engine.getDefaultTextStyle())
         this.setInstructionRenderable(text);
         this.setControls(true,false);
         this.setCheatTooltip("Two helping hands!");
-        this.setLossReason("fdfkjdjdfkjkjdjfkjdf.") // only one way to lose
+        this.setLossReason("Maybe you should reconsider your career in brick laying.") // only one way to lose
 
         this.graphicsLocationX = $engine.getWindowSizeX()/2;
         this.graphicsLocationY = 128;

@@ -1,4 +1,4 @@
-class V2D extends EnginePoint {
+class V2D extends PIXI.Point {
     constructor(x,y) {
         this.setVector(x,y);
     }

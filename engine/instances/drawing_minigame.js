@@ -115,7 +115,9 @@ class DrawController extends MinigameController { // controls the minigame
         } else {
             this.instructiontext.text = "";
         }
-        if(this.waitTimer >=60 && this.buffer.consumeImmedaitely()) {
+
+        // start drawing
+        if(this.waitTimer >=60 && !this.drawing && this.buffer.consumeImmedaitely()) {
             this.currentLine = new DrawableLine()
             this.currentLine.startDrawing();
             this.currentLine.drawing = this.drawings[this.drawingInd];
@@ -123,6 +125,7 @@ class DrawController extends MinigameController { // controls the minigame
             this.drawing = true;
         }
 
+        // end drawiing
         if(IN.mouseCheckReleased(0) && this.drawing) {
             this.currentLine.endDrawing();
             this.currentLine.display(false);

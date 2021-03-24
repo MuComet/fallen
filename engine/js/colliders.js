@@ -336,8 +336,8 @@ class PolygonHitbox extends BaseHitbox{
             this.__polygon.points[i] = v.x;
             this.__polygon.points[i+1] = v.y;
         }
-        this.__topLeft = new EnginePoint(xMin,yMin);
-        this.__bottomRight = new EnginePoint(xMax,yMax);
+        this.__topLeft = new EngineLightweightPoint(xMin,yMin);
+        this.__bottomRight = new EngineLightweightPoint(xMax,yMax);
         this.__boundingBox = BaseHitbox.__makeBoundingBox(xMin,yMin,xMax,yMax);
     }
 

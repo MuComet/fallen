@@ -5,13 +5,7 @@ class EngineLightweightPoint { // f a s t
     }
 }
 
-class EnginePoint extends PIXI.Point { // for the formal relation between a Vertex and a V2D. Does not really need to exist.
-    constructor(x,y) {
-        super(x,y)
-    }
-}
-
-class Vertex extends EnginePoint {
+class Vertex extends PIXI.Point {
 
     constructor(x,y) {
         super(x,y);

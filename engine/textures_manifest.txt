@@ -78,9 +78,6 @@ bar_standard_top engine/textures/bars/bar_top.png 0.5 0
 bar_health engine/textures/bars/bar_health.png 0.5 1
 bar_time engine/textures/bars/bar_time.png 0.5 1
 
-drawing_mingiame_background_1 engine/textures/drawing/wall.png 0 0
-drawing_mingiame_background_2 engine/textures/drawing/wall_bush.png 0 0
-
 minigame_key_icon engine/textures/minigames/minigame_icon_start2.png 0.5 0.5
 minigame_mouse_icon engine/textures/minigames/minigame_icon_start1.png 0.5 0.5
 
@@ -113,7 +110,7 @@ animate worm_0 worm_1 worm_2 worm_3 worm_4 worm_5 worm_7 worm_7 worm_anim
 wall_tile engine/textures/crate/wall_tile.png 0 0
 spritesheet dimensions 192 64 3 1 crate_normal engine/textures/crate/crate_sprites_normal.png 0 0
 spritesheet dimensions 192 64 3 1 crate_marked engine/textures/crate/crate_sprites_marked.png 0 0
-lamp_mask engine/textures/crate/mask.png 0.5 0.5
+spritesheet dimensions 6528 1248 4 1 animate crate_mask_animation 4 0 1 2 3 lamp_mask engine/textures/crate/mask.png 0.5 0.5
 
 water engine/textures/water/water.png 0.5 0.5
 arrow_down engine/textures/water/arrow_down.png 0 0

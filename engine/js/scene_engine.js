@@ -41,7 +41,8 @@ $__engineData.__debugDrawAllBoundingBoxes = false;
 /** @type {Object} */
 var $__engineSaveData = {}; // this data is automatically read and written by RPG maker when you load a save.
 
-$__engineSaveData.__lastHealthLossWasZero = false;
+$__engineSaveData.__nextStaminaLossKills = false;
+$__engineSaveData.__lastMinigameOutcome = 0;
 $__engineSaveData.__mapData={};
 
 const ENGINE_RETURN = {};
@@ -255,10 +256,12 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
+     * This function is deprecated. Please use the audioX functions in engine.
+     * 
      * RPG MAKER FUNCTION! Does not work with engine!
      * 
      * Creates and returns an AudioReference for use in AudioManager.
-     * 
+     * @deprecated
      * @param {String} audioName the name of the file, excluding the extension.
      */
     generateAudioReference(audioName) {
@@ -812,6 +815,7 @@ class Scene_Engine extends Scene_Base {
             if($__engineData.__outcomeWriteBackValue<0)
                 throw new Error("Engine expects a non negative outcome write back value");
             $gameVariables.setValue($__engineData.outcomeWriteBackIndex,$__engineData.__outcomeWriteBackValue);
+            $__engineSaveData.__lastMinigameOutcome = $__engineData.__outcomeWriteBackValue;
             $__engineData.outcomeWriteBackIndex=-1; // reset for next time
             $__engineData.__outcomeWriteBackValue=-1;
         }
@@ -1885,6 +1889,15 @@ SceneManager.snap = function() {
     return snap;
 }
 
+// make allow the player to hit zero correctly.
+Game_Interpreter.prototype.changeHp = function(target, value, allowDeath) {
+    if (target.isAlive()) {
+        if(target.hp < -value)
+            value = -target.hp
+        target.gainHp(value);
+    }
+};
+
 
 // hook a in a global update.
 SceneManager.updateManagers = function() {
@@ -2262,20 +2275,24 @@ class OwO {
             colFilter.blue = 1;
             zoomFilter.strength = 0;
         }
+        // undefined check is becuase RPG maker resets HP from undefined on room change.
+        var wentDown = oldHealth !== undefined && newHealth <= oldHealth; 
 
-        var wentDown = newHealth <= oldHealth;
-
-        // i hate this logic. if you hit zero twice in a row, you die.
+        // I hate this logic. if you hit 1 twice in a row, ONLY from losting stamina you die. AND only if you lost the minigame.
         if(wentDown) {
-            if(newHealth===0) {
-                if($__engineData.__lastHealthLossWasZero) {
+            if(newHealth<=0) {
+                if($__engineSaveData.__nextStaminaLossKills && $__engineSaveData.__lastMinigameOutcome===ENGINE_RETURN.LOSS) {
                     OwO.__gameLoss();
                 } else {
-                    $__engineData.__lastHealthLossWasZero = true;
-                    OwO.__changeHpNoListener(1);
+                    $__engineSaveData.__nextStaminaLossKills = true;
+                    OwO.__changeHpNoListener(1); // last stand.
                 }
             } else {
-                $__engineData.__lastHealthLossWasZero = false;
+                $__engineSaveData.__nextStaminaLossKills = false;
+            }
+        } else { // health went up
+            if($__engineSaveData.__nextStaminaLossKills) { // you were in last stand mode, i.e. you're at 1HP
+                OwO.__changeHpNoListener(OwO.__getPlayerHP()-1);
             }
         }
         colFilter.saturation = EngineUtils.interpolate(newHealth/100,0,1,EngineUtils.INTERPOLATE_OUT_QUAD)

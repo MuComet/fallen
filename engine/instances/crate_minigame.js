@@ -25,7 +25,8 @@ class CrateMinigameController extends MinigameController {
 
         this.destroyTarget = undefined;
 
-        this.lampSprite = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("lamp_mask")));
+        this.lampSprite = $engine.createManagedRenderable(this, new PIXI.extras.AnimatedSprite($engine.getAnimation("crate_mask_animation")));
+        this.lampSprite.animationSpeed = 0.1; // 6FPS
 
         var arr = [];
         this.targetCrate = new Crate(true);
@@ -170,6 +171,7 @@ class CrateMinigameController extends MinigameController {
 
     step() {
         super.step();
+        this.lampSprite.update(1);
         if(this.minigameOver())
             return;
         this.handleMoveScreen();
