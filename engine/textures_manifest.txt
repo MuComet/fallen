@@ -105,7 +105,7 @@ worm_4 engine/textures/garden/worm_0004.png 0.5 0.5
 worm_5 engine/textures/garden/worm_0004.png 0.5 0.5
 garden_worm_dead engine/textures/garden/worm_0006.png 0.5 0.5
 worm_7 engine/textures/garden/worm_0007.png 0.5 0.5
-animate worm_0 worm_1 worm_2 worm_3 worm_4 worm_5 worm_7 worm_7 worm_anim
+animate worm_0 worm_1 worm_2 worm_3 worm_4 worm_5 worm_7 worm_7 worm_5 worm_4 worm_3 worm_2 worm_1 worm_0 worm_anim
 
 
 wall_tile engine/textures/crate/wall_tile.png 0 0
