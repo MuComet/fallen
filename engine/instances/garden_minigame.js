@@ -87,7 +87,7 @@ class GardenMinigameController extends MinigameController {
         if(this.minigameOver()){
             return;
         }
-        if(this.timer === 60){
+        if(this.timer === 70){
             var spawnI = EngineUtils.irandomRange(0,8);
             IM.with(GardenWorm, function(worm){
                 if(worm.index === spawnI){
@@ -153,7 +153,7 @@ class GardenMinigameController extends MinigameController {
         if(IN.keyCheckPressed("RPGright") && this.x <= this.rightbound){  
             this.x += 200;
         }
-        console.log(this.x, this.rightbound);
+        //console.log(this.x, this.rightbound);
         if(IN.keyCheckPressed("RPGleft") && this.x > 90*2){
             this.x -= 200;
         }
@@ -202,14 +202,14 @@ class GardenWorm extends EngineInstance {
         this.index = index;
         this.animation = $engine.createRenderable(this,new PIXI.extras.AnimatedSprite($engine.getAnimation("worm_anim")));
         //this.animation.animationSpeed = 0.12;
-        this.animation.animationSpeed = 0.22;
+        this.animation.animationSpeed = 0.18;
         this.x = x-100;
         this.y = y;
         this.setSprite(this.animation);
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
         this.clicked = false;
         this.wormTimer = 0;
-        this.wormTimerEat = 60;
+        this.wormTimerEat = 70;
         this.deathTime = 0;    
     }
 
