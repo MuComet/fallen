@@ -14,6 +14,7 @@ class CardMinigameController extends MinigameController {
         this.attempts = 6;
         this.waiting = false;
         this.waitTimer = 0;
+        this.roundspeed = 90;
         
         this.startTimer(30*60);
         this.getTimer().pauseTimer();
@@ -21,7 +22,7 @@ class CardMinigameController extends MinigameController {
         this.setControls(false,true);
 
 
-        var text = new PIXI.Text("Memorize the card positions matching the goal card located\n at the bottom. Select as many of those cards as you can.\nThere are 6 correct cards each round.\n\n30 seconds to get 5/6 correct cards for 3 rounds in a row!\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Memorize the card positions matching the goal card located\n at the bottom. Select as many of those cards as you can.\nThere are 6 correct cards each round.\n\n30 seconds to get 6/6 correct cards for 3 rounds in a row!\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
 
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
@@ -32,8 +33,8 @@ class CardMinigameController extends MinigameController {
         this.updateProgressText();
         this.newRound();
 
-        this.setCheatTooltip("A little peeking never hurt anyone");
-        this.setLossReason("Gambing is bad. You should know better.");
+        this.setCheatTooltip("A little peeking never hurt anyone.");
+        this.setLossReason("Gambing is bad. You should know better!");
     }
     
     newRound(){
@@ -54,7 +55,8 @@ class CardMinigameController extends MinigameController {
             }else{
                 new CardBoard(70+85*(i-9), $engine.getWindowSizeY()/2, index);
             }
-        }    
+        }
+        this.roundscore = 0;  
     }
 
     notifyFramesSkipped(frames) {
@@ -122,7 +124,7 @@ class CardMinigameController extends MinigameController {
             });
         }
 
-        if(this.timer == 80){
+        if(this.timer == CardMinigameController.getInstance().roundspeed){
             this.getTimer().unpauseTimer();
         }
 
@@ -169,6 +171,7 @@ class CardMinigameController extends MinigameController {
             this.waiting = true;
             //this.rounds--;
             this.attempts = 6;
+
             IM.with(CardBoard, function(card){
                 if(!card.clicked){
                     card.enabled = false;
@@ -179,6 +182,9 @@ class CardMinigameController extends MinigameController {
                         if(card.group == CardMinigameController.getInstance().goal_index){
                             card.getSprite().tint = (0x11fa4f);  // correct choice 0xaaaa43
                             CardMinigameController.getInstance().roundscore++;
+                            if(CardMinigameController.getInstance().roundscore == 6){
+                                CardMinigameController.getInstance().score++;
+                            }
                         }else{
                             card.getSprite().tint = (0xab1101);  //WRONG  0xab1101
                         }
@@ -187,16 +193,11 @@ class CardMinigameController extends MinigameController {
                     card.flipTimer=card.flipTime;
                     card.flipMode=1;
                 });
-                //card.getSprite().texture = $engine.getTexture(card.group);
+                
+                
             });
-            if(CardMinigameController.getInstance().roundscore >= 5){
-                CardMinigameController.getInstance().score++;
-            }else{
-                CardMinigameController.getInstance().score = 0;
-            }
-            CardMinigameController.getInstance().roundscore = 0;   
+           
         }
-        
     }
 }
 
@@ -246,7 +247,7 @@ class CardBoard extends EngineInstance {
             return;
         }
         //this.cardFlip();
-        if(CardMinigameController.getInstance().timer > 80){
+        if(CardMinigameController.getInstance().timer >  CardMinigameController.getInstance().roundspeed){
             CardMinigameController.getInstance().updateProgressText();
             if(IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){ // change tint when hovered
                 //this.getSprite().tint = (0xaaafff);
