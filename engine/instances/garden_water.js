@@ -9,6 +9,8 @@ class WaterMinigameController extends MinigameController {
         new ParallaxingBackground("background_garden1");
     
         this.timer = 0;
+        this.speedtimer = 0;
+        this.speedmul = 0.008;
         this.attempts = 6;
         this.waiting = false;
         this.waitTimer = 0;
@@ -59,8 +61,11 @@ class WaterMinigameController extends MinigameController {
             }
         }
 
-        this.addOnCheatCallback(this, function(thing){
-
+        this.addOnCheatCallback(this, function(controller){
+            controller.speedmul = 0;
+            IM.with(DDRTiles, function(tile){
+                tile.destroy();
+            });
         });
 
 
@@ -110,7 +115,8 @@ class WaterMinigameController extends MinigameController {
         if(this.minigameOver()){
             return;
         }
-        if(this.timer === 30){
+
+        if(this.timer >= (30 -  this.speedtimer * this.speedmul)){
             new DDRTiles(149, 100, 0);
             this.timer = 0;
         }
@@ -129,6 +135,7 @@ class WaterMinigameController extends MinigameController {
         this.updateProgressText();
         this.handleShake();
         this.timer++;
+        this.speedtimer++;
     }
 
     randomPlantSelect(){
