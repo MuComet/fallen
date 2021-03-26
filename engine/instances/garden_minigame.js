@@ -70,7 +70,6 @@ class GardenMinigameController extends MinigameController {
             }
         }
         this.updateProgressText();
-
     }
 
     notifyFramesSkipped(frames) {
