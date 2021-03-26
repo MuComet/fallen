@@ -113,7 +113,12 @@ spritesheet dimensions 192 64 3 1 crate_normal engine/textures/crate/crate_sprit
 spritesheet dimensions 192 64 3 1 crate_marked engine/textures/crate/crate_sprites_marked.png 0 0
 spritesheet dimensions 6528 1248 4 1 animate crate_mask_animation 4 0 1 2 3 lamp_mask engine/textures/crate/mask.png 0.5 0.5
 
-water engine/textures/water/water.png 0.5 0.5
+water1 engine/textures/water/water_can_1.png 0.5 0.5
+water2 engine/textures/water/water_can_2.png 0.5 0.5
+water3 engine/textures/water/water_can_3.png 0.5 0.5
+water4 engine/textures/water/water_can_4.png 0.5 0.5
+animate water1 water1 water2 water2 water3 water3 water3 water3 water4 water4 water4 water4 water4 water_can_anim
+
 arrow_down engine/textures/water/arrow_down.png 0 0
 arrow_left engine/textures/water/arrow_left.png 0 0
 arrow_up engine/textures/water/arrow_up.png 0 0
