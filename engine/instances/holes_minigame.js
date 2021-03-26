@@ -4,7 +4,7 @@ class HoleMinigameController extends MinigameController {
         super.onEngineCreate();
 
         this.cameraDy = 1.75;
-        this.cameraDyChange = 0.00098; // 0.001 was too fast
+        this.cameraDyChange = 0.001;
         this.startTimer(40*60);
         this.getTimer().setSurvivalMode();
         this.height = 178;
@@ -28,13 +28,19 @@ class HoleMinigameController extends MinigameController {
         this.setCheatTooltip("Eson lookin' kinda thicc.")
 
         this.addOnCheatCallback(this,function(self) {
-            self.setLossReason("Not even thicc eson can make you good at video games.")
+            self.setLossReason("Not even thicc Eson can make you good at video games.")
         })
         this.setLossReason("To be fair, this has to be the\nmost complicated sewer network in the world.")
 
         this.addOnCheatCallback(this,function(self) {
-            self.cameraDy*=0.6666;
-            self.cameraDyChange*=0.6666;
+            self.cameraDy=4;
+            self.cameraDyChange=0;
+            IM.with(HolePlatform,function(platform) {
+                platform.setWidth(128);
+            })
+            IM.with(HoleSeparator,function(sep) {
+                sep.setWidth(256);
+            })
         })
     }
 
@@ -44,16 +50,28 @@ class HoleMinigameController extends MinigameController {
     }
 
     spawnPlatforms(yLoc) {
-        while(yLoc+2048 >= this.lastY) {
+        while(yLoc+2048 >= this.lastY) { // spawn a LOT into the future.
             var rx = this.lastX;
             while(rx<64 || rx > $engine.getWindowSizeX() - 64 || Math.abs(rx-this.lastX)<=this.minDistance) {
                 rx = this.lastX+EngineUtils.irandomRange(-this.maxDistance, this.maxDistance)
             }
             var yy = this.lastY+$engine.getWindowSizeY()+64;
             var offset =64-this.platformsSpawned/4
-            new HolePlatform(rx,yy,false,offset);
-            new HolePlatform(rx,yy,true,offset);
-            new HoleSeparator(rx,yy,offset*2)
+            if(this.hasCheated())
+                offset = 128;
+            var hp1 = new HolePlatform(rx,yy,false,offset);
+            var hp2 =new HolePlatform(rx,yy,true,offset);
+            var hs = new HoleSeparator(rx,yy,offset*2)
+
+            hp1.idx = this.platformsSpawned;
+            hp2.idx = this.platformsSpawned;
+
+            hp1.otherPlatform = hp2;
+            hp1.separator = hs;
+
+            hp2.otherPlatform = hp1;
+            hp2.separator = hs;
+
             this.lastY += this.height;
             this.lastX = rx;
             this.platformsSpawned++;
@@ -110,6 +128,8 @@ class HolePlayer extends InstanceMover {
 
         this.xScale = this.defaultXScale;
         this.yScale = this.defaultYScale;
+
+        this.cheatTimer = 0;
     }
 
     onCreate(x,y) {
@@ -121,11 +141,18 @@ class HolePlayer extends InstanceMover {
     step() {
         super.step();
         this.animationTick();
-        this.snapDistance = 8 + (HoleMinigameController.getInstance().cameraDy + this.dy)/2;
+
+        var controller = HoleMinigameController.getInstance();
+
+        if(controller.hasCheated()) {
+            this.defaultXScale = EngineUtils.interpolate(++this.cheatTimer/60,0.2,0.6,EngineUtils.INTERPOLATE_IN_ELASTIC)
+        }
+
+        this.snapDistance = 8 + (controller.cameraDy + this.dy)/2;
         if(this.snapDistance > 128-this.dy)
             this.snapDistance = 128-this.dy; // prevent phasing through platforms
         var accel = [0,0];
-        if(!HoleMinigameController.getInstance().minigameOver()) {
+        if(!controller.minigameOver()) {
             if(IN.keyCheck("RPGleft")) {
                 accel[0]-=this.acceleration;
             }
@@ -142,9 +169,12 @@ class HolePlayer extends InstanceMover {
             this.dy+=this.grav;
         var inst = IM.instancePlace(this,this.x,this.y+this.dy,HolePlatform)
         if(inst!==undefined) {
-            if(this.dy>=0) // land
+            if(this.dy>=0) { // land
                 this.y = inst.getHitbox().getBoundingBoxTop();
-            else { // hit head
+                if(controller.hasCheated()) {
+                    this.handleDestroyBlock(inst);
+                }
+            } else { // hit head
                 this.y = inst.getHitbox().getBoundingBoxBottom()+(this.getHitbox().getBoundingBoxBottom()-this.getHitbox().getBoundingBoxTop());
             }
             if(Math.abs(this.dy)<5) {
@@ -159,19 +189,37 @@ class HolePlayer extends InstanceMover {
         this.y+=this.dy;
     }
 
+    handleDestroyBlock(block) {
+        if(block.idx%2!==0) {
+            return false;
+        }
+
+        var t1 = block;
+        var t2 = block.otherPlatform;
+        var t3 = block.separator;
+
+        t1.break();
+        t2.break();
+        t3.break();
+
+        return true;
+    }
+
     collisionCheck(x,y) {
         return x<=0 || x >= $engine.getWindowSizeX() || IM.instanceCollision(this,x,y,HolePlatform);
     }
 
     animationTick() {
+        if(this.vel[0]!==0) {
+            this.xScale = Math.sign(this.vel[0]) * this.defaultXScale;
+        } else {
+            this.xScale = Math.sign(this.xScale) * this.defaultXScale; // for cheat
+        }
         if(IN.keyCheck("RPGright") || IN.keyCheck("RPGleft")) {
             this.setAnimation(this.animationWalk)
         } else {
             this.setAnimation(this.animationStand)
             return;
-        }
-        if(this.vel[0]!==0) {
-            this.xScale = Math.sign(this.vel[0]) * this.defaultXScale;
         }
         this.sprite.update(1);
     }
@@ -186,16 +234,14 @@ class HolePlayer extends InstanceMover {
     canControl() {
         return true;
     }
-
-    draw(gui,camera) {
-        EngineDebugUtils.drawBoundingBox(camera,this);
-    }
 }
 
 class HolePlatform extends EngineInstance {
     onCreate(x,y, type, holeWidth) {
         this.x = x;
         this.y = y;
+        this.originalWidth = holeWidth;
+        this.originalType = type;
         this.setSprite($engine.createRenderable(this,new PIXI.Sprite($engine.getRandomTextureFromSpritesheet("pipes"))));
         if(type) { // left side
             this.getSprite().anchor.x = 1;
@@ -205,11 +251,39 @@ class HolePlatform extends EngineInstance {
             this.x+=holeWidth;
             this.setHitbox(new Hitbox(this,new RectangleHitbox(this,0,-26,1024,26)))
         }
+
+        this.isBroken = false;
+        this.dy = EngineUtils.randomRange(-8,-4);
+        this.dx = EngineUtils.randomRange(-8,8);
+        this.dr = EngineUtils.randomRange(-0.01,0.01);
+        this.grav = EngineUtils.randomRange(0.2,0.225);
+    }
+
+    setWidth(newWidth) {
+        if(this.originalType) {
+            this.x-=newWidth-this.originalWidth;
+        } else {
+            this.x+=newWidth-this.originalWidth;
+        }
     }
 
     step() {
         if(this.y < $engine.getCamera().getY()-256)
             this.destroy();
+        
+        if(this.isBroken) {
+            this.x+=this.dx;
+            this.y+=this.dy;
+            this.angle+=this.dr;
+            this.dy+=this.grav;
+            if(this.y > $engine.getCamera().getY()+2048)
+                this.destroy()
+        }
+    }
+
+    break() {
+        this.isBroken=true;
+        this.setHitbox(new Hitbox(this,new RectangleHitbox(this,-99999,-99999,-99999,-99999))) // yeet the hitbox
     }
 }
 
@@ -221,10 +295,34 @@ class HoleSeparator extends EngineInstance {
         var fac = (width+8)/256;
         this.xScale = fac;
         this.depth = 1;
+
+        this.isBroken = false;
+        this.dy = EngineUtils.randomRange(-8,-4);
+        this.dx = EngineUtils.randomRange(-8,8);
+        this.dr = EngineUtils.randomRange(-0.1,0.1);
+        this.grav = EngineUtils.randomRange(0.2,0.225);
     }
 
     step() {
         if(this.y < $engine.getCamera().getY()-256)
             this.destroy();
+        
+        if(this.isBroken) {
+            this.x+=this.dx;
+            this.y+=this.dy;
+            this.angle+=this.dr;
+            this.dy+=this.grav;
+            if(this.y > $engine.getCamera().getY()+2048)
+                this.destroy()
+        }
+    }
+
+    setWidth(newWidth) {
+        var fac = (newWidth+8)/256;
+        this.xScale = fac;
+    }
+
+    break() {
+        this.isBroken=true;
     }
 }

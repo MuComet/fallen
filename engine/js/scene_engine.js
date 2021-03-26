@@ -1065,6 +1065,14 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
+     * Gets the engine save data associated with the current save file.
+     * @returns The save data associated with this file.
+     */
+    getSaveData() {
+        return $__engineSaveData;
+    }
+
+    /**
      * @returns {Number} The amount of frames the game has executed (timescale aware), excluding time paused, and including special time paused.
      */
     getGameTimer() {

@@ -71,6 +71,10 @@ class DrawController extends MinigameController { // controls the minigame
     }
 
     selectDrawings() {
+        if(!this.alternate) {
+            $engine.getSaveData().drawingMinigameLines = {};
+            $engine.getSaveData().drawingMinigameLines.data=[];
+        }
         var add = this.alternate ? 6 : 0
         for(var i =0;i<3;i++) {
             var ind = EngineUtils.irandom(1)+add+i*2;
@@ -277,6 +281,12 @@ class ShapeToDraw extends EngineInstance {
         this.y = $engine.getWindowSizeY()/2;
         this.alpha = 0;
         this.pathData = ShapeToDraw.paths[index];
+        this.saveDataArrayIndex = $__engineSaveData.drawingMinigameLines.data.length;
+        $__engineSaveData.drawingMinigameLines.data.push({
+            index:index,
+            line:[],
+            distance:-1
+        })
         this.basePenalty=0;
         this.baseScore=0;
         this.score = 0;
@@ -361,6 +371,9 @@ class ShapeToDraw extends EngineInstance {
             score = EngineUtils.clamp(score-penalty,0,1)
         }
         this.score = EngineUtils.clamp(score,0,1);
+
+        $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].line = this.line.points;
+        $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].distance = this.line.totalDist;
 
     }
 }
