@@ -58,7 +58,7 @@ class SkyMinigameController extends MinigameController { // All classes that can
         this.drillTime = this.drillTimeBase+EngineUtils.irandomRange(-60,60);
 
         this.addOnGameEndCallback(this,function(self) {
-            self.setLossReason("You ran out of time to drop the block...")
+            self.setLossReason("You're supposed to drop the block, not watch it.")
         })
     } 
 

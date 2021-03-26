@@ -20,7 +20,7 @@ SkyMinigameController SkyBuildPlayer FallingTowerPlatform engine/instances/sky_m
 CardMinigameController CardBoard engine/instances/card_minigame.js
 FallingObjectsController FallingObjectsPlayer FallingObject FallingObjectShadow DustParticle engine/instances/falling_objects_2d.js
 WallBuilderController Brick engine/instances/wall_building.js
-HoleMinigameController HolePlayer HolePlatform engine/instances/holes_minigame.js
+HoleMinigameController HolePlayer HolePlatform HoleSeparator engine/instances/holes_minigame.js
 BrokenImageController PictureComponent engine/instances/broken_image_minigame.js
 PaintImageController engine/instances/paint_image_minigame.js
 
