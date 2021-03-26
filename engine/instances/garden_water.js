@@ -21,7 +21,7 @@ class WaterMinigameController extends MinigameController {
         this.x = 149;
         this.y = $engine.getWindowSizeY() -180;
 
-        var ddr_tiles = ["arrow_down", "arrow_left", "arrow_up", "arrow_right"];
+        var ddr_tiles = ["arrow_down_c", "arrow_left_c", "arrow_up_c", "arrow_right_c"];
         this.ddr_tiles = ddr_tiles;
 
         this.sprite0 = new PIXI.Sprite($engine.getTexture("arrow_down"));
@@ -41,23 +41,23 @@ class WaterMinigameController extends MinigameController {
         var plant_array = [];
         this.plant_array = plant_array;
 
-        var plant_sprites = ["plant_0", "plant_1", "plant_2", "plant_3"];
+        var plant_sprites = ["plant_1", "plant_2", "plant_3", "plant_1_ded", "plant_2_ded", "plant_3_ded"];
         this.plant_sprites = plant_sprites;
 
-        new WaterCan(150, $engine.getWindowSizeY()/2 -170);
+       
 
         this.shakeTimer = 0;
         this.shakeFactor = 8;
 
         for(var i = 0; i < 12; i++) {
             if(i < 3){
-                plant_array[i] = new WaterPlant(90*2+200*i, $engine.getWindowSizeY()/2 -110, i);        
+                plant_array[i] = new WaterPlant(90*2+200*i, $engine.getWindowSizeY()/2 -110);        
             }if(i >= 3 && i < 6){
-                plant_array[i] = new WaterPlant(90*2+200*(i-3), $engine.getWindowSizeY()/2+25, i);        
+                plant_array[i] = new WaterPlant(90*2+200*(i-3), $engine.getWindowSizeY()/2+25);        
             }if(i >= 6 && i < 9){
-                plant_array[i] = new WaterPlant(90*3+200*(i-6), $engine.getWindowSizeY()/2 +90, i);
+                plant_array[i] = new WaterPlant(90*3+200*(i-6), $engine.getWindowSizeY()/2 +90);
             }if(i >= 9 && i < 12){
-                plant_array[i] = new WaterPlant(90*3+200*(i-9), $engine.getWindowSizeY()/2 -70, i);
+                plant_array[i] = new WaterPlant(90*3+200*(i-9), $engine.getWindowSizeY()/2 -70);
             }
         }
 
@@ -68,10 +68,9 @@ class WaterMinigameController extends MinigameController {
             });
         });
 
-
         //this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
 
-        var text = new PIXI.Text("NOT DONE INSTRUCTIONS!\nBasically\n WATER\n\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Use the Arrows to water the plants.\n Follow the orders, pressing when at the bottom target.\n Missed watering steps cause plants to die. \n Keep at least ONE plant alive, and keep up.\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
 
@@ -81,9 +80,13 @@ class WaterMinigameController extends MinigameController {
         this.progressText.x = $engine.getWindowSizeX()/2;
         this.progressText.y = $engine.getWindowSizeY()-30;
 
-
+        
         this.updateProgressText();
         this.randomPlantSelect();
+        new WaterCan(); // must be in this order
+        
+        this.setCheatTooltip("Sometimes faster isn't better!");
+        this.setLossReason("Do you need help locating the arrows?");
     }
 
     handleShake() {
@@ -153,25 +156,21 @@ class WaterMinigameController extends MinigameController {
         if($engine.getWindowSizeY() -220 <= current_tile.y && current_tile.y <= $engine.getWindowSizeY()){
 
             if(IN.keyCheckPressed("RPGright") && current_tile.arrow === 3){
-                current_tile.getSprite().tint = (0xaaafff);
                 WaterMinigameController.getInstance().next = 1;
                 $engine.audioPlaySound("card_flip");
                 current_tile.destroy();    
             }
             if(IN.keyCheckPressed("RPGleft") && current_tile.arrow === 1){
-                current_tile.getSprite().tint = (0xaaafff);
                 WaterMinigameController.getInstance().next = 1;
                 $engine.audioPlaySound("card_flip");
                 current_tile.destroy();
             }
             if(IN.keyCheckPressed("RPGdown") && current_tile.arrow === 0){
-                current_tile.getSprite().tint = (0xaaafff);
                 WaterMinigameController.getInstance().next = 1;
                 $engine.audioPlaySound("card_flip");
                 current_tile.destroy();
             }
             if(IN.keyCheckPressed("RPGup") && current_tile.arrow === 2){
-                current_tile.getSprite().tint = (0xaaafff);
                 WaterMinigameController.getInstance().next = 1;
                 $engine.audioPlaySound("card_flip");
                 current_tile.destroy();
@@ -181,6 +180,7 @@ class WaterMinigameController extends MinigameController {
         || (IN.keyCheckPressed("RPGdown") && current_tile.arrow != 0) || (IN.keyCheckPressed("RPGup") && current_tile.arrow != 2)){
             this.penalty = 40;
             current_tile.getSprite().tint = (0xab1101);
+            $engine.audioPlaySound("wall_miss");
         }  
     }
 
@@ -213,14 +213,15 @@ class DDRTiles extends EngineInstance {
     step(){
         this.y += this.speed;
         
+        //if(this.y >= $engine.getWindowSizeY() - 170){  /// testing for new track
         if(this.y - 24 >= $engine.getWindowSizeY() - 140){
             WaterMinigameController.getInstance().score--;
             WaterMinigameController.getInstance().shake();
             $engine.audioPlaySound("sky_donk");
+            //console.log(WaterMinigameController.getInstance().speedtimer / 60);
             //var plant = IM.randomInstance(WaterPlant);
             var plant = WaterMinigameController.getInstance().plant;
-            //console.log(plant.x, plant.y);
-            plant.getSprite().texture = $engine.getTexture("plant_0");
+            plant.getSprite().texture = $engine.getTexture(WaterMinigameController.getInstance().plant_sprites[plant.index + 3]);
 
             WaterMinigameController.getInstance().plant_array.splice(WaterMinigameController.getInstance().index, 1);
 
@@ -231,28 +232,32 @@ class DDRTiles extends EngineInstance {
 }
 
 class WaterPlant extends EngineInstance {
-    onCreate(x,y,index) {
+    onCreate(x,y) {
         this.x = x;
         this.y = y;
-        this.index = index;
+        this.index = EngineUtils.irandomRange(0,2);
         this.score = 1;
-        this.setSprite(new PIXI.Sprite($engine.getTexture(WaterMinigameController.getInstance().plant_sprites[EngineUtils.irandomRange(1,3)])));
+        this.setSprite(new PIXI.Sprite($engine.getTexture(WaterMinigameController.getInstance().plant_sprites[this.index])));
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
         this.clicked = false;
     }
 }
 
 class WaterCan extends EngineInstance {
-    onCreate(x,y) {
+    onCreate() {
         this.timer = 0;
         this.endTime = 20;
         this.depth = -9;
-        this.x = x;
-        this.y = y;
-        this.ex = x;
-        this.ey = y;
+
+        var plant = WaterMinigameController.getInstance().plant;
+        console.log(plant);
+        this.x = plant.x -50;
+        this.y = plant.y -60;
+        this.ex = this.x;
+        this.ey = this.y;
         this.sx = this.x;
         this.sy = this.y;
+
         this.animation = $engine.createRenderable(this,new PIXI.extras.AnimatedSprite($engine.getAnimation("water_can_anim")));
         //this.animation.animationSpeed = 0.12;
         this.animation.animationSpeed = 0.2;

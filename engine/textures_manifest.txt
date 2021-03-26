@@ -94,6 +94,7 @@ plant_0 engine/textures/garden/plant0.png 0.5 0.5
 plant_1 engine/textures/garden/plant1.png 0.5 0.5
 plant_2 engine/textures/garden/plant2.png 0.5 0.5
 plant_3 engine/textures/garden/plant3.png 0.5 0.5
+
 selector_cloud engine/textures/garden/selector_cloud.png 0.5 0.5
 pesticide_cloud engine/textures/garden/pesticide_cloud.png 0.5 0.5
 spritesheet dimensions 4500 624 5 1 background_garden1 engine/textures/backgrounds/background_garden2.png 0.5 0.5
@@ -107,6 +108,9 @@ garden_worm_dead engine/textures/garden/worm_0006.png 0.5 0.5
 worm_7 engine/textures/garden/worm_0007.png 0.5 0.5
 animate worm_0 worm_1 worm_2 worm_3 worm_4 worm_5 worm_7 worm_7 worm_5 worm_4 worm_3 worm_2 worm_1 worm_0 worm_anim
 
+plant_1_ded engine/textures/water/plant1-ded.png 0.5 0.5
+plant_2_ded engine/textures/water/plant2-ded.png 0.5 0.5
+plant_3_ded engine/textures/water/plant3-ded.png 0.5 0.5
 
 wall_tile engine/textures/crate/wall_tile.png 0 0
 spritesheet dimensions 192 64 3 1 crate_normal engine/textures/crate/crate_sprites_normal.png 0 0
@@ -123,6 +127,11 @@ arrow_down engine/textures/water/arrow_down.png 0 0
 arrow_left engine/textures/water/arrow_left.png 0 0
 arrow_up engine/textures/water/arrow_up.png 0 0
 arrow_right engine/textures/water/arrow_right.png 0 0
+
+arrow_down_c engine/textures/water/arrow_down_c.png 0 0
+arrow_left_c engine/textures/water/arrow_left_c.png 0 0
+arrow_up_c engine/textures/water/arrow_up_c.png 0 0
+arrow_right_c engine/textures/water/arrow_right_c.png 0 0
 
 green_puyo engine/textures/puyo/green_puyo.png 0.5 0.5
 blue_puyo engine/textures/puyo/blue_puyo.png 0.5 0.5

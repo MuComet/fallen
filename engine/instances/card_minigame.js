@@ -33,7 +33,7 @@ class CardMinigameController extends MinigameController {
         this.newRound();
 
         this.setCheatTooltip("A little peeking never hurt anyone");
-        this.setLossReason("Gambing is bad. You should know better.")
+        this.setLossReason("Gambing is bad. You should know better.");
     }
     
     newRound(){
@@ -226,23 +226,25 @@ class CardBoard extends EngineInstance {
                 var fac = EngineUtils.interpolate(value, 0, 1, EngineUtils.INTERPOLATE_OUT_BACK)
                 this.xScale = fac;
                 this.yScale = 0.75 + fac/4;
-                if(this.flipMode===0)
+                if(this.flipMode===0){
                     this.getSprite().texture = $engine.getTexture("card_faces_0");
-                else {
+                }else {
                     this.getSprite().texture = $engine.getTexture(this.group);
                 }
             }
-            if(this.flipTimer===Math.floor(this.flipTime/2))
-                $engine.audioPlaySound("card_flip")
-        } else {
+            if(this.flipTimer===Math.floor(this.flipTime/2)){
+                $engine.audioPlaySound("card_flip");
+            }
+        }else{
             return true;
         }
         this.flipTimer--;
     }
     
     step() {
-        if(!this.enabled)
+        if(!this.enabled){
             return;
+        }
         //this.cardFlip();
         if(CardMinigameController.getInstance().timer > 80){
             CardMinigameController.getInstance().updateProgressText();
