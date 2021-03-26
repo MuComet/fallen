@@ -87,7 +87,7 @@ class GardenMinigameController extends MinigameController {
         if(this.minigameOver()){
             return;
         }
-        if(this.timer === 70){
+        if(this.timer === 65){
             var spawnI = EngineUtils.irandomRange(0,8);
             IM.with(GardenWorm, function(worm){
                 if(worm.index === spawnI){
@@ -209,7 +209,7 @@ class GardenWorm extends EngineInstance {
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
         this.clicked = false;
         this.wormTimer = 0;
-        this.wormTimerEat = 70;
+        this.wormTimerEat = 60;
         this.deathTime = 0;    
     }
 
