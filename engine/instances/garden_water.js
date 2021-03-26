@@ -4,6 +4,7 @@ class WaterMinigameController extends MinigameController {
         this.score = 12;
         this.maxScore = 12;
         this.penalty = 0;
+        this.next = 0;
 
         new ParallaxingBackground("background_garden1");
     
@@ -11,6 +12,7 @@ class WaterMinigameController extends MinigameController {
         this.attempts = 6;
         this.waiting = false;
         this.waitTimer = 0;
+
         
         this.startTimer(30*60);
         this.getTimer().setSurvivalMode();
@@ -40,6 +42,11 @@ class WaterMinigameController extends MinigameController {
         var plant_sprites = ["plant_0", "plant_1", "plant_2", "plant_3"];
         this.plant_sprites = plant_sprites;
 
+        new WaterRaindrop(90*2+20, $engine.getWindowSizeY()/2 -170);
+
+        this.shakeTimer = 0;
+        this.shakeFactor = 8;
+
         for(var i = 0; i < 12; i++) {
             if(i < 3){
                 plant_array[i] = new WaterPlant(90*2+200*i, $engine.getWindowSizeY()/2 -110, i);        
@@ -52,7 +59,7 @@ class WaterMinigameController extends MinigameController {
             }
         }
 
-        this.addOnCheatCallback(this, function(selector){
+        this.addOnCheatCallback(this, function(thing){
 
         });
 
@@ -71,8 +78,22 @@ class WaterMinigameController extends MinigameController {
 
 
         this.updateProgressText();
+        this.randomPlantSelect();
     }
-    
+
+    handleShake() {
+        var camera = $engine.getCamera();
+        var fac = EngineUtils.interpolate(this.shakeTimer/this.shakeFactor,0,1,EngineUtils.INTERPOLATE_OUT_QUAD);
+        camera.setRotation(EngineUtils.randomRange(-0.01,0.01)*fac);
+        camera.setLocation(EngineUtils.irandomRange(-2,2) * fac, EngineUtils.irandomRange(-2,2) * fac);
+        this.shakeTimer--;
+    }
+
+    shake(factor = 20) {
+        if(this.shakeTimer < 0);
+            this.shakeTimer=0;
+        this.shakeTimer+=factor;
+    }
 
     notifyFramesSkipped(frames) {
         this.getTimer().tickDown(frames);  
@@ -84,7 +105,7 @@ class WaterMinigameController extends MinigameController {
     }
 
     step() {
-        this.timer++;
+
         super.step();
         if(this.minigameOver()){
             return;
@@ -98,6 +119,7 @@ class WaterMinigameController extends MinigameController {
             this.getTimer().pauseTimer();
             this.endMinigame(false);
         }
+
         this.tileHit();
 
         if(this.penalty > 0){
@@ -105,7 +127,13 @@ class WaterMinigameController extends MinigameController {
         }
 
         this.updateProgressText();
+        this.handleShake();
+        this.timer++;
+    }
 
+    randomPlantSelect(){
+        this.index = EngineUtils.irandomRange(0, WaterMinigameController.getInstance().plant_array.length-1);
+        this.plant = WaterMinigameController.getInstance().plant_array[this.index];
     }
 
     tileHit() {
@@ -117,30 +145,37 @@ class WaterMinigameController extends MinigameController {
 
         if($engine.getWindowSizeY() -220 <= current_tile.y && current_tile.y <= $engine.getWindowSizeY()){
 
-            if(IN.keyCheckPressed("ArrowRight") && current_tile.arrow === 3){
+            if(IN.keyCheckPressed("RPGright") && current_tile.arrow === 3){
                 current_tile.getSprite().tint = (0xaaafff);
+                WaterMinigameController.getInstance().next = 1;
+                $engine.audioPlaySound("card_flip");
                 current_tile.destroy();    
             }
-            if(IN.keyCheckPressed("ArrowLeft") && current_tile.arrow === 1){
+            if(IN.keyCheckPressed("RPGleft") && current_tile.arrow === 1){
                 current_tile.getSprite().tint = (0xaaafff);
+                WaterMinigameController.getInstance().next = 1;
+                $engine.audioPlaySound("card_flip");
                 current_tile.destroy();
             }
-            if(IN.keyCheckPressed("ArrowDown") && current_tile.arrow === 0){
+            if(IN.keyCheckPressed("RPGdown") && current_tile.arrow === 0){
                 current_tile.getSprite().tint = (0xaaafff);
+                WaterMinigameController.getInstance().next = 1;
+                $engine.audioPlaySound("card_flip");
                 current_tile.destroy();
             }
-            if(IN.keyCheckPressed("ArrowUp") && current_tile.arrow === 2){
+            if(IN.keyCheckPressed("RPGup") && current_tile.arrow === 2){
                 current_tile.getSprite().tint = (0xaaafff);
+                WaterMinigameController.getInstance().next = 1;
+                $engine.audioPlaySound("card_flip");
                 current_tile.destroy();
             }
         }
-        if((IN.keyCheckPressed("ArrowRight") && current_tile.arrow != 3) || (IN.keyCheckPressed("ArrowLeft") && current_tile.arrow != 1)
-        || (IN.keyCheckPressed("ArrowDown") && current_tile.arrow != 0) || (IN.keyCheckPressed("ArrowUp") && current_tile.arrow != 2)){
+        if((IN.keyCheckPressed("RPGright") && current_tile.arrow != 3) || (IN.keyCheckPressed("RPGleft") && current_tile.arrow != 1)
+        || (IN.keyCheckPressed("RPGdown") && current_tile.arrow != 0) || (IN.keyCheckPressed("RPGup") && current_tile.arrow != 2)){
             this.penalty = 40;
             current_tile.getSprite().tint = (0xab1101);
         }  
     }
-
 
 
     updateProgressText() {
@@ -170,16 +205,20 @@ class DDRTiles extends EngineInstance {
 
     step(){
         this.y += this.speed;
+        
         if(this.y - 24 >= $engine.getWindowSizeY() - 140){
             WaterMinigameController.getInstance().score--;
+            WaterMinigameController.getInstance().shake();
+            $engine.audioPlaySound("sky_donk");
             //var plant = IM.randomInstance(WaterPlant);
-            var index = EngineUtils.irandomRange(0, WaterMinigameController.getInstance().plant_array.length-1);
-            var plant = WaterMinigameController.getInstance().plant_array[index];
-            console.log(plant);
+            var plant = WaterMinigameController.getInstance().plant;
+            //console.log(plant.x, plant.y);
             plant.getSprite().texture = $engine.getTexture("plant_0");
-            WaterMinigameController.getInstance().plant_array.splice(index, 1);
+
+            WaterMinigameController.getInstance().plant_array.splice(WaterMinigameController.getInstance().index, 1);
 
             this.destroy();
+            WaterMinigameController.getInstance().next = 2;
         }
     }
 }
@@ -197,63 +236,48 @@ class WaterPlant extends EngineInstance {
 }
 
 class WaterRaindrop extends EngineInstance {
-
-    onEngineCreate() {
-        this.dx = EngineUtils.randomRange(0.2,0.8);
-        this.maxDy = EngineUtils.randomRange(20,24)
-        this.dy = this.maxDy;
-        this.grav = 0.25;
-        this.angle = V2D.calcDir(this.dx,this.dy)
-        var dist = V2D.calcMag(this.dx,this.dy);
-        this.xScale = EngineUtils.clamp(dist/6,0,2)
-        this.hitbox = new Hitbox(this, new RectangleHitbox(this,0,-1,16,1))
-        this.setSprite(new PIXI.Sprite($engine.getTexture("raindrop")))
-    }
-
     onCreate(x,y) {
-        this.x=x;
-        this.y=y;
-        this.onEngineCreate();
+        this.timer = 0;
+        this.endTime = 20;
+        this.depth = -9;
+        this.x = x;
+        this.y = y;
+        this.ex = x;
+        this.ey = y;
+        this.sx = this.x;
+        this.sy = this.y;
+        this.setSprite(new PIXI.Sprite($engine.getTexture("worm_5")));
     }
 
-    step() {
-        this.x+=this.dx;
-        this.y+=this.dy;
-        if(this.dy < this.maxDy)
-            this.dy+=this.grav;
-        this.angle = V2D.calcDir(this.dx,this.dy)
-        var dist = V2D.calcMag(this.dx,this.dy);
-        this.xScale = EngineUtils.clamp(dist/12,0.25,2)
-        if(this.y>=$engine.getWindowSizeY() || this.x<-128 || this.x > 944) {
-            this.destroy();
-        }
-        var inst = IM.instancePlace(this,this.x,this.y,Umbrella)
-        if(inst) {
-            var spd = V2D.calcMag(this.dx,this.dy);
-            var angle = V2D.calcDir(this.x-inst.x,inst.y-this.y);
-            spd/=8
-            var diff = this.x-inst.x;
-            var dxAdd = inst.dx
-            if(Math.sign(diff) !== Math.sign(inst.dx) || Math.abs(diff)<60)
-                dxAdd=0;
-            if(inst.dx === 0) {
-                dxAdd = EngineUtils.clamp(diff/32,-2.5,2.5)
-            }
-            if(spd<0.5)
-                spd=0;
-            this.dx = V2D.lengthDirX(angle,spd) +dxAdd;
-            this.dy = V2D.lengthDirY(angle,spd);
-        }
-        if(IM.instanceCollision(this,this.x,this.y,Test)) {
-            this.destroy();
-        }
-        //if(IM.instanceCollision(this,this.x,this.y,UmbrellaPlayer)) {
-            //UmbrellaMinigameController.getInstance().decrementScore();
-            //IM.find(UmbrellaPlayer,0).hasBeenHurt = true;
-            //this.destroy();
-        //}
+    step(){
+        this.timer++;
+        
+        if((WaterMinigameController.getInstance().next === 1 || WaterMinigameController.getInstance().next === 2) && WaterMinigameController.getInstance().plant_array.length >= 1){  
+            //$engine.audioPlaySound("umbrella_rain_1");
+            //$engine.audioPauseSound("umbrella_rain_1");
+            WaterMinigameController.getInstance().randomPlantSelect();
+            var plant = WaterMinigameController.getInstance().plant;
+            //console.log(plant);
 
+           
+            this.ex = plant.x +20;
+            this.ey = plant.y -60;
+
+            this.sx = this.x;
+            this.sy = this.y;
+            WaterMinigameController.getInstance().next = 0;
+            this.timer = 0;
+        }
+
+        
+
+        if(this.x != this.ex && this.y != this.ey){
+            this.x = EngineUtils.interpolate(this.timer/this.endTime,this.sx,this.ex,EngineUtils.INTERPOLATE_SMOOTH);
+            this.y = EngineUtils.interpolate(this.timer/this.endTime,this.sy,this.ey,EngineUtils.INTERPOLATE_SMOOTH);
+        }
+        
     }
+    
 
     draw(gui,camera) {
         //EngineDebugUtils.drawHitbox(camera,this);

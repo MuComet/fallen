@@ -13,6 +13,7 @@ class GardenMinigameController extends MinigameController {
         this.attempts = 6;
         this.waiting = false;
         this.waitTimer = 0;
+        this.rightbound = 90*2+200;
         
         this.startTimer(30*60);
         this.getTimer().setSurvivalMode();
@@ -28,12 +29,16 @@ class GardenMinigameController extends MinigameController {
         this.sprite2.visible = false;
 
         this.addOnCheatCallback(this, function(selector){
+            selector.rightbound = 90*2;
+            if(selector.x === 480 || selector.x === 570){
+                selector.x -= 200;
+            }
             selector.sprite2.visible = true;
         });
 
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
 
-        var text = new PIXI.Text("NOT DONE INSTRUCTIONS!\nBasically\n WORMS\nYou may lose at most 5 plants \nAND miss at most 10 worms\nPress ENTER to cheat",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Use Arrows to select a worm hole, protect the garden's\n vegetation and spray the worms\n before they can retreat and eat the plants. \n Press SPACE to spray.\n\n You may lose at most 5 plant units \n AND miss spraying at most 10 worms \n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
 
@@ -82,14 +87,16 @@ class GardenMinigameController extends MinigameController {
         if(this.minigameOver()){
             return;
         }
-        if(this.timer === 60){
+        if(this.timer === 70){
             var spawnI = EngineUtils.irandomRange(0,8);
             IM.with(GardenWorm, function(worm){
                 if(worm.index === spawnI){
                     spawnI = EngineUtils.irandomRange(0,8);;
                 }
             });
-            this.spawnWorm(spawnI); 
+            this.spawnWorm(spawnI);
+            $engine.audioPlaySound("worm_digup");
+            //$engine.audioPlaySound("worm_appear");
             this.timer = 0;
         }
 
@@ -143,10 +150,10 @@ class GardenMinigameController extends MinigameController {
     }
 
     moveSpray(){
-
-        if(IN.keyCheckPressed("RPGright") && this.x <= 90*2+200){
+        if(IN.keyCheckPressed("RPGright") && this.x <= this.rightbound){  
             this.x += 200;
         }
+        //console.log(this.x, this.rightbound);
         if(IN.keyCheckPressed("RPGleft") && this.x > 90*2){
             this.x -= 200;
         }
@@ -194,14 +201,15 @@ class GardenWorm extends EngineInstance {
 
         this.index = index;
         this.animation = $engine.createRenderable(this,new PIXI.extras.AnimatedSprite($engine.getAnimation("worm_anim")));
-        this.animation.animationSpeed = 0.12;
+        //this.animation.animationSpeed = 0.12;
+        this.animation.animationSpeed = 0.18;
         this.x = x-100;
         this.y = y;
         this.setSprite(this.animation);
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
         this.clicked = false;
         this.wormTimer = 0;
-        this.wormTimerEat = 60;
+        this.wormTimerEat = 70;
         this.deathTime = 0;    
     }
 
@@ -224,8 +232,8 @@ class GardenWorm extends EngineInstance {
                 GardenMinigameController.getInstance().shake();
                 this.deathTime = this.wormTimer;
                 this.getSprite().texture = $engine.getTexture("garden_worm_dead");
-                $engine.audioPlaySound("sky_bonk");
-   
+                $engine.audioPauseSound("worm_digup");
+                $engine.audioPlaySound("worm_kill");
             }
         }else if(IN.keyCheckPressed("Space") && IM.instanceCollisionPoint(GardenMinigameController.getInstance().x,
          GardenMinigameController.getInstance().y, this) && this.deathTime === 0){
@@ -233,11 +241,13 @@ class GardenWorm extends EngineInstance {
             GardenMinigameController.getInstance().shake();
             this.deathTime = this.wormTimer;
             this.getSprite().texture = $engine.getTexture("garden_worm_dead");
-            $engine.audioPlaySound("sky_bonk");
+            $engine.audioPauseSound("worm_digup");
+            $engine.audioPlaySound("worm_kill");
         }
 
         if(this.wormTimer > this.deathTime + 60 && this.deathTime !== 0){
             this.destroy();
+            //$engine.audioPlaySound("worm_die");
         }
         this.wormTimer++;
     }
@@ -255,8 +265,10 @@ class GardenPlant extends EngineInstance {
         this.clicked = false;
     }
     step(){
-        if(GardenMinigameController.getInstance().plant_array[this.index] === undefined){
+        if(!this.clicked && GardenMinigameController.getInstance().plant_array[this.index] === undefined){
             this.getSprite().texture = $engine.getTexture(GardenMinigameController.getInstance().plant_sprites[0]);
+            $engine.audioPlaySound("worm_chomp");
+            this.clicked = true;
         }
     }
 }

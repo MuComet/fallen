@@ -59,3 +59,10 @@ umbrella_rain_1 engine/audio/bgs/umbrella/Rain.ogg BGS
 umbrella_rain_2 engine/audio/bgs/umbrella/UmbrellaProtect.ogg BGS
 umbrella_juke engine/audio/se/umbrella/UmbrellaTrick.ogg SE
 umbrella_hit engine/audio/se/umbrella/Splash.ogg SE
+
+worm_appear engine/audio/se/worms/Appear.ogg SE
+worm_chomp engine/audio/se/worms/Chomp.ogg SE
+worm_die engine/audio/se/worms/Die.ogg SE
+worm_digup engine/audio/se/worms/DigUp.ogg SE
+worm_digdown engine/audio/se/worms/DigDown.ogg SE
+worm_kill engine/audio/se/worms/Kill.ogg SE
