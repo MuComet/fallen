@@ -41,7 +41,7 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
         // progress
         this.progressText = new PIXI.Text("",{ fontFamily: 'Helvetica',
                     fontSize: 20, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
-        PuyoBoard()
+        new PuyoBoard();
     }  
 
     onCreate() { // called when you construct the instance yourself
