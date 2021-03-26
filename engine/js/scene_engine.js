@@ -715,7 +715,7 @@ class Scene_Engine extends Scene_Base {
             throw new Error("PauseGameSpecial requires a target instance to keep running");
         }
         this.__pauseSpecialInstance = instance;
-        this.__pauseMode = 1;
+        this.__pauseMode = 2;
     }
 
     /**
@@ -2422,7 +2422,7 @@ class OwO {
 
     static removeConditionalFilter(eventId) {
         var map = $gameMap._mapId;
-        var data = OwO.__getMapData(map);
+        var data = OwO.__getMapData(map); // can't access filter list directly because we filter it.
 
         if(!OwO.__isAutorunSwitchSet()) {
             OwO.discardConditionalFilters();

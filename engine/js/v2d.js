@@ -55,11 +55,6 @@ class V2D extends PIXI.Point {
         return this.dir
     }
 
-    mirrorAboutAngle(angle) {
-        angleDifference=getAngleDifference(this.angle,angle);
-		setVectorFromAngle((this.angle+angleDifference*2)%360,magnitude);
-    }
-
     static lengthDirX(angle, distance) {
 		return Math.cos(angle)*distance;
 	}
@@ -81,7 +76,7 @@ class V2D extends PIXI.Point {
     }
 
     static angleDiff(ang1, ang2) {
-        return -(((ang1-ang2)+540)%360-180)*Math.PI/180;
+        return -(((ang1-ang2)-Math.PI/2)%(2*Math.PI)+Math.PI/2);
     }
 
     static calcMag(x,y) {

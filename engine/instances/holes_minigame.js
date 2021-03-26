@@ -5,6 +5,8 @@ class HoleMinigameController extends MinigameController {
 
         this.cameraDy = 1.75;
         this.cameraDyChange = 0.001;
+        this.cameraY = 0;
+        this.shakeTimer=0;
         this.startTimer(40*60);
         this.getTimer().setSurvivalMode();
         this.height = 178;
@@ -18,12 +20,18 @@ class HoleMinigameController extends MinigameController {
 
         new ParallaxingBackground();
 
-        this.pipeBackground = $engine.createRenderable(this,new PIXI.extras.TilingSprite($engine.getTexture("pipes_background"),$engine.getWindowSizeX(),$engine.getWindowSizeY()));
+        this.pipeBackground = $engine.createRenderable(this,new PIXI.extras.TilingSprite($engine.getTexture("pipes_background"),
+                                                        $engine.getWindowSizeX()+32,$engine.getWindowSizeY()+32));
+        this.pipeBackground.x = -16;
+        this.pipeBackground.tilePosition.x = 16;
         this.pipeBackground.y = -this.lastY+this.height
-        this.originalBackgroundY = this.pipeBackground.y;
+        this.originalBackgroundY = this.pipeBackground.y+16;
         this.spawnPlatforms(this.lastY*2);
 
         this.depth = 2;
+
+        this.setInstructionRenderable(new PIXI.Text("Move left and right to\ndescend down the sewer.\nDon't miss the gaps!",$engine.getDefaultTextStyle()))
+        this.setControls(true,false)
 
         this.setCheatTooltip("Eson lookin' kinda thicc.")
 
@@ -81,7 +89,9 @@ class HoleMinigameController extends MinigameController {
     step() {
         super.step();
         this.cameraDy+=this.cameraDyChange;
-        $engine.getCamera().translate(0,this.cameraDy);
+        this.cameraY+=this.cameraDy;
+        var camera = $engine.getCamera()
+        camera.setLocation(0,this.cameraY);
 
         var cameraY = $engine.getCamera().getY()
         this.spawnPlatforms(cameraY);
@@ -91,10 +101,22 @@ class HoleMinigameController extends MinigameController {
         }
 
         if(cameraY>this.originalBackgroundY) {
-            this.pipeBackground.y = cameraY;
+            this.pipeBackground.y = cameraY-16;
             var diff = cameraY - this.originalBackgroundY;
             this.pipeBackground.tilePosition.y = -diff;
         }
+
+        if(--this.shakeTimer>=0) {
+            var rx = EngineUtils.randomRange(-this.shakeTimer/4,this.shakeTimer/4)
+            var ry = EngineUtils.randomRange(-this.shakeTimer/4,this.shakeTimer/4)
+            camera.translate(rx,ry);
+        }
+    }
+
+    shake(frames=30) {
+        if(this.shakeTimer<0)
+            this.shakeTimer=0;
+        this.shakeTimer+=frames;
     }
 
     notifyFramesSkipped(frames) {
@@ -111,7 +133,7 @@ class HolePlayer extends InstanceMover {
         this.grav = 0.25;
         this.animationWalk = $engine.getAnimation("eson_walk");
         this.animationStand = [$engine.getTexture("eson_walk_0")];
-        this.setSprite($engine.createRenderable(this,new PIXI.extras.AnimatedSprite(this.animationStand)))
+        this.setSprite(new PIXI.extras.AnimatedSprite(this.animationStand))
         this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-64,-512,64,0)));
         this.sprite = this.getSprite();
 
@@ -202,6 +224,8 @@ class HolePlayer extends InstanceMover {
         t2.break();
         t3.break();
 
+        HoleMinigameController.getInstance().shake();
+
         return true;
     }
 
@@ -215,7 +239,7 @@ class HolePlayer extends InstanceMover {
         } else {
             this.xScale = Math.sign(this.xScale) * this.defaultXScale; // for cheat
         }
-        if(IN.keyCheck("RPGright") || IN.keyCheck("RPGleft")) {
+        if((IN.keyCheck("RPGright") || IN.keyCheck("RPGleft")) && ! HoleMinigameController.getInstance().minigameOver()) {
             this.setAnimation(this.animationWalk)
         } else {
             this.setAnimation(this.animationStand)

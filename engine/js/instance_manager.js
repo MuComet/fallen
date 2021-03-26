@@ -184,13 +184,14 @@ class IM {
     } 
 
     static __sort() {
-        IM.__objectsSorted.sort((x,y) => {
-            // because we sort in place, we must explicitly make our sort stable. later created objects always render last
-            var d = (y.depth - x.depth);
-            if(d===0)
-                return (x.id-y.id)
-            return d
-        })
+        IM.__objectsSorted.sort(IM.__instanceSort)
+    }
+
+    static __instanceSort(x,y) {
+        var d = (y.depth - x.depth);
+        if(d===0)
+            return (x.id-y.id)
+        return d
     }
 
     static __timescaleImplicit() { // called once per step.
@@ -588,6 +589,29 @@ class IM {
     }
 
     /**
+     * Performs a collision along the line defined by x1,y1,x2,y2. Returns a non null list
+     * of all the instances that collided with the line.
+     * 
+     * @param {Number} x1 The x coord of the first point
+     * @param {Number} y1 the y coord of the first point
+     * @param {Number} x2 the x coord of the second point
+     * @param {Number} y2 the y coord of the second point
+     * @param  {...EngineInstance} targets N instances of EngineInstance or classes
+     * @returns {...EngineInstance} A non null list of all instances that collide with source
+     */
+    static instanceCollisionLineList(x1,y1,x2,y2,...targets) {
+        var list = [];
+        for(const i of targets) {
+            var lst = IM.__queryObjects(i);
+            for(const inst of lst) {
+                if(inst.hitbox.checkLineCollision(new EngineLightweightPoint(x1,y1),new EngineLightweightPoint(x2,y2)))
+                    list.push(inst);
+            }
+        }
+        return list;
+    }
+
+    /**
      * Queries the InstanceManager's internal list of objects and returns the nth instance of type obj.
      * This is a constant time operation.
      * 
@@ -624,13 +648,18 @@ class IM {
 
     /**
      * Queries the InstanceManager's internal list of objects and returns all instances that are
-     * of type target or a child or target.
+     * of type target or a child or target. The order of the returned instances is that of their creation order.
+     * 
+     * This means that the 0th instance will be the oldest instance in the room of type target, and the
+     * n-1th instance is the newest instance.
      *  
      * @param {EngineInstance} target The target instance or class.
      * @returns A non null array of all the instances that match the specified query.
      */
     static findAll(target) {
-        return [...IM.__queryObjects(target)]; // place in new array to prevent tampering with internal access map.
+        var list =[...IM.__queryObjects(target)];
+        list.sort(IM.__instanceSort);
+        return list; // place in new array to prevent tampering with internal access map.
     }
 
 }

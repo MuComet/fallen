@@ -144,3 +144,7 @@ pipes_separator  engine/textures/holes/pipe_sep.png 0.5 0.5
 
 spritesheet dimensions 2400 619 4 1 animate eson_walk 4 1 2 3 2 eson_walk engine/textures/eson/eson_walk.png 0.5 1
 final_minigame_weapon engine/textures/final_minigame/bow.png 0.5 0.5
+white_line engine/textures/final_minigame/white_line.png 0 0.5
+white_circle engine/textures/final_minigame/white_circle.png 0.5 0.5
+final_minigame_bullet engine/textures/final_minigame/bullet.png 0.5 0.5
+final_minigame_target engine/textures/final_minigame/target.png 0.5 0.5

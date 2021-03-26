@@ -631,7 +631,7 @@ class MinigameController extends EngineInstance {
             }
             
             this.stopTimer++;
-            this._setMusicVolume(fac);
+            this._setMusicVolumeMute(fac);
             if(this.stopTimer>this.stopTime)
                 this.gameStopped=true;
         } else {
@@ -735,6 +735,16 @@ class MinigameController extends EngineInstance {
             $engine.audioSetVolume(this.musicCheat,volume)
         else
             $engine.audioSetVolume(this.musicStandard,volume)
+    }
+
+    _setMusicVolumeMute(volume) {
+        if(this.hasCheated()) {
+            $engine.audioSetVolume(this.musicCheat,volume)
+            $engine.audioSetVolume(this.musicStandard,0); // mute other track
+        } else {
+            $engine.audioSetVolume(this.musicCheat,0)
+            $engine.audioSetVolume(this.musicStandard,volume)
+        }
     }
 
     advanceGameOver() {
@@ -993,7 +1003,7 @@ class MinigameController extends EngineInstance {
     }
 
     _handleCheat() {
-        if(!this.cheated || (this._timer && this._timer.isTimerDone())) {
+        if(!this.cheated || this.minigameOver()) {
             return;
         }
         this.cheatTimer++;
