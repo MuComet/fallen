@@ -9,6 +9,8 @@ class WaterMinigameController extends MinigameController {
         new ParallaxingBackground("background_garden1");
     
         this.timer = 0;
+        this.speedtimer = 0;
+        this.speedmul = 0.008;
         this.attempts = 6;
         this.waiting = false;
         this.waitTimer = 0;
@@ -42,7 +44,7 @@ class WaterMinigameController extends MinigameController {
         var plant_sprites = ["plant_0", "plant_1", "plant_2", "plant_3"];
         this.plant_sprites = plant_sprites;
 
-        new WaterRaindrop(90*2+20, $engine.getWindowSizeY()/2 -170);
+        new WaterCan(150, $engine.getWindowSizeY()/2 -170);
 
         this.shakeTimer = 0;
         this.shakeFactor = 8;
@@ -59,8 +61,11 @@ class WaterMinigameController extends MinigameController {
             }
         }
 
-        this.addOnCheatCallback(this, function(thing){
-
+        this.addOnCheatCallback(this, function(controller){
+            controller.speedmul = 0;
+            IM.with(DDRTiles, function(tile){
+                tile.destroy();
+            });
         });
 
 
@@ -110,7 +115,8 @@ class WaterMinigameController extends MinigameController {
         if(this.minigameOver()){
             return;
         }
-        if(this.timer === 30){
+
+        if(this.timer >= (30 -  this.speedtimer * this.speedmul)){
             new DDRTiles(149, 100, 0);
             this.timer = 0;
         }
@@ -129,6 +135,7 @@ class WaterMinigameController extends MinigameController {
         this.updateProgressText();
         this.handleShake();
         this.timer++;
+        this.speedtimer++;
     }
 
     randomPlantSelect(){
@@ -235,7 +242,7 @@ class WaterPlant extends EngineInstance {
     }
 }
 
-class WaterRaindrop extends EngineInstance {
+class WaterCan extends EngineInstance {
     onCreate(x,y) {
         this.timer = 0;
         this.endTime = 20;
@@ -246,12 +253,18 @@ class WaterRaindrop extends EngineInstance {
         this.ey = y;
         this.sx = this.x;
         this.sy = this.y;
-        this.setSprite(new PIXI.Sprite($engine.getTexture("worm_5")));
+        this.animation = $engine.createRenderable(this,new PIXI.extras.AnimatedSprite($engine.getAnimation("water_can_anim")));
+        //this.animation.animationSpeed = 0.12;
+        this.animation.animationSpeed = 0.2;
+        //this.x = x-100;
+        //this.y = y;
+        this.setSprite(this.animation);
+        //this.setSprite(new PIXI.Sprite($engine.getTexture("worm_5")));
     }
 
     step(){
         this.timer++;
-        
+        this.animation.update(1);
         if((WaterMinigameController.getInstance().next === 1 || WaterMinigameController.getInstance().next === 2) && WaterMinigameController.getInstance().plant_array.length >= 1){  
             //$engine.audioPlaySound("umbrella_rain_1");
             //$engine.audioPauseSound("umbrella_rain_1");
@@ -260,7 +273,7 @@ class WaterRaindrop extends EngineInstance {
             //console.log(plant);
 
            
-            this.ex = plant.x +20;
+            this.ex = plant.x -50;
             this.ey = plant.y -60;
 
             this.sx = this.x;
