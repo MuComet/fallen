@@ -26,9 +26,6 @@ class Room {
         for(const inst of this.__instances) {
             inst.create();
         }
-        for(const script of this.__onLoad) {
-            eval(script);
-        }
     }
 
     getExtern(name) {
@@ -81,8 +78,6 @@ class Room {
                     Room.__parseInstances(room, blockData)
                 } else if(type==="extern") {
                     room.__putExtern(name,blockData);
-                } else if(type==="room_load") {
-                    room.__onLoad.push(blockData.join("\n"));
                 } else {
                     throw new Error("Unknown room key "+type);
                 }
