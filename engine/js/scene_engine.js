@@ -2314,7 +2314,7 @@ class OwO {
                 $__engineSaveData.__nextStaminaLossKills = false;
             }
         } else { // health went up
-            if($__engineSaveData.__nextStaminaLossKills) { // you were in last stand mode, i.e. you're at 1HP
+            if(oldHealth !== undefined && $__engineSaveData.__nextStaminaLossKills) { // you were in last stand mode, i.e. you're at 1HP
                 OwO.__changeHpNoListener(OwO.__getPlayerHP()-1);
             }
         }

@@ -123,3 +123,6 @@ green_puyo engine/textures/puyo/green_puyo.png 0.5 0.5
 blue_puyo engine/textures/puyo/blue_puyo.png 0.5 0.5
 red_puyo engine/textures/puyo/red_puyo.png 0.5 0.5
 yellow_puyo engine/textures/puyo/yellow_puyo.png 0.5 0.5
+
+spritesheet dimensions 2400 619 4 1 animate eson_walk 4 1 2 3 2 eson_walk engine/textures/eson/eson_walk.png 0.5 1
+final_minigame_weapon engine/textures/final_minigame/bow.png 0.5 0.5

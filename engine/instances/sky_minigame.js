@@ -105,7 +105,6 @@ class SkyMinigameController extends MinigameController { // All classes that can
     draw(gui,camera) {
         super.draw(gui,camera)
         $engine.requestRenderOnCameraGUI(this.progressText);
-
     }
 
     onDestroy() {

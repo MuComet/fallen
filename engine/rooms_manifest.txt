@@ -18,3 +18,4 @@ CrateRoom engine/rooms/crate_room.txt
 WaterRoom engine/rooms/water_room.txt
 GameOverRoom engine/rooms/game_over_room.txt
 PuyoRoom engine/rooms/puyo_room.txt
+FinalMinigameRoom engine/rooms/final_minigame.txt
