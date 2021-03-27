@@ -21,7 +21,9 @@ spritesheet dimensions 6000 624 6 1 background_sheet_2 engine/textures/backgroun
 spritesheet dimensions 1632 624 2 1 background_wall_1 engine/textures/backgrounds/background_brick_1.png 0.5 0.5
 spritesheet dimensions 1632 624 2 1 background_ground_1 engine/textures/backgrounds/background_ground_1.png 0.5 0.5
 spritesheet dimensions 1632 624 2 1 game_over engine/textures/backgrounds/game_over_sheet.png 0.5 0.5
+
 require spritesheet dimensions 11424 624 14 1 intro_cutscene_sheet engine/textures/intro/intro_cutscene_sheet.webp 0 0
+spritesheet dimensions 5712 624 7 1 night_one_cutscene engine/textures/cutscenes/goddess_of_balance.png 0 0
 
 require spritesheet dimensions 576 576 4 4 limit 4 4 4 4 eson_profiles engine/textures/cutscenes/eson_profiles.png 0.5 0.5
 require spritesheet dimensions 576 288 4 2 gods_profiles engine/textures/cutscenes/profiles_gods.png 0.5 0.5

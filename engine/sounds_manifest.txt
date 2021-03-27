@@ -60,6 +60,11 @@ umbrella_rain_2 engine/audio/bgs/umbrella/UmbrellaProtect.ogg BGS
 umbrella_juke engine/audio/se/umbrella/UmbrellaTrick.ogg SE
 umbrella_hit engine/audio/se/umbrella/Splash.ogg SE
 
+seye_background engine/audio/bgm/Seye.ogg BGM
+thunder_0 engine/audio/se/cutscene/Thunder9.ogg SE
+thunder_1 engine/audio/se/cutscene/Thunder6.ogg SE
+thunder_2 engine/audio/se/cutscene/Thunder10.ogg SE
+
 worm_appear engine/audio/se/worms/Appear.ogg SE
 worm_chomp engine/audio/se/worms/Chomp.ogg SE
 worm_die engine/audio/se/worms/Die.ogg SE

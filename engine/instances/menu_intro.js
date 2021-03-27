@@ -127,7 +127,7 @@ class MenuIntroController extends EngineInstance {
     }
 
     nextFrame() {
-        var inst =MinigameController.getInstance()
+        var inst = MinigameController.getInstance()
         if(inst.sampling) {
             inst.renderedFrames++;
             if(inst.renderedFrames>15) {
@@ -246,7 +246,7 @@ class MenuIntroController extends EngineInstance {
                 }
                 this.graphics.alpha=1;
                 if((this.timer-this.endTime)%3 == 0) {
-                    this.sample();
+                    //this.sample();
                 }
             } else {
                 this.graphics.alpha=1-this.interp((this.timer-this.endTime-12)/24,0,1)
@@ -301,7 +301,7 @@ class MenuIntroController extends EngineInstance {
                 console.warn("It looks like you're playing on a low spec system... The game will automatically lower render quality to account for this.")
                 console.warn("Test render took "+String(this.perfTime)+" ms...");
             }
-            $engine.setLowPerformanceMode(true)
+            //$engine.setLowPerformanceMode(true)
         }
 
     }

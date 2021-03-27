@@ -342,16 +342,17 @@ class FinalMingiamePlayer extends EngineInstance {
         this.dashResetTimer = 0;
         this.dashResetTime = 30;
         this.dashDirection = 0;
-        this.dashFactor = 1.5;
+        this.dashFactor = 2;
         this.dashSpeedX=0;
         this.dashSpeedY=0;
 
         this.animationWalk = $engine.getAnimation("eson_walk");
         this.animationStand = [$engine.getTexture("eson_walk_0")];
         this.setSprite(new PIXI.extras.AnimatedSprite(this.animationWalk))
-        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-64,-256,64,-128)));
+        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-64,-128,64,128)));
         this.sprite = this.getSprite(); // alias
         this.sprite.animationSpeed = 0.1;
+        this.sprite.anchor.y = 0.5;
 
         this.defaultXScale = 0.25;
         this.defaultYScale = 0.25;
@@ -416,7 +417,7 @@ class FinalMingiamePlayer extends EngineInstance {
         this.weapon.setAimLocaton(mx,my)
 
         var xx = this.x;
-        var yy = this.y-128;
+        var yy = this.y;
 
         var omx = mx-this.x;
         var omy = my-this.y;
