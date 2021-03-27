@@ -1,7 +1,8 @@
 //$__engineData.loadRoom = "IntroMinigameRoom"
 //$__engineData.loadRoom = "GardenRoom"
 //$__engineData.loadRoom = "WaterRoom"
-$__engineData.loadRoom = "DrawingMinigame2"
+$__engineData.loadRoom = "CrateRoom"
+//$__engineData.loadRoom = "DrawingMinigame2"
 //$__engineData.loadRoom = "MazeRoom"
 //$__engineData.loadRoom = "PuyoRoom"
 $__engineData.__debugRequireAllTextures = true;
