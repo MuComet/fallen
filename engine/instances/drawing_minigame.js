@@ -7,7 +7,12 @@ class DrawController extends MinigameController { // controls the minigame
         this.instructiontext.y = $engine.getWindowSizeY()-80;
 
         // drawing minigame has 2 versions. the external data "version" will tell us which one we're doing.
+        //this.alternate = RoomManager.currentRoom().getExtern("version")[0]==="1";
         this.alternate = RoomManager.currentRoom().getExtern("version")[0]==="1";
+
+        if(this.alternate){
+            this.setSprite(new PIXI.Sprite($engine.getTexture("background_drawing_paper")));
+        }
 
         new ParallaxingBackground("background_wall_1");
 
@@ -281,12 +286,15 @@ class ShapeToDraw extends EngineInstance {
         this.y = $engine.getWindowSizeY()/2;
         this.alpha = 0;
         this.pathData = ShapeToDraw.paths[index];
-        this.saveDataArrayIndex = $__engineSaveData.drawingMinigameLines.data.length;
-        $__engineSaveData.drawingMinigameLines.data.push({
-            index:index,
-            line:[],
-            distance:-1
-        })
+        if(!DrawController.getInstance().alternate){
+            this.saveDataArrayIndex = $__engineSaveData.drawingMinigameLines.data.length;
+            $__engineSaveData.drawingMinigameLines.data.push({
+                index:index,
+                line:[],
+                distance:-1
+            });
+        }
+        
         this.basePenalty=0;
         this.baseScore=0;
         this.score = 0;
@@ -311,8 +319,9 @@ class ShapeToDraw extends EngineInstance {
     }
 
     step() {
-        if(this.setupTimer>=this.inTime || !this.showing)
+        if(this.setupTimer>=this.inTime || !this.showing){
             return;
+        }
         var newLoc = EngineUtils.interpolate(++this.setupTimer/this.inTime,0,this.pathData.path.length,EngineUtils.INTERPOLATE_SMOOTH_QUAD);
         var newLocFloor = Math.floor(newLoc)
 
@@ -372,9 +381,10 @@ class ShapeToDraw extends EngineInstance {
         }
         this.score = EngineUtils.clamp(score,0,1);
 
-        $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].line = this.line.points;
-        $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].distance = this.line.totalDist;
-
+        if(!DrawController.getInstance().alternate){
+            $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].line = this.line.points;
+            $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].distance = this.line.totalDist;
+        }
     }
 }
 ShapeToDraw.paths = [];
