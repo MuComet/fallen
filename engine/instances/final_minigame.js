@@ -27,7 +27,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.timer.pauseTimer()
         this.timer.setSurvivalMode();
         this.timer.addOnTimerStopped(this,function(self) {
-            self.onEnd(false);
+            self.onEnd(true);
         })
         //this.timer.useEndText(false);
 
