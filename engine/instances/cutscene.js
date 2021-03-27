@@ -2,6 +2,7 @@ class CutsceneController extends EngineInstance {
     onEngineCreate() {
         this.sheet = RoomManager.currentRoom().getExtern("sheet")[0];
         this.cutsceneComplete = eval(RoomManager.currentRoom().getExtern("onComplete")[0]);
+        console.log(RoomManager.currentRoom().getExtern("onComplete")[0],this.cutsceneComplete)
         this.textures = $engine.getTexturesFromSpritesheet(this.sheet,0,$engine.getSpritesheetLength(this.sheet));
         this.setSprite(new PIXI.Sprite(this.textures[0]));
         this.frames = this.textures.length;

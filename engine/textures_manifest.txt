@@ -29,8 +29,8 @@ spritesheet dimensions 4080 624 5 1 final_intro_cutscene engine/textures/cutscen
 
 spritesheet dimensions 4896 624 6 1 evil_ending_cutscene_sheet engine/textures/cutscenes/ending_evil_cutscene.png 0 0
 spritesheet dimensions 5712 624 7 1 bad_ending_cutscene_sheet engine/textures/cutscenes/ending_bad_cutscene.png 0 0
-spritesheet dimensions 3264 624 4 1 ok_ending_cutscene_sheet engine/textures/cutscenes/ending_ok_cutscene.png 0 0
-spritesheet dimensions 4080 624 5 1 evil_ending_cutscene_sheet engine/textures/cutscenes/ending_best_cutscene.png 0 0
+spritesheet dimensions 3264 624 4 1 good_ending_cutscene_sheet engine/textures/cutscenes/ending_ok_cutscene.png 0 0
+spritesheet dimensions 4080 624 5 1 best_ending_cutscene_sheet engine/textures/cutscenes/ending_best_cutscene.png 0 0
 
 
 require spritesheet dimensions 576 576 4 4 limit 4 4 4 4 eson_profiles engine/textures/cutscenes/eson_profiles.png 0.5 0.5

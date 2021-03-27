@@ -3,7 +3,7 @@ block instances
 endblock
 
 block extern sheet
-bad_ending_cutscene_sheet
+good_ending_cutscene_sheet
 endblock
 
 block extern onComplete
