@@ -127,7 +127,7 @@ class WaterMinigameController extends MinigameController {
             return;
         }
 
-        if((this.timer >= (30 -  this.speedtimer * this.speedmul)) && this.numberarrows <= 73){
+        if((this.timer >= (30 -  this.speedtimer * this.speedmul)) && this.numberarrows <= 74){
             new DDRTiles(149, 100, 0);
             this.numberarrows++;
             this.timer = 0;

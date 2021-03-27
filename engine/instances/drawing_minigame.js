@@ -30,10 +30,10 @@ class DrawController extends MinigameController { // controls the minigame
 
         this.totalScore=0;
 
-        var text = new PIXI.Text("Click the mouse to start drawing, and make sure \n to HOLD, don't let go until you are done. \n Trace the entire outline of the shape.\n\n Make no extra lines in the process.\nThere are 3 drawings total to trace.\n\nPress Enter to cheat!",$engine.getDefaultTextStyle());
-        this.setInstructionRenderable(text)
+        var text = new PIXI.Text("Click the mouse to start drawing, and make sure \n to HOLD, don't let go until you are done. \n Trace the entire outline of the shape.\n\n Make no extra lines in the process.\nThere are 3 drawings total to trace.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
+        this.setInstructionRenderable(text);
         this.setControls(false,true);
-        this.setCheatTooltip("Snap time!")
+        this.setCheatTooltip("Snap time!");
 
         this.gameOverTimer=0;
 
