@@ -44,6 +44,16 @@ var $__engineSaveData = {}; // this data is automatically read and written by RP
 $__engineSaveData.__nextStaminaLossKills = false;
 $__engineSaveData.__lastMinigameOutcome = -1;
 $__engineSaveData.__mapData={};
+$__engineSaveData.day=0;
+
+$__engineSaveData.__minigames = {};
+$__engineSaveData.__minigames.minigamesTotal=0;
+$__engineSaveData.__minigames.winDaily=0;
+$__engineSaveData.__minigames.winTotal=0;
+$__engineSaveData.__minigames.lossDaily=0;
+$__engineSaveData.__minigames.lossTotal=0;
+$__engineSaveData.__minigames.cheatDaily=0;
+$__engineSaveData.__minigames.cheatTotal=0;
 
 const ENGINE_RETURN = {};
 ENGINE_RETURN.LOSS = 0;
@@ -109,20 +119,10 @@ class Scene_Engine extends Scene_Base {
         this.__ceilTimescale = false;
         this.__sounds = [];
 
-        this.__RPGVariableTags = [];
-
-        this.__background = undefined;
-        this.__backgroundColour = 0;
-        this.__usingSolidColourBackground = true;
-        this.__autoDestroyBackground = false;
-        this.__backgroundContainer = new PIXI.Container();
-        this.setBackground(new PIXI.Graphics(), true)
-
         this.__physicsEngine = undefined;
 
         // place everything into a container so that the GUIScreen is not effected by game effects.
         this.addChild(this.__gameCanvas);
-        this.__gameCanvas.addChild(this.__backgroundContainer);
         this.__gameCanvas.addChild(this.__cameras[0]);
         this.__gameCanvas.addChild(this.__GUIgraphics)
         IM.__initializeVariables();
@@ -815,15 +815,16 @@ class Scene_Engine extends Scene_Base {
             this.freeRenderable(camera.__getCameraRenderContainer());
             this.freeRenderable(camera.__renderContainer);
             this.freeRenderable(camera.__cameraGUI);
+            this.freeRenderable(camera.__cameraBackground);
+            this.freeRenderable(camera.__cameraBackgroundGraphics);
         }
-        if(this.__autoDestroyBackground) {
-            for(const child of this.__backgroundContainer.children)
+        if(this.getCamera().__autoDestroyBackground) {
+            for(const child of this.getCamera().__cameraBackground.children)
                 this.freeRenderable(child);
         }
         this.__GUIgraphics.removeChildren(); // prevent bug if you rendered to the GUI
         this.getCamera().getCameraGraphics().removeChildren(); // prevent bug if you rendered to the Camera
         this.freeRenderable(this.__GUIgraphics)
-        this.freeRenderable(this.__backgroundContainer);
         this.freeRenderable(this.__gameCanvas)
         this.__audioCleanup();
         this.physicsDestroy();
@@ -856,6 +857,37 @@ class Scene_Engine extends Scene_Base {
             $__engineData.autoSetWriteBackIndex=-1;
         }
     }
+
+    __recordOutcome() {
+        // was not a mingiame
+        if($__engineData.outcomeWriteBackIndex===-1 && $__engineData.cheatWriteBackIndex===-1)
+            return;
+        var data = $__engineSaveData.__minigames
+        data.minigamesTotal++
+        if($__engineData.__outcomeWriteBackValue===ENGINE_RETURN.WIN) {
+            data.winDaily++;
+            data.winTotal++;
+        } else {
+            data.lossDaily++;
+            data.lossTotal++;
+        }
+
+        if($__engineData.__cheatWriteBackValue===ENGINE_RETURN.CHEAT) {
+            data.cheatDaily++;
+            data.cheatTotal++;
+        }
+    }
+
+    clearDailyOutcomes() {
+        var data = $__engineSaveData.__minigames;
+        data.lossDaily=0;
+        data.winDaily=0;
+        data.cheatDaily=0;
+    }
+
+    getMinigameOutcomeData() {
+        return $__engineSaveData.__minigames
+    }
     
     /**
      * RPG maker functions, do not call. if you want to end the game, use endGame().
@@ -864,6 +896,7 @@ class Scene_Engine extends Scene_Base {
         super.terminate()
         this.__cleanup();
         this.__writeBack();
+        this.__recordOutcome();
         this.__resumeAudio();
         this.setBackgroundColour(0);
         if($__engineData.__shouldAutoSave)
@@ -1266,7 +1299,7 @@ class Scene_Engine extends Scene_Base {
     }
 
     getBackground() {
-        return this.__background;
+        return this.getCamera().getBackground();
     }
 
     /**
@@ -1275,23 +1308,15 @@ class Scene_Engine extends Scene_Base {
      * @param {Boolean | true} autoDestroy Whether or not to auto destroy this background when the game ends or a new background is set.
      */
     setBackground(background, autoDestroy=true) { // expects any PIXI renderable. renders first.
-        if(this.__autoDestroyBackground) {
-            for(const child of this.__backgroundContainer.children)
-                this.freeRenderable(child);
-        }
-        this.__usingSolidColourBackground = false;
-        this.__background = background;
-        this.__backgroundContainer.removeChildren();
-        this.__backgroundContainer.addChild(background)
-        this.__autoDestroyBackground = autoDestroy;
+        this.getCamera().setBackground(background,autoDestroy);
     }
     
     setBackgroundColour(col) {
-        this.getRenderer().backgroundColor = col;
+        this.getCamera().setBackgroundColour(col);
     }
 
     getBackgroundColour() {
-        return this.getRenderer().backgroundColor
+        return this.getCamera().getBackgroundColour();
     }
 
     __prepareRenderToCameras() {
