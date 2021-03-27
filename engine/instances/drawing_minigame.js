@@ -16,6 +16,7 @@ class DrawController extends MinigameController { // controls the minigame
 
         new ParallaxingBackground("background_wall_1");
 
+        this.depth = 50;
         this.buffer = new BufferedMouseInput(0,30);
 
         this.currentLine = undefined;
