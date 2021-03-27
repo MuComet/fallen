@@ -1,6 +1,6 @@
 class CardMinigameController extends MinigameController {
-    
-    onEngineCreate() { 
+
+    onEngineCreate() {
         super.onEngineCreate();
         this.maxScore = 3;
         this.score = 0;
@@ -14,14 +14,15 @@ class CardMinigameController extends MinigameController {
         this.attempts = 6;
         this.waiting = false;
         this.waitTimer = 0;
-        
+        this.roundspeed = 90;
+
         this.startTimer(30*60);
         this.getTimer().pauseTimer();
 
         this.setControls(false,true);
 
 
-        var text = new PIXI.Text("Memorize the card positions matching the goal card located\n at the bottom. Select as many of those cards as you can.\nThere are 6 correct cards each round.\n\n30 seconds to get 5/6 correct cards for 3 rounds in a row!\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Memorize the card positions matching the goal card located\n at the bottom. Select as many of those cards as you can.\nThere are 6 correct cards each round.\n\n30 seconds to get 6/6 correct cards for 3 rounds in a row!\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
 
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
@@ -35,12 +36,12 @@ class CardMinigameController extends MinigameController {
         this.setCheatTooltip("A little peeking never hurt anyone");
         this.setLossReason("Gambling is bad. You should know better.");
     }
-    
+
     newRound(){
         this.cheatflip = 0;
         this.timer = 0;
         var card_texture = ["card_faces_1", "card_faces_2", "card_faces_3", "card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3"];
-        this.goal_index = card_texture[EngineUtils.irandom(2)];      
+        this.goal_index = card_texture[EngineUtils.irandom(2)];
         this.goal_card = new PIXI.Sprite($engine.getTexture(this.goal_index));    // change sprite instead??? marcus cares???????????????????????????
 
         this.goal_card.x = $engine.getWindowSizeX()/2;
@@ -54,7 +55,8 @@ class CardMinigameController extends MinigameController {
             }else{
                 new CardBoard(70+85*(i-9), $engine.getWindowSizeY()/2, index);
             }
-        }    
+        }
+        this.roundscore = 0;
     }
 
     notifyFramesSkipped(frames) {
@@ -65,7 +67,7 @@ class CardMinigameController extends MinigameController {
         this.progressText.text = "Progress: "+String(this.score+" / "+String(this.maxScore));
     }
 
-    onCreate() { 
+    onCreate() {
         super.onCreate();
         this.onEngineCreate();
     }
@@ -98,14 +100,14 @@ class CardMinigameController extends MinigameController {
 
             for(var k = 0; k < 6; k++){
                 var card = flipcards[k];
-                card.delayedAction(card.x/50+card.y/100, function(card){ 
-                    card.delayedAction(card.flipTime/2, function(card) {   
-                             
+                card.delayedAction(card.x/50+card.y/100, function(card){
+                    card.delayedAction(card.flipTime/2, function(card) {
+
                         card.routine(card.cardFlip);
                         card.flipTimer=card.flipTime;
-                        card.flipMode=1; 
-                    
-                    }); 
+                        card.flipMode=1;
+
+                    });
                 });
             }
             this.cheatflip = 1;
@@ -122,7 +124,7 @@ class CardMinigameController extends MinigameController {
             });
         }
 
-        if(this.timer == 80){
+        if(this.timer == CardMinigameController.getInstance().roundspeed){
             this.getTimer().unpauseTimer();
         }
 
@@ -140,7 +142,7 @@ class CardMinigameController extends MinigameController {
             this.hidePressAnyKey();
             this.newRound();
             this.waiting = false;
-            this.waitTimer = 0;  
+            this.waitTimer = 0;
         }
 
         if(this.waiting){
@@ -148,9 +150,9 @@ class CardMinigameController extends MinigameController {
         }
         if(this.score >= this.maxScore){
             this.endMinigame(true);
-        }    
+        }
     }
-    
+
 
     draw(gui, camera) {
         super.draw(gui, camera);
@@ -169,6 +171,7 @@ class CardMinigameController extends MinigameController {
             this.waiting = true;
             //this.rounds--;
             this.attempts = 6;
+
             IM.with(CardBoard, function(card){
                 if(!card.clicked){
                     card.enabled = false;
@@ -179,6 +182,9 @@ class CardMinigameController extends MinigameController {
                         if(card.group == CardMinigameController.getInstance().goal_index){
                             card.getSprite().tint = (0x11fa4f);  // correct choice 0xaaaa43
                             CardMinigameController.getInstance().roundscore++;
+                            if(CardMinigameController.getInstance().roundscore == 6){
+                                CardMinigameController.getInstance().score++;
+                            }
                         }else{
                             card.getSprite().tint = (0xab1101);  //WRONG  0xab1101
                         }
@@ -187,16 +193,11 @@ class CardMinigameController extends MinigameController {
                     card.flipTimer=card.flipTime;
                     card.flipMode=1;
                 });
-                //card.getSprite().texture = $engine.getTexture(card.group);
+
+
             });
-            if(CardMinigameController.getInstance().roundscore >= 5){
-                CardMinigameController.getInstance().score++;
-            }else{
-                CardMinigameController.getInstance().score = 0;
-            }
-            CardMinigameController.getInstance().roundscore = 0;   
+
         }
-        
     }
 }
 
@@ -219,7 +220,7 @@ class CardBoard extends EngineInstance {
         this.enabled = true;
     }
 
-    cardFlip(){   
+    cardFlip(){
         if(this.flipTimer>=0) {
             var value = Math.abs((this.flipTimer-(this.flipTime/2))/(this.flipTime/2));
             if(this.flipTimer <= this.flipTime/2) {
@@ -240,13 +241,13 @@ class CardBoard extends EngineInstance {
         }
         this.flipTimer--;
     }
-    
+
     step() {
         if(!this.enabled){
             return;
         }
         //this.cardFlip();
-        if(CardMinigameController.getInstance().timer > 80){
+        if(CardMinigameController.getInstance().timer >  CardMinigameController.getInstance().roundspeed){
             CardMinigameController.getInstance().updateProgressText();
             if(IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){ // change tint when hovered
                 //this.getSprite().tint = (0xaaafff);
@@ -255,7 +256,7 @@ class CardBoard extends EngineInstance {
                 }
             }
 
-            if(!this.clicked && IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){  
+            if(!this.clicked && IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)){
                 this.clicked = true;
                 this.getSprite().tint = (0xaaafff);
                 CardMinigameController.getInstance().notifyCardClick(this);
