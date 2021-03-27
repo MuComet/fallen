@@ -115,6 +115,7 @@ plant_2_ded engine/textures/water/plant2-ded.png 0.5 0.5
 plant_3_ded engine/textures/water/plant3-ded.png 0.5 0.5
 
 wall_tile engine/textures/crate/wall_tile.png 0 0
+box_break engine/textures/crate/box_break.png 0 0
 spritesheet dimensions 192 64 3 1 crate_normal engine/textures/crate/crate_sprites_normal.png 0 0
 spritesheet dimensions 192 64 3 1 crate_marked engine/textures/crate/crate_sprites_marked.png 0 0
 spritesheet dimensions 6528 1248 4 1 animate crate_mask_animation 4 0 1 2 3 lamp_mask engine/textures/crate/mask.png 0.5 0.5
