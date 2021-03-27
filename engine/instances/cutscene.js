@@ -654,7 +654,7 @@ class DailyRecapCutsceneController extends CutsceneController {
             arr.push("__portrait[gods_profiles_7]Eson!__wait[12] Remember me? The __speed[2]__noShift[1]__portrait[gods_profiles_6]\"cranky old man\"__speed[0] that kicked you out of the Heavens?");
             arr.push("__noShift[0]__portrait[gods_profiles_7]That's right,__wait[12] I heard what you said about me earlier. __wait[20]__noShift[1]__portrait[gods_profiles_7]I've got ears everywhere!");
 
-            if(wins!==0) { // won at least one.
+            if(wins>1) { // won at least one.
                 arr.push("__portrait[gods_profiles_4]Anyways,__wait[9] I've come to let you know that you're doing a great job!__wait[20] Keep this up and you'll have your wings back in no time.")
                 arr.push("__choice[Believe it or not, but~You may not believe it, but] I truly am rooting for you.");
                 arr.push("__portrait[gods_profiles_5]I have to go now, __wait[20]__noShift[1]__portrait[gods_profiles_4]but keep up the good work!");

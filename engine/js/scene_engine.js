@@ -898,7 +898,6 @@ class Scene_Engine extends Scene_Base {
         this.__writeBack();
         this.__recordOutcome();
         this.__resumeAudio();
-        this.setBackgroundColour(0);
         if($__engineData.__shouldAutoSave)
             this.saveGame(); // save the game
 
