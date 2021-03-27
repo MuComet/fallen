@@ -78,7 +78,7 @@ class WaterMinigameController extends MinigameController {
 
         //this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
 
-        var text = new PIXI.Text("Use the Arrows to water the plants.\n Follow the orders, pressing when at the bottom target.\n Missed watering steps cause plants to die. \n Keep at least ONE plant alive, and keep up.\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Use the Arrow Keys to water the plants.\n Follow the orders, pressing the keys at the right time.\n Missed watering steps causes plants to die. \n\n Keep at least ONE plant alive, and keep up.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
 
@@ -94,7 +94,7 @@ class WaterMinigameController extends MinigameController {
         new WaterCan(); // must be in this order
         
         this.setCheatTooltip("Sometimes faster isn't better!");
-        this.setLossReason("Maybe try practicing on BreadHeist");
+        this.setLossReason("Maybe try practicing on BreadHeist?");
     }
 
     handleShake() {

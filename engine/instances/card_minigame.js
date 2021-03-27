@@ -157,7 +157,7 @@ class CardMinigameController extends MinigameController {
     draw(gui, camera) {
         super.draw(gui, camera);
         $engine.requestRenderOnCamera(this.goal_card)
-        $engine.requestRenderOnGUI(this.progressText);
+        $engine.requestRenderOnCamera(this.progressText);
     }
 
 
