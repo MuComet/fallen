@@ -21,7 +21,7 @@ class WallBuilderController extends MinigameController {
         var bg = new ParallaxingBackground("background_sheet_2"); // make the background
         bg.setParallaxFactors(1,1);
         $engine.unpauseGameSpecial
-        var text = new PIXI.Text("Press the keys displayed on the tile\nlay down block with correct keys\nbe fast and accurate\nwrong keys cause delay\n\nPress Enter to cheat!",$engine.getDefaultTextStyle())
+        var text = new PIXI.Text("Press the letter KEYS displayed on the wood tile.\n Repair the wall by laying down bricks with correct keys.\n Be quick and accurate, wrong keys will create a delay.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle())
         this.setInstructionRenderable(text);
         this.setControls(true,false);
         this.setCheatTooltip("Two helping hands!");
