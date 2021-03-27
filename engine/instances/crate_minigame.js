@@ -17,7 +17,7 @@ class CrateMinigameController extends MinigameController {
 
         this.setControls(true,true);
 
-        var text = new PIXI.Text("A SINGLE marked crate is located within the room.\n Use the Mouse to move the light around and click \n on the marked crate. Arrows can be used for fine movement.\n\n Clicking the wrong crate  \n\n Press ENTER to cheat!",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("A SINGLE marked crate is located within the room.\n Use the Mouse to move the light around and click \n on the marked crate. Arrows can be used for fine movement.\n\n Clicking the wrong crate will result in a time penalty!\n\n Press ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
 
         this.depthIndex = -1;
