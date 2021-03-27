@@ -17,7 +17,7 @@ class CrateMinigameController extends MinigameController {
 
         this.setControls(true,true);
 
-        var text = new PIXI.Text("A SINGLE marked crate is located within the room.\n Use the Mouse to move the light around and click \n on the marked crate. Arrows can be used for fine movement.\n\n Clicking the wrong crate removes the time left! \n\n Press ENTER to cheat!",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("A SINGLE marked crate is located within the room.\n Use the Mouse to move the light around and click \n on the marked crate. Arrows can be used for fine movement.\n\n Clicking the wrong crate  \n\n Press ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
 
         this.depthIndex = -1;
@@ -281,20 +281,20 @@ class Crate extends EngineInstance {
     step() {
         var controller = CrateMinigameController.getInstance();
         if(IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)) {
-            if(!controller.hasCheated()) { // if they cheat, don't let them accidently click a wrong crate
-                if(this.marked){
-                    controller.endMinigame(this.marked);
-                }else if(controller.getTimer().getTimeRemaining() > 3*60 && this.broken == 0){
-                    controller.shake();
-                    $engine.audioPlaySound("sky_donk");
-                    this.getSprite().texture = $engine.getTexture("box_break");
-                    this.broken = 1;
-                    controller.getTimer().setTimeRemaining(controller.getTimer().getTimeRemaining() - 3*60);
-                }
+            if(this.marked){
+                $engine.audioPlaySound("sky_bonk");
+                controller.endMinigame(this.marked);
+            }
+            if(!controller.hasCheated() && controller.getTimer().getTimeRemaining() > 3*60 && this.broken == 0 && !this.marked) { // if they cheat, don't let them accidently click a wrong crate
+                controller.shake();
+                $engine.audioPlaySound("sky_donk");
+                this.getSprite().texture = $engine.getTexture("box_break");
+                this.broken = 1;
+                controller.getTimer().setTimeRemaining(controller.getTimer().getTimeRemaining() - 3*60);
+            }
                 //if(!this.marked) {
                     //controller.setLossReason("But they all looked so similar... :(")
                 //}   
-            }
         }
     }
 
