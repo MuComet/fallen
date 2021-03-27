@@ -94,7 +94,7 @@ class WaterMinigameController extends MinigameController {
         new WaterCan(); // must be in this order
         
         this.setCheatTooltip("Sometimes faster isn't better!");
-        this.setLossReason("Do you need help locating the arrows?");
+        this.setLossReason("Maybe try practicing on BreadHeist");
     }
 
     handleShake() {
