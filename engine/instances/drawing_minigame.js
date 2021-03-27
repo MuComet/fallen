@@ -10,11 +10,14 @@ class DrawController extends MinigameController { // controls the minigame
         //this.alternate = RoomManager.currentRoom().getExtern("version")[0]==="1";
         this.alternate = RoomManager.currentRoom().getExtern("version")[0]==="1";
 
-        if(this.alternate){
+        if(!this.alternate){
+            new ParallaxingBackground("background_wall_1");
+        }else{
+            new ParallaxingBackground("background_ground_1");
             this.setSprite(new PIXI.Sprite($engine.getTexture("background_drawing_paper")));
         }
 
-        new ParallaxingBackground("background_wall_1");
+
 
         this.depth = 50;
         this.buffer = new BufferedMouseInput(0,30);
