@@ -399,7 +399,7 @@ class PuyoBoard extends EngineInstance {
 
 class Puyo extends PuyoBoard {
     
-    Puyo(colour, pivot) {
+    onCreate(colour, pivot) {
         this.colour = colour;
         this.pivot = pivot;
     }
@@ -418,7 +418,7 @@ class BoardSpace extends PuyoBoard {
     //state = 0 means space is empty
     //state = 1 means space has controllable falling Puyo
     //state = 2 means space has dropped Puyo
-    BoardSpace() {
+    onCreate() {
         this.state = 0;
         this.puyo = null;
     }

@@ -38,7 +38,7 @@ class GardenMinigameController extends MinigameController {
 
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
 
-        var text = new PIXI.Text("Use Arrows to select a worm hole, protect the garden's\n vegetation and spray the worms\n before they can retreat and eat the plants. \n Press SPACE to spray.\n\n You may lose at most 5 plant units \n AND miss spraying at most 10 worms \n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Use Arrows to select a worm's spawn hole. Protect the \n garden's vegetation and spray the worms\n before they can retreat and eat the plants. \n Press SPACE to spray.\n\n You may lose at most 5 plants \n OR miss spraying at most 10 worms. \n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
 
@@ -70,6 +70,8 @@ class GardenMinigameController extends MinigameController {
             }
         }
         this.updateProgressText();
+        this.setCheatTooltip("I found an EXTRA spray can!");
+        this.setLossReason("Haha worms go brrrrrrrr!");
     }
 
     notifyFramesSkipped(frames) {

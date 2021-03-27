@@ -3,6 +3,10 @@ class CrateMinigameController extends MinigameController {
         super.onEngineCreate();
         this.sizeX = 70;
         this.sizeY = 70;
+
+        this.camX = 0;
+        this.camY = 0;
+
         var rows = 26;
         var columns = 26;
         var totalSpaces = rows*columns;
@@ -11,7 +15,10 @@ class CrateMinigameController extends MinigameController {
         this.totalWidth = this.sizeX * columns + 38;
         this.totalHeight = this.sizeY * rows;
 
-        this.setControls(false,true);
+        this.setControls(true,true);
+
+        var text = new PIXI.Text("A SINGLE marked crate is located within the room.\n Use the Mouse to move the light around and click \n on the marked crate. Arrows can be used for fine movement.\n\n Clicking the wrong crate will result in a time penalty!\n\n Press ENTER to cheat!",$engine.getDefaultTextStyle());
+        this.setInstructionRenderable(text);
 
         this.depthIndex = -1;
 
@@ -20,9 +27,7 @@ class CrateMinigameController extends MinigameController {
         this.setHitbox(new Hitbox(this, new RectangleHitbox(this, -128,-128,128,128)))
 
         this.destroyTimer = 0;
-
         this.destroyDelay = 4;
-
         this.destroyTarget = undefined;
 
         this.lampSprite = $engine.createManagedRenderable(this, new PIXI.extras.AnimatedSprite($engine.getAnimation("crate_mask_animation")));
@@ -88,6 +93,8 @@ class CrateMinigameController extends MinigameController {
 
         this.lampSprite.x = $engine.getWindowSizeX()/2;
         this.lampSprite.y = $engine.getWindowSizeY()/2;
+        this.shakeTimer = 0;
+        this.shakeFactor = 8;
 
         this.setCheatTooltip("Laser?!");
 
@@ -116,6 +123,20 @@ class CrateMinigameController extends MinigameController {
 
     notifyFramesSkipped(frames) {
         this.getTimer().tickDown(frames);
+    }
+
+    handleShake() {
+        var camera = $engine.getCamera();
+        var fac = EngineUtils.interpolate(this.shakeTimer/this.shakeFactor,0,1,EngineUtils.INTERPOLATE_OUT_QUAD);
+        camera.setRotation(EngineUtils.randomRange(-0.01,0.01)*fac);
+        camera.translate(EngineUtils.irandomRange(-2,2) * fac, EngineUtils.irandomRange(-2,2) * fac);
+        this.shakeTimer--;
+    }
+
+    shake(factor = 20) {
+        if(this.shakeTimer < 0);
+            this.shakeTimer=0;
+        this.shakeTimer+=factor;
     }
 
     handleMoveScreen() {
@@ -158,15 +179,15 @@ class CrateMinigameController extends MinigameController {
         this.my = EngineUtils.clamp(this.my, -this.maxScroll, this.maxScroll);
         
         var camera = $engine.getCamera();
-        var cx = camera.getX()+this.mx;
-        var cy = camera.getY()+this.my;
+        this.camX = camera.getX()+this.mx;
+        this.camY = camera.getY()+this.my;
 
-        if(cx > this.totalWidth-highX || cx < 0)
+        if(this.camX > this.totalWidth-highX || this.camX < 0)
             this.mx=0;
-        if(cy > this.totalHeight-highY || cy < 0)
+        if(this.camY > this.totalHeight-highY || this.camY < 0)
             this.my = 0;
 
-        camera.setLocation(EngineUtils.clamp(cx,0,this.totalWidth-highX), EngineUtils.clamp(cy,0,this.totalHeight-highY))
+        camera.setLocation(EngineUtils.clamp(this.camX,0,this.totalWidth-highX), EngineUtils.clamp(this.camY,0,this.totalHeight-highY))
     }
 
     step() {
@@ -223,7 +244,7 @@ class CrateMinigameController extends MinigameController {
         }
 
         this.destroyTimer++;
-        
+        this.handleShake();
     }
 
     draw(gui, camera) {
@@ -243,6 +264,7 @@ class Crate extends EngineInstance {
 
     onCreate(mark) {
         this.marked = mark;
+        this.broken = 0;
         var texture = undefined;
         if(mark) 
             texture = $engine.getRandomTextureFromSpritesheet("crate_marked");
@@ -259,11 +281,20 @@ class Crate extends EngineInstance {
     step() {
         var controller = CrateMinigameController.getInstance();
         if(IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)) {
-            if(!controller.hasCheated() || this.marked) { // if they cheat, don't let them accidently click a wrong crate
+            if(this.marked){
+                $engine.audioPlaySound("sky_bonk");
                 controller.endMinigame(this.marked);
-                if(!this.marked)
-                    controller.setLossReason("But they all looked so similar... :(")
             }
+            if(!controller.hasCheated() && controller.getTimer().getTimeRemaining() > 3*60 && this.broken == 0 && !this.marked) { // if they cheat, don't let them accidently click a wrong crate
+                controller.shake();
+                $engine.audioPlaySound("sky_donk");
+                this.getSprite().texture = $engine.getTexture("box_break");
+                this.broken = 1;
+                controller.getTimer().setTimeRemaining(controller.getTimer().getTimeRemaining() - 3*60);
+            }
+                //if(!this.marked) {
+                    //controller.setLossReason("But they all looked so similar... :(")
+                //}   
         }
     }
 
