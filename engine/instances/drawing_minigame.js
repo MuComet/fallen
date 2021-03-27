@@ -15,11 +15,12 @@ class DrawController extends MinigameController { // controls the minigame
         }else{
             new ParallaxingBackground("background_ground_1");
             this.setSprite(new PIXI.Sprite($engine.getTexture("background_drawing_paper")));
+            this.depth = 100;
         }
 
 
 
-        this.depth = 50;
+
         this.buffer = new BufferedMouseInput(0,30);
 
         this.currentLine = undefined;
@@ -29,8 +30,7 @@ class DrawController extends MinigameController { // controls the minigame
 
         this.totalScore=0;
 
-        var text = new PIXI.Text("Click and hold to draw\nDon't let go and follow the shape outline\nDon't draw extra lines and"
-                            +"\ndont go over the lines twice\nThere are 3 total drawings\n\nPress Enter to cheat!",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Click the mouse to start drawing, and make sure \n to HOLD, don't let go until you are done. \n Trace the entire outline of the shape.\n\n Make no extra lines in the process.\nThere are 3 drawings total to trace.\n\nPress Enter to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text)
         this.setControls(false,true);
         this.setCheatTooltip("Snap time!")
@@ -177,6 +177,12 @@ class DrawController extends MinigameController { // controls the minigame
     notifyFramesSkipped(frames) {
         this.getTimer().tickDown(frames);
     }
+
+    draw(gui, camera) {
+        super.draw(gui, camera);
+        $engine.requestRenderOnCamera(this.instructiontext);
+    }
+
 }
 
 class DrawableLine extends EngineInstance {

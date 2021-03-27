@@ -19,7 +19,7 @@ class MazeMinigameController extends MinigameController {
 
         this.lampSprite = $engine.createManagedRenderable(this, new PIXI.extras.AnimatedSprite($engine.getAnimation("crate_mask_animation")));
         this.lampSprite.animationSpeed = 0.1; // 6FPS
-        
+
         var arr = [];
         this.targetMaze = new Maze(true);
         arr.push(this.targetMaze);
@@ -47,7 +47,7 @@ class MazeMinigameController extends MinigameController {
         $engine.setBackground(background);
         this.startTimer(30*60);
 
-        var text = new PIXI.Text("MAZE\n\n You may lose at most 5 plant units \n AND miss spraying at most 10 worms \n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("MAZE\n\n You may lose at most 5 plant units \n AND miss spraying at most 10 worms \n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
 
