@@ -16,6 +16,14 @@ class HoleMinigameController extends MinigameController {
         this.minDistance = 96;
         this.maxDistance = 300;
         this.platformsSpawned=0;
+        this.sound1 = $engine.audioPlaySound("drain_stream",0.25,true);
+        this.sound2 = $engine.audioPlaySound("drain_drop",0.25,true);
+
+        this.addOnGameEndCallback(this,function(self) {
+            $engine.audioFadeSound(self.sound1);
+            $engine.audioFadeSound(self.sound2);
+        })
+        
         $engine.setBackgroundColour(0x7332a7)
 
         new ParallaxingBackground();
@@ -30,25 +38,25 @@ class HoleMinigameController extends MinigameController {
 
         this.depth = 2;
 
-        this.setInstructionRenderable(new PIXI.Text("Move left and right to\ndescend down the sewer.\nDon't miss the gaps!\n\nPress Enter to cheat!",$engine.getDefaultTextStyle()))
-        this.setControls(true,false)
+        this.setInstructionRenderable(new PIXI.Text("Use the Arrows to move left and right and\n descend down the sewer. Watch out for the bounce and \ndon't miss the gaps!\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle()))
+        this.setControls(true,false);
 
-        this.setCheatTooltip("Eson lookin' kinda thicc.")
+        this.setCheatTooltip("Eson lookin' kinda THICC.");
 
         this.addOnCheatCallback(this,function(self) {
-            self.setLossReason("Not even thicc Eson can make you good at video games.")
-        })
-        this.setLossReason("To be fair, this has to be the\nmost complicated sewer network in the world.")
+            self.setLossReason("Not even THICC Eson can make you good at video games.");
+        });
+        this.setLossReason("To be fair, this has to be the\nmost complicated sewer network in the world.");
 
         this.addOnCheatCallback(this,function(self) {
             self.cameraDy=4;
             self.cameraDyChange=0;
             IM.with(HolePlatform,function(platform) {
                 platform.setWidth(128);
-            })
+            });
             IM.with(HoleSeparator,function(sep) {
                 sep.setWidth(256);
-            })
+            });
         })
     }
 

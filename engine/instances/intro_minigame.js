@@ -76,8 +76,8 @@ class IntroMinigameController extends MinigameController {
         this.zoneTime = 32;
         this.zoneTimer = -this.zoneTime;
 
-        this.sound1 = $engine.audioPlaySound("drain_stream",0.25,true);
-        this.sound2 = $engine.audioPlaySound("drain_drop",0.25,true);
+        this.sound1 = $engine.audioPlaySound("drain_stream",0.5,true);
+        this.sound2 = $engine.audioPlaySound("drain_drop",0.9,true);
 
         this.addOnGameEndCallback(this,function(self) {
             $engine.audioFadeSound(self.sound1);
@@ -87,6 +87,7 @@ class IntroMinigameController extends MinigameController {
         this.disableCheating();
 
     }
+    
 
     notifyFramesSkipped(frames) {
         // do nothing... required implementation
