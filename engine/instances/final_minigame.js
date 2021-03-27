@@ -22,6 +22,23 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.sharedTimer = 0;
         this.sharedPhaseTimer = 0;
 
+        this.timer = new MinigameTimer(60*60)
+        this.timer.setTextMode();
+        this.timer.pauseTimer()
+        this.timer.useEndText(false);
+
+        this.playerHealth = 6;
+        this.healthSprites = [];
+        for(var i =0;i<this.playerHealth;i++) {
+            var spr = $engine.createManagedRenderable(this,new PIXI.Sprite($engine.getTexture("health_point")))
+            spr.x = i*32;
+            spr.y = 0;
+            this.healthSprites.push(spr);
+        }
+        this.health=this.playerHealth
+
+        this.timer.setY(-32);
+
         this.player = new FinalMingiamePlayer();
 
         this.nextPhase();
@@ -33,14 +50,18 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 
         $engine.startFadeIn();
 
-        this.background = $engine.createRenderable(this,new PIXI.extras.TilingSprite($engine.getTexture("wall_tile"),$engine.getWindowSizeX()+128,$engine.getWindowSizeY()+128));
-        this.background.x=-64;
-        this.background.y=-64;
-        this.background.tilePosition.x=64;
-        this.background.tilePosition.y=64;
-        this.background.anchor.x = 0;
+        this.background = $engine.createRenderable(this,new PIXI.extras.TilingSprite($engine.getTexture("end_scroll"),$engine.getWindowSizeX()+116,$engine.getWindowSizeY()+116*2));
+        this.background.x=$engine.getWindowSizeX()/2;
+        this.background.y=$engine.getWindowSizeY()+116;
+        this.background.tilePosition.x=0;
+        this.background.tilePosition.y=0;
+        this.background.anchor.x = 0.5;
 
         this.depth = 999999; // always at the back
+
+        for(var i =0;i<25;i++) {
+            new FinalMinigameStar(EngineUtils.irandom($engine.getWindowSizeX()+116)-58,EngineUtils.irandom($engine.getWindowSizeY()+116)-58)
+        }
     }
 
     step() {
@@ -59,12 +80,18 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             break;
         }
         this.handleCamera();
+        this.handleStars();
         this.sharedTimer++;
         this.sharedPhaseTimer++;
     }
 
+    handleStars() {
+        if(this.sharedTimer%12===0)
+            new FinalMinigameStar(EngineUtils.irandom($engine.getWindowSizeX()+116)-58,this.getCameraTop()-128);
+    }
+
     onSwitchPhase(newPhase) {
-        this.sharedPhaseTimer=0;
+        this.sharedPhaseTimer=-1;
         switch(newPhase) {
             case(0):
                 
@@ -73,7 +100,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                 
             break;
             case(2):
-                
+                this.timer.alpha=1;
             break;
             case(3):
                 
@@ -109,55 +136,117 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         }
 
         // don't use engine background to allow for advanced effects...
-        this.background.x = this.baseCameraX-64;
-        this.background.y = this.baseCameraY-64;
+        this.background.x = this.baseCameraX + $engine.getWindowSizeX()/2;
+        this.background.y = this.baseCameraY+$engine.getWindowSizeY()+116;
         this.background.tilePosition.x = -this.baseCameraX
         this.background.tilePosition.y = -this.baseCameraY
     }
 
-    phaseZero() {
-        if(this.sharedPhaseTimer < 120) {
+    phaseZero() { // intro
+        var fac = EngineUtils.interpolate(this.sharedPhaseTimer/60,-64,32,EngineUtils.INTERPOLATE_OUT_BACK);
+        this.timer.setY(fac);
 
+        var offset = 12;
+        for(var i =0;i<this.healthSprites.length;i++) {
+            var spr = this.healthSprites[i];
+            var fac = EngineUtils.interpolate((this.sharedPhaseTimer-offset*i-30)/60,-64,0,EngineUtils.INTERPOLATE_OUT_BACK);
+            spr.y = fac;
+        }
+        if(this.sharedPhaseTimer>=60) {
+            this.timer.alpha = this.sharedPhaseTimer%20 < 10 ? 0.25 : 1;
+            if(this.sharedPhaseTimer>150) {
+                this.nextPhase();
+                this.timer.alpha=1
+            }
+        }
+    }
+
+    tutorialNext() {
+        this.sharedPhaseTimer = Math.ceil(this.sharedPhaseTimer/240)*240-1;
+    }
+
+    phaseOne() {
+        if(this.sharedPhaseTimer===0) {
+            new FinalMinigameInstruction("Press direction keys to move!",false, function() {
+                return IN.keyCheck("RPGleft") || IN.keyCheck("RPGright") || IN.keyCheck("RPGup") || IN.keyCheck("RPGdown")
+            });
+        }
+        if(this.sharedPhaseTimer===240) {
+            new FinalMinigameInstruction("Press right click or MMB to dodge!",false, function() {
+                return IN.mouseCheck(2) || IN.mouseCheck(1);
+            });
+        }
+        if(this.sharedPhaseTimer===480) {
+            new FinalMinigameInstruction("Left click to shoot",false, function() {
+                return IN.mouseCheck(0);
+            });
+        }
+        if(this.sharedPhaseTimer===720) {
+            new FinalMinigameInstruction("Shoot me!",true, function() {
+                return this.hasBeenShot
+            });
+        }
+        if(this.sharedPhaseTimer>=960) {
+            this.timer.alpha = this.sharedPhaseTimer%20 < 10 ? 1 : 0.25;
+            if(this.sharedPhaseTimer>1020) {
+                this.nextPhase();
+                this.timer.unpauseTimer();
+                $engine.audioPlaySound("final_music_1")
+            }
+        }
+    }
+
+    phaseTwo() {
+
+        if(this.sharedPhaseTimer===0) {
+            this.sequenceAttackLines(1);
+        } else if(this.sharedPhaseTimer===90) {
+            this.sequenceAttackLines(2);
+        }else if(this.sharedPhaseTimer===180) {
+            this.sequenceAttackLines(3);
+        }else if(this.sharedPhaseTimer===300) {
+            this.sequenceAttackLines(3);
         }
 
-        if(this.sharedPhaseTimer%450===0) {
-            new FinalMinigameTarget(EngineUtils.random($engine.getWindowSizeX()),$engine.getCamera().getY()-64)
-        }
-
-        if(this.sharedPhaseTimer%300===0) {
+        if(this.sharedPhaseTimer>400 && this.sharedPhaseTimer<1000 && this.sharedPhaseTimer%90===0) {
+            this.attackLineHorizontal(this.sharedPhaseTimer%180===0)
             this.attackLine();
         }
-        /*
-        if(this.sharedPhaseTimer%600===0) {
-            if(this.sharedPhaseTimer%1200===0) {
-                this.attackHemi(0,this.getCameraTop(),-Math.PI/8,Math.PI/4,10,4,MoveLinearBouncingBullet)
-                this.delayedAction(30,function() {
-                    this.attackHemi($engine.getWindowSizeX(),this.getCameraTop(),Math.PI+Math.PI/8,Math.PI/4,10,4,MoveLinearBouncingBullet)
-                });
-            } else {
-                this.delayedAction(30,function() {
-                    this.attackHemi(0,this.getCameraTop(),-Math.PI/8,Math.PI/4,10,4,MoveLinearBouncingBullet)
-                });
-                this.attackHemi($engine.getWindowSizeX(),this.getCameraTop(),Math.PI+Math.PI/8,Math.PI/4,10,4,MoveLinearBouncingBullet)
-                
-            }
-        }*/
 
-        
-        if(this.sharedPhaseTimer%1300===0) {
-            
+        if(this.sharedPhaseTimer===800) {
+            this.sequenceSpawnCorners(2,60,12)
         }
 
-
-        if(this.sharedPhaseTimer%1200===0) {
-            this.attackLineHorizontal(1);
-            this.delayedAction(180,this.attackLineHorizontal,0)
+        if(this.sharedPhaseTimer>1200 && this.sharedPhaseTimer%180===0) {
+            this.sequenceAttackLines(3);
         }
 
-        if(this.sharedPhaseTimer>1200)
-            this.attackConstrainWalls();
-        
-        if(this.sharedPhaseTimer%750===0) {
+        if(this.sharedPhaseTimer===1200) {
+            this.sequenceFireAtPlayer();
+        }
+
+        if(this.sharedPhaseTimer===1200 || this.sharedPhaseTimer===1400 || this.sharedPhaseTimer===1600) {
+            this.sequenceAttackWipe();
+        }
+
+        if(this.sharedPhaseTimer===2000) {
+            this.sequenceFireAtPlayer();
+        }
+
+        if(this.sharedPhaseTimer===1800 || this.sharedPhaseTimer===1960 || this.sharedPhaseTimer===2020) {
+            this.sequenceAttackWipe();
+        }
+
+        if(this.sharedPhaseTimer===2000) {
+            this.sequenceSpawnCorners(2,16,16);
+        }
+
+        if(this.sharedPhaseTimer===2300) {
+            this.sequenceSpawnCorners(2,60,12);
+            this.sequenceFireAtPlayer();
+        }
+        if(this.sharedPhaseTimer===2330) {
+            this.sequenceSpawnCorners(2,60,16);
         }
         
     }
@@ -184,6 +273,14 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.delayedAction(10,this.attackWipe,this.totalWidth/2,this.getCameraTop(),Math.PI+fac,Math.PI*2-fac,1,30,6)
     }
 
+    sequenceAttackLines(times) {
+        this.attackLine();
+        for(var i =1;i<times;i++) {
+            this.delayedAction(15*i,this.attackLine)
+        }
+
+    }
+
     sequenceSpawnCorners(times=4,delay=45,dots = 16) {
         var off = -delay/2;
         var left = this.cameraLeft+64
@@ -196,6 +293,10 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         for(var i =0;i<times;i++) {
             this.delayedAction(delay*i+off,this.attackCircle,right,this.getCameraTop(),dots,4);
         }
+    }
+
+    sequenceAttackHoming() {
+
     }
 
     sequenceAttackDamageZones(size, damageZoneDelay, repeatDelay, times=1, phase = 0) {
@@ -296,6 +397,21 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 
     }
 
+    takeDamage(dmg) {
+        this.health-=dmg;
+        this.checkDeath();
+        FinalMinigameController.getInstance().shake();
+    }
+
+    checkDeath() {
+        if(this.health<=0) {
+            $engine.setTimescale(0);
+            $engine.startFadeOut(120);
+            $engine.setRoom("GameOverRoom");
+            $engine.audioFadeAll();
+        }
+    }
+
     shake(frames=18) {
         if(this.cameraShakeTimer < 0)
             this.cameraShakeTimer=0;
@@ -305,16 +421,118 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         }
     }
 
+    draw(gui,camera) {
+        for(var i =0;i<this.healthSprites.length && i<this.health;i++)
+            $engine.requestRenderOnCameraGUI(this.healthSprites[i]);
+    }
+
     static getInstance() {
         return FinalMinigameController.instance
     }
 }
 FinalMinigameController.instance = undefined;
 
+class Shootable extends EngineInstance {
+    onCreate() {
+        this.isAlive=true;
+        this.canTakeDamage=true;
+        this.lifeTimer = 0;
+        this.lifeTime = 30;
+    }
+
+    step() {
+        if(!this.isAlive) {
+            var fac = EngineUtils.interpolate(++this.lifeTimer/this.lifeTime,1,0,EngineUtils.INTERPOLATE_IN_BACK);
+            this.yScale = fac;
+            if(this.lifeTimer>=this.lifeTime) {
+                this.destroy();
+            }
+
+            if(this.lifeTimer > 8)
+                this.getSprite().filters = [];
+            var fac2 = EngineUtils.interpolate(this.lifeTimer/this.lifeTime,0,24,EngineUtils.INTERPOLATE_IN_EXPONENTIAL);
+            this.x+=EngineUtils.randomRange(-fac2,fac2);
+            this.y+=EngineUtils.randomRange(-fac2,fac2);
+        }
+    }
+
+    onHit() {
+        this.isAlive=false;
+        this.getSprite().filters = [FinalMinigameController.getInstance().sharedGlowFilter]
+        $engine.audioPlaySound("final_enemy_hit");
+    }
+
+    canBeHurt() {
+        return this.canTakeDamage && this.isAlive;
+    }
+}
+
+class FinalMinigameInstruction extends Shootable {
+    onCreate(text, shootable, func) {
+        super.onCreate();
+        this.x = $engine.getWindowSizeX()/2;
+        this.y = FinalMinigameController.getInstance().getCameraTop();
+        this.setSprite(new PIXI.Text(text,$engine.getDefaultTextStyle()))
+        var spr = this.getSprite();
+        this.depth = -1;
+        this.getSprite().anchor.x = 0.5;
+        this.getSprite().anchor.y = 1;
+        this.canTakeDamage=shootable;
+        this.alive = true;
+        this.deathTimer = 0;
+        this.func = func
+        this.setHitbox(new Hitbox(this, new RectangleHitbox(this, -spr.width/2,-spr.height,spr.width/2,0)))
+    }
+
+    step() {
+        super.step();
+        this.y+=1;
+        if(this.y>=FinalMinigameController.getInstance().getCameraTop()+512 || this.func.call(this)) {
+            this.alive = false;
+            FinalMinigameController.getInstance().tutorialNext();
+        }
+
+        if(!this.alive) {
+            if(++this.deathTimer>30)
+                this.destroy();
+            this.alpha = EngineUtils.interpolate(this.deathTimer/30,1,0,EngineUtils.INTERPOLATE_IN);
+        }
+    }
+
+    onHit() {
+        super.onHit();
+        FinalMinigameController.getInstance().tutorialNext();
+    }
+}
+
+class FinalMinigameStar extends EngineInstance {
+    onCreate(x,y) {
+        this.x = x;
+        this.y = y;
+        var dist = EngineUtils.irandom(200);
+        var fac = 1-dist/200; // larger the closer you are
+        this.speed = 1+fac*2;
+        this.xScale = fac/3+0.5;
+        this.yScale = fac/3+0.5;
+        this.depth = 1000;
+        this.baseAlpha = EngineUtils.randomRange(0.25,0.5)
+        this.alpha = this.baseAlpha;
+        this.randOffset = EngineUtils.random(200);
+        this.setSprite(new PIXI.Sprite($engine.getTexture("star")));
+    }
+
+    step() {
+        this.y+=this.speed;
+        if(this.y>=FinalMinigameController.getInstance().getCameraTop()+1000)
+            this.destroy();
+        this.alpha = Math.abs(Math.sin(($engine.getGameTimer()+this.randOffset)/32))*this.baseAlpha
+    }
+}
+
 class FinalMingiamePlayer extends EngineInstance {
     onCreate() {
         this.x = $engine.getWindowSizeX()/2;
-        this.y = $engine.getWindowSizeY()/2;
+        this.y = $engine.getWindowSizeY()/4;
 
         this.weapon = new FinalMinigameWeapon();
 
@@ -342,23 +560,25 @@ class FinalMingiamePlayer extends EngineInstance {
         this.dashResetTimer = 0;
         this.dashResetTime = 30;
         this.dashDirection = 0;
-        this.dashFactor = 2;
+        this.dashFactor = 3;
         this.dashSpeedX=0;
         this.dashSpeedY=0;
+        this.dashTargetX = -1;
+        this.dashTargetY = -1;
 
-        this.animationWalk = $engine.getAnimation("eson_walk");
-        this.animationStand = [$engine.getTexture("eson_walk_0")];
-        this.setSprite(new PIXI.extras.AnimatedSprite(this.animationWalk))
-        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-64,-128,64,128)));
+        this.animationFly = $engine.getAnimation("eson_fly");
+        this.animationDodge = $engine.getAnimation("eson_dodge");
+        this.setSprite(new PIXI.extras.AnimatedSprite(this.animationFly))
+        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-16,-32,16,32)));
         this.sprite = this.getSprite(); // alias
         this.sprite.animationSpeed = 0.1;
         this.sprite.anchor.y = 0.5;
 
-        this.defaultXScale = 0.25;
-        this.defaultYScale = 0.25;
+        this.defaultXScale = 1;
+        this.defaultYScale = 1;
 
-        this.xScale = 0.25;
-        this.yScale = 0.25;
+        this.xScale = 1;
+        this.yScale = 1;
 
         this.startBoost = 4.5;
 
@@ -459,17 +679,12 @@ class FinalMingiamePlayer extends EngineInstance {
         if(this.isDashing() && this.dx!==0) {
             this.xScale = Math.sign(this.dx) * this.defaultXScale;
         }
-        if(this.lastInputx===0 && this.lastInputy===0) {
-            this.setAnimation(this.animationStand)
-            return;
-        } else {
-            this.setAnimation(this.animationWalk)
-        }
+        this.sprite.update(1);
         if(this.lastInputx!==0) {
             this.xScale = this.lastInputx * this.defaultXScale;
             this.currentFlip=this.lastInputx;
         }
-        this.sprite.update(1);
+        this.sprite.skew.x = -this.dx/64
     }
 
     move() {
@@ -498,6 +713,16 @@ class FinalMingiamePlayer extends EngineInstance {
         this.x += this.dx;
         this.y += this.dy;
 
+        if(this.isDashing()) {
+            if(V2D.calcMag(this.x-this.dashTargetX,this.y-this.dashTargetY)<16)
+                this.dashTimer=0;
+        }
+
+        if(this.isDashEnd()) {
+            this.dx/=4;
+            this.dy/=4;
+        }
+
         this.constrainLocation();
     }
 
@@ -511,11 +736,24 @@ class FinalMingiamePlayer extends EngineInstance {
             this.dashSpeedY = -V2D.lengthDirY(this.dashDirection,this.maxVelocity*this.dashFactor);
             this.dashResetTimer=this.dashResetTime;
             this.iFrames = this.dashTime + 10;
+            EngineUtils.setAnimation(this.sprite, this.animationDodge)
+            this.sprite.animationSpeed = this.animationDodge.length/(this.dashTime + 10);
+            $engine.audioPlaySound("final_eson_dash")
+            this.dashTargetX = IN.getMouseX();
+            this.dashTargetY = IN.getMouseY();
+        }
+        if(this.dashTimer===-10) {
+            EngineUtils.setAnimation(this.sprite, this.animationFly)
+            this.sprite.animationSpeed = 0.1;
         }
     }
 
     isDashing() {
         return this.dashTimer>=0;
+    }
+
+    isDashEnd() {
+        return this.dashTimer===0;
     }
 
     calcSpeed() {
@@ -557,7 +795,7 @@ class FinalMingiamePlayer extends EngineInstance {
             this.y = oy;
             this.dy = 0;
         }
-        if(this.y > $engine.getWindowSizeY()+oy+playerHeight) {
+        if(this.y > $engine.getWindowSizeY()+oy+playerHeight/2) {
             this.dy = 0;
             this.hurt(1,60, true);
             this.x = $engine.getWindowSizeX()/2;
@@ -569,21 +807,15 @@ class FinalMingiamePlayer extends EngineInstance {
     hurt(dmg,iFrames = 60, force = false) {
         if(!this.canBeHurt() && !force)
             return;
+        $engine.audioPlaySound("final_eson_hit")
         this.iFrames = iFrames
-        this.health-=dmg;
+        FinalMinigameController.getInstance().takeDamage(dmg);
         this.timeSinceLastDamange=0;
-        this.checkDeath();
-        FinalMinigameController.getInstance().shake();
+        
     }
 
     canBeHurt() {
         return this.iFrames<=0
-    }
-
-    checkDeath() {
-        if(this.health<0) {
-            console.error("darn you died.")
-        }
     }
 
     /**
@@ -659,22 +891,17 @@ class FinalMingiamePlayer extends EngineInstance {
         }
     }
 
-    setAnimation(anim) {
-        if(this.sprite.textures === anim)
-            return;
-        this.sprite.textures = anim;
-        this.sprite._currentTime = 0;
-    }
-
 }
 
 class FinalMinigameWeapon extends EngineInstance {
     onCreate() {
         this.x = $engine.getWindowSizeX()/2;
         this.y = $engine.getWindowSizeY()/2;
-        this.setSprite(new PIXI.Sprite($engine.getTexture("final_minigame_weapon")))
-        this.xScale=0.5;
-        this.yScale=0.5;
+        this.spriteLoaded = $engine.getTexture("final_minigame_weapon_0");
+        this.spriteUnloaded = $engine.getTexture("final_minigame_weapon_1");
+        this.setSprite(new PIXI.Sprite(this.spriteLoaded))
+        this.xScale=1;
+        this.yScale=1;
 
         this.fireDelay = 30;
         this.fireTimer = 0;
@@ -769,17 +996,21 @@ class FinalMinigameWeapon extends EngineInstance {
         this.y+=dy/12;
 
         this.fireAnimation();
+
+        if(this.fireTimer===0) {
+            this.getSprite().texture = this.spriteLoaded;
+        }
     }
 
     fireAnimation() {
 
-        if(this.fireAnimationTimer>60)
+        if(this.fireAnimationTimer>40)
             return;
 
         
         // brick effect
         this.shotGraphics1.clear();
-        var fac = EngineUtils.interpolate(this.fireAnimationTimer/30,1,0,EngineUtils.INTERPOLATE_OUT_QUAD);
+        var fac = EngineUtils.interpolate(this.fireAnimationTimer/20,1,0,EngineUtils.INTERPOLATE_OUT_QUAD);
         var invFac = 1-fac;
         var spread = 64 * invFac
         this.shotGraphics1.beginFill(0xffffff,fac/3);
@@ -788,8 +1019,8 @@ class FinalMinigameWeapon extends EngineInstance {
         this.shotGraphics1.endFill();
 
         // dots
-        var scaleFac = EngineUtils.interpolate(this.fireAnimationTimer/30,0,100,EngineUtils.INTERPOLATE_OUT_QUAD);
-        var alphaFac = EngineUtils.interpolate(this.fireAnimationTimer/30,1,0,EngineUtils.INTERPOLATE_IN);
+        var scaleFac = EngineUtils.interpolate(this.fireAnimationTimer/20,0,100,EngineUtils.INTERPOLATE_OUT_QUAD);
+        var alphaFac = EngineUtils.interpolate(this.fireAnimationTimer/20,1,0,EngineUtils.INTERPOLATE_IN);
         this.shotGraphics2.clear();
         this.shotGraphics2.beginFill(0xffffff);
         for(const point of this.shotGraphicsPoints) {
@@ -803,11 +1034,11 @@ class FinalMinigameWeapon extends EngineInstance {
         for(var i =0;i<this.shotRope.points.length;i++) {
             this.shotRope.points[i].y = Math.sin(timerOffset-i/2)*24 * EngineUtils.interpolate(i/120,2,0,EngineUtils.INTERPOLATE_OUT_QUAD)
         }
-        this.shotRope.scale.y = EngineUtils.interpolate(this.fireAnimationTimer/30,1,0,EngineUtils.INTERPOLATE_IN)
+        this.shotRope.scale.y = EngineUtils.interpolate(this.fireAnimationTimer/20,1,0,EngineUtils.INTERPOLATE_IN)
 
         // main
-        if(++this.fireAnimationTimer>30) {
-            var fac = EngineUtils.interpolate((this.fireAnimationTimer-30)/30,1,0,EngineUtils.INTERPOLATE_OUT)
+        if(++this.fireAnimationTimer>20) {
+            var fac = EngineUtils.interpolate((this.fireAnimationTimer-20)/20,1,0,EngineUtils.INTERPOLATE_OUT)
             this.shotAnimationContainer.alpha = fac
             this.shotAnimationContainer.scale.y = fac
         }
@@ -843,22 +1074,25 @@ class FinalMinigameWeapon extends EngineInstance {
             return;
         this.fireTimer=this.fireDelay;
         this.fireAnimationTimer = 0;
-        this.shotAnimationContainer.x = this.x;
-        this.shotAnimationContainer.y = this.y;
+        this.shotAnimationContainer.x = this.x + Math.cos(this.angle)*16;
+        this.shotAnimationContainer.y = this.y + Math.sin(this.angle)*16;
         this.shotAnimationContainer.rotation = this.angle;
         this.shotAnimationContainer.alpha = 1;
         this.shotAnimationContainer.scale.y = 1;
+        this.getSprite().texture = this.spriteUnloaded;
         FinalMinigameController.getInstance().shake(8);
         this.fireAttack();
+        var snd = $engine.audioPlaySound("final_eson_fire")
+        snd.speed = EngineUtils.randomRange(0.75,1.5)
     }
 
     fireAttack() {
         var start = new EngineLightweightPoint(this.x,this.y);
         var end = this.getAimLine();
-        var instances = IM.instanceCollisionLineList(start.x,start.y,end.x,end.y,FinalMinigameTarget)
+        var instances = IM.instanceCollisionLineList(start.x,start.y,end.x,end.y,Shootable)
 
         for(const inst of instances) {
-            if(inst.isAlive) {
+            if(inst.isAlive && inst.canBeHurt()) {
                 $engine.pauseGameSpecial(this);
                 this.hasPause = true;
                 this.pauseTimer = this.pauseTime;
@@ -870,7 +1104,7 @@ class FinalMinigameWeapon extends EngineInstance {
     }
 }
 
-class FinalMinigameTarget extends EngineInstance {
+class FinalMinigameTarget extends Shootable {
     onCreate(x,y,speed=2) {
         this.x = x;
         this.y = y;
@@ -878,6 +1112,7 @@ class FinalMinigameTarget extends EngineInstance {
         this.lifeTimer = 0;
         this.lifeTime = 30;
         this.isAlive = true;
+
 
         this.targetX = this.x;
         this.targetY = this.y;
@@ -911,24 +1146,11 @@ class FinalMinigameTarget extends EngineInstance {
             this.y+=EngineUtils.randomRange(-fac2,fac2);
         }
     }
-
-    onHit() {
-       this.isAlive=false;
-       this.getSprite().filters = [FinalMinigameController.getInstance().sharedGlowFilter]
-    }
 }
 
-class FinalMinigameBullet extends EngineInstance { // superclass of anything that can hit you
+class MoveLinearBullet extends EngineInstance{
 
-    onCreate(damage=1, canBeKilled=false) {
-        this.damage = damage;
-        this.canBeKilled = canBeKilled;
-    }
-}
-
-class MoveLinearBullet extends FinalMinigameBullet {
-
-    onCreate(x,y,direction, speed, sprite = "final_minigame_bullet") {
+    onCreate(x,y,direction, speed, anim = "bullet_animation") {
         this.x = x;
         this.y = y;
         this.direction=direction;
@@ -936,9 +1158,13 @@ class MoveLinearBullet extends FinalMinigameBullet {
 
         this.randomEnabled=true;
 
-        this.setSprite(new PIXI.Sprite($engine.getTexture(sprite)));
+        var tex = $engine.getAnimation(anim)
+        this.setSprite(new PIXI.extras.AnimatedSprite(tex));
+        this.animation = this.getSprite();
+        this.animation.animationSpeed = 0.05+EngineUtils.random(0.1);
+        this.animation._currentTime = EngineUtils.irandom(tex.length-1)
 
-        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-12,-12,12,12)))
+        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-12,-8,12,16)))
 
         this.dx = Math.cos(direction)*speed;
         this.dy = -Math.sin(direction)*speed;
@@ -979,6 +1205,7 @@ class MoveLinearBullet extends FinalMinigameBullet {
 
         if(!this.inBounds())
             this.destroy();
+        this.animation.update(1);
     }
 
     inBounds() { // does not work for bullets that go above the screen...
@@ -995,8 +1222,9 @@ class MoveLinearBouncingBullet extends MoveLinearBullet {
     }
 }
 
-class HomingBullet extends FinalMinigameBullet {
+class HomingBullet extends Shootable {
     onCreate(x,y,speed, maxAngleChange = 0.025) {
+        super.onCreate();
         this.x = x;
         this.y = y;
         this.speed = speed;
@@ -1005,13 +1233,20 @@ class HomingBullet extends FinalMinigameBullet {
 
         this.lifetime = 600;
 
-        this.setSprite(new PIXI.Sprite($engine.getTexture("final_minigame_bullet")));
+        var tex = $engine.getAnimation("homing_bullet_animation")
+        this.setSprite(new PIXI.extras.AnimatedSprite(tex));
+        this.animation = this.getSprite();
+        this.animation.animationSpeed = 0.05+EngineUtils.random(0.1);
+        this.animation._currentTime = EngineUtils.irandom(tex.length-1)
 
-        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-12,-12,12,12)))
+        this.getSprite().scale.set(2);
+
+        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-36,-24,24,24)))
         this.target = IM.find(FinalMingiamePlayer);
     }
 
     step() {
+        super.step();
         var angleDiff = V2D.angleDiff(this.angle,V2D.calcDir(this.target.x-this.x,this.target.y-this.y));
         var dz = EngineUtils.clamp(angleDiff,-this.maxAngleChange,this.maxAngleChange);
         this.angle+=dz;
@@ -1022,15 +1257,21 @@ class HomingBullet extends FinalMinigameBullet {
         this.x+=dx;
         this.y+=dy;
 
-        var inst = IM.instancePlace(this,this.x,this.y,FinalMingiamePlayer);
-        if(inst && inst.canBeHurt()) {
-            inst.hurt(1);
-            this.destroy();
+        if(this.isAlive) {
+            var inst = IM.instancePlace(this,this.x,this.y,FinalMingiamePlayer);
+            if(inst && inst.canBeHurt()) {
+                inst.hurt(1);
+                this.destroy();
+            }
         }
 
         if(--this.lifetime<0) {
-            this.destroy();
+            this.alpha = 1+(this.lifetime/20);
+            if(this.lifetime<-20)
+                this.destroy();
         }
+
+        this.animation.update(1);
     }
 }
 

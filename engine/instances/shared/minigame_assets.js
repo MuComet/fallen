@@ -38,6 +38,8 @@ class MinigameTimer extends EngineInstance {
 
         this.timerTextPrepend = "TIME REMAINING: ";
 
+        this.usingEndText = true;
+
         this.survivalMode = false;
 
         this.canExpire = true;
@@ -117,6 +119,10 @@ class MinigameTimer extends EngineInstance {
 
     getGameCompleteText() {
         return this.gameCompleteText;
+    }
+
+    useEndText(bool) {
+        this.usingEndText = bool;
     }
 
     // inverts the timer's behaviours. now when the timer expires, it is counted as a win.
@@ -199,7 +205,7 @@ class MinigameTimer extends EngineInstance {
             f.func(f.parent,false);
         this.timerDone=true;
 
-        if(this.textMode) {
+        if(this.textMode && this.usingEndText) {
             if(this.survivalMode)
                 this.timerText.text = this.gameOverText;
             else
@@ -220,7 +226,7 @@ class MinigameTimer extends EngineInstance {
         for(const f of this.onTimerUp)
                 f.func(f.parent,true);
         this.timerDone = true;
-        if(this.textMode) {
+        if(this.textMode && this.usingEndText) {
             if(this.survivalMode)
                 this.timerText.text = this.gameCompleteText;
             else
@@ -251,6 +257,14 @@ class MinigameTimer extends EngineInstance {
     setLocation(x,y) {
         this.timerGraphic.x = x;
         this.timerGraphic.y = y;
+    }
+
+    setX(x) {
+        this.setLocation(x,this.timerGraphic.y);
+    }
+
+    setY(y) {
+        this.setLocation(this.timerGraphic.x,y);
     }
 
     setAnchor(x,y) {

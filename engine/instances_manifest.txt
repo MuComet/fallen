@@ -32,4 +32,4 @@ MazeMinigameController Maze engine/instances/maze_minigame.js
 
 PuyoMinigameController PuyoBoard Puyo BoardSpace engine/instances/puyo_minigame.js
 
-FinalMinigameController FinalMingiamePlayer FinalMinigameBullet MoveLinearBullet MoveLinearBouncingBullet FinalMinigameTarget DelayedDamageZone engine/instances/final_minigame.js
+FinalMinigameController FinalMinigameInstruction FinalMinigameStar FinalMingiamePlayer Shootable MoveLinearBullet MoveLinearBouncingBullet FinalMinigameTarget DelayedDamageZone engine/instances/final_minigame.js

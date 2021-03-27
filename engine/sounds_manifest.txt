@@ -59,6 +59,7 @@ umbrella_rain_1 engine/audio/bgs/umbrella/Rain.ogg BGS
 umbrella_rain_2 engine/audio/bgs/umbrella/UmbrellaProtect.ogg BGS
 umbrella_juke engine/audio/se/umbrella/UmbrellaTrick.ogg SE
 umbrella_hit engine/audio/se/umbrella/Splash.ogg SE
+walking engine/audio/se/umbrella/Walk.ogg SE
 
 seye_background engine/audio/bgm/Seye.ogg BGM
 thunder_0 engine/audio/se/cutscene/Thunder9.ogg SE
@@ -72,4 +73,17 @@ worm_digup engine/audio/se/worms/DigUp.ogg SE
 worm_digdown engine/audio/se/worms/DigDown.ogg SE
 worm_kill engine/audio/se/worms/Kill.ogg SE
 
-walking engine/audio/se/umbrella/Walk.ogg SE
+
+final_eson_die engine/audio/se/final/ByeEson.ogg SE
+final_seye_die engine/audio/se/final/ByeSeye.ogg SE
+final_eson_dash engine/audio/se/final/Dash.ogg SE
+final_enemy_fire engine/audio/se/final/EnemyFire.ogg SE
+final_eson_hit engine/audio/se/final/Ouchie.ogg SE
+final_eson_fire engine/audio/se/final/Pew.ogg SE
+final_enemy_hit engine/audio/se/final/Ouch.ogg SE
+final_charge_1 engine/audio/se/final/Charge1.ogg SE
+final_charge_2 engine/audio/se/final/Charge2.ogg SE
+final_charge_3 engine/audio/se/final/Charge3.ogg SE
+
+final_music_1 engine/audio/bgm/FinalSection1.ogg BGM
+final_music_2 engine/audio/bgm/FinalSection2.ogg BGM

@@ -56,6 +56,8 @@ spritesheet dimensions 75 9 3 1 rain_sprites engine/textures/umbrella/rain_sprit
 umbrella engine/textures/umbrella/umbrella.png 0.5 0.5
 spritesheet dimensions 2400 619 4 1 animate eson_walk_cat 4 1 2 3 2 eson_walk_cat engine/textures/umbrella/eson_walk_cat.png 0.5 1
 
+spritesheet dimensions 2400 619 4 1 animate eson_walk 4 1 2 3 2 eson_walk engine/textures/eson/eson_walk.png 0.5 1
+
 background_drawing_paper engine/textures/backgrounds/paper.png 0 0 
 spritesheet dimensions 4896 1248 6 2 drawing_objects engine/textures/drawing/draw_object_sprites.png 0.5 0.5
 
@@ -146,9 +148,23 @@ spritesheet dimensions 816 192 1 3 pipes engine/textures/holes/pipe_sheet.png 0 
 pipes_background engine/textures/holes/pipe_back.png 0 0
 pipes_separator  engine/textures/holes/pipe_sep.png 0.5 0.5
 
-spritesheet dimensions 2400 619 4 1 animate eson_walk 4 1 2 3 2 eson_walk engine/textures/eson/eson_walk.png 0.5 1
-final_minigame_weapon engine/textures/final_minigame/bow.png 0.5 0.5
+
 white_line engine/textures/final_minigame/white_line.png 0 0.5
 white_circle engine/textures/final_minigame/white_circle.png 0.5 0.5
-final_minigame_bullet engine/textures/final_minigame/bullet.png 0.5 0.5
+
+spritesheet dimensions 128 64 2 1 final_minigame_weapon engine/textures/final_minigame/bow.png 0.5 0.5
+spritesheet dimensions 128 40 4 1 animate bullet_animation 4 0 1 2 3 bullet engine/textures/final_minigame/bullet.png 0.5 0.5
+spritesheet dimensions 320 50 4 1 animate homing_bullet_animation 4 0 1 2 3 homing_bullet engine/textures/final_minigame/homing_bullet.png 0.5 0.5
+spritesheet dimensions 600 175 4 1 animate eson_dodge 4 0 1 2 3 eson_spin engine/textures/final_minigame/eson_spin.png 0.5 0.5
+spritesheet dimensions 600 175 4 1 animate eson_fly 4 0 1 2 3 eson_fly engine/textures/final_minigame/eson_fly.png 0.5 0.5
+
+spritesheet dimensions 1000 900 4 3 animate seye_idle 4 0 1 2 3 animate seye_direct_attack 4 4 5 6 7 animate seye_external_attack 4 8 9 10 11 seye_sprites engine/textures/final_minigame/seye_sheet.png 0.5 0.5
+
+damage_zone engine/textures/final_minigame/damage_zone.png 0.5 0.5
+end_scroll engine/textures/final_minigame/end_scroll.png 0.5 1
+end_arena engine/textures/final_minigame/end_arena.png 0.5 1
+star engine/textures/final_minigame/star.png 0.5 0.5
+health_point engine/textures/final_minigame/health.png 0 0
+ 
+
 final_minigame_target engine/textures/final_minigame/target.png 0.5 0.5

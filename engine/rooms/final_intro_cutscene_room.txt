@@ -1,0 +1,52 @@
+block instances
+    CutsceneController 0 0 0 0 1 1
+endblock
+
+block extern sheet
+intro_cutscene_sheet
+endblock
+
+block extern onComplete
+MenuIntroController.startNewGame
+endblock
+
+block extern biases
+1
+0.8
+1
+0.5
+0.5
+0
+0
+0.25
+0
+0.5
+0.5
+0.5
+0.8
+0.5
+endblock
+
+block extern music
+0 intro1
+3 intro2
+6 intro3
+10 intro4
+endblock
+
+block extern text
+<none>
+__portrait[eson_profiles_0]Ah, I'm so close! I can already taste the bistro!
+__portrait[eson_profiles_13]Next guest, please.\0__portrait[eson_profiles_2]Oh boy, that's me!
+__portrait[eson_profiles_14]Hey, why don't we try this place?\0__portrait[eson_profiles_11]WHAT?!
+__portrait[eson_profiles_3]Why do they get to go first?__wait[24]__noShift[1]__portrait[eson_profiles_4] I've been waiting for days!
+__portrait[eson_profiles_13]Sorry kid, High Angels get priority.
+<none>
+<none>
+__portrait[eson_profiles_9]stupid high angels__speed[12]...\0__portrait[eson_profiles_1]Secret saferoom__speed[12]...__speed[0]__noShift[1]__portrait[eson_profiles_6] hmm.
+<none>
+__portrait[gods_profiles_6]What are you doing here?!\0__speed[12]__portrait[eson_profiles_7]...\0__portrait[gods_profiles_7]AHEM!__wait[24]__noShift[1] __portrait[gods_profiles_6]__wait[15]I believe I asked you a question.\0__portrait[eson_profiles_6]__noShift[0]I- Uh- Well you see__speed[12]. . .__speed[0] I got a call about a umm__speed[12]…\0__portrait[eson_profiles_10]A leak!__wait[30] Yes that's right.__wait[30] And uh-\0__portrait[gods_profiles_7]Cut the crap, kid.\0__portrait[eson_profiles_9]Okay fine!__wait[24] I'm here to steal your __wait[12]__speed[4]"all powerful"__speed[0] amulet. \0__portrait[gods_profiles_7]Of course you are.__wait[12] First of all, it’s the audacity for me!\0__speed[12]__portrait[eson_profiles_6]...\0__portrait[eson_profiles_4]Well, how else am I supposed to get any respect from my peers?!__wait[30]__noShift[1]__portrait[eson_profiles_1] Rumour has it that amulet is the source of all your powers and I want to be powerful!
+__portrait[gods_profiles_7]Listen, you’ve only been alive for what, four-five centuries? Clearly you still have a lot to learn, so as the All Benevolent God that I am,__noShift[1]__portrait[gods_profiles_5] I will forgive you this time.\0__portrait[eson_profiles_2]Oh Heavens! Thank you so much!!\0__italic[1]__noShift[0]__portrait[<none>]Eson flaps their wings and prepares to fly out of the castle when__speed[12]...__speed[0]\0__portrait[gods_profiles_7]__italic[0]WAIT!!!__wait[30] I’m not done yet.\0__italic[1]__portrait[gods_profiles_5](If I let this kid get away so easily, the others will definitely think of me as a pushover, and I have worked way too hard to allow that to happen.)\0__italic[0]__speed[12]__portrait[eson_profiles_10]...__wait[30]__speed[0] huh?\0__italic[1]__portrait[gods_profiles_5](Hmm__speed[15]...__wait[12]__speed[0] but what should the punishment be??)\0(I have been a little backed up with my Godly duties lately__speed[12]...__speed[0])\0__speed[0](And helping those pesky humans really is a lot of work. I think I deserve a nice little vacation.)\0(Maybe, just maybe__speed[12]...__speed[0])\0__italic[0]__portrait[gods_profiles_7]For this incredible act of treason, I curse you with mortality!__noShift[1]__portrait[gods_profiles_6]__wait[12] With the snap my mighty fingers I banish you to earth and sentence you to three days of hard labour by helping the people.\0__portrait[eson_profiles_7]Nooo!! That's way too harsh,__wait[30]__noShift[1] __portrait[eson_profiles_4]please reconsider!__wait[12] I'm begging you!!\0__portrait[gods_profiles_7]If respect is what you desire, prove your worth by surviving without your privileges. Do this, and you will forever have my respect.
+__playSound[cutscene_snap,1,false]
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+endblock

@@ -251,6 +251,20 @@ class EngineUtils {
     }
 
     /**
+     * Sets the animation of the specific AnimatedSprite. If the animation is already set to
+     * the new animation, this function does nothing.
+     * 
+     * @param {PIXI.extras.AnimatedSprite} sprite The animated sprite
+     * @param {...PIXI.Texture} anim The animation to use
+     */
+    static setAnimation(sprite, anim) {
+        if(sprite.textures === anim)
+            return;
+        sprite.textures = anim;
+        sprite._currentTime = 0;
+    }
+
+    /**
      * Interpolates between min and max given a certain interpolation function and a normalized input value.
      * 
      * If the input is not within range [0,1], it will be clamped to fit that range.

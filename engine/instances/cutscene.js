@@ -647,7 +647,6 @@ class DailyRecapCutsceneController extends CutsceneController {
         var data = $engine.getMinigameOutcomeData();
         var wins = data.winDaily;
         var losses = data.lossDaily;
-        var total = wins+losses;
         this.text = [[],[]];
         var arr = this.text[1];
         if(day===0) { // We need fine control over this cutscene, so it is generated using code.
@@ -665,11 +664,11 @@ class DailyRecapCutsceneController extends CutsceneController {
                 arr.push(str);
                 arr.push("__noShift[0]__portrait[gods_profiles_7]Anyways, I have to go.");
             }
-        } else {
+        } else { // day 2
             if(wins>1) {
                 arr.push("__portrait[gods_profiles_4]Hey __choice[kid~son]!__wait[12] I just got a report from the big guys and it turns out you're doing really good.__wait[12] Great job!__wait[20] You're making me look really good.");
                 arr.push("__portrait[gods_profiles_5]I have to go now, __wait[20]__noShift[1]__portrait[gods_profiles_4]but keep up the great work!");
-                arr.push("__noShift[1]__portrait[<none>]__wait[45]O__portrait[gods_profiles_7]h!__wait[12] Almost forgot,__wait[12]__noShift[1]____portrait[gods_profiles_5] your final judgement is tomorrow night.__wait[12]__portrait[gods_profiles_4] I'll see you at the south forest tomorrow. I'm sure you'll do just fine.");
+                arr.push("__noShift[1]__portrait[<none>]__wait[45]O__portrait[gods_profiles_7]h!__wait[12] Almost forgot,__wait[12]__noShift[1]__portrait[gods_profiles_5] your final judgement is tomorrow night.__wait[12]__portrait[gods_profiles_4] I'll see you at the south forest tomorrow. I'm sure you'll do just fine.");
             } else {
                 arr.push("__portrait[gods_profiles_7]Hey Eson!__wait[12] Listen kid,__wait[9] I just got a report from the big guys and__portrait[gods_profiles_6]__noShift[1] things are not looking good.");
                 arr.push("You're making me look really bad here.__wait[6] Do you not want to become an angel again or something?!");

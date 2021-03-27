@@ -221,12 +221,12 @@ class IM {
     }
 
     static __findAll(oid) {
-        if(IM.__childMap[oid].children===undefined)
+        if(IM.__childMap[oid].__children===undefined)
             return IM.__accessMap[oid];
         var result = [];
         result.push(...IM.__accessMap[oid])
-        for(const childOid of IM.__childMap[oid].children) {
-            result.push(...IM.__findAll(childOid));
+        for(const child of IM.__childMap[oid].__children) {
+            result.push(...IM.__findAll(child.__oid));
         }
         return result;
     }

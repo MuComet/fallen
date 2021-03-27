@@ -669,6 +669,7 @@ class Scene_Engine extends Scene_Base {
         RoomManager.loadRoom(roomName); // also sets current room
         IM.__startRoom();
         this.__shouldChangeRooms=false;
+        this.setTimescale(1);
     }
 
     /** @returns {Camera} The camera */

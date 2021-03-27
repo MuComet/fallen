@@ -76,7 +76,10 @@ class V2D extends PIXI.Point {
     }
 
     static angleDiff(ang1, ang2) {
-        return -(((ang1-ang2)-Math.PI/2)%(2*Math.PI)+Math.PI/2);
+        // code written by bennedich https://stackoverflow.com/users/352837/bennedich
+        // source: https://stackoverflow.com/a/7869457
+        var diff = ang2 - ang1;
+        return (((diff + Math.PI) % (Math.TWO_PI) + Math.TWO_PI) % Math.TWO_PI) - Math.PI;
     }
 
     static calcMag(x,y) {
@@ -87,3 +90,4 @@ class V2D extends PIXI.Point {
         return Math.atan2(y,x);
     }
 }
+Math.TWO_PI = Math.PI*2;

@@ -16,6 +16,7 @@ class GameOverController extends EngineInstance {
         $engine.startFadeIn(300);
         $engine.setBackgroundColour(0)
         $engine.audioPlaySound("game_over");
+        $engine.getCamera().setLocation(0,0)
         this.delayedAction(33*60,function(){
             if(this.fadeStarted) return;
             var sound = $engine.audioPlaySound("minigame_ambience",1,true,EngineUtils.random(111),111)
