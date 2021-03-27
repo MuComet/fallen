@@ -33,7 +33,7 @@ class CardMinigameController extends MinigameController {
         this.newRound();
 
         this.setCheatTooltip("A little peeking never hurt anyone");
-        this.setLossReason("Gambing is bad. You should know better.");
+        this.setLossReason("Gambling is bad. You should know better.");
     }
     
     newRound(){

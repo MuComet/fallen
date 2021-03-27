@@ -381,6 +381,10 @@ class CutsceneController extends EngineInstance {
         }
     }
 
+    isReady() {
+        return this.currentText!=="" && this.textComplete()
+    }
+
     // returns true if all characters have been rendered
     renderNextCharacter() {
         this.textWaitTimer=0; // force the timer to 0.
@@ -456,7 +460,7 @@ class CutsceneController extends EngineInstance {
             var data = this.extractCommand(txt);
             this.walkingTextIndex+=data.length;
             this.noShift = data.argument==="1" || data.argument.toLowerCase()==="true"
-        } else if(txt.startsWith("__playSound")) {
+        } else if(txt.startsWith("__playSound")) { // [snd,volume,loop]
             var data = this.extractCommand(txt);
             this.walkingTextIndex+=data.length;
             var data2 = data.argument.split(",");
@@ -493,7 +497,8 @@ class CutsceneController extends EngineInstance {
     }
 
     step() {
-        if(IN.anyStandardInputPressed() && !IN.keyCheckPressed("Escape") && this.timer < this.frameLength[this.currentFrame]-this.transitionTime/4 && this.timer > this.transitionTime/4) {
+        if(IN.anyStandardInputPressed() && !IN.keyCheckPressed("Escape") && !IN.keyCheckPressed("Control") 
+                    && this.timer < this.frameLength[this.currentFrame]-this.transitionTime/4 && this.timer > this.transitionTime/4) {
             this.advance();
         }
 
@@ -502,7 +507,7 @@ class CutsceneController extends EngineInstance {
         }
 
         // speedrun speedrun speedrun go go go go go
-        if(IN.keyCheckPressed("Escape") && !this.wipeStarted && !(this.currentFrame===0 && this.wipeTimer<this.transitionTime)) {
+        if((IN.keyCheckPressed("Escape")|| IN.keyCheckPressed("Control") ) && !this.wipeStarted && !(this.currentFrame===0 && this.wipeTimer<this.transitionTime)) {
             this.out = true;
             this.wipeTimer = 0;
             this.wipeStarted=true;
