@@ -485,7 +485,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 }
 FinalMinigameController.instance = undefined;
 FinalMinigameController.start = function() {
-    $engine.setRoom("FinalMinigameRoom")
+    $engine.setRoom("FinalMinigameRoom");
 }
 
 class Shootable extends EngineInstance {
