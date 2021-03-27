@@ -25,7 +25,11 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.timer = new MinigameTimer(60*60)
         this.timer.setTextMode();
         this.timer.pauseTimer()
-        this.timer.useEndText(false);
+        this.timer.setSurvivalMode();
+        this.timer.addOnTimerStopped(this,function(self) {
+
+        })
+        //this.timer.useEndText(false);
 
         this.playerHealth = 6;
         this.healthSprites = [];
@@ -162,7 +166,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
     }
 
     tutorialNext() {
-        this.sharedPhaseTimer = Math.ceil(this.sharedPhaseTimer/240)*240-1;
+        this.sharedPhaseTimer = Math.ceil(this.sharedPhaseTimer/320)*320-1;
     }
 
     phaseOne() {
@@ -171,24 +175,24 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                 return IN.keyCheck("RPGleft") || IN.keyCheck("RPGright") || IN.keyCheck("RPGup") || IN.keyCheck("RPGdown")
             });
         }
-        if(this.sharedPhaseTimer===240) {
-            new FinalMinigameInstruction("Press right click or MMB to dodge!",false, function() {
+        if(this.sharedPhaseTimer===320) {
+            new FinalMinigameInstruction("Press right click or middle mouse button to dodge!",false, function() {
                 return IN.mouseCheck(2) || IN.mouseCheck(1);
             });
         }
-        if(this.sharedPhaseTimer===480) {
+        if(this.sharedPhaseTimer===640) {
             new FinalMinigameInstruction("Left click to shoot",false, function() {
                 return IN.mouseCheck(0);
             });
         }
-        if(this.sharedPhaseTimer===720) {
+        if(this.sharedPhaseTimer===960) {
             new FinalMinigameInstruction("Shoot me!",true, function() {
                 return this.hasBeenShot
             });
         }
-        if(this.sharedPhaseTimer>=960) {
+        if(this.sharedPhaseTimer>=1280) {
             this.timer.alpha = this.sharedPhaseTimer%20 < 10 ? 1 : 0.25;
-            if(this.sharedPhaseTimer>1020) {
+            if(this.sharedPhaseTimer>1340) {
                 this.nextPhase();
                 this.timer.unpauseTimer();
                 $engine.audioPlaySound("final_music_1")
@@ -197,16 +201,16 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
     }
 
     phaseTwo() {
-
         if(this.sharedPhaseTimer===0) {
+            this.sequenceAttackHoming(4,60);
+        } else if(this.sharedPhaseTimer===120) {
             this.sequenceAttackLines(1);
-        } else if(this.sharedPhaseTimer===90) {
+        } else if(this.sharedPhaseTimer===210) {
             this.sequenceAttackLines(2);
-        }else if(this.sharedPhaseTimer===180) {
-            this.sequenceAttackLines(3);
-        }else if(this.sharedPhaseTimer===300) {
+        }else if(this.sharedPhaseTimer===350) {
             this.sequenceAttackLines(3);
         }
+
 
         if(this.sharedPhaseTimer>400 && this.sharedPhaseTimer<1000 && this.sharedPhaseTimer%90===0) {
             this.attackLineHorizontal(this.sharedPhaseTimer%180===0)
@@ -217,7 +221,11 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             this.sequenceSpawnCorners(2,60,12)
         }
 
-        if(this.sharedPhaseTimer>1200 && this.sharedPhaseTimer%180===0) {
+        if(this.sharedPhaseTimer===1000) {
+            this.sequenceAttackHoming(3,45);
+        }
+
+        if(this.sharedPhaseTimer>1200 && this.sharedPhaseTimer%180===0 && this.sharedPhaseTimer<2000) {
             this.sequenceAttackLines(3);
         }
 
@@ -242,11 +250,34 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         }
 
         if(this.sharedPhaseTimer===2300) {
-            this.sequenceSpawnCorners(2,60,12);
+            this.sequenceAttackHoming(8,60);
+            this.sequenceSpawnCorners(2,150,10);
             this.sequenceFireAtPlayer();
         }
-        if(this.sharedPhaseTimer===2330) {
-            this.sequenceSpawnCorners(2,60,16);
+        if(this.sharedPhaseTimer===2315) {
+            this.sequenceSpawnCorners(2,150,20);
+        }
+        if(this.sharedPhaseTimer>2500 && this.sharedPhaseTimer<3000 && this.sharedPhaseTimer%75===0) {
+            this.attackLineHorizontal(this.sharedPhaseTimer%150===0)
+            this.attackLine();
+        }
+
+        if(this.sharedPhaseTimer===3100) {
+            this.sequenceAttackHoming(8,60);
+            this.sequenceSpawnCorners(2,150,10);
+            this.sequenceFireAtPlayer();
+        }
+        if(this.sharedPhaseTimer===3115) {
+            this.sequenceSpawnCorners(2,150,20);
+        }
+
+        if(this.sharedPhaseTimer===3300) {
+            this.sequenceAttackHoming(8,60);
+            this.sequenceSpawnCorners(2,150,10);
+            this.sequenceFireAtPlayer();
+        }
+        if(this.sharedPhaseTimer===3315) {
+            this.sequenceSpawnCorners(2,150,20);
         }
         
     }
@@ -295,8 +326,14 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         }
     }
 
-    sequenceAttackHoming() {
-
+    sequenceAttackHoming(bullets, wait=20) {
+        var dx = this.totalWidth/(bullets-1)
+        new HomingBullet(0,this.getCameraTop()-32,2)
+        for(var i=1;i<bullets;i++) {
+            this.delayedAction(wait*i,function(loc) {
+                new HomingBullet(loc,this.getCameraTop()-32,2)
+            },dx*i);
+        }
     }
 
     sequenceAttackDamageZones(size, damageZoneDelay, repeatDelay, times=1, phase = 0) {
@@ -797,7 +834,7 @@ class FinalMingiamePlayer extends EngineInstance {
         }
         if(this.y > $engine.getWindowSizeY()+oy+playerHeight/2) {
             this.dy = 0;
-            this.hurt(1,60, true);
+            this.hurt(1,150, true);
             this.x = $engine.getWindowSizeX()/2;
             this.y = $engine.getWindowSizeY()*3/4;
             this.y+=oy;
@@ -1243,6 +1280,7 @@ class HomingBullet extends Shootable {
 
         this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-36,-24,24,24)))
         this.target = IM.find(FinalMingiamePlayer);
+        this.angle = V2D.calcDir(this.target.x-this.x,this.target.y-this.y)
     }
 
     step() {
