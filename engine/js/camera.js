@@ -118,6 +118,12 @@ class Camera extends PIXI.Container {
         this.__renderContainer = renderable;
     }
 
+    reset() {
+        this.setLocation(0,0);
+        this.setRotation(0);
+        this.setScale(1,1);
+    }
+
     setLocation(x,y) { // x and y are negative so that they represent where the camera would physically be.
         IN.__validMouse = false;
         this.engineX = x; // we use intermediates so that we can have our own coord. system.

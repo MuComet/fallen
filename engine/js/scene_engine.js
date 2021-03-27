@@ -670,6 +670,7 @@ class Scene_Engine extends Scene_Base {
         IM.__startRoom();
         this.__shouldChangeRooms=false;
         this.setTimescale(1);
+        this.getCamera().reset();
     }
 
     /** @returns {Camera} The camera */

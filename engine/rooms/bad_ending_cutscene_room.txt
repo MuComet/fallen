@@ -28,10 +28,6 @@ block extern biases
 endblock
 
 block extern music
-0 intro1
-3 intro2
-6 intro3
-10 intro4
 endblock
 
 block extern text

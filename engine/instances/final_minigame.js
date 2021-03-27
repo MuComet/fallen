@@ -27,7 +27,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.timer.pauseTimer()
         this.timer.setSurvivalMode();
         this.timer.addOnTimerStopped(this,function(self) {
-
+            self.onEnd(false);
         })
         //this.timer.useEndText(false);
 
@@ -65,6 +65,25 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 
         for(var i =0;i<25;i++) {
             new FinalMinigameStar(EngineUtils.irandom($engine.getWindowSizeX()+116)-58,EngineUtils.irandom($engine.getWindowSizeY()+116)-58)
+        }
+    }
+
+    onEnd(won) {
+        $engine.setTimescale(0);
+        $engine.startFadeOut(120);
+        $engine.audioFadeAll();
+        this.timer.pauseTimer();
+        var cheats = $gameVariables.value(19);
+        if(won) {
+            if(cheats===0) {
+                $engine.setRoom("BestEndingCutsceneRoom"); // no cheat and win
+            } else if (cheats>5) {
+                $engine.setRoom("EvilEndingCutsceneRoom"); // cheat a lot and win
+            } else {
+                $engine.setRoom("GoodEndingCutsceneRoom"); // cheat some and win
+            }
+        } else {
+            $engine.setRoom("BadEndingCutsceneRoom"); // lose :(
         }
     }
 
@@ -442,10 +461,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 
     checkDeath() {
         if(this.health<=0) {
-            $engine.setTimescale(0);
-            $engine.startFadeOut(120);
-            $engine.setRoom("GameOverRoom");
-            $engine.audioFadeAll();
+            this.onEnd(false);
         }
     }
 
@@ -468,6 +484,9 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
     }
 }
 FinalMinigameController.instance = undefined;
+FinalMinigameController.start = function() {
+    $engine.setRoom("FinalMinigameRoom")
+}
 
 class Shootable extends EngineInstance {
     onCreate() {
@@ -606,7 +625,7 @@ class FinalMingiamePlayer extends EngineInstance {
         this.animationFly = $engine.getAnimation("eson_fly");
         this.animationDodge = $engine.getAnimation("eson_dodge");
         this.setSprite(new PIXI.extras.AnimatedSprite(this.animationFly))
-        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-16,-32,16,32)));
+        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-12,-12,12,12)));
         this.sprite = this.getSprite(); // alias
         this.sprite.animationSpeed = 0.1;
         this.sprite.anchor.y = 0.5;
