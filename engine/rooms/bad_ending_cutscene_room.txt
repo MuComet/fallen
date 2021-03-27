@@ -1,0 +1,45 @@
+block instances
+    CutsceneController 0 0 0 0 1 1
+endblock
+
+block extern sheet
+bad_ending_cutscene_sheet
+endblock
+
+block extern onComplete
+
+endblock
+
+block extern biases
+1
+0.8
+1
+0.5
+0.5
+0
+0
+0.25
+0
+0.5
+0.5
+0.5
+0.8
+0.5
+endblock
+
+block extern music
+0 intro1
+3 intro2
+6 intro3
+10 intro4
+endblock
+
+block extern text
+<none>
+<none>
+<none>
+__portrait[gods_profiles_6]This is bad, Eson!__wait[50] BAD!__wait[30] I can't believe you helped her take those innocent souls!!\0__portrait[eson_profiles_11] I- I'm so sorry, __speed[4]I didn't know__speed[0]__speed[12]...\0__speed[0]__portrait[gods_profiles_6]Didn't know?!__wait[50] __speed[12]...__speed[0]Kid__wait[20], that's not a valid excuse. This is something I simply CANNOT forgive.\0__portrait[eson_profiles_6] But that's not fair! 
+__portrait[gods_profiles_5]__italic[1]Sigh\0__italic[0]Well, you should have known better…__wait[24]__noShift[1]__portrait[gods_profiles_7]Even with her ruling The Heavens, I can't let you back there.\0__noShift[0]__portrait[gods_profiles_5] After what you've done, you don't deserve to be an angel again.\0__portrait[gods_profiles_6]With the snap of my mighty fingers, I exile you from The Heavens and bind you to the 6th Abyss! Eson, this is your final judgment.
+__wait[100]*The Sky God snaps his fingers and Eson vanishes to the 6th Abyss, where they spend the rest of their mortal life, haunted by the stolen souls.*__italic[0]\0
+<none>
+endblock
