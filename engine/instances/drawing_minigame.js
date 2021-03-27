@@ -253,9 +253,14 @@ class DrawableLine extends EngineInstance {
         if(!this.show) 
             return;
         var graphics = this.drawGraphics;
+
+        var alternate = DrawController.getInstance().alternate;
+        var colourOuter = alternate ? 0xff1212 : 0xdfdfdf
+        var colourInner = alternate ? 0xcf0909 : 0xbfbfbf
+
         if(!$engine.isLow()) {
             graphics.moveTo(this.points[0].x,this.points[0].y);
-            graphics.lineStyle(12,0xdfdfdf)
+            graphics.lineStyle(12,colourOuter)
             for(var i =1;i<this.points.length-1;i++) {
                 var xc = (this.points[i].x + this.points[i + 1].x) / 2;
                 var yc = (this.points[i].y + this.points[i + 1].y) / 2;
@@ -264,7 +269,7 @@ class DrawableLine extends EngineInstance {
             graphics.lineTo(this.points[this.points.length-1].x,this.points[this.points.length-1].y)
 
             graphics.moveTo(this.points[0].x,this.points[0].y);
-            graphics.lineStyle(4,0xbfbfbf)
+            graphics.lineStyle(4,colourInner)
             for(var i =1;i<this.points.length-1;i++) {
                 var xc = (this.points[i].x + this.points[i + 1].x) / 2;
                 var yc = (this.points[i].y + this.points[i + 1].y) / 2;
@@ -278,8 +283,8 @@ class DrawableLine extends EngineInstance {
             }
         }
 
-        graphics.lineStyle(0,0xdfdfdf)
-        graphics.beginFill(0xdfdfdf);
+        graphics.lineStyle(0,colourOuter)
+        graphics.beginFill(colourOuter);
         graphics.drawCircle(this.points[0].x,this.points[0].y,5)
         graphics.drawCircle(this.points[this.points.length-1].x,this.points[this.points.length-1].y,5)
         graphics.endFill();

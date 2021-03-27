@@ -174,6 +174,7 @@ class Scene_Engine extends Scene_Base {
         this.prevBgm = AudioManager.saveBgm();
         this.prevBgs = AudioManager.saveBgs();
         AudioManager.fadeOutBgm(1);
+        AudioManager.fadeOutBgs(1);
     }
 
     __startEngine() {
@@ -895,8 +896,8 @@ class Scene_Engine extends Scene_Base {
     terminate() {
         super.terminate()
         this.__cleanup();
-        this.__writeBack();
         this.__recordOutcome();
+        this.__writeBack();
         this.__resumeAudio();
         if($__engineData.__shouldAutoSave)
             this.saveGame(); // save the game
