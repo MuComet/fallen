@@ -71,3 +71,5 @@ worm_die engine/audio/se/worms/Die.ogg SE
 worm_digup engine/audio/se/worms/DigUp.ogg SE
 worm_digdown engine/audio/se/worms/DigDown.ogg SE
 worm_kill engine/audio/se/worms/Kill.ogg SE
+
+walking engine/audio/se/umbrella/Walk.ogg SE
