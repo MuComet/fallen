@@ -35,7 +35,7 @@ class SkyMinigameController extends MinigameController { // All classes that can
 
         // instructions
 
-        var text = new PIXI.Text("Press Space to drop a block\nnew block must stack on the top\nof the most recent one\nreach the goal height\n\nPress Enter to cheat!",$engine.getDefaultTextStyle())
+        var text = new PIXI.Text("Press the SPACE key to drop the swinging slabs.\n Drop each slab within a 5 seconds.\n Only the highest tower slab can be stacked on.\n Reach the goal height.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle())
         this.setInstructionRenderable(text);
         this.setControls(true,false);
 

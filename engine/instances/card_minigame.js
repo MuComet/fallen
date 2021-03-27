@@ -22,7 +22,7 @@ class CardMinigameController extends MinigameController {
         this.setControls(false,true);
 
 
-        var text = new PIXI.Text("Memorize the card positions matching the goal card located\n at the bottom. Select as many of those cards as you can.\nThere are 6 correct cards each round.\n\n30 seconds to get 6/6 correct cards for 3 rounds in a row!\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Memorize the card positions matching the goal card located\n at the bottom. Select as many of those cards as you can.\nThere are 6 correct cards each round.\n\n30 seconds to get 6/6 correct cards in 3 rounds!\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
 
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
@@ -42,7 +42,7 @@ class CardMinigameController extends MinigameController {
         this.timer = 0;
         var card_texture = ["card_faces_1", "card_faces_2", "card_faces_3", "card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3","card_faces_1", "card_faces_2", "card_faces_3"];
         this.goal_index = card_texture[EngineUtils.irandom(2)];
-        this.goal_card = new PIXI.Sprite($engine.getTexture(this.goal_index));    // change sprite instead??? marcus cares???????????????????????????
+        this.goal_card = new PIXI.Sprite($engine.getTexture(this.goal_index));    // change sprite instead??? marcus cares
 
         this.goal_card.x = $engine.getWindowSizeX()/2;
         this.goal_card.y = $engine.getWindowSizeY()/2 + 150;

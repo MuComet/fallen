@@ -55,7 +55,7 @@ spritesheet dimensions 75 9 3 1 rain_sprites engine/textures/umbrella/rain_sprit
 umbrella engine/textures/umbrella/umbrella.png 0.5 0.5
 spritesheet dimensions 2400 619 4 1 animate eson_walk_cat 4 1 2 3 2 eson_walk_cat engine/textures/umbrella/eson_walk_cat.png 0.5 1
 
-drawing_paper engine/textures/drawing/paper.png 0.5 1
+background_drawing_paper engine/textures/backgrounds/paper.png 0 0 
 spritesheet dimensions 4896 1248 6 2 drawing_objects engine/textures/drawing/draw_object_sprites.png 0.5 0.5
 
 falling_rock_1 engine/textures/rock_falling.png 0.5 0.5

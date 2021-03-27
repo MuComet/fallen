@@ -12,12 +12,12 @@ class UmbrellaMinigameController extends MinigameController {
 
         this.setControls(true,false);
 
-        this.setCheatTooltip("That's one big umbrella!")
-        
+        this.setCheatTooltip("That's one big umbrella!");
 
-        // instructions
-        var text = new PIXI.Text("Walk left and right,\n don't touch the rain!\n\nPress Enter to cheat!",$engine.getDefaultTextStyle())
-        this.setInstructionRenderable(text)
+
+        var text = new PIXI.Text("Use Arrow Keys to walk left and right.\n Avoid getting Cano Pe wet by staying under the umbrella! \n\nPress ENTER to cheat!", $engine.getDefaultTextStyle());
+
+        this.setInstructionRenderable(text);
 
         this.player = new UmbrellaPlayer($engine.getWindowSizeX()/2,$engine.getWindowSizeY()-32)
         this.umbrella = new Umbrella($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/1.6-32);
@@ -202,7 +202,7 @@ class UmbrellaPlayer extends InstanceMover {
             this.xScale = sign * this.baseXScale;
 
         /*$engine.getCamera().setScaleX($engine.getCamera().getScaleX()-IN.getWheel()/1000);
-        
+
         if(IN.mouseCheck(0)) {
             var dx = IN.getMouseXGUI()-this.lmx;
             var dy = IN.getMouseYGUI()-this.lmy;
@@ -311,7 +311,7 @@ class Umbrella extends EngineInstance {
         // rx can be no greater than 66% of the screen
         this.rx = EngineUtils.clamp(this.rx,this.x-$engine.getWindowSizeX()/2,this.x+$engine.getWindowSizeX()/1.5)
         this.ry = EngineUtils.randomRange(72+4.5*(this.endTime-15),132+4.5*(this.endTime-15));
-        
+
         this.sx = this.x;
         this.sy = this.y;
     }
@@ -336,7 +336,7 @@ class Umbrella extends EngineInstance {
                 this.timesSinceLastFake++;
             }
             this.findNewLocation();
-            
+
         }
         if(this.timer<=this.endTime) {
             var lx = this.x, ly = this.y;
@@ -384,7 +384,7 @@ class Umbrella extends EngineInstance {
                         this.y = EngineUtils.interpolate(this.timer/this.endTime,this.sy,this.ry,EngineUtils.INTERPOLATE_SMOOTH)
                     }
                 }
-                
+
             }
 
             this.dx = this.x - lx;

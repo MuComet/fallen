@@ -4,7 +4,7 @@ class GardenMinigameController extends MinigameController {
         super.onEngineCreate();
         this.score = 5;
         this.maxScore = 5;
-        this.wormsmissed = 10;
+        this.wormsmissed = 0;
         this.wormsMax = 10;
 
         new ParallaxingBackground("background_garden1");
@@ -38,7 +38,7 @@ class GardenMinigameController extends MinigameController {
 
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
 
-        var text = new PIXI.Text("Use Arrows to select a worm hole, protect the garden's\n vegetation and spray the worms\n before they can retreat and eat the plants. \n Press SPACE to spray.\n\n You may lose at most 5 plant units \n AND miss spraying at most 10 worms \n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Use Arrows to select a worm hole, protect the garden's\n vegetation and spray the worms\n before they can retreat and eat the plants. \n Press SPACE to spray.\n\n You may lose at most 5 plant units \n AND miss spraying at most 10 worms \n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
 
@@ -132,7 +132,7 @@ class GardenMinigameController extends MinigameController {
             }
         }
         this.score = this.maxScore - temp_score;
-        if(this.score <= 0 || this.wormsmissed <= 0){
+        if(this.score <= 0 || this.wormsmissed >= this.wormsMax){
             this.getTimer().pauseTimer();
             this.endMinigame(false);
         }
@@ -219,7 +219,7 @@ class GardenWorm extends EngineInstance {
         
         if(this.wormTimer >= this.wormTimerEat && this.deathTime === 0){            
             GardenMinigameController.getInstance().plant_array[this.index] = undefined;
-            GardenMinigameController.getInstance().wormsmissed--;
+            GardenMinigameController.getInstance().wormsmissed++;
             this.destroy();
         }
 

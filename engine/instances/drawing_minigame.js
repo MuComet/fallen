@@ -7,9 +7,19 @@ class DrawController extends MinigameController { // controls the minigame
         this.instructiontext.y = $engine.getWindowSizeY()-80;
 
         // drawing minigame has 2 versions. the external data "version" will tell us which one we're doing.
+        //this.alternate = RoomManager.currentRoom().getExtern("version")[0]==="1";
         this.alternate = RoomManager.currentRoom().getExtern("version")[0]==="1";
 
-        new ParallaxingBackground("background_wall_1");
+        if(!this.alternate){
+            new ParallaxingBackground("background_wall_1");
+        }else{
+            new ParallaxingBackground("background_ground_1");
+            this.setSprite(new PIXI.Sprite($engine.getTexture("background_drawing_paper")));
+            this.depth = 100;
+        }
+
+
+
 
         this.buffer = new BufferedMouseInput(0,30);
 
@@ -20,11 +30,10 @@ class DrawController extends MinigameController { // controls the minigame
 
         this.totalScore=0;
 
-        var text = new PIXI.Text("Click and hold to draw\nDon't let go and follow the shape outline\nDon't draw extra lines and"
-                            +"\ndont go over the lines twice\nThere are 3 total drawings\n\nPress Enter to cheat!",$engine.getDefaultTextStyle());
-        this.setInstructionRenderable(text)
+        var text = new PIXI.Text("Click the mouse to start drawing, and make sure \n to HOLD, don't let go until you are done. \n Trace the entire outline of the shape.\n\n Make no extra lines in the process.\nThere are 3 drawings total to trace.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
+        this.setInstructionRenderable(text);
         this.setControls(false,true);
-        this.setCheatTooltip("Snap time!")
+        this.setCheatTooltip("Snap time!");
 
         this.gameOverTimer=0;
 
@@ -168,6 +177,12 @@ class DrawController extends MinigameController { // controls the minigame
     notifyFramesSkipped(frames) {
         this.getTimer().tickDown(frames);
     }
+
+    draw(gui, camera) {
+        super.draw(gui, camera);
+        $engine.requestRenderOnCamera(this.instructiontext);
+    }
+
 }
 
 class DrawableLine extends EngineInstance {
@@ -281,12 +296,15 @@ class ShapeToDraw extends EngineInstance {
         this.y = $engine.getWindowSizeY()/2;
         this.alpha = 0;
         this.pathData = ShapeToDraw.paths[index];
-        this.saveDataArrayIndex = $__engineSaveData.drawingMinigameLines.data.length;
-        $__engineSaveData.drawingMinigameLines.data.push({
-            index:index,
-            line:[],
-            distance:-1
-        })
+        if(!DrawController.getInstance().alternate){
+            this.saveDataArrayIndex = $__engineSaveData.drawingMinigameLines.data.length;
+            $__engineSaveData.drawingMinigameLines.data.push({
+                index:index,
+                line:[],
+                distance:-1
+            });
+        }
+        
         this.basePenalty=0;
         this.baseScore=0;
         this.score = 0;
@@ -311,8 +329,9 @@ class ShapeToDraw extends EngineInstance {
     }
 
     step() {
-        if(this.setupTimer>=this.inTime || !this.showing)
+        if(this.setupTimer>=this.inTime || !this.showing){
             return;
+        }
         var newLoc = EngineUtils.interpolate(++this.setupTimer/this.inTime,0,this.pathData.path.length,EngineUtils.INTERPOLATE_SMOOTH_QUAD);
         var newLocFloor = Math.floor(newLoc)
 
@@ -372,9 +391,10 @@ class ShapeToDraw extends EngineInstance {
         }
         this.score = EngineUtils.clamp(score,0,1);
 
-        $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].line = this.line.points;
-        $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].distance = this.line.totalDist;
-
+        if(!DrawController.getInstance().alternate){
+            $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].line = this.line.points;
+            $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].distance = this.line.totalDist;
+        }
     }
 }
 ShapeToDraw.paths = [];
