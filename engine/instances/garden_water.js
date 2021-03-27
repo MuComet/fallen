@@ -240,6 +240,7 @@ class DDRTiles extends EngineInstance {
     }
 }
 
+
 class WaterPlant extends EngineInstance {
     onCreate(x,y) {
         this.x = x;
@@ -251,6 +252,7 @@ class WaterPlant extends EngineInstance {
         this.clicked = false;
     }
 }
+
 
 class WaterCan extends EngineInstance {
     onCreate() {

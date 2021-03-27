@@ -4,7 +4,7 @@ class GardenMinigameController extends MinigameController {
         super.onEngineCreate();
         this.score = 5;
         this.maxScore = 5;
-        this.wormsmissed = 10;
+        this.wormsmissed = 0;
         this.wormsMax = 10;
 
         new ParallaxingBackground("background_garden1");
@@ -132,7 +132,7 @@ class GardenMinigameController extends MinigameController {
             }
         }
         this.score = this.maxScore - temp_score;
-        if(this.score <= 0 || this.wormsmissed <= 0){
+        if(this.score <= 0 || this.wormsmissed >= this.wormsMax){
             this.getTimer().pauseTimer();
             this.endMinigame(false);
         }
@@ -219,7 +219,7 @@ class GardenWorm extends EngineInstance {
         
         if(this.wormTimer >= this.wormTimerEat && this.deathTime === 0){            
             GardenMinigameController.getInstance().plant_array[this.index] = undefined;
-            GardenMinigameController.getInstance().wormsmissed--;
+            GardenMinigameController.getInstance().wormsmissed++;
             this.destroy();
         }
 
