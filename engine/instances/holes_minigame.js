@@ -30,7 +30,7 @@ class HoleMinigameController extends MinigameController {
 
         this.depth = 2;
 
-        this.setInstructionRenderable(new PIXI.Text("Move left and right to\ndescend down the sewer.\nDon't miss the gaps!",$engine.getDefaultTextStyle()))
+        this.setInstructionRenderable(new PIXI.Text("Move left and right to\ndescend down the sewer.\nDon't miss the gaps!\n\nPress Enter to cheat!",$engine.getDefaultTextStyle()))
         this.setControls(true,false)
 
         this.setCheatTooltip("Eson lookin' kinda thicc.")
@@ -266,7 +266,7 @@ class HolePlatform extends EngineInstance {
         this.y = y;
         this.originalWidth = holeWidth;
         this.originalType = type;
-        this.setSprite($engine.createRenderable(this,new PIXI.Sprite($engine.getRandomTextureFromSpritesheet("pipes"))));
+        this.setSprite(new PIXI.Sprite($engine.getRandomTextureFromSpritesheet("pipes")));
         if(type) { // left side
             this.getSprite().anchor.x = 1;
             this.x-=holeWidth;
@@ -315,7 +315,7 @@ class HoleSeparator extends EngineInstance {
     onCreate(x,y,width) {
         this.x = x;
         this.y = y;
-        this.setSprite($engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("pipes_separator"))))
+        this.setSprite(new PIXI.Sprite($engine.getTexture("pipes_separator")))
         var fac = (width+8)/256;
         this.xScale = fac;
         this.depth = 1;

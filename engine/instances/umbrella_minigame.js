@@ -16,8 +16,7 @@ class UmbrellaMinigameController extends MinigameController {
         
 
         // instructions
-        var text = new PIXI.Text("Walk left and right,\n don't touch the rain!\n\nPress Enter to cheat!",{fontFamily: 'GameFont',
-                        fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
+        var text = new PIXI.Text("Walk left and right,\n don't touch the rain!\n\nPress Enter to cheat!",$engine.getDefaultTextStyle())
         this.setInstructionRenderable(text)
 
         this.player = new UmbrellaPlayer($engine.getWindowSizeX()/2,$engine.getWindowSizeY()-32)

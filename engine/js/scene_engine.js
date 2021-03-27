@@ -781,6 +781,8 @@ class Scene_Engine extends Scene_Base {
 
     __endAndReturn() {
 
+        $__engineData.__haltAndReturn=false;
+
         if($__engineData.__overrideRoom) { // completely restart the engine if we override room.
             this.__cleanup(); // after all the intention of the programmer at this point is that the engine is to be terminated.
             this.removeChildren();
@@ -788,7 +790,6 @@ class Scene_Engine extends Scene_Base {
             $__engineData.loadRoom = $__engineData.__overrideRoom
             this.__startEngine();
             $__engineData.__overrideRoom=undefined;
-            $__engineData.__haltAndReturn=false;
             this.startFadeIn();
             return;
         }
@@ -799,7 +800,6 @@ class Scene_Engine extends Scene_Base {
             this.removeChildren();
             this.__initEngine();
             this.__startEngine();
-            $__engineData.__haltAndReturn=false;
             return;
         }
 
@@ -1931,9 +1931,12 @@ Game_Interpreter.prototype.changeHp = function(target, value, allowDeath) {
 
 
 // hook a in a global update.
-SceneManager.updateManagers = function() {
-    ImageManager.update();
-    UwU.tick();
+{
+    let oldFunc = SceneManager.updateScene;
+    SceneManager.updateScene = function() {
+        oldFunc.call(this);
+        UwU.tick();
+    }
 }
 
 // place in block so that the local variables don't pollute the global namespace
@@ -2516,7 +2519,8 @@ class OwO {
         }
         // if data exists, exectue.
         OwO.applyConditionalFilters();
-        OwO.__applyParticleInit();
+        if(!UwU.lastSceneWasMenu())
+            OwO.__applyParticleInit();
     }
 
     static getMapContainer() {

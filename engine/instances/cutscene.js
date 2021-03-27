@@ -110,6 +110,21 @@ class CutsceneController extends EngineInstance {
         this.baseTextLocation = 25;
         this.textOffset = 0;
 
+        this.continueArrow = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("arrow")))
+        this.continueArrow.anchor.x = 0.5;
+        this.continueArrow.scale.set(0.25,0.25);
+        this.continueArrowBaseXScale = 0.25;
+        this.continueArrowBaseYScale = 0.25;
+
+        this.continueArrow.y = $engine.getWindowSizeY()+64;
+        this.continueArrow.x = $engine.getWindowSizeX()/2;
+
+        this.continueArrowBaseX = this.continueArrow.x;
+        this.continueArrowBaseY = this.continueArrow.y;
+
+        this.continueArrowTimer = 0;
+        this.continueArrowTime = 30;
+
         this.hasPlayedPageFlip = false;
 
         var style = $engine.getDefaultTextStyle();
@@ -311,7 +326,7 @@ class CutsceneController extends EngineInstance {
         var lastPoint = this.locations[stage-1];
         var currentPoint = this.locations[stage];
         this.renderTextureGraphics.clear();
-        this.renderTextureGraphics.lineStyle(140,0xffffff);
+        this.renderTextureGraphics.lineStyle(148,0xffffff);
         this.renderTextureGraphics.moveTo(this.xc,this.yc);
         this.xc = (lastPoint.x + currentPoint.x) / 2;
         this.yc = (lastPoint.y + currentPoint.y) / 2;
@@ -382,7 +397,7 @@ class CutsceneController extends EngineInstance {
     }
 
     isReady() {
-        return this.currentText!=="" && this.textComplete()
+        return !this.isTransitioning() && (this.currentText === "" || this.textComplete())
     }
 
     // returns true if all characters have been rendered
@@ -496,6 +511,25 @@ class CutsceneController extends EngineInstance {
         return this.transition;
     }
 
+    arrowTick() {
+        if(this.isReady()) {
+            if(this.continueArrowTimer<this.continueArrowTime)
+                this.continueArrowTimer++;
+        } else {
+            if(this.continueArrowTimer>0)
+                this.continueArrowTimer--;
+        }
+        var fac = EngineUtils.interpolate(this.continueArrowTimer/this.continueArrowTime,0,1,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL)
+        this.continueArrow.y = this.continueArrowBaseY-72*fac;
+        this.continueArrow.alpha = fac;
+
+        var fac2 = Math.abs(Math.sin($engine.getGameTimer()/16));
+        var fac3 = fac2/10+1;
+        this.continueArrow.x = this.continueArrowBaseX+fac2*4;
+        this.continueArrow.scale.x = fac3*this.continueArrowBaseXScale
+        this.continueArrow.scale.y = fac3*(1-fac2/3)*this.continueArrowBaseYScale
+    }
+
     step() {
         if(IN.anyStandardInputPressed() && !IN.keyCheckPressed("Escape") && !IN.keyCheckPressed("Control") 
                     && this.timer < this.frameLength[this.currentFrame]-this.transitionTime/4 && this.timer > this.transitionTime/4) {
@@ -513,6 +547,7 @@ class CutsceneController extends EngineInstance {
             this.wipeStarted=true;
         }
         this.textBoxTick();
+        this.arrowTick();
         if(this.timer>this.frameLength[this.currentFrame]) {
             if(this.currentFrame < this.frames-1) {
                 this.currentFrame++;
