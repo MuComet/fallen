@@ -1,0 +1,32 @@
+block instances
+    CutsceneController 0 0 0 0 1 1
+endblock
+
+block extern sheet
+bad_ending_cutscene_sheet
+endblock
+
+block extern onComplete
+CutsceneController.returnToMenu
+endblock
+
+block extern biases
+0
+0
+0
+0
+0
+0
+endblock
+
+block extern music
+endblock
+
+block extern text
+<none>
+<none>
+<none>
+<none>
+<none>
+<none>
+endblock

@@ -685,3 +685,6 @@ class DailyRecapCutsceneController extends CutsceneController {
         $engine.clearDailyOutcomes();
     }
 }
+CutsceneController.returnToMenu = function() {
+    $engine.setRoom("MenuIntro")
+}
