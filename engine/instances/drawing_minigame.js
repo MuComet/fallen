@@ -297,8 +297,8 @@ class ShapeToDraw extends EngineInstance {
         this.alpha = 0;
         this.pathData = ShapeToDraw.paths[index];
         if(!DrawController.getInstance().alternate){
-            this.saveDataArrayIndex = $__engineSaveData.drawingMinigameLines.data.length;
-            $__engineSaveData.drawingMinigameLines.data.push({
+            this.saveDataArrayIndex = $engine.getSaveData().drawingMinigameLines.data.length;
+            $engine.getSaveData().drawingMinigameLines.data.push({
                 index:index,
                 line:[],
                 distance:-1

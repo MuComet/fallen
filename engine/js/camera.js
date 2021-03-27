@@ -8,7 +8,12 @@ class Camera extends PIXI.Container {
         this.engineY = this.y;
         this.angle = 0;
         this.filters = [];
+        this.__autoDestroyBackground = true;
+        this.__background=undefined;
+        this.__backgroundColour=0;
         this.__filters = [];
+        this.__cameraBackgroundGraphics = new PIXI.Graphics();
+        this.__cameraBackground = new PIXI.Container();
         this.__cameraRenderContainer = new PIXI.Container();
         this.__cameraGraphics = new PIXI.Graphics(); // shared graphics, always draws on top of everything.
         this.__renderContainer = new PIXI.Container();
@@ -17,12 +22,15 @@ class Camera extends PIXI.Container {
         this.__cameraRenderContainer.addChild(this.__renderContainer);
         this.__cameraRenderContainer.addChild(this.__cameraGraphics);
 
+        this.addChild(this.__cameraBackgroundGraphics); // colour
+        this.addChild(this.__cameraBackground);
         this.addChild(this.__cameraRenderContainer)
         this.addChild(this.__cameraGUI)
 
         this.setLocation(x,y);
         this.setDimensions(w,h);
         this.setRotation(r);
+        
     }
 
     addFilter(screenFilter, removeOnRoomChange = true, name = "ENGINE_DEFAULT_FILTER_NAME") {
@@ -51,7 +59,43 @@ class Camera extends PIXI.Container {
         this.filters = filters;
 
         this.__filters.splice(index,1);
-        
+    }
+
+    /**
+     * Sets a renderable to be rendered in the background.
+     * @param {PIXI.DisplayObject} background The background to use
+     * @param {Boolean | true} autoDestroy Whether or not to auto destroy this background when the game ends or a new background is set.
+     */
+     setBackground(background, autoDestroy=true) { // expects any PIXI renderable. renders first.
+        if(this.__autoDestroyBackground) {
+            for(const child of this.__cameraBackground.children)
+                $engine.freeRenderable(child);
+        }
+        this.__background = background;
+        this.__cameraBackground.removeChildren();
+        if(background) // remove
+            this.__cameraBackground.addChild(background)
+        this.__autoDestroyBackground = autoDestroy;
+    }
+
+    getBackground() {
+        return this.__background;
+    }
+
+    getBackgroundColour() {
+        return this.__backgroundColour
+    }
+
+    /**
+     * Sets the background colour of the camera. Removes the current background if applicable.
+     * @param {Number} colour The new background colour
+     */
+    setBackgroundColour(colour) {
+        this.__backgroundColour = colour;
+        this.__cameraBackgroundGraphics.beginFill(colour);
+        this.__cameraBackgroundGraphics.drawRect(-128,-128,$engine.getWindowSizeX()+256,$engine.getWindowSizeY()+256);
+        this.__cameraBackgroundGraphics.endFill();
+        this.setBackground(undefined);
     }
 
     getCameraGraphics() {

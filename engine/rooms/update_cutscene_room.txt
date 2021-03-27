@@ -1,0 +1,25 @@
+block instances
+    DailyRecapCutsceneController 0 0 0 0 1 1
+endblock
+
+block extern sheet
+update_cutscene
+endblock
+
+block extern onComplete
+$engine.endGame
+endblock
+
+block extern biases
+0.5
+0.5
+endblock
+
+block extern music
+endblock
+
+// handled by CutsceneController
+block extern text
+<none>
+<none>
+endblock

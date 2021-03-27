@@ -7,6 +7,7 @@ RockRoom engine/rooms/rock.txt
 SkyRoom engine/rooms/sky.txt
 IntroCutsceneRoom engine/rooms/intro_cutscene_room.txt
 NightOneCutsceneRoom engine/rooms/night_one_cutscene_room.txt
+UpdateCutsceneRoom engine/rooms/update_cutscene_room.txt
 OverworldTextRoom engine/rooms/overworld_text.txt
 CardRoom engine/rooms/card_room.txt
 FallingObjectsRoom engine/rooms/falling_objects_room.txt

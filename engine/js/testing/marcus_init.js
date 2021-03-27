@@ -1,4 +1,4 @@
-$__engineData.loadRoom = "FinalMinigameRoom"
+$__engineData.loadRoom = "DrawingMinigame2"
 $__engineData.__debugPreventReturn=true;
 $__engineData.__debugRequireAllTextures = true;
 $__engineData.__debugRequireAllSounds = true;
