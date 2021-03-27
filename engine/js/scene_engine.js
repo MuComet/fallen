@@ -2324,6 +2324,7 @@ class OwO {
         } else { // health went up
             if(oldHealth !== undefined && $__engineSaveData.__nextStaminaLossKills) { // you were in last stand mode, i.e. you're at 1HP
                 OwO.__changeHpNoListener(OwO.__getPlayerHP()-1);
+                $__engineSaveData.__nextStaminaLossKills=false; // exit last stand... (MAYBE REMOVE!)
             }
         }
         colFilter.saturation = EngineUtils.interpolate(newHealth/100,0,1,EngineUtils.INTERPOLATE_OUT_QUAD)

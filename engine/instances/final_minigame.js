@@ -7,6 +7,11 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.minigameTimer.alpha = 0;
         this.zoneLocation = 0;
 
+        this.totalWidth = $engine.getWindowSizeX()+64;
+
+        this.cameraLeft = -32;
+        this.cameraRight = $engine.getWindowSizeX()+32;
+
         this.sharedGlowFilter = new PIXI.filters.GlowFilter();
 
         this.minigameTimer.pauseTimer();
@@ -84,8 +89,17 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
     handleCamera() {
         this.baseCameraX+=this.cameraScrollSpeedX;
         this.baseCameraY+=this.cameraScrollSpeedY;
+
+        var cX = this.baseCameraX+$engine.getWindowSizeX()/2;
+        var cY = this.baseCameraY+$engine.getWindowSizeX()/2;
+
+        var offX = this.player.x - cX;
+        var offY = this.player.y - cY;
+
         var camera = $engine.getCamera();
         camera.setLocation(this.baseCameraX,this.baseCameraY);
+
+        camera.translate(offX/8,offY/8);
 
         if(this.cameraShakeTimer>0) {
             var rx = EngineUtils.randomRange(-this.cameraShakeTimer/2,this.cameraShakeTimer/2);
@@ -102,7 +116,6 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
     }
 
     phaseZero() {
-        return;
         if(this.sharedPhaseTimer < 120) {
 
         }
@@ -130,11 +143,9 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             }
         }*/
 
-        var fac = Math.PI/8;
+        
         if(this.sharedPhaseTimer%1300===0) {
-            this.attackWipe($engine.getWindowSizeX()/2,this.getCameraTop(),Math.PI+fac,Math.PI*2-fac,1,30,6);
-            this.delayedAction(5,this.attackWipe,$engine.getWindowSizeX()/2,this.getCameraTop(),Math.PI+fac,Math.PI*2-fac,1,30,6)
-            this.delayedAction(10,this.attackWipe,$engine.getWindowSizeX()/2,this.getCameraTop(),Math.PI+fac,Math.PI*2-fac,1,30,6)
+            
         }
 
 
@@ -147,34 +158,59 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             this.attackConstrainWalls();
         
         if(this.sharedPhaseTimer%750===0) {
-            this.delayedAction(45,this.attackCircle,64,this.getCameraTop(),12,4);
-            this.delayedAction(90,this.attackCircle,64,this.getCameraTop(),12,4);
-            this.delayedAction(135,this.attackCircle,64,this.getCameraTop(),12,4);
-            this.delayedAction(180,this.attackCircle,64,this.getCameraTop(),12,4);
-
-            var right = $engine.getWindowSizeX()-64
-
-            this.delayedAction(15,this.attackCircle,right,this.getCameraTop(),12,4);
-            this.delayedAction(75,this.attackCircle,right,this.getCameraTop(),12,4);
-            this.delayedAction(120,this.attackCircle,right,this.getCameraTop(),12,4);
-            this.delayedAction(165,this.attackCircle,right,this.getCameraTop(),12,4);
         }
         
     }
 
-    attackDamageZones(size, damageZoneDelay, repeatDelay, times=1, phase = 0) {
+    sequenceFireAtPlayer() {
+        var num = 16;
+        var dx = (this.totalWidth-64)/(num-1);
+        
+        for(var i =0;i<num;i++) {
+            this.delayedAction(i*20,function(index) {
+                var xx = dx*index+this.cameraLeft/2
+                var yy = this.getCameraTop()-32;
+                var dir = V2D.calcDir(this.player.x-xx,yy-this.player.y);
+                new MoveLinearBullet(xx,yy,dir,5)
+            },i);
+            
+        }
+    }
+
+    sequenceAttackWipe() {
+        var fac = Math.PI/8;
+        this.attackWipe(this.totalWidth/2,this.getCameraTop(),Math.PI+fac,Math.PI*2-fac,1,30,6);
+        this.delayedAction(5,this.attackWipe,this.totalWidth/2,this.getCameraTop(),Math.PI+fac,Math.PI*2-fac,1,30,6)
+        this.delayedAction(10,this.attackWipe,this.totalWidth/2,this.getCameraTop(),Math.PI+fac,Math.PI*2-fac,1,30,6)
+    }
+
+    sequenceSpawnCorners(times=4,delay=45,dots = 16) {
+        var off = -delay/2;
+        var left = this.cameraLeft+64
+        for(var i =0;i<times;i++) {
+            this.delayedAction(delay*i,this.attackCircle,left,this.getCameraTop(),dots,4);
+        }
+
+        var right = this.cameraRight-64
+
+        for(var i =0;i<times;i++) {
+            this.delayedAction(delay*i+off,this.attackCircle,right,this.getCameraTop(),dots,4);
+        }
+    }
+
+    sequenceAttackDamageZones(size, damageZoneDelay, repeatDelay, times=1, phase = 0) {
         // delayed action recursion
         if(phase<times)
-            this.delayedAction(repeatDelay,this.attackDamageZones,size,damageZoneDelay,repeatDelay,times,phase+1);
+            this.delayedAction(repeatDelay,this.sequenceAttackDamageZones,size,damageZoneDelay,repeatDelay,times,phase+1);
         new DelayedDamageZone(this.player.x,this.player.y,size,damageZoneDelay);
     }
 
     attackConstrainWalls() {
         if(this.sharedPhaseTimer%32===0) {
-            var right = $engine.getWindowSizeX();
+            var right = this.totalWidth;
             for(var i =0;i<4;i++) {
-                new MoveLinearBullet((i+1)*48-32,this.getCameraTop()-32,Math.PI/2*3,2);
-                new MoveLinearBullet(right-(i+1)*48+32,this.getCameraTop()-32,Math.PI/2*3,2);
+                new MoveLinearBullet((i+1)*48-64,this.getCameraTop()-32,Math.PI/2*3,2);
+                new MoveLinearBullet(right-(i+1)*48,this.getCameraTop()-32,Math.PI/2*3,2);
             }
         }
     }
@@ -205,10 +241,10 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
     }
 
     attackLine() {
-        var num = 12;
-        var dx = ($engine.getWindowSizeX()-64)/num;
+        var num = 16;
+        var dx = (this.totalWidth-64)/num;
         for(var i =0;i<=num+1;i++) {
-            new MoveLinearBullet(dx*i,this.getCameraTop()-32,Math.PI/2*3,2)
+            new MoveLinearBullet(dx*i+this.cameraLeft/2,this.getCameraTop()-32,Math.PI/2*3,2)
         }
     }
 
@@ -218,7 +254,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         var nextLocation = 15;
         var width = 20;
 
-        var dx = ($engine.getWindowSizeX()-64)/(width-1)
+        var dx = (this.totalWidth-64)/(width-1)
         var pathWidth = 4;
         var dy = -100;
 
@@ -246,7 +282,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         var dy = ($engine.getWindowSizeY()*2)/num;
         var yy = this.getCameraTop()-$engine.getWindowSizeY();
         var dir = direction ? 0 : Math.PI;
-        var offset = direction ? -32 : $engine.getWindowSizeX()+32;
+        var offset = direction ? -32 : this.totalWidth+32;
         for(var i =0;i<=num+1;i++) {
             new MoveLinearBullet(offset,yy+dy*i,dir,2)
         }
@@ -467,13 +503,13 @@ class FinalMingiamePlayer extends EngineInstance {
     dashLogic() {
         this.dashResetTimer--;
         this.dashTimer--;
-        if(IN.mouseCheck(2) && this.dashResetTimer<0) { // right click
+        if((IN.mouseCheck(2) || IN.mouseCheck(1)) && this.dashResetTimer<0) { // right click or MMB
             this.dashTimer=this.dashTime;
             this.dashDirection = V2D.calcDir(IN.getMouseX()-this.x,IN.getMouseY()-this.y);
             this.dashSpeedX = V2D.lengthDirX(this.dashDirection,this.maxVelocity*this.dashFactor);
             this.dashSpeedY = -V2D.lengthDirY(this.dashDirection,this.maxVelocity*this.dashFactor);
             this.dashResetTimer=this.dashResetTime;
-            this.iFrames = this.dashTime + 8;
+            this.iFrames = this.dashTime + 10;
         }
     }
 
@@ -506,13 +542,14 @@ class FinalMingiamePlayer extends EngineInstance {
         var controller = FinalMinigameController.getInstance();
         var ox = controller.baseCameraX;
         var oy = controller.baseCameraY;
+        var scrollFactor = 32;
         var playerHeight = this.sprite.height;
-        if(this.x < ox && this.dx<0) {
-            this.x = ox;
+        if(this.x < ox - scrollFactor && this.dx<0) {
+            this.x = ox - scrollFactor;
             this.dx = 0;
         }
-        if(this.x >$engine.getWindowSizeX() +ox && this.dx>0) {
-            this.x = $engine.getWindowSizeX()+ox;
+        if(this.x >$engine.getWindowSizeX() + ox + scrollFactor && this.dx>0) {
+            this.x = $engine.getWindowSizeX()+ox+scrollFactor;
             this.dx = 0;
         }
         if(this.y < oy && this.dy<0) {
