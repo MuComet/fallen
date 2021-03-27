@@ -5,6 +5,7 @@ class WaterMinigameController extends MinigameController {
         this.maxScore = 12;
         this.penalty = 0;
         this.next = 0;
+        this.numberarrows = 0;
 
         new ParallaxingBackground("background_garden1");
     
@@ -68,6 +69,13 @@ class WaterMinigameController extends MinigameController {
             });
         });
 
+        this.addOnGameEndCallback(this, function(self) {
+            IM.with(DDRTiles, function(tile){
+                tile.destroy();
+            });
+            console.log(WaterMinigameController.getInstance().numberarrows);
+        });
+
         //this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
 
         var text = new PIXI.Text("Use the Arrows to water the plants.\n Follow the orders, pressing when at the bottom target.\n Missed watering steps cause plants to die. \n Keep at least ONE plant alive, and keep up.\n\nPress ENTER to cheat",$engine.getDefaultTextStyle());
@@ -119,8 +127,9 @@ class WaterMinigameController extends MinigameController {
             return;
         }
 
-        if(this.timer >= (30 -  this.speedtimer * this.speedmul)){
+        if((this.timer >= (30 -  this.speedtimer * this.speedmul)) && this.numberarrows <= 73){
             new DDRTiles(149, 100, 0);
+            this.numberarrows++;
             this.timer = 0;
         }
 
@@ -214,7 +223,7 @@ class DDRTiles extends EngineInstance {
         this.y += this.speed;
         
         //if(this.y >= $engine.getWindowSizeY() - 170){  /// testing for new track
-        if(this.y - 24 >= $engine.getWindowSizeY() - 140){
+        if(this.y - 24 >= $engine.getWindowSizeY() - 140){     
             WaterMinigameController.getInstance().score--;
             WaterMinigameController.getInstance().shake();
             $engine.audioPlaySound("sky_donk");
