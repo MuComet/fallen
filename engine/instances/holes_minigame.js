@@ -16,14 +16,14 @@ class HoleMinigameController extends MinigameController {
         this.minDistance = 96;
         this.maxDistance = 300;
         this.platformsSpawned=0;
-        this.sound1 = $engine.audioPlaySound("drain_stream",0.25,true);
-        this.sound2 = $engine.audioPlaySound("drain_drop",0.25,true);
+        this.sound1 = $engine.audioPlaySound("drain_stream",0.5,true);
+        this.sound2 = $engine.audioPlaySound("drain_drop",0.9,true);
 
         this.addOnGameEndCallback(this,function(self) {
             $engine.audioFadeSound(self.sound1);
             $engine.audioFadeSound(self.sound2);
         })
-        
+
         $engine.setBackgroundColour(0x7332a7)
 
         new ParallaxingBackground();
@@ -119,6 +119,7 @@ class HoleMinigameController extends MinigameController {
             var ry = EngineUtils.randomRange(-this.shakeTimer/4,this.shakeTimer/4)
             camera.translate(rx,ry);
         }
+
     }
 
     shake(frames=30) {
@@ -191,6 +192,9 @@ class HolePlayer extends InstanceMover {
             }
         }
         this.move(accel,this.vel);
+        if(this.vel[0] != 0 && $engine.getGlobalTimer() % 10 == 0){
+            $engine.audioPlaySound("walking");
+        }
 
         // gravity doesn't use 2d mover.
         if(this.dy===0)
@@ -200,7 +204,8 @@ class HolePlayer extends InstanceMover {
         var inst = IM.instancePlace(this,this.x,this.y+this.dy,HolePlatform)
         if(inst!==undefined) {
             if(this.dy>=0) { // land
-                this.y = inst.getHitbox().getBoundingBoxTop();
+                this.y = inst.getHitbox().getBoundingBoxTop();               
+
                 if(controller.hasCheated()) {
                     this.handleDestroyBlock(inst);
                 }
@@ -224,6 +229,7 @@ class HolePlayer extends InstanceMover {
             return false;
         }
 
+        $engine.audioPlaySound("sky_land");
         var t1 = block;
         var t2 = block.otherPlatform;
         var t3 = block.separator;
