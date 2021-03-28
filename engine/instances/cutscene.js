@@ -8,7 +8,10 @@ class CutsceneController extends EngineInstance {
         this.currentFrame = 0;
         $engine.startFadeIn();
 
+        this.timer = 0;
+
         this.transition = true;
+        this.transitionTime = 36;
         
         this.biases = RoomManager.currentRoom().getExtern("biases");
         for(var i =0;i<this.biases.length;i++)
@@ -26,25 +29,8 @@ class CutsceneController extends EngineInstance {
             this.text[i] = this.text[i].split("\\0");
         }
 
-        this.timer = 0;
-        this.numTexts = this.text[0].length;
-        this.textIndex = 0;
-        this.textCharacterDelay = 0;
-        this.textAdvanceTimer = 0;
-        this.textWaitTimer = 0;
+        this.textBox = new TextBox(this.text[0],false);
 
-        this.currentText="";
-        this.walkingTextIndex=0;
-
-        this.transitionTime = 36;
-
-        this.portraitTimer = 0;
-        this.portraitTime = 30;
-        this.nextPortraitTexture = undefined;
-        this.portraitTransitionMode = 1;
-        this.showingPortrait = false;
-
-        this.noShift = false; // prevents text shift on profile change.
 
         this.frameLength = []
         for(var i =0;i<this.frames;i++)
@@ -85,67 +71,9 @@ class CutsceneController extends EngineInstance {
         this.wipeStarted=false;
         this.out = false;
 
-        this.showTextBoxTimer = 0;
-        this.showingTextBox = false;
-        this.showTextBoxTime = 38;
-
-        this.firstCharacter=true;
-
         this.maskBias = this.biases[0]; // if maskMode === 0, then this is how much to move the *image*.
 
-        this.textBoxHeight=167;
-
-        this.textBoxFactor=0;
-
-        this.textBox = $engine.createRenderable(this,new PIXI.Sprite($engine.getTexture("text_box")));
-        this.textBox.y = $engine.getWindowSizeY();
-
-        this.portraitImage = $engine.createRenderable(this, new PIXI.Sprite(PIXI.Texture.Empty));
-        this.portraitImage.x = 90;
-        this.portraitImage.y = $engine.getWindowSizeY() - 40;
-        this.portraitImage.scale.x = 0
-        this.portraitImage.anchor.set(0.5,1);
-
-        this.basePortraitY = this.portraitImage.y;
-
-        this.baseTextLocation = 25;
-        this.textOffset = 0;
-
-        this.continueArrow = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("arrow")))
-        this.continueArrow.anchor.x = 0.5;
-        this.continueArrow.scale.set(0.25,0.25);
-        this.continueArrowBaseXScale = 0.25;
-        this.continueArrowBaseYScale = 0.25;
-
-        this.continueArrow.y = $engine.getWindowSizeY()+64;
-        this.continueArrow.x = $engine.getWindowSizeX()/2;
-
-        this.continueArrowBaseX = this.continueArrow.x;
-        this.continueArrowBaseY = this.continueArrow.y;
-
-        this.continueArrowTimer = 0;
-        this.continueArrowTime = 30;
-
         this.hasPlayedPageFlip = false;
-
-        var style = $engine.getDefaultTextStyle();
-        style.align = 'left'
-        style.wordWrap = true;
-        style.fill = 0;
-        style.strokeThickness=0;
-        style.wordWrapWidth = $engine.getWindowSizeX()-50
-        style.fontSize = 25;
-        style.breakWords=true;
-        this.textImage = $engine.createRenderable(this, new PIXI.Text("",style))
-        this.textImage.x = this.baseTextLocation;
-        this.textImage.y = $engine.getWindowSizeY()-this.textBoxHeight+24;
-
-        this.renderTexture = $engine.createManagedRenderable(this, PIXI.RenderTexture.create($engine.getWindowSizeX(),$engine.getWindowSizeY()));
-        this.renderTextureSprite = $engine.createRenderable(this, new PIXI.Sprite(this.renderTexture))
-
-        this.textBox.mask = this.renderTextureSprite;
-
-        this.renderTextureGraphics = $engine.createManagedRenderable(this, new PIXI.Graphics());
 
         var maskGraphics = new PIXI.Graphics();
         maskGraphics.beginFill(0xffffff);
@@ -153,27 +81,18 @@ class CutsceneController extends EngineInstance {
         maskGraphics.endFill();
 
         // PIXIJS please
-        for(var i=0;i<=this.textBoxHeight/2;i++) {
-            maskGraphics.beginFill(0xffffff,1-(i/(this.textBoxHeight/2)));
+        for(var i=0;i<=this.textBox.textBoxHeight/2;i++) {
+            maskGraphics.beginFill(0xffffff,1-(i/(this.textBox.textBoxHeight/2)));
             maskGraphics.drawRect(0,$engine.getWindowSizeY()+i,$engine.getWindowSizeX(),1);
             maskGraphics.endFill();
         }
+
         var tex = $engine.getRenderer().generateTexture(maskGraphics);
         $engine.createManagedRenderable(this,tex);
         $engine.freeRenderable(maskGraphics);
 
         this.baseImageMask = $engine.createRenderable(this, new PIXI.Sprite(tex));
         this.getSprite().mask = this.baseImageMask;
-
-        this.locations = [];
-        for(var i =0;i<=this.showTextBoxTime;i++) {
-            var xFac = Math.sin(-i/1.25)*94;
-            var xCorrection = 100 * ((i/this.showTextBoxTime)-0.5)
-            this.locations.push(new EngineLightweightPoint(i/(this.showTextBoxTime)*$engine.getWindowSizeX()+xFac+xCorrection,
-                                    $engine.getWindowSizeY()-this.textBoxHeight/2 +  Math.sin(i/1.25) * this.textBoxHeight/2))
-        }
-        this.xc = this.locations[0].x;
-        this.yc = this.locations[0].y;
     }
 
     testUpdateMusic() {
@@ -202,169 +121,29 @@ class CutsceneController extends EngineInstance {
         this.hasPlayedPageFlip = false;
     }
 
-    textBoxTick() { // this violates the draw contract, but honestly it's a render texture it's tied to step anyway.
-        if(this.showingTextBox) {
-            if(!this.textBoxReady())
-                this.prepareTextBox();
-            else 
-                this.textBoxReadyTick();
-        } else {
-            if(this.showTextBoxTimer>0) 
-                this.hideTextBox();
-        }
-        this.portraitTick();
-        var newY = -this.textBoxFactor*this.textBoxHeight/2
+
+    isReady() {
+        return !this.isTransitioning() && this.textBox.isReady();
+    }
+
+    textBoxTick() {
+        var newY = -this.textBox.textBoxFactor*this.textBox.textBoxHeight/2
         var imgMove = newY*(this.maskBias); // img
         var maskCorrection = newY * (1-this.maskBias)
         var maskMove = imgMove + maskCorrection;
         this.y=imgMove;
         this.baseImageMask.y = maskMove*2;
     }
+    
 
-    portraitTick() {
-        if(this.showingPortrait) {
-            if(!this.portraitReady())
-                this.preparePortrait();
-        } else {
-            if(this.portraitTimer>0) 
-                this.hidePortrait();
-            else
-                this.nextPortraitTexture = undefined;
-        }
+    isTransitioning() {
+        return this.transition;
     }
 
-    portraitReady() {
-        return this.portraitTimer >= this.portraitTime && this.portraitImageCorrect();
+    arrowTick() {
+        this.textBox.arrowTick();
     }
 
-    portraitImageCorrect() {
-        return !this.showingPortrait || this.portraitImage.texture === this.nextPortraitTexture
-    }
-
-    preparePortrait() {
-        var portraitFactor = 0; // i know i don't need to do this.
-        this.portraitImage.alpha = 1;
-        if(this.portraitTransitionMode === 1) {
-            if(this.portraitTimer===0)
-                this.portraitImage.texture = this.nextPortraitTexture
-            var portraitFactor = EngineUtils.interpolate(++this.portraitTimer/this.portraitTime,0,1,EngineUtils.INTERPOLATE_IN_ELASTIC);
-            this.portraitImage.scale.x = portraitFactor;
-            var fac2 = EngineUtils.interpolate(this.portraitTimer/this.portraitTime,1,0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
-            this.portraitImage.y = this.basePortraitY+80*fac2
-        } else { // transition
-            var portraitFactor = EngineUtils.interpolate(Math.abs((++this.portraitTimer-this.portraitTime/2)/(this.portraitTime/2)),0,1,EngineUtils.INTERPOLATE_OUT_BACK);
-            this.portraitImage.scale.x = portraitFactor;
-            if(Math.floor(this.portraitTime/2) === this.portraitTimer)
-                this.portraitImage.texture = this.nextPortraitTexture
-        }
-        this.setTextOffset(Math.abs(this.portraitImage.texture.width/2+portraitFactor*this.portraitImage.texture.width/2))
-    }
-
-    hidePortrait() {
-        var portraitFactor = EngineUtils.interpolate(--this.portraitTimer/this.portraitTime,0,1,EngineUtils.INTERPOLATE_OUT_BACK);
-        this.portraitImage.scale.x = portraitFactor;
-        this.setTextOffset(portraitFactor*this.portraitImage.texture.width)
-        var fac2 = EngineUtils.interpolate(this.portraitTimer/this.portraitTime,1,0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
-        this.portraitImage.y = this.basePortraitY+80*fac2
-
-        if(this.portraitTimer===0) {
-            this.portraitImage.texture = this.nextPortraitTexture
-        }
-    }
-
-    setPortrait(newTex) {
-        if(newTex) {
-            if(newTex!==this.portraitImage.texture) {
-                this.portraitTimer = 0;
-                this.portraitTransitionMode = !this.showingPortrait ? 1 : 0; // 1 if show, 0 if transition
-            }
-            this.nextPortraitTexture = newTex;
-            this.showingPortrait = true;
-        } else {
-            this.showingPortrait = false;
-            this.nextPortraitTexture = PIXI.Texture.Empty
-        }
-    }
-
-    setTextOffset(newOffset) {
-        if(this.noShift)
-            return;
-        this.textOffset = newOffset;
-        this.textImage.x = this.baseTextLocation+this.textOffset;
-        this.textImage.style.wordWrapWidth = $engine.getWindowSizeX() - 50 - this.textOffset;
-    }
-
-    showTextBox(bool) {
-        if(bool === this.showingTextBox)
-            return;
-
-        this.showingTextBox=bool;
-        if(bool) {
-            this.clearRenderTextureMask();
-            this.textBox.alpha = 1;
-            this.xc = this.locations[0].x;
-            this.yc = this.locations[0].y;
-            this.showTextBoxTimer=0;
-        } else {
-            this.textInterrupted= ! this.textBoxReady();
-        }
-    }
-
-    clearRenderTextureMask() {
-        this.renderTextureGraphics.beginFill(0);
-        this.renderTextureGraphics.drawRect(-this.x,-this.y+$engine.getWindowSizeY()-this.textBoxHeight*2,$engine.getWindowSizeX()+128,this.textBoxHeight*4);
-        this.renderTextureGraphics.endFill();
-        $engine.getRenderer().render(this.renderTextureGraphics,this.renderTexture,false,null,false);
-    }
-
-    prepareTextBox() {
-        this.textBoxFactor = EngineUtils.interpolate(++this.showTextBoxTimer/this.showTextBoxTime,0,1,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
-        this.renderMask();
-    }
-
-    renderMask() {
-        var stage = this.showTextBoxTimer;
-        var lastPoint = this.locations[stage-1];
-        var currentPoint = this.locations[stage];
-        this.renderTextureGraphics.clear();
-        this.renderTextureGraphics.lineStyle(148,0xffffff);
-        this.renderTextureGraphics.moveTo(this.xc,this.yc);
-        this.xc = (lastPoint.x + currentPoint.x) / 2;
-        this.yc = (lastPoint.y + currentPoint.y) / 2;
-        this.renderTextureGraphics.quadraticCurveTo(currentPoint.x, currentPoint.y, this.xc, this.yc);
-        $engine.getRenderer().render(this.renderTextureGraphics,this.renderTexture,false,null,false);
-    }
-
-    forceMaskAllTextBox() {
-        this.renderTextureGraphics.beginFill(0xffffff);
-        this.renderTextureGraphics.drawRect(-this.x,-this.y+$engine.getWindowSizeY()-this.textBoxHeight*2,$engine.getWindowSizeX()+128,this.textBoxHeight*4);
-        this.renderTextureGraphics.endFill();
-        $engine.getRenderer().render(this.renderTextureGraphics,this.renderTexture,false,null,false);
-    }
-
-    textBoxReadyTick() {
-        this.textAdvanceTimer++;
-        if(this.textAdvanceTimer>this.textCharacterDelay && (this.textWaitTimer--)<=0 && this.portraitImageCorrect()) {
-            this.textAdvanceTimer=0;
-            this.renderNextCharacter();
-        }
-    }
-
-    hideTextBox() {
-        if(!this.textInterrupted) {
-            this.textBoxFactor = EngineUtils.interpolate(--this.showTextBoxTimer/this.showTextBoxTime,0,1,EngineUtils.INTERPOLATE_IN_EXPONENTIAL);
-            this.textBox.alpha = this.textBoxFactor;
-        } else {
-            this.textBoxFactor = EngineUtils.interpolate(--this.showTextBoxTimer/this.showTextBoxTime,0,1,EngineUtils.INTERPOLATE_OUT);
-            this.textBox.alpha = this.textBoxFactor;
-        }
-    }
-
-    textBoxReady() {
-        return this.showTextBoxTimer>=this.showTextBoxTime;
-    }
-
-    // called to advance the current text to the next in the list
     advance() {
         if(this.isTransitioning()) {
             if(this.timer<this.transitionTime)
@@ -373,169 +152,10 @@ class CutsceneController extends EngineInstance {
                 this.timer = this.frameLength[this.currentFrame]-1;
                 this.playPageFlip();
             }
-        } else if(this.textIndex>=this.numTexts && this.textComplete()) {
-            this.currentText="";
-            this.clearText();
-            this.noShift=false;
-            this.showTextBox(false);
-            this.setPortrait(undefined);
+        }
+        this.textBox.advance();
+        if(!this.textBox.hasMoreText()) // next frame
             this.timer++;
-        } else if(this.walkingTextIndex<this.currentText.length) { // jump to end of text
-            this.forcePortraitCorrect();
-            while(this.renderNextCharacter());
-            this.forceMaskAllTextBox();
-        } else {
-            this.clearText();
-            this.currentText = this.text[this.currentFrame][this.textIndex];
-            if(this.currentText===undefined) // no text associated with this
-                this.currentText="";
-            this.textCharacterDelay=0;
-            this.walkingTextIndex = 0;
-            this.textIndex++;
-            if(!this.preProcessText())
-                this.showTextBox(true);
-        }
-    }
-
-    isReady() {
-        return !this.isTransitioning() && (this.currentText === "" || this.textComplete())
-    }
-
-    // returns true if all characters have been rendered
-    renderNextCharacter() {
-        this.textWaitTimer=0; // force the timer to 0.
-        if(this.textComplete())
-            return false;
-        if(this.firstCharacter) { // PIXI replces empty strings with " "
-            this.textImage.text=this.parseText();
-            this.firstCharacter=false;
-        } else
-            this.textImage.text+=this.parseText();
-        return true;
-    }
-
-    forcePortraitCorrect() {
-        this.portraitTimer = this.portraitTime;
-        if(this.nextPortraitTexture!==undefined)
-            this.portraitImage.texture = this.nextPortraitTexture
-        this.preparePortrait();
-    }
-
-    textComplete() {
-        return this.walkingTextIndex>=this.currentText.length;
-    }
-
-    parseText() {
-        while(this.tryParseCommand());
-        if(this.textWaitTimer>0) // command changed the state of the text.
-            return "";
-        return this.currentText[this.walkingTextIndex++];
-    }
-
-    // returns true if all text was parsed.
-    preProcessText()  {
-        while(this.tryParseCommand());
-        if(this.textComplete())
-            return true;
-        return false;
-    }
-
-    tryParseCommand() {
-        if(this.currentText[this.walkingTextIndex]!=='_')
-            return false;
-        var txt = this.currentText.substring(this.walkingTextIndex);
-        if(txt.startsWith("__speed")) {
-            var data = this.extractCommand(txt);
-            this.walkingTextIndex+=data.length;
-            this.textCharacterDelay=parseInt(data.argument);
-        } else if(txt.startsWith("__wait")) {
-            var data = this.extractCommand(txt);
-            this.walkingTextIndex+=data.length;
-            this.textWaitTimer=parseInt(data.argument);
-        } else if(txt.startsWith("__choice")) {
-            var data = this.extractCommand(txt);
-            this.walkingTextIndex+=data.length;
-            var data2 = data.argument.split("~");
-            var str = EngineUtils.randomFromArray(data2);
-            // insert the string into the base text.
-            this.currentText = this.currentText.substring(0,this.walkingTextIndex) + str + this.currentText.substring(this.walkingTextIndex);
-        } else if(txt.startsWith("__italic")) {
-            var data = this.extractCommand(txt);
-            this.walkingTextIndex+=data.length;
-            var italic = parseInt(data.argument);
-            if(italic)
-                this.textImage.style.fontStyle='italic'
-            else
-                this.textImage.style.fontStyle='normal'
-        } else if(txt.startsWith("__portrait")) {
-            var data = this.extractCommand(txt);
-            this.walkingTextIndex+=data.length;
-            if(data.argument==="<none>") {
-                this.setPortrait(undefined);
-            } else {
-                var tex = $engine.getTexture(data.argument);
-                this.setPortrait(tex);
-            }
-            if(this.textWaitTimer<=0)
-                this.textWaitTimer=1;
-        } else if(txt.startsWith("__noShift")) {
-            this.setTextOffset(this.portraitImage.texture.width);
-            var data = this.extractCommand(txt);
-            this.walkingTextIndex+=data.length;
-            this.noShift = data.argument==="1" || data.argument.toLowerCase()==="true"
-        } else if(txt.startsWith("__playSound")) { // [snd,volume,loop]
-            var data = this.extractCommand(txt);
-            this.walkingTextIndex+=data.length;
-            var data2 = data.argument.split(",");
-            var snd = data2[0];
-            var volume = parseFloat(data2[1]);
-            var loop = data2[2]==="1" || data2[2].toLowerCase()==="true"
-            $engine.audioPlaySound(snd,volume,loop);
-        } else if(txt.startsWith("__stopSound")) {
-            var data = this.extractCommand(txt);
-            this.walkingTextIndex+=data.length;
-            $engine.audioStopSound(data.argument);
-        }
-        else {
-            return false;
-        }
-        return true; 
-    }
-
-    extractCommand(txt) {
-        var start = txt.indexOf("[");
-        var end = txt.indexOf("]");
-        var sub = txt.substring(start+1,end);
-        return {argument:sub, length:end+1};
-    }
-
-    clearText() {
-        this.textImage.text = "";
-        this.walkingTextIndex=0;
-        this.firstCharacter=true;
-    }
-
-    isTransitioning() {
-        return this.transition;
-    }
-
-    arrowTick() {
-        if(this.isReady()) {
-            if(this.continueArrowTimer<this.continueArrowTime)
-                this.continueArrowTimer++;
-        } else {
-            if(this.continueArrowTimer>0)
-                this.continueArrowTimer--;
-        }
-        var fac = EngineUtils.interpolate(this.continueArrowTimer/this.continueArrowTime,0,1,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL)
-        this.continueArrow.y = this.continueArrowBaseY-72*fac;
-        this.continueArrow.alpha = fac;
-
-        var fac2 = Math.abs(Math.sin($engine.getGameTimer()/16));
-        var fac3 = fac2/10+1;
-        this.continueArrow.x = this.continueArrowBaseX+fac2*4;
-        this.continueArrow.scale.x = fac3*this.continueArrowBaseXScale
-        this.continueArrow.scale.y = fac3*(1-fac2/3)*this.continueArrowBaseYScale
     }
 
     step() {
@@ -544,7 +164,7 @@ class CutsceneController extends EngineInstance {
             this.advance();
         }
 
-        if(this.text[this.currentFrame].length!==0 && !this.isTransitioning() && this.textIndex===0) {
+        if(this.text[this.currentFrame].length!==0 && !this.isTransitioning() && this.textBox.textIndex===0) { // initalize text box for new frame.
             this.advance()
         }
 
@@ -555,13 +175,12 @@ class CutsceneController extends EngineInstance {
             this.wipeStarted=true;
         }
         this.textBoxTick();
-        this.arrowTick();
         if(this.timer>this.frameLength[this.currentFrame]) {
             if(this.currentFrame < this.frames-1) {
                 this.currentFrame++;
                 this.timer = 0;
-                this.textIndex = 0;
-                this.numTexts = this.text[this.currentFrame].length;
+                this.textBox.textIndex = 0;
+                this.textBox.setTextArray(this.text[this.currentFrame],false)
                 this.updateImage();
             } else {
                 $engine.audioFadeAll(15);
@@ -574,7 +193,7 @@ class CutsceneController extends EngineInstance {
                 this.timer++;
                 this.transition=true;
             } else if(this.frameLength[this.currentFrame]-this.timer <= this.transitionTime) {
-                this.clearText();
+                this.textBox._clearText();
                 this.blurFilter.enabled = true;
                 this.blurFilter.blur = EngineUtils.interpolate((this.frameLength[this.currentFrame]-this.timer)/this.transitionTime,this.blurFilterStrength,0,EngineUtils.INTERPOLATE_OUT);
                 this.adjustmentFilter.brightness = EngineUtils.interpolate((this.frameLength[this.currentFrame]-this.timer)/this.transitionTime,this.adjustmentFilterStrength,1,EngineUtils.INTERPOLATE_OUT);
@@ -633,8 +252,593 @@ class CutsceneController extends EngineInstance {
                         $engine.getWindowSizeX()+196,$engine.getWindowSizeY()+16)
         }
         gui.endFill();
+    }
+}
 
-        $engine.requestRenderOnGUI(this.renderTextureSprite)
+class TextBox extends EngineInstance {
+    onCreate(text, autoCreate=true) {
+        if(text===undefined) {
+            text = [];
+        }
+
+        this.depth = -Infinity // in front of everything EXCEPT for UI
+
+        this.container = $engine.createRenderable(this, new PIXI.Container(),true); // the container that acutally renders
+
+        this.numTexts = 0;
+        this.textIndex = 0;
+        this.textCharacterDelay = 0;
+        this.textAdvanceTimer = 0;
+        this.textWaitTimer = 0;
+
+        this.currentText="";
+        this.walkingTextIndex=0;
+
+        this.portraitTimer = 0;
+        this.portraitTime = 30;
+        this.nextPortraitTexture = undefined;
+        this.portraitTransitionMode = 1;
+        this.showingPortrait = false;
+
+        this.isDone = false; // whether or not the end of the text has been reached.
+
+        this.noShift = false; // prevents text shift on profile change.
+
+        this.waiting=false;
+
+        this.arrowEnabled = true;
+
+        this.locationFunction = undefined;
+
+        this.showTextBoxTimer = 0;
+        this.showingTextBox = false;
+        this.showTextBoxTime = 38;
+
+        this.firstCharacter=true;
+
+        this.textBoxHeight=167;
+
+        this.textBoxFactor=0;
+
+        this.textBox = $engine.createManagedRenderable(this,new PIXI.Sprite($engine.getTexture("text_box")));
+        this.textBox.y = $engine.getWindowSizeY();
+
+        this.portraitImage = $engine.createManagedRenderable(this, new PIXI.Sprite(PIXI.Texture.Empty));
+        this.portraitImage.x = 90;
+        this.portraitImage.y = $engine.getWindowSizeY() - 40;
+        this.portraitImage.scale.x = 0
+        this.portraitImage.anchor.set(0.5,1);
+
+        this.basePortraitY = this.portraitImage.y;
+
+        this.baseTextLocation = 25;
+        this.textOffset = 0;
+
+        this.continueArrow = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("arrow")))
+        this.continueArrow.anchor.x = 0.5;
+        this.continueArrow.scale.set(0.25,0.25);
+        this.continueArrowBaseXScale = 0.25;
+        this.continueArrowBaseYScale = 0.25;
+
+        this.continueArrow.y = $engine.getWindowSizeY()+64;
+        this.continueArrow.x = $engine.getWindowSizeX()/2;
+
+        this.continueArrowBaseX = this.continueArrow.x;
+        this.continueArrowBaseY = this.continueArrow.y;
+
+        this.advanceCondition = undefined;
+        this.advanceListeners = [];
+
+        this.continueArrowTimer = 0;
+        this.continueArrowTime = 30;
+
+        var style = $engine.getDefaultTextStyle();
+        style.align = 'left'
+        style.wordWrap = true;
+        style.fill = 0;
+        style.strokeThickness=0;
+        style.wordWrapWidth = $engine.getWindowSizeX()-50
+        style.fontSize = 25;
+        style.breakWords=true;
+        this.textImage = $engine.createManagedRenderable(this, new PIXI.Text("",style))
+        this.textImage.x = this.baseTextLocation;
+        this.textImage.y = $engine.getWindowSizeY()-this.textBoxHeight+24;
+
+        this.textBoxRenderTexture = $engine.createManagedRenderable(this, PIXI.RenderTexture.create($engine.getWindowSizeX(),$engine.getWindowSizeY()));
+        this.textBoxRenderTextureSprite = $engine.createManagedRenderable(this, new PIXI.Sprite(this.textBoxRenderTexture))
+
+        this.textBox.mask = this.textBoxRenderTextureSprite;
+
+        this.renderTextureGraphics = $engine.createManagedRenderable(this, new PIXI.Graphics());
+
+        // for draw in
+        this.locations = [];
+        for(var i =0;i<=this.showTextBoxTime;i++) {
+            var xFac = Math.sin(-i/1.25)*94;
+            var xCorrection = 100 * ((i/this.showTextBoxTime)-0.5)
+            this.locations.push(new EngineLightweightPoint(i/(this.showTextBoxTime)*$engine.getWindowSizeX()+xFac+xCorrection,
+                                    $engine.getWindowSizeY()-this.textBoxHeight/2 +  Math.sin(i/1.25) * this.textBoxHeight/2))
+        }
+        this.xc = this.locations[0].x;
+        this.yc = this.locations[0].y;
+
+        this.container.addChild(this.textBox, this.textImage, this.portraitImage, this.continueArrow, this.textBoxRenderTextureSprite)
+
+        this.setTextArray(text, autoCreate);
+    }
+
+    step() {
+        this.alphaTick();
+        this.textBoxTick();
+        this.arrowTick();
+        this.testAdvanceFunction();
+    }
+
+    alphaTick() {
+        if(!this.locationFunction) {
+            return;
+        }
+        var locations = this.locationFunction.func(this.locationFunction.parent);
+        if(!Array.isArray(locations))
+            locations = [locations];
+        
+        var alpha = 1;
+        var start =  $engine.getWindowSizeY()/2;
+        var end = $engine.getWindowSizeY()-this.textBoxHeight;
+        var diff = end-start;
+        for(const point of locations) {
+            var fac = EngineUtils.interpolate((point.y-start)/diff,1,0.33333,EngineUtils.INTERPOLATE_IN);
+            alpha = Math.min(alpha,fac);
+        }
+        this.alpha = alpha;
+        
+    }
+
+    /**
+     * Sets a function to be called to sample the location of any major obstruction.
+     * 
+     * The function must return a single Point or an array of points representing any points that the
+     * user may be looking at. If any point obscures the text box, it will be faded out.
+     * 
+     * The points are expected to be in GUI space.
+     * 
+     * @param {Object} parent The parent object
+     * @param {Function} func The function to call
+     */
+    setSampleLocationFunction(parent,func) {
+        this.locationFunction = {
+            parent:parent,
+            func:func
+        }
+    }
+
+    testAdvanceFunction() {
+        if(!this.advanceCondition)
+            return;
+        if(this.advanceCondition.func.apply(this.advanceCondition.parent, this.advanceCondition.args)) {
+            this.advanceNow();
+            this.advanceCondition=undefined;
+            for(const listener of this.advanceListeners) {
+                listener.func(listener.parent);
+            }
+        }
+    }
+
+    /**
+     * Sets a condition to automatically advance the text box
+     * When the function returns true, the text box will advance, fire listeners, and
+     * remove the condition
+     * 
+     * 'this' in the method refers to the parent.
+     * 
+     * @param {Function} func The advance condition
+     * @param {...Object} args The arguments to pass to the function
+     */
+    setAdvanceCondition(parent, func, args=undefined) {
+        this.advanceCondition = {
+            parent:parent,
+            func:func,
+            args:args
+        };
+    }
+
+    /**
+     * Registers a listener to be run when the text box is advanced
+     * by the advance condition.
+     * 
+     * 
+     * @param {Object} parent The argument to pass to func
+     * @param {Function} func The listener
+     */
+    addAdvanceConditionListener(parent, func) {
+        this.advanceListeners.push( {
+            parent:parent,
+            func:func,
+        })
+    }
+
+    /**
+     * Sets the array that this text box uses.
+     * 
+     * @param {...String} array The text to display
+     * @param {Boolean | True} autoCreate Whether or not to automatically show the text when created
+     */
+    setTextArray(array, autoCreate = true) {
+        this.numTexts = array.length;
+        this.text = array;
+        this.isDone = array.length===0;
+        this.currentText = "";
+        this._clearText()
+        if(autoCreate)
+            this.advance();
+    }
+
+    isReady() {
+        return (this.currentText === "" || this.textComplete()) && this.portraitImageCorrect() && this.textBoxReady() && !this.isWaiting();
+    }
+
+    disableArrow() {
+        this.arrowEnabled = false;
+    }
+
+    isWaiting() { // for external inputs to force the text to wait.
+        return this.waiting;
+    }
+
+    setWaiting(bool) {
+        this.waiting = bool;
+    }
+
+    hasMoreText() {
+        return !this.isDone;
+    }
+
+    arrowTick() {
+        if(!this.arrowEnabled) {
+            this.continueArrow.y = this.continueArrowBaseY;
+            return;
+        }
+        if(this.isReady()) {
+            if(this.continueArrowTimer<this.continueArrowTime)
+                this.continueArrowTimer++;
+        } else {
+            if(this.continueArrowTimer>0)
+                this.continueArrowTimer--;
+        }
+        var fac = EngineUtils.interpolate(this.continueArrowTimer/this.continueArrowTime,0,1,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL)
+        this.continueArrow.y = this.continueArrowBaseY-72*fac;
+        this.continueArrow.alpha = fac;
+
+        var fac2 = Math.abs(Math.sin($engine.getGameTimer()/16));
+        var fac3 = fac2/10+1;
+        this.continueArrow.x = this.continueArrowBaseX+fac2*4;
+        this.continueArrow.scale.x = fac3*this.continueArrowBaseXScale
+        this.continueArrow.scale.y = fac3*(1-fac2/3)*this.continueArrowBaseYScale
+    }
+
+    textBoxTick() { // this violates the draw contract, but honestly it's a render texture it's tied to step anyway.
+        if(this.showingTextBox) {
+            if(!this.textBoxReady())
+                this._prepareTextBox();
+            else 
+                this._textBoxReadyTick();
+        } else {
+            if(this.showTextBoxTimer>0) 
+                this._hideTextBox();
+        }
+        this._portraitTick();
+    }
+
+    _portraitTick() {
+        if(this.showingPortrait) {
+            if(!this.portraitReady())
+                this._preparePortrait();
+        } else {
+            if(this.portraitTimer>0) 
+                this._hidePortrait();
+            else
+                this.nextPortraitTexture = undefined;
+        }
+    }
+
+    portraitReady() {
+        return this.portraitTimer >= this.portraitTime && this.portraitImageCorrect();
+    }
+
+    portraitImageCorrect() {
+        return !this.showingPortrait || this.portraitImage.texture === this.nextPortraitTexture
+    }
+
+    _preparePortrait() {
+        var portraitFactor = 0; // i know i don't need to do this.
+        this.portraitImage.alpha = 1;
+        if(this.portraitTransitionMode === 1) {
+            if(this.portraitTimer===0)
+                this.portraitImage.texture = this.nextPortraitTexture
+            var portraitFactor = EngineUtils.interpolate(++this.portraitTimer/this.portraitTime,0,1,EngineUtils.INTERPOLATE_IN_ELASTIC);
+            this.portraitImage.scale.x = portraitFactor;
+            var fac2 = EngineUtils.interpolate(this.portraitTimer/this.portraitTime,1,0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+            this.portraitImage.y = this.basePortraitY+80*fac2
+        } else { // transition
+            var portraitFactor = EngineUtils.interpolate(Math.abs((++this.portraitTimer-this.portraitTime/2)/(this.portraitTime/2)),0,1,EngineUtils.INTERPOLATE_OUT_BACK);
+            this.portraitImage.scale.x = portraitFactor;
+            if(Math.floor(this.portraitTime/2) === this.portraitTimer)
+                this.portraitImage.texture = this.nextPortraitTexture
+        }
+        this.setTextOffset(Math.abs(this.portraitImage.texture.width/2+portraitFactor*this.portraitImage.texture.width/2))
+    }
+
+    _hidePortrait() {
+        var portraitFactor = EngineUtils.interpolate(--this.portraitTimer/this.portraitTime,0,1,EngineUtils.INTERPOLATE_OUT_BACK);
+        this.portraitImage.scale.x = portraitFactor;
+        this.setTextOffset(portraitFactor*this.portraitImage.texture.width)
+        var fac2 = EngineUtils.interpolate(this.portraitTimer/this.portraitTime,1,0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+        this.portraitImage.y = this.basePortraitY+80*fac2
+
+        if(this.portraitTimer===0) {
+            this.portraitImage.texture = this.nextPortraitTexture
+        }
+    }
+
+    setPortrait(newTex) {
+        if(newTex) {
+            if(newTex!==this.portraitImage.texture) {
+                this.portraitTimer = 0;
+                this.portraitTransitionMode = !this.showingPortrait ? 1 : 0; // 1 if show, 0 if transition
+            }
+            this.nextPortraitTexture = newTex;
+            this.showingPortrait = true;
+        } else {
+            this.showingPortrait = false;
+            this.nextPortraitTexture = PIXI.Texture.Empty
+        }
+    }
+
+    setTextOffset(newOffset) {
+        if(this.noShift)
+            return;
+        this.textOffset = newOffset;
+        this.textImage.x = this.baseTextLocation+this.textOffset;
+        this.textImage.style.wordWrapWidth = $engine.getWindowSizeX() - 50 - this.textOffset;
+    }
+
+    showTextBox(bool) {
+        if(bool === this.showingTextBox)
+            return;
+
+        this.showingTextBox=bool;
+        if(bool) {
+            this._clearRenderTextureMask();
+            this.textBox.alpha = 1;
+            this.xc = this.locations[0].x;
+            this.yc = this.locations[0].y;
+            this.showTextBoxTimer=0;
+        } else {
+            this.textInterrupted= ! this.textBoxReady();
+        }
+    }
+
+    _clearRenderTextureMask() {
+        this.renderTextureGraphics.beginFill(0);
+        this.renderTextureGraphics.drawRect(-this.x,-this.y+$engine.getWindowSizeY()-this.textBoxHeight*2,$engine.getWindowSizeX()+128,this.textBoxHeight*4);
+        this.renderTextureGraphics.endFill();
+        $engine.getRenderer().render(this.renderTextureGraphics,this.textBoxRenderTexture,false,null,false);
+    }
+
+    _prepareTextBox() {
+        this.textBoxFactor = EngineUtils.interpolate(++this.showTextBoxTimer/this.showTextBoxTime,0,1,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+        this._renderMask();
+    }
+
+    _renderMask() {
+        var stage = this.showTextBoxTimer;
+        var lastPoint = this.locations[stage-1];
+        var currentPoint = this.locations[stage];
+        this.renderTextureGraphics.clear();
+        this.renderTextureGraphics.lineStyle(148,0xffffff);
+        this.renderTextureGraphics.moveTo(this.xc,this.yc);
+        this.xc = (lastPoint.x + currentPoint.x) / 2;
+        this.yc = (lastPoint.y + currentPoint.y) / 2;
+        this.renderTextureGraphics.quadraticCurveTo(currentPoint.x, currentPoint.y, this.xc, this.yc);
+        $engine.getRenderer().render(this.renderTextureGraphics,this.textBoxRenderTexture,false,null,false);
+    }
+
+    _forceMaskAllTextBox() {
+        this.renderTextureGraphics.beginFill(0xffffff);
+        this.renderTextureGraphics.drawRect(-this.x,-this.y+$engine.getWindowSizeY()-this.textBoxHeight*2,$engine.getWindowSizeX()+128,this.textBoxHeight*4);
+        this.renderTextureGraphics.endFill();
+        $engine.getRenderer().render(this.renderTextureGraphics,this.textBoxRenderTexture,false,null,false);
+    }
+
+    _textBoxReadyTick() {
+        this.textAdvanceTimer++;
+        if(this.textAdvanceTimer>this.textCharacterDelay && (this.textWaitTimer--)<=0 && this.portraitImageCorrect()) {
+            this.textAdvanceTimer=0;
+            this._renderNextCharacter();
+        }
+    }
+
+    _hideTextBox() {
+        if(!this.textInterrupted) {
+            this.textBoxFactor = EngineUtils.interpolate(--this.showTextBoxTimer/this.showTextBoxTime,0,1,EngineUtils.INTERPOLATE_IN_EXPONENTIAL);
+            this.textBox.alpha = this.textBoxFactor;
+        } else {
+            this.textBoxFactor = EngineUtils.interpolate(--this.showTextBoxTimer/this.showTextBoxTime,0,1,EngineUtils.INTERPOLATE_OUT);
+            this.textBox.alpha = this.textBoxFactor;
+        }
+    }
+
+    textBoxReady() {
+        return this.showTextBoxTimer>=this.showTextBoxTime;
+    }
+
+    /**
+     * Advances the text box's state.
+     * 
+     * Advance will do one of the following 3 things depending on it's current state:
+     * 
+     * -Move to the next text in the array.
+     * 
+     * -Skip to the end of the current text.
+     * 
+     * -Close the text box.
+     */
+    advance() {
+        if(this.textIndex>=this.numTexts && this.textComplete()) { // all text done
+            this.currentText="";
+            this._clearText();
+            this.noShift=false;
+            this.showTextBox(false);
+            this.setPortrait(undefined);
+            this.isDone = true;
+            return 0;
+        } else if(this.walkingTextIndex<this.currentText.length) { // jump to end of text
+            this._forcePortraitCorrect();
+            while(this._renderNextCharacter());
+            this._forceMaskAllTextBox();
+            return 1;
+        } else { // get next text
+            this._clearText();
+            this.currentText = this._getNextText();
+            if(this.currentText===undefined) // no text associated with this
+                this.currentText="";
+            this.textCharacterDelay=0;
+            this.walkingTextIndex = 0;
+            this.textIndex++;
+            if(!this._preProcessText())
+                this.showTextBox(true);
+            return 2;
+        }
+    }
+
+    /**
+     * Forces the text box to move to the next text or close immediately, finishing the current text if applicable.
+     */
+    advanceNow() {
+        while(this.advance()===1);
+    }
+
+    _getNextText() {
+        return this.text[this.textIndex];
+    }
+
+    // returns true if all characters have been rendered
+    _renderNextCharacter() {
+        this.textWaitTimer=0; // force the timer to 0.
+        if(this.textComplete())
+            return false;
+        if(this.firstCharacter) { // PIXI replces empty strings with " "
+            this.textImage.text=this._parseText();
+            this.firstCharacter=false;
+        } else
+            this.textImage.text+=this._parseText();
+        return true;
+    }
+
+    _forcePortraitCorrect() {
+        this.portraitTimer = this.portraitTime;
+        if(this.nextPortraitTexture!==undefined)
+            this.portraitImage.texture = this.nextPortraitTexture
+        this._preparePortrait();
+    }
+
+    textComplete() { // whether or not the CURRENT text is done
+        return this.walkingTextIndex>=this.currentText.length;
+    }
+
+    _parseText() {
+        while(this._tryParseCommand());
+        if(this.textWaitTimer>0) // command changed the state of the text.
+            return "";
+        return this.currentText[this.walkingTextIndex++];
+    }
+
+    // returns true if all text was parsed.
+    _preProcessText()  {
+        while(this._tryParseCommand());
+        if(this.textComplete())
+            return true;
+        return false;
+    }
+
+    _tryParseCommand() {
+        if(this.currentText[this.walkingTextIndex]!=='_')
+            return false;
+        var txt = this.currentText.substring(this.walkingTextIndex);
+        if(txt.startsWith("__speed")) {
+            var data = this._extractCommand(txt);
+            this.walkingTextIndex+=data.length;
+            this.textCharacterDelay=parseInt(data.argument);
+        } else if(txt.startsWith("__wait")) {
+            var data = this._extractCommand(txt);
+            this.walkingTextIndex+=data.length;
+            this.textWaitTimer=parseInt(data.argument);
+        } else if(txt.startsWith("__choice")) {
+            var data = this._extractCommand(txt);
+            this.walkingTextIndex+=data.length;
+            var data2 = data.argument.split("~");
+            var str = EngineUtils.randomFromArray(data2);
+            // insert the string into the base text.
+            this.currentText = this.currentText.substring(0,this.walkingTextIndex) + str + this.currentText.substring(this.walkingTextIndex);
+        } else if(txt.startsWith("__italic")) {
+            var data = this._extractCommand(txt);
+            this.walkingTextIndex+=data.length;
+            var italic = parseInt(data.argument);
+            if(italic)
+                this.textImage.style.fontStyle='italic'
+            else
+                this.textImage.style.fontStyle='normal'
+        } else if(txt.startsWith("__portrait")) {
+            var data = this._extractCommand(txt);
+            this.walkingTextIndex+=data.length;
+            if(data.argument==="<none>") {
+                this.setPortrait(undefined);
+            } else {
+                var tex = $engine.getTexture(data.argument);
+                this.setPortrait(tex);
+            }
+            if(this.textWaitTimer<=0)
+                this.textWaitTimer=1;
+        } else if(txt.startsWith("__noShift")) {
+            this.setTextOffset(this.portraitImage.texture.width);
+            var data = this._extractCommand(txt);
+            this.walkingTextIndex+=data.length;
+            this.noShift = data.argument==="1" || data.argument.toLowerCase()==="true"
+        } else if(txt.startsWith("__playSound")) { // [snd,volume,loop]
+            var data = this._extractCommand(txt);
+            this.walkingTextIndex+=data.length;
+            var data2 = data.argument.split(",");
+            var snd = data2[0];
+            var volume = parseFloat(data2[1]);
+            var loop = data2[2]==="1" || data2[2].toLowerCase()==="true"
+            $engine.audioPlaySound(snd,volume,loop);
+        } else if(txt.startsWith("__stopSound")) {
+            var data = this._extractCommand(txt);
+            this.walkingTextIndex+=data.length;
+            $engine.audioStopSound(data.argument);
+        }
+        else {
+            return false;
+        }
+        return true; 
+    }
+
+    _extractCommand(txt) {
+        var start = txt.indexOf("[");
+        var end = txt.indexOf("]");
+        var sub = txt.substring(start+1,end);
+        return {argument:sub, length:end+1};
+    }
+
+    _clearText() {
+        this.textImage.text = "";
+        this.walkingTextIndex=0;
+        this.firstCharacter=true;
+    }
+
+    draw(gui, camera) {
+        this.x = $engine.getCamera().getX();
+        this.y = $engine.getCamera().getY();
     }
 }
 

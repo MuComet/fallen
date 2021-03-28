@@ -41,6 +41,7 @@ class GardenMinigameController extends MinigameController {
         var text = new PIXI.Text("Use Arrows to select a worm's spawn hole. Protect the \n garden's vegetation and spray the worms\n before they can retreat and eat the plants. \n Press SPACE to spray.\n\n You may lose at most 5 plants \n OR miss spraying at most 10 worms. \n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
+        this.skipPregame();
 
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         $engine.createManagedRenderable(this,this.progressText);

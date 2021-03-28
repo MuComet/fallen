@@ -24,6 +24,7 @@ class WallBuilderController extends MinigameController {
         var text = new PIXI.Text("Press the letter KEYS displayed on the wood tile.\n Repair the wall by laying down bricks with correct keys.\n Be quick and accurate, wrong keys will create a delay.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle())
         this.setInstructionRenderable(text);
         this.setControls(true,false);
+        this.skipPregame();
         this.setCheatTooltip("Two helping hands!");
         this.setLossReason("Maybe you should reconsider your career in brick laying.") // only one way to lose
 

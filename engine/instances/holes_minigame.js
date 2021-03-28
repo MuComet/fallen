@@ -40,6 +40,7 @@ class HoleMinigameController extends MinigameController {
 
         this.setInstructionRenderable(new PIXI.Text("Use the Arrows to move left and right and\n descend down the sewer. Watch out for the bounce and \ndon't miss the gaps!\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle()))
         this.setControls(true,false);
+        this.skipPregame();
 
         this.setCheatTooltip("Eson lookin' kinda THICC.");
 

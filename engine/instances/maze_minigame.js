@@ -50,6 +50,7 @@ class MazeMinigameController extends MinigameController {
         var text = new PIXI.Text("MAZE\n\n You may lose at most 5 plant units \n AND miss spraying at most 10 worms \n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
+        this.skipPregame();
 
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         $engine.createManagedRenderable(this,this.progressText);

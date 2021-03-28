@@ -34,6 +34,7 @@ class DrawController extends MinigameController { // controls the minigame
         this.setInstructionRenderable(text);
         this.setControls(false,true);
         this.setCheatTooltip("Snap time!");
+        this.skipPregame();
 
         this.gameOverTimer=0;
 

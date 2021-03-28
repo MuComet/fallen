@@ -38,6 +38,7 @@ class SkyMinigameController extends MinigameController { // All classes that can
         var text = new PIXI.Text("Press the SPACE key to drop the swinging slabs.\n Drop each slab within a 5 seconds.\n Only the highest tower slab can be stacked on.\n Reach the goal height.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle())
         this.setInstructionRenderable(text);
         this.setControls(true,false);
+        this.skipPregame();
 
         this.setCheatTooltip("Magnetic sand!")
 

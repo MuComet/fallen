@@ -10,6 +10,8 @@ class UmbrellaMinigameController extends MinigameController {
         $engine.createManagedRenderable(this,this.scoreText);
         this.updateScoreText();
 
+        this.skipPregame();
+
         this.setControls(true,false);
 
         this.setCheatTooltip("That's one big umbrella!");
@@ -39,6 +41,11 @@ class UmbrellaMinigameController extends MinigameController {
         this.setupBGS();
         this.bgsTimer = 0;
         this.bgsFadeTime = 30;
+    }
+
+    onBeforeMinigame(frames) {
+        if(frames===120)
+            this.startMinigame();
     }
 
     setupBGS() {
@@ -200,6 +207,8 @@ class UmbrellaPlayer extends InstanceMover {
         var sign = Math.sign(this.vel[0]);
         if(sign!==0)
             this.xScale = sign * this.baseXScale;
+
+        this.animation.skew.x=-this.vel[0]/96;
 
         /*$engine.getCamera().setScaleX($engine.getCamera().getScaleX()-IN.getWheel()/1000);
 
@@ -399,6 +408,7 @@ class Umbrella extends EngineInstance {
             this.yScale = EngineUtils.interpolate(this.wideTimer/this.endWideTime,this.baseXScale,this.baseYScale*this.wide,EngineUtils.INTERPOLATE_SMOOTH)
             this.wideTimer++;
         }
+        this.getSprite().skew.x = EngineUtils.clamp(-this.dx/64,-0.1,0.1);
     }
 
     draw(gui, camera) {

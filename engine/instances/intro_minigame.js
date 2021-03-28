@@ -7,6 +7,8 @@ class IntroMinigameController extends MinigameController {
         new IntroMinigameJunk(740,505);
 
         this.setControls(false,true);
+        this.disablePreGameAmbience();
+        this.disableInstructions();
 
         this.startText = $engine.createManagedRenderable(this, new PIXI.Text("Start here!",$engine.getDefaultSubTextStyle()));
         this.startText.x = 270;
@@ -76,8 +78,8 @@ class IntroMinigameController extends MinigameController {
         this.zoneTime = 32;
         this.zoneTimer = -this.zoneTime;
 
-        this.sound1 = $engine.audioPlaySound("drain_stream",0.5,true);
-        this.sound2 = $engine.audioPlaySound("drain_drop",0.9,true);
+        this.sound1 = $engine.audioPlaySound("drain_stream",0.75,true);
+        this.sound2 = $engine.audioPlaySound("drain_drop",0.33,true);
 
         this.addOnGameEndCallback(this,function(self) {
             $engine.audioFadeSound(self.sound1);
@@ -85,7 +87,37 @@ class IntroMinigameController extends MinigameController {
         })
 
         this.disableCheating();
+        this.tutorialIndex = 0;
 
+        this.text = new TextBox();
+        this.text.disableArrow();
+        this.text.setTextArray(["__portrait[eson_profiles_15]Alright Eson, Reach your hand down in the drain.",
+                            "__portrait[eson_profiles_14]Great, now go grab that junk and bring it back!\nShouldn't take you longer than a few minutes."]);
+        this.text.setAdvanceCondition(this, this.mouseInZoneBounds);
+        this.text.addAdvanceConditionListener(this,function(self) {
+            self.nextTutorial();
+        })
+
+        this.text.setSampleLocationFunction(this,function() {
+            return new EngineLightweightPoint(IN.getMouseXGUI(),IN.getMouseYGUI());
+        })
+
+        $engine.pauseGameSpecial(this.text)
+    }
+
+    nextTutorial() {
+        this.tutorialIndex++;
+        if(this.tutorialIndex===1) {
+            this.text.setAdvanceCondition(this, function() {
+                return !this.mouseInZoneBounds();
+            });
+        }
+        if(this.tutorialIndex===2)
+            this.startMinigame();
+    }
+
+    onBeforeMinigame(frames) {
+        
     }
     
 

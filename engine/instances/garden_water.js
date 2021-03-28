@@ -81,6 +81,7 @@ class WaterMinigameController extends MinigameController {
         var text = new PIXI.Text("Use the Arrow Keys to water the plants.\n Follow the orders, pressing the keys at the right time.\n Missed watering steps causes plants to die. \n\n Keep at least ONE plant alive, and keep up.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
+        this.skipPregame();
 
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         $engine.createManagedRenderable(this,this.progressText);

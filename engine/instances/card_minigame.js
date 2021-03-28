@@ -20,6 +20,7 @@ class CardMinigameController extends MinigameController {
         this.getTimer().pauseTimer();
 
         this.setControls(false,true);
+        this.skipPregame();
 
 
         var text = new PIXI.Text("Memorize the card positions matching the goal card located\n at the bottom. Select as many of those cards as you can.\nThere are 6 correct cards each round.\n\n30 seconds to get 6/6 correct cards in 3 rounds!\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());

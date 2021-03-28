@@ -327,8 +327,6 @@ class MinigameController extends EngineInstance {
 
         this._continueGameOverSequence = false;
 
-        this.usingPreGameAmbience = true;
-
         this._timer = undefined;
 
         this.wonMinigame = false;
@@ -341,6 +339,10 @@ class MinigameController extends EngineInstance {
         this.cheatTimer = 0;
         this.cheatTimerLength = 60*4;
         this.showingCheat = false;
+
+        this._minigameStarted = false;
+        this._skipPregame = false;
+        this.pregameTimer = 0;
 
         this.resultGraphicWon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_win_graphic")));
         this.resultGraphicLoss = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_loss_graphic")));
@@ -403,6 +405,9 @@ class MinigameController extends EngineInstance {
         this.roundMode = 0;
         this.currentRound = 0;
         this.maxRounds = 0;
+
+        this.musicFadeInTimer = 0;
+        this.musicFadeInTime = 48;
 
         this.onRoundOverCallbacks = [];
         this.onAllRoundsOverCallbacks = [];
@@ -469,6 +474,18 @@ class MinigameController extends EngineInstance {
 
     disablePreGameAmbience() {
         this.usingPreGameAmbience = false;
+        $engine.audioPauseSound(this.ambience)
+        $engine.audioSetVolume(this.ambience,0)
+    }
+
+    /**
+     * Skips the instructions. If the instructions have already been shown, does nothing.
+     */
+    disableInstructions() {
+        if(this.instructionTimer<this.instructionTimerLength) {
+            this.instructionTimer=this.instructionTimerLength-1;
+            this.blurFilter.blur = 0;
+        }
     }
 
     _initMusic() {
@@ -508,6 +525,12 @@ class MinigameController extends EngineInstance {
         this._timer = new MinigameTimer(frames,graphic);
         this._timer.addOnTimerStopped(this,this._onMinigameEnd)
         this._timer.setTextMode();
+        if(this.isPregame())
+            this._timer.pauseTimer();
+    }
+
+    getTimer() {
+        return this._timer;
     }
 
     /**
@@ -575,10 +598,6 @@ class MinigameController extends EngineInstance {
         }
     }
 
-    getTimer() {
-        return this._timer;
-    }
-
     setCheatTooltip(tooltip) {
         this.cheatTooltip.text = tooltip;
         this.cheatTooltipGraphicsMask.clear();
@@ -607,6 +626,13 @@ class MinigameController extends EngineInstance {
         this.notifyFramesSkipped(frames);
     }
 
+    _fadeInMusic() { // routine.
+        var fac = EngineUtils.interpolate(++this.musicFadeInTimer/this.musicFadeInTime,0,1,EngineUtils.INTERPOLATE_SMOOTH)
+        this._setMusicVolume(fac)
+        $engine.audioSetVolume(this.ambience,1-fac)
+        return this.musicFadeInTimer === this.musicFadeInTime;
+    }
+
     _minigameControllerTick() {
         if(!this.failedMinigame && ! this.wonMinigame && !this.showingInstructions && this.cheatKeyActive && this.allowActivateCheat && IN.keyCheckPressed(this.cheatKey)) {
             this.cheat();
@@ -615,6 +641,9 @@ class MinigameController extends EngineInstance {
         this._handleCheat();
         if(this.wonMinigame || this.failedMinigame && ! $engine.isTimeScaled())
             this._winLossTick();
+        if(!this.showingInstructions && !this._minigameStarted) {
+            this._handlePregame();
+        }
         this._pressAnyKeyTick();
     }
 
@@ -759,6 +788,47 @@ class MinigameController extends EngineInstance {
             $engine.audioSetVolume(this.musicCheat,0)
             $engine.audioSetVolume(this.musicStandard,volume)
         }
+    }
+
+    /**
+     * @returns Whether or not it is currently pregame.
+     */
+    isPregame() {
+        return !this._minigameStarted;
+    }
+
+    /**
+     * @returns Whether or not the minigame has fully started (post pregame and instructions).
+     */
+    minigameStarted() {
+        return this._minigameStarted;
+    }
+
+    /**
+     * Starts the minigame. Call during pregame.
+     */
+    startMinigame() {
+        if(this._minigameStarted)
+            throw new Error("Minigame is already started.")
+        this._minigameStarted=true;
+        $engine.audioPlaySound("minigame_start",0.75)
+
+        this.delayedAction($engine.isGamePaused() ? 0 : 60, function() {
+            if(this._timer)
+                this._timer.unpauseTimer();
+            this._onGameStart();
+            this._startMusic();
+            this.routine(this._fadeInMusic);
+        });
+        
+    }
+
+    skipPregame() {
+        this._skipPregame=true;
+    }
+
+    onBeforeMinigame(frames) {
+        console.warn("Please override onBeforeMingiame or call skipPregame in the constructor")
     }
 
     advanceGameOver() {
@@ -942,14 +1012,20 @@ class MinigameController extends EngineInstance {
         });
     }
 
+    _handlePregame() {
+        this.onBeforeMinigame(this.pregameTimer++);
+    }
+
     _handleInstruction() {
         this.instructionTimer++;
         // showing instruction tick
         if(this.instructionTimer<this.instructionTimerLength) {
+
             if(((IN.anyStandardInputPressed() && this.instructionTimer>18) || IN.keyCheckPressed("Space") || IN.keyCheckPressed("Enter")) 
                             && this.instructionTimer < this.instructionTimerLength-this.blurFadeTime) {
                 this.instructionTimer = this.instructionTimerLength-this.blurFadeTime; // skip;
             }
+
             // fade out the instruction graphic
             if(this.instructionTimer>=this.instructionTimerLength-this.blurFadeTime) {
                 var stren = EngineUtils.interpolate((this.instructionTimer-this.instructionTimerLength+this.blurFadeTime)/this.blurFadeTime,
@@ -957,28 +1033,20 @@ class MinigameController extends EngineInstance {
                 this.blurFilter.blur = stren
                 this.instructionContainter.alpha = stren/this.blurFilterStrength
                 this.blurFilterInstruction.blur = (1-(stren/this.blurFilterStrength))*40;
-                
-                var volumeFac = EngineUtils.interpolate((this.instructionTimer-this.instructionTimerLength+this.blurFadeTime)/this.blurFadeTime,
-                        0,1,EngineUtils.INTERPOLATE_OUT)
-                //this._setMusicVolume(musicFac)
-                $engine.audioSetVolume(this.ambience,1-volumeFac)
             }
-            // play start sound when moving to next sequence
-            if(this.instructionTimer===this.instructionTimerLength-this.blurFadeTime)
-                $engine.audioPlaySound("minigame_start",0.75)
-        } else if (this.instructionTimer-this.blurFadeTime <= this.instructionTimerLength) {
-            // fade in music AFTER the game starts
-            this._startMusic();
-            var musicFac = EngineUtils.interpolate((this.instructionTimer-this.instructionTimerLength)/this.blurFadeTime,0,1,EngineUtils.INTERPOLATE_OUT_QUAD)
-            this._setMusicVolume(musicFac)
-        }
-        if(this.instructionTimer===this.instructionTimerLength) {
+
+            // play start SE if we're skipping pregame
+            if(this.instructionTimer===this.instructionTimerLength-this.blurFadeTime && this._skipPregame) {
+                this.startMinigame();
+            }
+            
+        } else if (this.instructionTimer===this.instructionTimerLength) {
+            // fade in music AFTER the game starts if we're not skipping pregame
             this.showingInstructions=false;
             if(!$engine.isLow())
                 $engine.getCamera().removeFilter(this.blurFilter);
-            this._onGameStart();
             $engine.unpauseGame();
-            this._startMusic();
+            
         }
 
         this._preGameAmbience();
@@ -1012,6 +1080,8 @@ class MinigameController extends EngineInstance {
         if(this.instructionTimer>60)
             return;
         var fac = EngineUtils.interpolate(this.instructionTimer/60,0,1,EngineUtils.INTERPOLATE_SMOOTH);
+        if(!this.usingPreGameAmbience)  
+            fac=0;
 
         $engine.audioSetVolume(this.ambience,fac);
     }
@@ -1153,7 +1223,7 @@ class ParallaxingBackground extends EngineInstance {
             sprite.x = this.x;
             sprite.y = this.y;
         }
-        this.depth = 9999999999;
+        this.depth = Infinity;
         this.invertParallax = false;
         $engine.setBackground(new PIXI.Graphics())
         $engine.setBackgroundColour(0xe2d6b3);

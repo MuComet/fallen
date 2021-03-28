@@ -3,7 +3,7 @@ InstanceMover engine/instances/shared/minigame_instances.js
 BufferedKeyInput BufferedMouseInput EngineButton engine/instances/shared/minigame_utils.js
 EnginePhysicsInstance engine/instances/shared/physics_instance.js
 
-CutsceneController engine/instances/cutscene.js
+CutsceneController TextBox DailyRecapCutsceneController engine/instances/cutscene.js
 GameOverController engine/instances/game_over.js
 OverworldTextController engine/instances/overworld_text.js
 
