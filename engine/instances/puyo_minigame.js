@@ -101,7 +101,9 @@ class PuyoBoard extends EngineInstance {
     //orientation = 3 means horizontal, pivot puyo right
 
     step() {
-        if(this.state == 0){
+        console.log(this.board);
+        console.log(this.state);
+        /*if(this.state == 0){
             this.currentPuyo = this.puyo1;
             this.puyo1 = this.puyo2;
             this.puyo2 = this.puyo3;
@@ -189,7 +191,10 @@ class PuyoBoard extends EngineInstance {
                 bufferChain = 0;
             }
             bufferChain++;
-        }
+        }*/
+        this.state = 1
+        console.log(this.board);
+        console.log(this.state);
     }
 
     drop(){
