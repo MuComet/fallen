@@ -58,6 +58,7 @@ minigame_mouse_graphic engine/textures/minigames/minigame_icon_start1.png 0.5 0.
 minigame_keyboard_graphic engine/textures/minigames/minigame_icon_start2.png 0.5 0.5
 
 arrow engine/textures/generic/arrow.png 0 0.5
+black_square engine/textures/generic/black_square.png 0.5 0.5
 
 spritesheet dimensions 75 9 3 1 rain_sprites engine/textures/umbrella/rain_sprites.png 0 0.5
 umbrella engine/textures/umbrella/umbrella.png 0.5 0.5
@@ -76,6 +77,7 @@ sky_platform engine/textures/skybuild/sandbottom.png 0.5 0
 
 tutorial_junk engine/textures/tutorial/junk.png 0.5 0.5
 spritesheet dimensions 2448 624 3 1 tutorial_sheet engine/textures/tutorial/tutorial_sheet.png 0.5 0.5
+tutorial_mask engine/textures/tutorial/tutorial_mask.png 0 0
 zone_restart engine/textures/tutorial/zone.png 0.5 0
 
 falling_object_spike engine/textures/falling_object/spike.png 0.5 0.5

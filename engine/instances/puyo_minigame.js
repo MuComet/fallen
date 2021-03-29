@@ -78,7 +78,7 @@ class PuyoBoard extends EngineInstance {
     onCreate() {
         this.board = [];
         for(i = 0; i <= 12; i++) {
-            board[i] = [new BoardSpace(i,0), new BoardSpace(i,1), new BoardSpace(i,2), new BoardSpace(i,3), new BoardSpace(i,4), new BoardSpace(i,5)];
+            board[i] = [new BoardSpace(), new BoardSpace(), new BoardSpace(), new BoardSpace(), new BoardSpace(), new BoardSpace()];
         }
         this.puyo1 = this.generateStartPuyo();
         this.puyo2 = this.generateStartPuyo();
@@ -89,7 +89,7 @@ class PuyoBoard extends EngineInstance {
         this.currentX = [2,2];
         this.currentY = [0,1];
         this.maxChain = 0;
-        this.columns = [0,0,0,0,0,0];
+        this.columns = [0,0,0,0,0,0]
     }
 
     //state = 0 means nothing is happening
@@ -101,7 +101,6 @@ class PuyoBoard extends EngineInstance {
     //orientation = 3 means horizontal, pivot puyo right
 
     step() {
-        this.draw()
         if(this.state == 0){
             this.currentPuyo = this.puyo1;
             this.puyo1 = this.puyo2;
@@ -110,7 +109,7 @@ class PuyoBoard extends EngineInstance {
             this.orientation = 0;
             this.currentX = [2,2];
             this.currentY = [0,1];
-            this.placePuyos(1);
+            this.placePuyos(1)
             var chain = 0;
             var dropRate = 0;
             var bufferRight = 6;
@@ -193,10 +192,10 @@ class PuyoBoard extends EngineInstance {
     }
 
     drop(){
-        var droppedColumns = [0,0,0,0,0,0];
+        var droppedColumns = [0,0,0,0,0,0]
         for(i = 0; i <= 5; i++){
             var columnDone = false;
-            var currentRow = 13-this.columns[i];
+            var currentRow = 13-this.columns[i]
             while(!columnDone){
                 if(currentRow == 13){
                     columnDone = true;
@@ -405,6 +404,10 @@ class Puyo extends PuyoBoard {
         this.pivot = pivot;
     }
 
+    step() {
+        y++;
+    }
+
     getColour() {
         return this.colour;
     }
@@ -415,12 +418,9 @@ class BoardSpace extends PuyoBoard {
     //state = 0 means space is empty
     //state = 1 means space has controllable falling Puyo
     //state = 2 means space has dropped Puyo
-    onCreate(y,x) {
+    onCreate() {
         this.state = 0;
         this.puyo = null;
-        this.x = x;
-        this.y = y;
-        this.setSprite(new PIXI.Sprite(PIXI.Texture.empty));
     }
 
     getPuyo() {
@@ -435,26 +435,23 @@ class BoardSpace extends PuyoBoard {
 
     setState(state) {
         this.state = state;
-        if(state != 0){
-            if(this.puyo.colour == 0){
-                this.getSprite().texture = ($engine.getTexture("green_puyo"));
-            } else if(this.puyo.colour == 1) {
-                this.getSprite().texture = ($engine.getTexture("red_puyo"));
-            } else if(this.puyo.colour == 2) {
-                this.getSprite().texture = ($engine.getTexture("blue_puyo"));
-            } else {
-                this.getSprite().texture = ($engine.getTexture("yellow_puyo"));
-            }
-        } else if(state == 0) {
-            this.getSprite().texture = PIXI.Texture.empty;
-        }
     }
 
     setPuyo(puyo){
         this.puyo = puyo;
     }
 
-    getLocation(){
-        return [this.x, this.y];
+    step(){
+        if(this.state != 0){
+            if(this.puyo.colour == 0){
+            this.setSprite(new PIXI.Sprite($engine.getTexture("green_puyo")));
+            } else if(this.puyo.colour == 1) {
+            this.setSprite(new PIXI.Sprite($engine.getTexture("red_puyo")));
+            } else if(this.puyo.colour == 2) {
+            this.setSprite(new PIXI.Sprite($engine.getTexture("blue_puyo")));
+            } else {
+            this.setSprite(new PIXI.Sprite($engine.getTexture("yellow_puyo")));
+            }
+        }
     }
 }
