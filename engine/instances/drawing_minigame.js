@@ -47,7 +47,7 @@ class DrawController extends MinigameController { // controls the minigame
         })
         this.waitTimer = 0;
 
-        this.startTimer(60*20) // 20 seconds zoom zoom zoom
+        this.startTimer(60*25) // 25 seconds zoom zoom zoom
 
         this.setPreventEndOnTimerExpire(true); // take direct control using below function
 
@@ -373,8 +373,8 @@ class ShapeToDraw extends EngineInstance {
             for(var z =0;z<this.line.points.length-1;z++) {
                 dist = Math.min(dist,EngineUtils.distanceBetweenLines(this.line.points[z],this.line.points[z+1],l3,l4));
             }
-            if(dist>=4) {
-                score+=EngineUtils.clamp(1-(dist-4)/6,0,1) // extra dist / 6, 10px away = no points.
+            if(dist>=6) {
+                score+=EngineUtils.clamp(1-(dist-6)/6,0,1) // extra dist / 6, 12px away = no points.
             } else {
                 score++;
             }
