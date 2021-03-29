@@ -432,7 +432,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
     }
 
     /**
-     * @param {Number} direction 1 for right, 0 for left
+     * @param {Number} direction 1 for aim right, 0 for left
      */
     attackLineHorizontal(direction) {
         var num = 24;
@@ -625,7 +625,7 @@ class FinalMingiamePlayer extends EngineInstance {
         this.animationFly = $engine.getAnimation("eson_fly");
         this.animationDodge = $engine.getAnimation("eson_dodge");
         this.setSprite(new PIXI.extras.AnimatedSprite(this.animationFly))
-        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-12,-12,12,12)));
+        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-8,-8,8,8)));
         this.sprite = this.getSprite(); // alias
         this.sprite.animationSpeed = 0.1;
         this.sprite.anchor.y = 0.5;
@@ -853,14 +853,14 @@ class FinalMingiamePlayer extends EngineInstance {
         }
         if(this.y > $engine.getWindowSizeY()+oy+playerHeight/2) {
             this.dy = 0;
-            this.hurt(1,150, true);
+            this.hurt(1,180, true);
             this.x = $engine.getWindowSizeX()/2;
             this.y = $engine.getWindowSizeY()*3/4;
             this.y+=oy;
         }
     }
 
-    hurt(dmg,iFrames = 60, force = false) {
+    hurt(dmg,iFrames = 120, force = false) {
         if(!this.canBeHurt() && !force)
             return;
         $engine.audioPlaySound("final_eson_hit")
@@ -973,7 +973,7 @@ class FinalMinigameWeapon extends EngineInstance {
         this.cameraY=0;
 
         this.aimX = this.x;
-        this.aimY = this.x;
+        this.aimY = this.y;
 
         this.fireAnimationTimer=999;
 
@@ -1395,3 +1395,8 @@ class DelayedDamageZone extends EngineInstance {
         }
     }
 }
+var listener = function(event) {
+    event.preventDefault();
+}
+document.addEventListener('contextmenu', listener);
+document.removeEventListener('contextmenu', listener)

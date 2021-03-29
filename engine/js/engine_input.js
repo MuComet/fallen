@@ -106,15 +106,16 @@ class IN {
     static __update() {
         IN.__releasedKeys = IN.__releasedKeysCarry;
         IN.__pressedKeys = IN.__pressedKeysCarry;
+
+        for(const key of IN.__pressedKeys) {
+            IN.__heldKeys.push(key);
+        }
+
         for(const key of IN.__releasedKeys) {
             var ind = IN.__heldKeys.indexOf(key)
             if(ind===-1)
                 continue;
             IN.__heldKeys.splice(ind,1);
-        }
-
-        for(const key of IN.__pressedKeys) {
-            IN.__heldKeys.push(key);
         }
 
         IN.__releasedKeysCarry = [];
@@ -124,13 +125,15 @@ class IN {
 
         IN.__releasedButtons = IN.__releasedButtonsCarry;
         IN.__pressedButtons = IN.__pressedButtonsCarry;
-        for(const key of IN.__releasedButtons) {
-            IN.__heldButtons.splice(IN.__heldButtons.indexOf(key),1);
-        }
 
         for(const key of IN.__pressedButtons) {
             IN.__heldButtons.push(key);
         }
+        
+        for(const key of IN.__releasedButtons) {
+            IN.__heldButtons.splice(IN.__heldButtons.indexOf(key),1);
+        }
+
 
         IN.__releasedButtonsCarry = [];
         IN.__pressedButtonsCarry = [];

@@ -754,6 +754,7 @@ class Scene_Engine extends Scene_Base {
         } else {
             OwO.addTooltip("Warn: Autosave failed...")
         }
+        GUIScreen.showSave();
     }
 
     /**
@@ -2959,15 +2960,19 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
     static onBeforeRenderScene() {
         GUIScreen.__updateMouseLocation();
         GUIScreen.__renderMouse();
+        GUIScreen.__textTick();
+        GUIScreen.__timer++;
     }
 
     static __sceneChanged(previousClass, scene) {
-        //GUIScreen.__bindContainer();
+        GUIScreen.__bindContainer();
     }
 
     static __bindContainer() {
-        SceneManager._scene.addChild(GUIScreen.__graphics); // bind directly to the scene
-        GUIScreen.__graphics.filters = [GUIScreen.__filter]
+        SceneManager._scene.addChild(GUIScreen.__container); // bind directly to the scene
+        // must do it late because Graphics doesn't exist yet
+        GUIScreen.__saveText.x = $engine.getWindowSizeX();
+        GUIScreen.__saveText.y = 0;
         /*if($engine.isLow()) {
             GUIScreen.__graphics.filters = []
         } else {
@@ -2975,9 +2980,39 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
         }*/
     }
 
-    static __initGraphics() {
+    static __init() {
         GUIScreen.__filter = new PIXI.filters.OutlineFilter(1,0xffffff)
         GUIScreen.__graphics.filters = [GUIScreen.__filter]
+
+        var style = $engine.getDefaultSubTextStyle();
+        GUIScreen.__saveText = new PIXI.Text("",style);
+        GUIScreen.__saveText.anchor.x = 1;
+        GUIScreen.__saveText.anchor.y = 0;
+        GUIScreen.__saveTextIndex = 999;
+
+        //GUIScreen.__container.addChild(GUIScreen.__graphics);
+        GUIScreen.__graphics.filters = [GUIScreen.__filter]
+        GUIScreen.__container.addChild(GUIScreen.__saveText);
+    }
+
+    static __textTick() {
+        if(GUIScreen.__saveTextIndex<GUIScreen.__saveGameString.length) {
+            if(GUIScreen.__timer%5===0) {
+                GUIScreen.__saveTextIndex++;
+                GUIScreen.__saveText.text = GUIScreen.__saveGameString.substring(0,GUIScreen.__saveTextIndex);
+            }
+        }
+        GUIScreen.__saveTextTimer++;
+        if(GUIScreen.__saveTextTimer>240) {
+            var fac = EngineUtils.interpolate((GUIScreen.__saveTextTimer-240)/60,0.666666,0,EngineUtils.INTERPOLATE_OUT);
+            GUIScreen.__saveText.alpha = fac
+        }
+    }
+
+    static showSave() {
+        GUIScreen.__saveTextIndex=0;
+        GUIScreen.__saveTextTimer=0;
+        GUIScreen.__saveText.alpha = 0.666666;
     }
 
     static __renderMouse() {
@@ -3036,13 +3071,17 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
     }
 }
 
+GUIScreen.__container = new PIXI.Container();
 GUIScreen.__graphics = new PIXI.Graphics();
 GUIScreen.__mouse = undefined;
 GUIScreen.__updateMouseLocation();
 GUIScreen.__mousePoints = [];
 GUIScreen.__maxMousePoints = 10;
 GUIScreen.__maxMouseTrailLength = 10;
-GUIScreen.__initGraphics();
+GUIScreen.__timer=0;
+GUIScreen.__saveTextTimer=0;
+GUIScreen.__saveGameString = "Game saved. . . ";
+GUIScreen.__init();
 UwU.addRenderListener(GUIScreen.onBeforeRenderScene);
 document.addEventListener("pointerrawupdate", GUIScreen.__mouseMoveHandler); // fix one frame lag.
 UwU.addSceneChangeListener(GUIScreen.__sceneChanged);
