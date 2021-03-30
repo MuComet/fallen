@@ -69,9 +69,13 @@ class EngineInstance {
     /**
      * Sets the Sprite of this instance. Utility method to make your life a bit easier. The sprite will automatically follow
      * the instance as well as scale and rotate to match xScale, yScale, and angle.
+     * 
+     * If the instance currently has a sprite, it will remove it first.
+     * 
      * @param {PIXI.Sprite} sprite The sprite to use
      */
     setSprite(sprite) {
+        this.removeSprite();
         this.__hasSprite = true;
         this.__sprite = $engine.createRenderable(this,sprite,true);
     }

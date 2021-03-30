@@ -68,32 +68,6 @@ class IntroMinigameController extends MinigameController {
         this.mouseX = IN.getMouseXGUI();
         this.mouseY = IN.getMouseYGUI();
 
-
-        // the back texture to mask (required to be a sprite for pixel perfect masking)
-        this.blackSprite = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("black_square")))
-        this.blackSprite.x = $engine.getWindowSizeX()/2;
-        this.blackSprite.y = $engine.getWindowSizeY()/2;
-        this.blackSprite.alpha = 0.95;
-
-        // light graphics is the actual light source
-        this.lightGraphics = $engine.createManagedRenderable(this, new PIXI.Graphics());
-        var filter = new PIXI.filters.BlurFilter();
-        filter.blur = 16;
-        this.lightGraphics.filters = [filter]
-
-        // get the mask as pixels.
-        var pixelSprite = new PIXI.Sprite($engine.getTexture("tutorial_mask"));
-        this.pixels = $engine.getRenderer().plugins.extract.pixels(pixelSprite);
-        $engine.freeRenderable(pixelSprite);
-
-        // this is required to perform pixel perfect masking.
-        this.lightRenderTexture = $engine.createManagedRenderable(this, PIXI.RenderTexture.create($engine.getWindowSizeX()+256,$engine.getWindowSizeY()+256));
-        this.lightSprite = $engine.createManagedRenderable(this, new PIXI.Sprite(this.lightRenderTexture));
-        this.lightSprite.x=-128;
-        this.lightSprite.y=-128;
-
-        this.blackSprite.mask = this.lightSprite;
-
         this.valid = false;
 
         this.hasGoal = false;
@@ -129,6 +103,14 @@ class IntroMinigameController extends MinigameController {
         })
 
         $engine.pauseGameSpecial(this.text)
+
+        this.lighting = new LightingLayer();
+        this.lighting.setPixelsPerStep(6)
+
+        // get the mask as pixels.
+        var pixelSprite = new PIXI.Sprite($engine.getTexture("tutorial_mask"));
+        this.lighting.setPixelsFrom(pixelSprite);
+        $engine.freeRenderable(pixelSprite);
     }
 
     nextTutorial() {
@@ -317,58 +299,18 @@ class IntroMinigameController extends MinigameController {
         this.sprites[0].y = $engine.getWindowSizeY()/2+diffY/8
     }
 
-
     renderRaytrace() {
-        var points = [];
-        var startX = IN.getMouseX();
-        var startY = IN.getMouseY();
-        var numPoints = 364;
-        var dz = Math.PI*2/numPoints;
-        var point = undefined;
-        if(IN.mouseInBounds()) {
-            for(var i =0;i<numPoints;i++) {
-                var cx = startX;
-                var cy = startY;
-                var dx = Math.cos(i*dz);
-                var dy = Math.sin(i*dz);
-                point = undefined;
-                for(var t = 0;t<478;t++) {
-                    var cxf = Math.floor(cx)
-                    var cyf = Math.floor(cy)
-                    if(this.pixels[(cxf + cyf*816)<<2]===0) { // since it's black and white, we only need to check one
-                        var point = new PIXI.Point(cxf+128,cyf+128)
-                        points.push(point); // account for texture offset
-                        break;
-                    }
-                    cx+=dx;
-                    cy+=dy;
-                }
-                if(!point) {
-                    points.push(new PIXI.Point(cxf+128,cyf+128))
-                }
-            }
+        if(!IN.mouseInBounds()) {
+            this.lighting.clear();
+            return;
         }
-        var poly = new PIXI.Polygon(points);
-
-        this.lightGraphics.clear(); // i forgot the clear the graphics and PIXIJS had a STROKE. whoops
-
-        this.lightGraphics.beginFill(0xffffff);
-        this.lightGraphics.drawRect(-128, -128, $engine.getWindowSizeX()+256, $engine.getWindowSizeY()+256);
-        this.lightGraphics.endFill();
-
-        this.lightGraphics.beginFill(0);
-        this.lightGraphics.drawPolygon(poly)
-        this.lightGraphics.endFill();
-
-        $engine.getRenderer().render(this.lightGraphics,this.lightRenderTexture,false,null,false);
-
+        this.lighting.raytraceFrom(IN.getMouseX(), IN.getMouseY())
+        
     }
 
     draw(gui, camera) {
         super.draw()
         this.renderRaytrace();
-        $engine.requestRenderOnCameraGUI(this.blackSprite);
-        $engine.requestRenderOnCameraGUI(this.lightSprite);
 
         if(this.minigameOver()) {
             this.renderRestartZone(camera);

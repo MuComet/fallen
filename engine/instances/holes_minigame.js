@@ -61,6 +61,7 @@ class HoleMinigameController extends MinigameController {
         })
     }
 
+
     onCreate() {
         super.onCreate();
         this.onEngineCreate();
@@ -162,6 +163,9 @@ class HolePlayer extends InstanceMover {
         this.yScale = this.defaultYScale;
 
         this.cheatTimer = 0;
+
+        this.squishFactor = 0;
+        this.squishVel = 0;
     }
 
     onCreate(x,y) {
@@ -215,14 +219,25 @@ class HolePlayer extends InstanceMover {
             }
             if(Math.abs(this.dy)<5) {
                 this.dy = 0;
-                this.maxVelocity=this.srcMaxVelocity/1.3; // utilize the bounce or dIE
+                //this.maxVelocity=this.srcMaxVelocity/1.3; // utilize the bounce or dIE
             } else {
+                this.squishVel = this.dy/200;
                 this.dy = -this.dy/3
+                if(controller.hasCheated()) {
+                    HoleMinigameController.getInstance().shake(20);
+                }
             }
         } else {
             this.maxVelocity=this.srcMaxVelocity;
         }
         this.y+=this.dy;
+
+        this.squishVel-=0.01;
+        this.squishFactor+=this.squishVel;
+        if(this.squishFactor<0)
+            this.squishFactor=0;
+        this.yScale = (1-this.squishFactor)*this.defaultYScale
+        this.getSprite().skew.x = (-this.squishFactor * Math.sign(this.xScale))/3
     }
 
     handleDestroyBlock(block) {
@@ -239,7 +254,7 @@ class HolePlayer extends InstanceMover {
         t2.break();
         t3.break();
 
-        HoleMinigameController.getInstance().shake();
+        HoleMinigameController.getInstance().shake(10); // other 20 is implied
 
         return true;
     }
