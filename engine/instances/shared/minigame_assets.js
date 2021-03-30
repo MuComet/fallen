@@ -344,8 +344,8 @@ class MinigameController extends EngineInstance {
         this._skipPregame = false;
         this.pregameTimer = 0;
 
-        this.resultGraphicWon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_win_graphic")));
-        this.resultGraphicLoss = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_loss_graphic")));
+        this.resultGraphicWon = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_graphics_0")));
+        this.resultGraphicLoss = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_graphics_1")));
         this.resultGraphicWon.x = $engine.getWindowSizeX()/2;
         this.resultGraphicWon.y = $engine.getWindowSizeY()/2;
         this.resultGraphicLoss.x = $engine.getWindowSizeX()/2;
@@ -443,7 +443,7 @@ class MinigameController extends EngineInstance {
         $engine.setCheatWriteBackValue(ENGINE_RETURN.NO_CHEAT);
 
         this.cheatImage = undefined
-        this.setCheatRenderable(new PIXI.Sprite($engine.getTexture("gui_cheat_graphic")))
+        this.setCheatRenderable(new PIXI.Sprite($engine.getTexture("minigame_graphics_2")))
         this.instructionImage = undefined;
         this.setInstructionRenderable(new PIXI.Sprite($engine.getTexture("title_card")));
 

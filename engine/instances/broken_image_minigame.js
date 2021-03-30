@@ -6,7 +6,7 @@ class BrokenImageController extends MinigameController {
 
         new ParallaxingBackground();
 
-        this.image = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("gui_cheat_graphic")))
+        this.image = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("minigame_graphics_2")))
         this.image.x = $engine.getWindowSizeX()/2;
         this.image.y = $engine.getWindowSizeY()/2;
 

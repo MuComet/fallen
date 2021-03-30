@@ -108,8 +108,11 @@ class IntroMinigameController extends MinigameController {
         this.lighting.setPixelsPerStep(6)
 
         // get the mask as pixels.
-        var pixelSprite = new PIXI.Sprite($engine.getTexture("tutorial_mask"));
-        this.lighting.setPixelsFrom(pixelSprite);
+        var pixelSprite = new PIXI.Sprite($engine.getTexture("tutorial_sheet_1"));
+        pixelSprite.x = $engine.getWindowSizeX()/2;
+        pixelSprite.y = $engine.getWindowSizeY()/2;
+        this.lighting.renderSprite(pixelSprite);
+        this.lighting.updatePixels();
         $engine.freeRenderable(pixelSprite);
     }
 

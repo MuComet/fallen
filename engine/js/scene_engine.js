@@ -1708,6 +1708,7 @@ __loadTexture = function(obj, texObj, update) {
         tex.on('update',() => {
             __generateTexturesFromSheet(tex, texObj, spritesheet);
             __generateAnimationsFromSheet(texObj, spritesheet);
+            __generateAliasesFromSheet(texObj, spritesheet);
             update();
         });
 
@@ -1771,6 +1772,18 @@ __generateAnimationsFromSheet = function(texObj, spritesheet) {
     }
 }
 
+__generateAliasesFromSheet = function(texObj, spritesheet) {
+    var baseName = texObj.texName + "_";
+    for(const alias of spritesheet.aliases) {
+        var targetName = baseName+String(alias.index)
+        var target = $__engineData.__textureCache[baseName+String(alias.index)];
+        if(!target) {
+            throw new Error("Alias target \""+targetName+"\" for spritesheet \""+texObj.texName+"\" does not exist in texture cache.")
+        }
+        $__engineData.__textureCache[alias.name] = target;
+    }
+}
+
 __parseTextureObject = function(texObj) {
     var argsParsed = [];
     var args = texObj.texArgs;
@@ -1810,6 +1823,7 @@ __parseSpritesheet = function(argsParsed, args, i) {
     var rows = -1;
     var limit = [];
     var animations = [];
+    var aliases = [];
     i++;
     for(;i<args.length;i++) {
         var arg = args[i].toLowerCase();
@@ -1835,6 +1849,15 @@ __parseSpritesheet = function(argsParsed, args, i) {
                 animName: animationName,
                 animFrames: animationFrames,
             });
+        } else if(arg === "alias") {
+            const texIndex = args[++i]
+            const alias = args[++i];
+            aliases.push({
+                index: texIndex,
+                name: alias,
+            })
+        } else {
+            throw new Error("Unknown argument in spritesheet \""+String(arg)+"\" at token index "+String(i));
         }
     }
     argsParsed.push( {
@@ -1846,6 +1869,7 @@ __parseSpritesheet = function(argsParsed, args, i) {
             numRows: rows,
             frameLimit: limit,
             anims: animations,
+            aliases: aliases,
         }
 
     })

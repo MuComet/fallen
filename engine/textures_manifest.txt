@@ -22,7 +22,7 @@ spritesheet dimensions 1632 624 2 1 background_wall_1 engine/textures/background
 spritesheet dimensions 1632 624 2 1 background_ground_1 engine/textures/backgrounds/background_ground_1.png 0.5 0.5
 spritesheet dimensions 1632 624 2 1 game_over engine/textures/backgrounds/game_over_sheet.png 0.5 0.5
 
-require spritesheet dimensions 11424 624 14 1 intro_cutscene_sheet engine/textures/intro/intro_cutscene_sheet.webp 0 0
+require spritesheet dimensions 12240 624 15 1 intro_cutscene_sheet engine/textures/intro/intro_cutscene_sheet.webp 0 0
 spritesheet dimensions 5712 624 7 1 night_one_cutscene engine/textures/cutscenes/goddess_of_balance.png 0 0
 spritesheet dimensions 1632 624 2 1 update_cutscene engine/textures/cutscenes/update_sheet.png 0 0
 spritesheet dimensions 4080 624 5 1 final_intro_cutscene engine/textures/cutscenes/final_intro_cutscene.png 0 0
@@ -39,7 +39,7 @@ require spritesheet dimensions 576 288 4 2 gods_profiles engine/textures/cutscen
 spritesheet dimensions 48 24 4 2 leaf_particles_small engine/textures/generic/leaf_particles_smol_sheet.png 0.5 0.5
 spritesheet dimensions 300 100 3 1 dust_particles engine/textures/particle/dust_particle_sheet.png 0.5 0.5
 
-text_box engine/textures/intro/text_box.png 0 1
+text_box engine/textures/generic/text_box.png 0 1
 
 button_cheat_1 engine/textures/buttons/button_cheat.png 0.5 0.5
 button_cheat_2 engine/textures/buttons/button_cheat_down.png 0.5 0.5
@@ -49,10 +49,8 @@ require button_new_game_1 engine/textures/buttons/button_new_game.png 0.5 0.5
 require button_new_game_2 engine/textures/buttons/button_new_game_down.png 0.5 0.5
 
 title_card engine/textures/fallen/fallen.png 0.5 0.5
-gui_cheat_graphic engine/textures/minigames/minigame_cheat.png 0.5 0.5
 
-minigame_loss_graphic engine/textures/minigames/minigame_loss.png 0.5 0.5
-minigame_win_graphic engine/textures/minigames/minigame_win.png 0.5 0.5
+spritesheet dimensions 2448 624 3 1 minigame_graphics engine/textures/minigames/minigame_sprites_sheet.png 0.5 0.5
 
 minigame_mouse_graphic engine/textures/minigames/minigame_icon_start1.png 0.5 0.5
 minigame_keyboard_graphic engine/textures/minigames/minigame_icon_start2.png 0.5 0.5
@@ -77,7 +75,6 @@ sky_platform engine/textures/skybuild/sandbottom.png 0.5 0
 
 tutorial_junk engine/textures/tutorial/junk.png 0.5 0.5
 spritesheet dimensions 2448 624 3 1 tutorial_sheet engine/textures/tutorial/tutorial_sheet.png 0.5 0.5
-tutorial_mask engine/textures/tutorial/tutorial_mask.png 0 0
 zone_restart engine/textures/tutorial/zone.png 0.5 0
 
 falling_object_spike engine/textures/falling_object/spike.png 0.5 0.5
@@ -104,23 +101,10 @@ background_table_cards engine/textures/backgrounds/background_table_cards.png 0 
 
 
 
-plant_0 engine/textures/garden/plant0.png 0.5 0.5
-plant_1 engine/textures/garden/plant1.png 0.5 0.5
-plant_2 engine/textures/garden/plant2.png 0.5 0.5
-plant_3 engine/textures/garden/plant3.png 0.5 0.5
-
+spritesheet dimensions 200 74 4 1 plant engine/textures/garden/plant_sheet.png 0.5 0.5
 selector_cloud engine/textures/garden/selector_cloud.png 0.5 0.5
-pesticide_cloud engine/textures/garden/pesticide_cloud.png 0.5 0.5
 spritesheet dimensions 4500 624 5 1 background_garden1 engine/textures/backgrounds/background_garden2.png 0.5 0.5
-worm_0 engine/textures/garden/worm_0000.png 0.5 0.5
-worm_1 engine/textures/garden/worm_0001.png 0.5 0.5
-worm_2 engine/textures/garden/worm_0002.png 0.5 0.5
-worm_3 engine/textures/garden/worm_0003.png 0.5 0.5
-worm_4 engine/textures/garden/worm_0004.png 0.5 0.5
-worm_5 engine/textures/garden/worm_0004.png 0.5 0.5
-garden_worm_dead engine/textures/garden/worm_0006.png 0.5 0.5
-worm_7 engine/textures/garden/worm_0007.png 0.5 0.5
-animate worm_0 worm_1 worm_2 worm_3 worm_4 worm_5 worm_7 worm_7 worm_5 worm_4 worm_3 worm_2 worm_1 worm_0 worm_anim
+spritesheet dimensions 464 74 8 1 animate worm_anim 14 0 1  2 3 4 5 7 7 5 4 3 2 1 0 alias 6 garden_worm_dead worm engine/textures/garden/worm_sheet.png 0.5 0.5
 
 plant_1_ded engine/textures/water/plant1-ded.png 0.5 0.5
 plant_2_ded engine/textures/water/plant2-ded.png 0.5 0.5

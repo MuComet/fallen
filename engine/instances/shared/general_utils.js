@@ -38,6 +38,8 @@ class LightingLayer extends EngineInstance {
 
         this.multiMode = false;
         this.hasStarted = false;
+
+        this.clear();
     }
 
     setBlur(blur) {
