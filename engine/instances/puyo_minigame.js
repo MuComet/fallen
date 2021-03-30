@@ -76,6 +76,8 @@ class PuyoBoard extends EngineInstance {
         this.puyo1 = this.generateStartPuyo()
         this.puyo2 = this.generateStartPuyo()
         this.puyo3 = this.generateStartPuyo()
+        this.next1 = [new BoardSpace(3,7), new BoardSpace(4,7)]
+        this.next2 = [new BoardSpace(4,8), new BoardSpace(5,8)]
         this.currentPuyo = null
         this.state = 0
         this.orientation = 0
@@ -88,6 +90,7 @@ class PuyoBoard extends EngineInstance {
         this.droppedColumns = [0,0,0,0,0,0]
         this.bufferChain = 30
         this.dropping = true
+        this.visited = []
     }
 
     //state = 0 means nothing is happening
@@ -99,8 +102,6 @@ class PuyoBoard extends EngineInstance {
     //orientation = 3 means horizontal, pivot puyo right
 
     step() {
-        console.log(this.board)
-        console.log(this.state)
         if(this.state == 0){
             this.resetValues()
         }
@@ -110,8 +111,6 @@ class PuyoBoard extends EngineInstance {
         if(this.state == 2){
             this.chainMode();
         }
-        console.log(this.board)
-        console.log(this.state)
     }
 
     resetValues(){
@@ -119,6 +118,14 @@ class PuyoBoard extends EngineInstance {
         this.puyo1 = this.puyo2
         this.puyo2 = this.puyo3
         this.puyo3 = this.generatePuyo()
+        this.next1[0].setPuyo(this.puyo1[0])
+        this.next1[1].setPuyo(this.puyo1[1])
+        this.next2[0].setPuyo(this.puyo2[0])
+        this.next2[1].setPuyo(this.puyo2[1])
+        this.next1[0].setState(1)
+        this.next1[1].setState(1)
+        this.next2[0].setState(1)
+        this.next2[1].setState(1)
         this.orientation = 0
         this.currentX = [2,2]
         this.currentY = [0,1]
@@ -129,6 +136,7 @@ class PuyoBoard extends EngineInstance {
         this.droppedColumns = [0,0,0,0,0,0]
         this.bufferChain = 30
         this.dropping = true
+        this.visited = []
     }
 
     placingMode(){
@@ -151,12 +159,10 @@ class PuyoBoard extends EngineInstance {
                 this.currentX[1]--
                 this.placePuyos(1)
             }
-        } else if(IN.keyCheckPressed('KeyZ')){
-            this.rotateController(0)
-            this.bufferClock = false
         } else if(IN.keyCheckPressed('KeyX')){
+            this.rotateController(0)
+        } else if(IN.keyCheckPressed('KeyZ')){
             this.rotateController(1)
-            this.bufferCounter = false
         }
         if(this.dropRate>=60){
             this.dropRate = 0
@@ -168,8 +174,6 @@ class PuyoBoard extends EngineInstance {
             } else {
                 this.columns[this.currentX[0]]++
                 this.columns[this.currentX[1]]++
-                this.droppedColumns[this.currentX[0]]++
-                this.droppedColumns[this.currentX[1]]++
                 this.state = 2
             }
         }
@@ -200,39 +204,52 @@ class PuyoBoard extends EngineInstance {
         var droppedColumns = [0,0,0,0,0,0]
         for(i = 0; i <= 5; i++){
             var columnDone = false;
-            var currentRow = 13-this.columns[i]
+            var currentRow = 13
+            var hole;
             while(!columnDone){
-                if(currentRow == 13){
-                    columnDone = true;
-                } else {
-                    if(this.board[currentRow][i].getState()==2){
-                        columnDone = true;
-                    } else if(this.board[currentRow][i].getState()==1){
-                        droppedColumns[i]++;
-                        this.board[currentRow][i].setState(2);
-                    } else {
-                        droppedColumns[i]++;
-                        var j = 0;
-                        while(this.board[j][i].getState() == 0){
-                            j++;
-                        }
-                        this.board[currentRow][i].setPuyo(this.board[j][i].getPuyo());
-                        this.board[currentRow][i].setState(2);
-                        this.board[j][i].setPuyo(null);
-                        this.board[j][i].setState(0);
-                    }
+                currentRow--
+                if(this.board[currentRow][i].getState()!=2){
+                    droppedColumns[i] = this.columns[i] - (12-currentRow)
+                    columnDone = true
+                    var hole = currentRow
                 }
+            }
+            var j = 0
+            while(j < droppedColumns[i]){
+                if(this.board[currentRow][i].getState()!=0 && hole != currentRow){
+                    this.board[hole][i].setPuyo(this.board[currentRow][i].getPuyo());
+                    this.board[hole][i].setState(2);
+                    this.board[currentRow][i].setPuyo(null);
+                    this.board[currentRow][i].setState(0);
+                    j++
+                    hole--
+                } else if (this.board[currentRow][i].getState()!=0 && hole == currentRow) {
+                    this.board[hole][i].setState(2);
+                    j++
+                    hole--
+                }
+                currentRow--
             }
         }
         return droppedColumns;
     }
 
     chain(){
+        console.log(this.droppedColumns)
+        console.log(this.columns)
         var chain = false;
+        this.visited = []
         for(var i = 0; i <= 5; i++){
             for(var j = 0; j < this.droppedColumns[i]; j++){
-                var row = 13 - this.columns[i] - j;
-                var puyos = this.surroundings(row, i, 0, this.board[row][i].getPuyo().getColour());
+                var row = 13 - this.columns[i] + j;
+                console.log("row: " + row)
+                console.log(13 - this.columns[i] + j)
+                console.log(this.columns)
+                console.log("i: " + i)
+                console.log("j: " + j)
+                if(!this.visited.includes(i*13+row)){
+                    var puyos = this.surroundings(row, i, this.board[row][i].getPuyo().getColour());
+                }
                 if(puyos >= 4){
                     chain = true;
                     this.pop(row, i, 0, this.board[row][i].getPuyo().getColour());
@@ -247,19 +264,20 @@ class PuyoBoard extends EngineInstance {
     //direction = 2 means check from right
     //direction = 3 means check from top
     //direction = 4 means check from left
-    surroundings(y,x,direction,colour){
-        var puyos = 0;
-        if(direction != 1 && y <= 11 && this.board[y+1][x].getState() == 2 && this.board[y+1][x].getPuyo().getColour() == colour){
-            puyos = this.surroundings(y+1,x,3,colour) + 1;
+    surroundings(y,x,colour){
+        var puyos = 1;
+        this.visited.push(x*13+y)
+        if(!this.visited.includes(x*13+(y+1)) && y <= 11 && this.board[y+1][x].getState() == 2 && this.board[y+1][x].getPuyo().getColour() == colour){
+            puyos += this.surroundings(y+1,x,colour);
         }
-        if(direction != 2 && x <= 4 && this.board[y][x+1].getState() == 2 && this.board[y][x+1].getPuyo().getColour() == colour){
-            puyos = this.surroundings(y,x+1,4,colour) + 1;
+        if(!this.visited.includes((x+1)*13+y) && x <= 4 && this.board[y][x+1].getState() == 2 && this.board[y][x+1].getPuyo().getColour() == colour){
+            puyos += this.surroundings(y,x+1,colour);
         }
-        if(direction != 3 && y >= 2 && this.board[y-1][x].getState() == 2 && this.board[y-1][x].getPuyo().getColour() == colour){
-            puyos = this.surroundings(y-1,x,1,colour) + 1;
+        if(!this.visited.includes(x*13+(y-1)) && y >= 2 && this.board[y-1][x].getState() == 2 && this.board[y-1][x].getPuyo().getColour() == colour){
+            puyos += this.surroundings(y-1,x,colour);
         }
-        if(direction != 4 && x >= 1 && this.board[y][x-1].getState() == 2 && this.board[y][x-1].getPuyo().getColour() == colour){
-            puyos = this.surroundings(y,x-1,2,colour) + 1;
+        if(!this.visited.includes((x-1)*13+y) && x >= 1 && this.board[y][x-1].getState() == 2 && this.board[y][x-1].getPuyo().getColour() == colour){
+            puyos += this.surroundings(y,x-1,colour);
         }
         return puyos;
     }
