@@ -16,8 +16,7 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
 
         // instructions
 
-        var text = new PIXI.Text("Place the same-coloured blobs 4 in a row to pop them. Try to get a chain of 10!\n Rotate with Z and X and move with the arrow keys.\nPress Enter to cheat!",{ fontFamily: 'Helvetica',
-                        fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
+        var text = new PIXI.Text("Place the same-coloured blobs 4 in a row to pop them. Try to get a chain of 10!\n Rotate with Z and X and move with the arrow keys.\nPress Enter to cheat!",$engine.getDefaultTextStyle())
 
         this.setInstructionRenderable(text)
         this.setControls(true,false);
@@ -26,9 +25,9 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
         this.setCheatTooltip("Chain ready!")
 
         // progress
-        this.progressText = new PIXI.Text("",{ fontFamily: 'Helvetica',
-                    fontSize: 20, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
-        new PuyoBoard();
+        this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle())
+
+        new PuyoBoard()
 
         this.addOnGameEndCallback(this,function(self) {
             self.setLossReason("I suppose this game is pretty difficult...")
@@ -84,6 +83,7 @@ class PuyoBoard extends EngineInstance {
         this.currentY = [0,1]
         this.maxChain = 0
         this.columns = [0,0,0,0,0,0]
+        this.dropRate = 0;
     }
 
     //state = 0 means nothing is happening
@@ -106,7 +106,7 @@ class PuyoBoard extends EngineInstance {
             this.placePuyos(1);
             this.state = 1;
             var chain = 0;
-            var dropRate = 0;
+            this.dropRate = 0;
             var bufferRight = 6;
             var bufferLeft = 6;
             var bufferClock = 6;
@@ -115,11 +115,12 @@ class PuyoBoard extends EngineInstance {
             var bufferChain = 30;
             var dropping = true;
         }
+        console.log(this.dropRate);
         if(this.state == 1){
             if(IN.keyCheck('ArrowDown')){
-                dropRate+=10;
+                this.dropRate+=10;
             } else {
-                dropRate++;
+                this.dropRate++;
             }
             bufferRight++;
             bufferLeft++;
@@ -148,8 +149,8 @@ class PuyoBoard extends EngineInstance {
                 this.rotateController(1);
                 bufferCounter = 0;
             }
-            if(dropRate>=60){
-                dropRate = 0;
+            if(this.dropRate>=60){
+                this.dropRate = 0;
                 if(this.movePossible(2)){
                     this.removePuyos(0);
                     this.currentY[0]++;
@@ -375,8 +376,7 @@ class PuyoBoard extends EngineInstance {
     }
 
     placePuyos(state){
-        console.log(this.board);
-        console.log(this.board[this.currentY[0]]);
+
         this.board[this.currentY[0]][this.currentX[0]].setPuyo(this.currentPuyo[0]);
         this.board[this.currentY[1]][this.currentX[1]].setPuyo(this.currentPuyo[1]);
         this.board[this.currentY[0]][this.currentX[0]].setState(state);
@@ -416,6 +416,7 @@ class BoardSpace extends PuyoBoard {
         this.puyo = null;
         this.x = x*60;
         this.y = y*60;
+        this.setSprite(new PIXI.Sprite(PIXI.Texture.empty))
     }
 
     getPuyo() {
@@ -430,23 +431,22 @@ class BoardSpace extends PuyoBoard {
 
     setState(state) {
         this.state = state;
+        if(state != 0){
+            if(this.puyo.colour == 0){
+                this.getSprite().texture = ($engine.getTexture("green_puyo"));
+            } else if(this.puyo.colour == 1) {
+                this.getSprite().texture = ($engine.getTexture("red_puyo"));
+            } else if(this.puyo.colour == 2) {
+                this.getSprite().texture = ($engine.getTexture("blue_puyo"));
+            } else {
+                this.getSprite().texture = ($engine.getTexture("yellow_puyo"));
+            }
+        } else if(state == 0) {
+            this.getSprite().texture = PIXI.Texture.empty;
+        }
     }
 
     setPuyo(puyo){
         this.puyo = puyo;
-    }
-
-    step(){
-        if(this.state != 0){
-            if(this.puyo.colour == 0){
-            this.setSprite(new PIXI.Sprite($engine.getTexture("green_puyo")));
-            } else if(this.puyo.colour == 1) {
-            this.setSprite(new PIXI.Sprite($engine.getTexture("red_puyo")));
-            } else if(this.puyo.colour == 2) {
-            this.setSprite(new PIXI.Sprite($engine.getTexture("blue_puyo")));
-            } else {
-            this.setSprite(new PIXI.Sprite($engine.getTexture("yellow_puyo")));
-            }
-        }
     }
 }
