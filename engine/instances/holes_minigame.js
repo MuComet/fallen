@@ -197,9 +197,6 @@ class HolePlayer extends InstanceMover {
             }
         }
         this.move(accel,this.vel);
-        if(this.vel[0] != 0 && $engine.getGlobalTimer() % 10 == 0){
-            $engine.audioPlaySound("walking");
-        }
 
         // gravity doesn't use 2d mover.
         if(this.dy===0)
@@ -207,6 +204,17 @@ class HolePlayer extends InstanceMover {
         else
             this.dy+=this.grav;
         var inst = IM.instancePlace(this,this.x,this.y+this.dy,HolePlatform)
+        var snd = undefined;
+
+        if((this.vel[0] != 0 && $engine.getGlobalTimer() % 20 === 0 && inst)){
+            snd = $engine.audioPlaySound("walking");
+        } else if(inst && this.dy > 2) {
+            snd = $engine.audioPlaySound("walking",EngineUtils.clamp((this.dy-2)/4,0,1.5))
+        }
+        if(snd) {
+            snd.speed = EngineUtils.randomRange(0.8,1.5) / (controller.hasCheated() ? 2 : 1)
+        }
+
         if(inst!==undefined) {
             if(this.dy>=0) { // land
                 this.y = inst.getHitbox().getBoundingBoxTop();               
@@ -221,7 +229,7 @@ class HolePlayer extends InstanceMover {
                 this.dy = 0;
                 //this.maxVelocity=this.srcMaxVelocity/1.3; // utilize the bounce or dIE
             } else {
-                this.squishVel = this.dy/200;
+                this.squishVel = EngineUtils.clamp(this.dy/200,0,0.04);
                 this.dy = -this.dy/3
                 if(controller.hasCheated()) {
                     HoleMinigameController.getInstance().shake(20);
@@ -245,7 +253,7 @@ class HolePlayer extends InstanceMover {
             return false;
         }
 
-        $engine.audioPlaySound("sky_land");
+        $engine.audioPlaySound("sky_land").speed = EngineUtils.randomRange(0.7,1.3);
         var t1 = block;
         var t2 = block.otherPlatform;
         var t3 = block.separator;

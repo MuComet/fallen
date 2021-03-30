@@ -198,9 +198,9 @@ class UmbrellaPlayer extends InstanceMover {
         this.move(accel,this.vel);
 
         if(Math.abs(this.vel[0])<0.1) {
-            this.setAnimation(this.animationStand);
+            EngineUtils.setAnimation(this.animation,this.animationStand);
         } else {
-            this.setAnimation(this.animationWalk)
+            EngineUtils.setAnimation(this.animation,this.animationWalk);
             this.animation.animationSpeed = this.vel[0]/(this.maxVelocity*7.5);
         }
 
@@ -208,7 +208,7 @@ class UmbrellaPlayer extends InstanceMover {
         if(sign!==0)
             this.xScale = sign * this.baseXScale;
 
-        this.animation.skew.x=-this.vel[0]/96;
+        this.animation.skew.x=-this.vel[0]/256;
 
         /*$engine.getCamera().setScaleX($engine.getCamera().getScaleX()-IN.getWheel()/1000);
 
@@ -232,13 +232,6 @@ class UmbrellaPlayer extends InstanceMover {
         //console.log(IN.getMouseX(),IN.getMouseY());
 
         //console.log(IN.getMouseX(),IN.getMouseY(), $engine.getCamera().getX(), $engine.getCamera().getY());
-    }
-
-    setAnimation(anim) {
-        if(this.animation.textures === anim)
-            return;
-        this.animation.textures = anim;
-        this.animation._currentTime = 0;
     }
 
     canControl() {
@@ -333,7 +326,7 @@ class Umbrella extends EngineInstance {
         this.timer++;
         if(this.timer>this.endTime*2) {
             this.timer=0;
-            this.endTime = EngineUtils.clamp(this.endTime-2,25,75)
+            this.endTime = EngineUtils.clamp(this.endTime-2,25,90)
 
             var controller = UmbrellaMinigameController.getInstance();
             this.fake = (controller.getTimer().getTimeRemaining()<this.fakeOutTimes[this.fakeIndex] && !controller.hasCheated());
@@ -354,26 +347,27 @@ class Umbrella extends EngineInstance {
                 this.x = EngineUtils.interpolate(this.timer/this.endTime,this.sx,this.rx,EngineUtils.INTERPOLATE_SMOOTH)
                 this.y = EngineUtils.interpolate(this.timer/this.endTime,this.sy,this.ry,EngineUtils.INTERPOLATE_SMOOTH)
             } else {
+                var giveUp = 0;
+                var maxTries = 200; // edge case that the umbrella is as far to one side as it can be.
+                var diff = Math.sign(this.x-this.rx)
+                var srx = this.rx
+                var sry = this.ry;
+                var ssx = this.sx
+                var ssy = this.sy
                 if(this.timer===this.fakeTime && !this.hasFaked) {
-                    var giveUp = 0;
-                    var maxTries = 150; // edge case that the umbrella can't find a suitable location
-                    var diff = Math.sign(this.x-this.rx)
-                    var sry = this.ry;
-                    var ssy = this.sy
                     while(Math.sign(this.x-this.rx) === diff && giveUp++ < maxTries)
                         this.findNewLocation();
-                    if(giveUp>=maxTries) { // go to corner
-                        if(diff===-1)
-                            this.rx = 0;
-                        else
-                            this.rx = $engine.getWindowSizeX();
-                        this.sx = this.x;
+                    if(giveUp>=maxTries) { // undo our changes
+                        this.fake = false;
+                        this.rx = srx;
+                        this.sx = ssx;
+                    } else {
+                        this.hasFaked=true;
+                        this.fakeX = this.x;
+                        this.fakeY = this.y;
+                        this.fakeIndex++;
+                        $engine.audioPlaySound("umbrella_juke");
                     }
-                    this.hasFaked=true;
-                    this.fakeX = this.x;
-                    this.fakeY = this.y;
-                    this.fakeIndex++;
-                    $engine.audioPlaySound("umbrella_juke");
                     this.ry = sry // keep the old y location though
                     this.sy = ssy;
                 }
@@ -384,7 +378,7 @@ class Umbrella extends EngineInstance {
                     this.x = this.fakeX+EngineUtils.randomRange(-24+this.fakeTimer,24-this.fakeTimer)
                     this.y = this.fakeY+EngineUtils.randomRange(-24+this.fakeTimer,24-this.fakeTimer)
                 } else {
-                    this.getSprite().tint = $engine.getGameTimer() % 12 < 6 ? 0xff0000 : 0xffffff
+                    this.getSprite().tint=0xffffff;
                     if(this.timer>=this.fakeTime && this.fake) { // as if it wasn't hard enough
                         this.x = EngineUtils.interpolate((this.timer-this.fakeTime)/(this.endTime-this.fakeTime),this.sx,this.rx,EngineUtils.INTERPOLATE_OUT_QUAD)
                         this.y = EngineUtils.interpolate((this.timer-this.fakeTime)/(this.endTime-this.fakeTime),this.sy,this.ry,EngineUtils.INTERPOLATE_OUT_QUAD)
@@ -401,7 +395,6 @@ class Umbrella extends EngineInstance {
         } else {
             this.dx = 0;
             this.dy = 0;
-            this.getSprite().tint = 0xffffff
         }
         var controller = UmbrellaMinigameController.getInstance();
         if(controller.hasCheated() && this.wideTimer<=this.endWideTime) {
