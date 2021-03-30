@@ -7,29 +7,12 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
         PuyoMinigameController.endTime = 60;
         PuyoMinigameController.pCamY = 0;
         PuyoMinigameController.nCamY = 0;
-        PuyoMinigameController.iBuffer = undefined
-        PuyoMinigameController.mingameTimer = undefined
         PuyoMinigameController.maxScore = 10;
 
         $engine.setBackgroundColour(0xa58443);
-        PuyoMinigameController.mingameTimer = new MinigameTimer(60*5);
-        PuyoMinigameController.mingameTimer.addOnTimerStopped(this, function(parent, bool) {
-            if(bool)
-                $engine.setOutcomeWriteBackValue(ENGINE_RETURN.LOSS);
-            else {
-                $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN);
-            }
-            AudioManager.fadeOutBgm(1)
-            $engine.startFadeOut(30,false)
-            $engine.endGame();
-        })
+        this.startTimer(60*60);
 
         new ParallaxingBackground();
-
-        // audio
-        this.audioReference = $engine.generateAudioReference("Minigame-001");
-        AudioManager.playBgm(this.audioReference);
-        AudioManager.fadeInBgm(1);
 
         // instructions
 
@@ -37,11 +20,23 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
                         fontSize: 50, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
 
         this.setInstructionRenderable(text)
+        this.setControls(true,false);
+        this.skipPregame();
+
+        this.setCheatTooltip("Chain ready!")
 
         // progress
         this.progressText = new PIXI.Text("",{ fontFamily: 'Helvetica',
                     fontSize: 20, fontVariant: 'bold italic', fill: '#FFFFFF', align: 'center', stroke: '#363636', strokeThickness: 5 })
         new PuyoBoard();
+
+        this.addOnGameEndCallback(this,function(self) {
+            self.setLossReason("I suppose this game is pretty difficult...")
+        })
+    }
+
+    notifyFramesSkipped(frames) {
+        this.getTimer().tickDown(frames)
     }
 
     onCreate() { // called when you construct the instance yourself
@@ -69,26 +64,25 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
 
     onDestroy() {
         super.onDestroy();
-        PuyoMinigameController.iBuffer.destroy();
     }
 }
 
 class PuyoBoard extends EngineInstance {
 
     onCreate() {
-        this.board = [];
+        this.board = []
         for(i = 0; i <= 12; i++) {
-            this.board[i] = [new BoardSpace(i,0), new BoardSpace(i,1), new BoardSpace(i,2), new BoardSpace(i,3), new BoardSpace(i,4), new BoardSpace(i,5)];
+            this.board[i] = [new BoardSpace(i,0), new BoardSpace(i,1), new BoardSpace(i,2), new BoardSpace(i,3), new BoardSpace(i,4), new BoardSpace(i,5)]
         }
-        this.puyo1 = this.generateStartPuyo();
-        this.puyo2 = this.generateStartPuyo();
-        this.puyo3 = this.generateStartPuyo();
-        this.currentPuyo = null;
-        this.state = 0;
-        this.orientation = 0;
-        this.currentX = [2,2];
-        this.currentY = [0,1];
-        this.maxChain = 0;
+        this.puyo1 = this.generateStartPuyo()
+        this.puyo2 = this.generateStartPuyo()
+        this.puyo3 = this.generateStartPuyo()
+        this.currentPuyo = null
+        this.state = 0
+        this.orientation = 0
+        this.currentX = [2,2]
+        this.currentY = [0,1]
+        this.maxChain = 0
         this.columns = [0,0,0,0,0,0]
     }
 
@@ -101,9 +95,7 @@ class PuyoBoard extends EngineInstance {
     //orientation = 3 means horizontal, pivot puyo right
 
     step() {
-        console.log(this.board);
-        console.log(this.state);
-        /*if(this.state == 0){
+        if(this.state == 0){
             this.currentPuyo = this.puyo1;
             this.puyo1 = this.puyo2;
             this.puyo2 = this.puyo3;
@@ -191,10 +183,7 @@ class PuyoBoard extends EngineInstance {
                 bufferChain = 0;
             }
             bufferChain++;
-        }*/
-        this.state = 1
-        console.log(this.board);
-        console.log(this.state);
+        }
     }
 
     drop(){
@@ -412,10 +401,6 @@ class Puyo extends PuyoBoard {
         this.pivot = pivot;
     }
 
-    step() {
-        y++;
-    }
-
     getColour() {
         return this.colour;
     }
@@ -426,9 +411,11 @@ class BoardSpace extends PuyoBoard {
     //state = 0 means space is empty
     //state = 1 means space has controllable falling Puyo
     //state = 2 means space has dropped Puyo
-    onCreate() {
+    onCreate(y, x) {
         this.state = 0;
         this.puyo = null;
+        this.x = x*60;
+        this.y = y*60;
     }
 
     getPuyo() {
