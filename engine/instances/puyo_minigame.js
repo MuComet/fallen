@@ -16,7 +16,7 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
 
         // instructions
 
-        var text = new PIXI.Text("Place the same-coloured blobs 4 in a row to pop them. Try to get a chain of 10!\n Rotate with Z and X and move with the arrow keys.\nPress Enter to cheat!",$engine.getDefaultTextStyle())
+        var text = new PIXI.Text("Place the same-coloured blobs 4 in a row to pop them.\nTry to get a chain of 10!\n Rotate with Z and X and move with the arrow keys.\nPress Enter to cheat!",$engine.getDefaultTextStyle())
 
         this.setInstructionRenderable(text)
         this.setControls(true,false);
@@ -115,7 +115,6 @@ class PuyoBoard extends EngineInstance {
             var bufferChain = 30;
             var dropping = true;
         }
-        console.log(this.dropRate);
         if(this.state == 1){
             if(IN.keyCheck('ArrowDown')){
                 this.dropRate+=10;
