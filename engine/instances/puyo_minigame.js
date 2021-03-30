@@ -235,19 +235,12 @@ class PuyoBoard extends EngineInstance {
     }
 
     chain(){
-        console.log(this.droppedColumns)
-        console.log(this.columns)
         var chain = false;
         this.visited = []
         for(var i = 0; i <= 5; i++){
             for(var j = 0; j < this.droppedColumns[i]; j++){
                 var row = 13 - this.columns[i] + j;
-                console.log("row: " + row)
-                console.log(13 - this.columns[i] + j)
-                console.log(this.columns)
-                console.log("i: " + i)
-                console.log("j: " + j)
-                if(!this.visited.includes(i*13+row)){
+                if(!this.visited.includes(i*13+row) && row < 13){
                     var puyos = this.surroundings(row, i, this.board[row][i].getPuyo().getColour());
                 }
                 if(puyos >= 4){
