@@ -25,16 +25,12 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
         this.setCheatTooltip("Chain ready!")
 
         this.Board = new PuyoBoard()
-
+        this.setPreventEndOnTimerExpire(true)
+        this.getTimer().useEndText(false)
+        this.myText = $engine.createManagedRenderable(this,new PIXI.Text("Highest Chain: " + this.Board.maxChain, $engine.getDefaultSubTextStyle()));
+        this.myText.anchor.set(1,1)
+        this.myText.y = $engine.getWindowSizeY() - 10
         // progress
-        this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle())
-        this.getTimer().addOnTimerStopped(this, function(self) {
-            if(self.Board.maxChain >= 4){
-                self.endMinigame(true)
-            } else {
-                self.endMinigame(false)
-            }
-        })
         this.addOnGameEndCallback(this,function(self) {
             self.setLossReason("I suppose this game is pretty difficult...")
         })
@@ -51,24 +47,19 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
 
     step() {
         super.step();
-        if(this.Board.state == 0){
-            this.setPreventEndOnTimerExpire(false)
-        }
-        if(this.getTimer().isTimerDone()){
+        if(this.Board.state == 0 && this.getTimer().isTimerDone()){
             if(this.Board.maxChain >= 4){
                 this.endMinigame(true)
             } else {
                 this.endMinigame(false)
             }
         }
-        if(this.Board.state == 1){
-            this.setPreventEndOnTimerExpire(true)
-        }
         PuyoMinigameController.timer++;
     }
 
     draw(gui,camera) {
         super.draw(gui,camera)
+        $engine.requestRenderOnCameraGUI(this.myText)
     }
 
     onDestroy() {
