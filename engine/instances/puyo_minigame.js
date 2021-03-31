@@ -16,7 +16,7 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
 
         // instructions
 
-        var text = new PIXI.Text("Place 4 same-coloured blobs in a group to pop them.\nTry to get a chain of 10!\n Rotate with Z and X and move with the arrow keys.\nPress Enter to cheat!",$engine.getDefaultTextStyle())
+        var text = new PIXI.Text("Place 4 same-coloured blobs in a group to pop them.\nTry to get a chain of 4 or more!\n Rotate with Z and X and move with the arrow keys.\nPress Enter to cheat!",$engine.getDefaultTextStyle())
 
         this.setInstructionRenderable(text)
         this.setControls(true,false);
@@ -25,7 +25,6 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
         this.setCheatTooltip("Chain ready!")
 
         this.Board = new PuyoBoard()
-        this.setPreventEndOnTimerExpire(true)
         this.getTimer().useEndText(false)
         this.myText = $engine.createManagedRenderable(this,new PIXI.Text("Highest Chain: " + this.Board.maxChain, $engine.getDefaultSubTextStyle()));
         this.myText.anchor.set(1,1)
@@ -48,14 +47,7 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
 
     step() {
         super.step();
-        this.myText.setText("Highest Chain: " + this.Board.maxChain);
-        if(this.Board.state == 0 && this.getTimer().isTimerDone()){
-            if(this.Board.maxChain >= 4){
-                this.endMinigame(true)
-            } else {
-                this.endMinigame(false)
-            }
-        }
+        this.myText.text = "Highest Chain: " + this.Board.maxChain;
         PuyoMinigameController.timer++;
     }
 
@@ -76,6 +68,7 @@ class PuyoBoard extends EngineInstance {
         for(i = 0; i <= 12; i++) {
             this.board[i] = [new BoardSpace(i,0), new BoardSpace(i,1), new BoardSpace(i,2), new BoardSpace(i,3), new BoardSpace(i,4), new BoardSpace(i,5)]
         }
+        PuyoMinigameController.getInstance().setPreventEndOnTimerExpire(true)
         this.puyo1 = this.generateStartPuyo()
         this.puyo2 = this.generateStartPuyo()
         this.puyo3 = this.generateStartPuyo()
@@ -94,6 +87,7 @@ class PuyoBoard extends EngineInstance {
         this.bufferChain = 30
         this.dropping = true
         this.visited = []
+        this.gameEnd = false
     }
 
     //state = 0 means nothing is happening
@@ -105,7 +99,13 @@ class PuyoBoard extends EngineInstance {
     //orientation = 3 means horizontal, pivot puyo right
 
     step() {
-        
+        if(this.state == 0 && PuyoMinigameController.getInstance().getTimer().isTimerDone()){
+            if(this.maxChain >= 4){
+                PuyoMinigameController.getInstance().endMinigame(true)
+            } else {
+                PuyoMinigameController.getInstance().endMinigame(false)
+            }
+        }
         if(this.board[1][2].getState()==2){
             if(this.maxChain >= 4){
                 PuyoMinigameController.getInstance().endMinigame(true)
