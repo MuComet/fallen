@@ -346,7 +346,7 @@ class EngineInstance {
     onDestroy() {}
 
     /**
-     * cleanup is always called before an isntance is removed from existence.
+     * cleanup is always called before an instance is removed from existence.
      * This includes:
      * The game ending, the room ending, or the instance being destroyed manually
      * Always clean up anything you have created here if applicable.

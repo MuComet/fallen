@@ -159,8 +159,11 @@ class MinigameTimer extends EngineInstance {
     }
 
     _updateText() {
-        var strEnd = String(EngineUtils.roundMultiple((this.timer%60)/60,0.01))+"000"
-        this.timerText.text = this.timerTextPrepend + String(Math.floor(this.timer/60) +":"+strEnd.substring(2,4))
+        var time = this.timer;
+        if(time<0)
+            time = 0;
+        var strEnd = String(EngineUtils.roundMultiple((time%60)/60,0.01))+"000"
+        this.timerText.text = this.timerTextPrepend + String(Math.floor(time/60) +":"+strEnd.substring(2,4))
     }
 
     _updateSprite() {
@@ -541,14 +544,14 @@ class MinigameController extends EngineInstance {
      * @param {Boolean} expired Whether or not the timer expiered naturally
      */
     _onMinigameEnd(self, expired) {
-        if(this.roundMode) {
-            if(this.rounds < this.maxRounds) {
-                this._onRoundOver();
+        if(self.roundMode) {
+            if(self.rounds < self.maxRounds) {
+                self._onRoundOver();
             } else {
-                this._onAllRoundsOver();
+                self._onAllRoundsOver();
             }
         }
-        if(this._preventEndOnTimerExpire)
+        if(self._preventEndOnTimerExpire)
             return;
         if((expired && self._timer.isSurvivalMode()) || (!expired && !self._timer.isSurvivalMode())) {
             self._onMinigameEndNoTimer(true);
