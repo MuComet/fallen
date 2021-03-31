@@ -30,6 +30,7 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
         this.myText = $engine.createManagedRenderable(this,new PIXI.Text("Highest Chain: " + this.Board.maxChain, $engine.getDefaultSubTextStyle()));
         this.myText.anchor.set(1,1)
         this.myText.y = $engine.getWindowSizeY() - 10
+        this.myText.x = $engine.getWindowSizeX()/2
         // progress
         this.addOnGameEndCallback(this,function(self) {
             self.setLossReason("I suppose this game is pretty difficult...")
@@ -47,6 +48,7 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
 
     step() {
         super.step();
+        this.myText.setText("Highest Chain: " + this.Board.maxChain);
         if(this.Board.state == 0 && this.getTimer().isTimerDone()){
             if(this.Board.maxChain >= 4){
                 this.endMinigame(true)
