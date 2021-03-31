@@ -16,7 +16,7 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
 
         // instructions
 
-        var text = new PIXI.Text("Place the same-coloured blobs 4 in a row to pop them.\nTry to get a chain of 10!\n Rotate with Z and X and move with the arrow keys.\nPress Enter to cheat!",$engine.getDefaultTextStyle())
+        var text = new PIXI.Text("Place 4 same-coloured blobs in a group to pop them.\nTry to get a chain of 10!\n Rotate with Z and X and move with the arrow keys.\nPress Enter to cheat!",$engine.getDefaultTextStyle())
 
         this.setInstructionRenderable(text)
         this.setControls(true,false);
@@ -24,11 +24,17 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
 
         this.setCheatTooltip("Chain ready!")
 
-        new PuyoBoard()
+        this.Board = new PuyoBoard()
 
         // progress
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle())
-
+        this.getTimer().addOnTimerStopped(this, function(self) {
+            if(self.Board.maxChain >= 4){
+                self.endMinigame(true)
+            } else {
+                self.endMinigame(false)
+            }
+        })
         this.addOnGameEndCallback(this,function(self) {
             self.setLossReason("I suppose this game is pretty difficult...")
         })
@@ -45,14 +51,18 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
 
     step() {
         super.step();
-        var timer = PuyoMinigameController.timer;
-        var endTime = PuyoMinigameController.endTime;
-        if(timer<=endTime) {
-            var camera = $engine.getCamera()
-            camera.setY(EngineUtils.interpolate(timer/endTime,PuyoMinigameController.pCamY,PuyoMinigameController.nCamY,EngineUtils.INTERPOLATE_OUT_BACK));
-            var fac = EngineUtils.interpolate(timer/endTime,1,0,EngineUtils.INTERPOLATE_OUT_QUAD);
-            camera.setRotation(EngineUtils.randomRange(-0.01,0.01)*fac)
-            camera.setLocation(EngineUtils.irandomRange(-2,2) * fac, camera.getY() + EngineUtils.irandomRange(-2,2) * fac)
+        if(this.Board.state == 0){
+            this.setPreventEndOnTimerExpire(false)
+        }
+        if(this.getTimer().isTimerDone()){
+            if(this.Board.maxChain >= 4){
+                this.endMinigame(true)
+            } else {
+                this.endMinigame(false)
+            }
+        }
+        if(this.Board.state == 1){
+            this.setPreventEndOnTimerExpire(true)
         }
         PuyoMinigameController.timer++;
     }
@@ -102,6 +112,15 @@ class PuyoBoard extends EngineInstance {
     //orientation = 3 means horizontal, pivot puyo right
 
     step() {
+        
+        if(this.board[1][2].getState()==2){
+            if(this.maxChain >= 4){
+                PuyoMinigameController.getInstance().endMinigame(true)
+            }
+            else{
+                PuyoMinigameController.getInstance().endMinigame(false)
+            }
+        }
         if(this.state == 0){
             this.resetValues()
         }
@@ -159,12 +178,12 @@ class PuyoBoard extends EngineInstance {
                 this.currentX[1]--
                 this.placePuyos(1)
             }
-        } else if(IN.keyCheckPressed('KeyX')){
-            this.rotateController(0)
         } else if(IN.keyCheckPressed('KeyZ')){
+            this.rotateController(0)
+        } else if(IN.keyCheckPressed('KeyX')){
             this.rotateController(1)
         }
-        if(this.dropRate>=60){
+        if(this.dropRate>=30){
             this.dropRate = 0
             if(this.movePossible(2)){
                 this.removePuyos(0)
@@ -188,10 +207,10 @@ class PuyoBoard extends EngineInstance {
         if(this.bufferChain >= 30 && !this.dropping){
             if(this.chain()){
                 this.chainNum++;
-            } else{
                 if(this.chainNum > this.maxChain){
                     this.maxChain = this.chainNum;
                 }
+            } else{
                 this.state = 0;
             }
             this.dropping = true;
@@ -212,6 +231,9 @@ class PuyoBoard extends EngineInstance {
                     droppedColumns[i] = this.columns[i] - (12-currentRow)
                     columnDone = true
                     var hole = currentRow
+                }
+                if(currentRow == 0){
+                    columnDone = true
                 }
             }
             var j = 0
@@ -235,19 +257,31 @@ class PuyoBoard extends EngineInstance {
     }
 
     chain(){
+        console.log(this.droppedColumns)
+        console.log(this.columns)
         var chain = false;
         this.visited = []
+        var chainSources = []
         for(var i = 0; i <= 5; i++){
             for(var j = 0; j < this.droppedColumns[i]; j++){
                 var row = 13 - this.columns[i] + j;
-                if(!this.visited.includes(i*13+row) && row < 13){
-                    var puyos = this.surroundings(row, i, this.board[row][i].getPuyo().getColour());
+                var puyos = 0;
+                console.log("row: " + row)
+                console.log("i: " + i)
+                console.log("j: " + j)
+                if(!this.visited.includes(i*13+row)){
+                    puyos = this.surroundings(row, i, this.board[row][i].getPuyo().getColour());
                 }
                 if(puyos >= 4){
                     chain = true;
-                    this.pop(row, i, 0, this.board[row][i].getPuyo().getColour());
+                    chainSources.push(i*13+row)
                 }
             }
+        }
+        for(var i = 0; i < chainSources.length; i++){
+            var row = chainSources[i]%13
+            var column = (chainSources[i]-row)/13
+            this.pop(row, column, 0, this.board[row][column].getPuyo().getColour());
         }
         return chain;
     }
