@@ -347,7 +347,7 @@ class IM {
         return lst;
     }
 
-    static __queryObjects(val) { // returns an array containing the object requested, if the request is invalid the return is undefined.
+    static __queryObjects(val) { // returns an array containing the object requested, if the request is invalid the return is an empty array.
         var type = typeof(val);
         if(type === 'function') { // an object
             return IM.__findAll(IM.__oidFrom(val));

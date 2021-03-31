@@ -920,10 +920,10 @@ class Scene_Engine extends Scene_Base {
     }
 
     __resumeAudio() {
-        if (this.prevBgm !== null) {
+        if (this.prevBgm.name!=="") {
             AudioManager.replayBgm(this.prevBgm);
         }
-        if (this.prevBgs !== null) {
+        if (this.prevBgs.name!=="") {
             AudioManager.replayBgs(this.prevBgs);
         }
     }
@@ -1374,15 +1374,6 @@ class Scene_Engine extends Scene_Base {
                 }
             }
         }
-    }
-
-    __collectAllRenderables() {
-        var array = [];
-        for(const inst of IM.__objectsSorted) {
-            // https://stackoverflow.com/questions/1374126/how-to-extend-an-existing-javascript-array-with-another-array-without-creating
-            array.push(...inst.__renderables);
-        }
-        return array;
     }
 
     __clearGraphics() {

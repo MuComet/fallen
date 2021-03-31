@@ -78,6 +78,7 @@ class MenuIntroController extends EngineInstance {
                 SoundManager.playLoad();
                 $engine.fadeOutAll(1);
                 $engine.audioFadeAll();
+                $engine.disableAutoSave();
                 $engine.audioFadeSound(MinigameController.getInstance().menuMusic,30);
                 IM.with(MainMenuButton,function(button) {
                     button.enabled = false;
