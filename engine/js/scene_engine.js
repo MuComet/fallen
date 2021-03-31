@@ -3098,5 +3098,5 @@ GUIScreen.__saveTextTimer=0;
 GUIScreen.__saveGameString = "Game saved. . . ";
 GUIScreen.__init();
 UwU.addRenderListener(GUIScreen.onBeforeRenderScene);
-document.addEventListener("pointerrawupdate", GUIScreen.__mouseMoveHandler); // fix one frame lag.
+document.addEventListener("pointermove", GUIScreen.__mouseMoveHandler); // fix one frame lag.
 UwU.addSceneChangeListener(GUIScreen.__sceneChanged);

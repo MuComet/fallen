@@ -261,7 +261,7 @@ class TextBox extends EngineInstance {
             text = [];
         }
 
-        this.depth = -Infinity // in front of everything EXCEPT for UI
+        this.depth = -999999999999999 // in front of everything EXCEPT for UI
 
         this.container = $engine.createRenderable(this, new PIXI.Container(),true); // the container that acutally renders
 

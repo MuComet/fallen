@@ -1226,7 +1226,7 @@ class ParallaxingBackground extends EngineInstance {
             sprite.x = this.x;
             sprite.y = this.y;
         }
-        this.depth = Infinity;
+        this.depth = 99999999999999999;
         this.invertParallax = false;
         $engine.setBackground(new PIXI.Graphics())
         $engine.setBackgroundColour(0xe2d6b3);
