@@ -170,9 +170,8 @@ class CutsceneController extends EngineInstance {
 
         // speedrun speedrun speedrun go go go go go
         if((IN.keyCheckPressed("Escape")|| IN.keyCheckPressed("Control") ) && !this.wipeStarted && !(this.currentFrame===0 && this.wipeTimer<this.transitionTime)) {
-            this.out = true;
-            this.wipeTimer = 0;
-            this.wipeStarted=true;
+            this.endCutscene();
+            
         }
         this.textBoxTick();
         if(this.timer>this.frameLength[this.currentFrame]) {
@@ -200,9 +199,7 @@ class CutsceneController extends EngineInstance {
                 this.timer++;
                 this.transition=true;
                 if(this.currentFrame >= this.frames-1 && !this.wipeStarted) {
-                    this.wipeStarted=true;
-                    this.wipeTimer = -1;
-                    this.out = true;
+                    this.endCutscene();
                 }
             } else {
                 this.blurFilter.enabled = false;
@@ -218,6 +215,13 @@ class CutsceneController extends EngineInstance {
         }
         //this.timer++;
         this.wipeTimer++;
+    }
+
+    endCutscene() {
+        this.out = true;
+        this.wipeTimer = 0;
+        this.wipeStarted=true;
+        $engine.audioFadeAll();
     }
 
     playPageFlip() {
@@ -562,6 +566,7 @@ class TextBox extends EngineInstance {
         } else { // transition
             var portraitFactor = EngineUtils.interpolate(Math.abs((++this.portraitTimer-this.portraitTime/2)/(this.portraitTime/2)),0,1,EngineUtils.INTERPOLATE_OUT_BACK);
             this.portraitImage.scale.x = portraitFactor;
+            this.portraitImage.y = this.basePortraitY // force into correct position
             if(Math.floor(this.portraitTime/2) === this.portraitTimer)
                 this.portraitImage.texture = this.nextPortraitTexture
         }

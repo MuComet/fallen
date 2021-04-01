@@ -344,6 +344,9 @@ class Scene_Engine extends Scene_Base {
         this.__sounds.push(audio);
         audio.__sourceSound = snd;
         audio.__destroyed=false;
+        audio.addListener("end",function() { // for cleanup purposes
+            audio.__destroyed=true;
+        })
     }
 
     /**
@@ -444,11 +447,13 @@ class Scene_Engine extends Scene_Base {
     __lookupSounds(snd) {
         var sounds = [];
         if(snd.__sourceSound) { // IMediaInstance
+            if(snd.__destroyed)
+                return [];
             return [snd];
         }
         var target = snd.__engineAlias || snd; // String alias
         for(const sound of this.__sounds) { // Sound Instances
-            if(sound.__sourceSound.__engineAlias === target)
+            if(sound.__sourceSound.__engineAlias === target && !sound.__destroyed)
                 sounds.push(sound);
         }
         return sounds;
@@ -560,8 +565,10 @@ class Scene_Engine extends Scene_Base {
     }
 
     __audioDestroy(audio) {
+        if(audio.__destroyed)
+            return;
         audio.stop();
-        audio.__destroyed = true;
+        audio.__destroyed = true; // as a safeguard, this is also set via a listener.
     }
 
     /**
@@ -615,9 +622,6 @@ class Scene_Engine extends Scene_Base {
     __audioTick() {
         for(const sound of this.__sounds) {
             sound.__tick(sound);
-            if(sound.progress>=1) {
-                this.__audioDestroy(sound)
-            }
         }
         this.__sounds = this.__sounds.filter( x=> !x.__destroyed);
     }
@@ -2261,6 +2265,7 @@ class UwU {
 
     static tick() {
         OwO.tick();
+        GUIScreen.tick();
     }
 }
 
@@ -2972,7 +2977,7 @@ OwO.__hudRedGlowFilter.color = 0xff0000;
 
 class GUIScreen { // static class for stuff like the custom cursor. always running.
 
-    static onBeforeRenderScene() {
+    static tick() {
         GUIScreen.__updateMouseLocation();
         GUIScreen.__renderMouse();
         GUIScreen.__textTick();
@@ -3097,6 +3102,6 @@ GUIScreen.__timer=0;
 GUIScreen.__saveTextTimer=0;
 GUIScreen.__saveGameString = "Game saved. . . ";
 GUIScreen.__init();
-UwU.addRenderListener(GUIScreen.onBeforeRenderScene);
+//UwU.addRenderListener(GUIScreen.tick);
 document.addEventListener("pointermove", GUIScreen.__mouseMoveHandler); // fix one frame lag.
 UwU.addSceneChangeListener(GUIScreen.__sceneChanged);
