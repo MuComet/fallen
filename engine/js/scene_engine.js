@@ -2993,6 +2993,8 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
         // must do it late because Graphics doesn't exist yet
         GUIScreen.__saveText.x = $engine.getWindowSizeX();
         GUIScreen.__saveText.y = 0;
+        GUIScreen.__saveImage.x = $engine.getWindowSizeX();
+        GUIScreen.__saveImage.y = GUIScreen.__saveImage.height/2;
         /*if($engine.isLow()) {
             GUIScreen.__graphics.filters = []
         } else {
@@ -3010,20 +3012,54 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
         GUIScreen.__saveText.anchor.y = 0;
         GUIScreen.__saveTextIndex = 999;
 
+
+        GUIScreen.__saveImage = new PIXI.Text("Saving",style);
+        GUIScreen.__saveImage.anchor.x = 1;
+        GUIScreen.__saveImage.anchor.y = 0.5;
+        GUIScreen.__saveImage.alpha = 0;
         //GUIScreen.__container.addChild(GUIScreen.__graphics);
         GUIScreen.__graphics.filters = [GUIScreen.__filter]
-        GUIScreen.__container.addChild(GUIScreen.__saveText);
+        GUIScreen.__container.addChild(GUIScreen.__saveText,GUIScreen.__saveImage);
     }
 
     static __textTick() {
+        GUIScreen.__saveTextTimer++;
+        // fake save screen. Done to make yevhen happy.
+        // fake save screen. Done to make yevhen happy.
+        // show a 'saving' image for a 0.5 - 1 second before saying game saved.
+        if(GUIScreen.__saveTextStartTime >= GUIScreen.__saveTextTimer) {
+            var alphaFac = EngineUtils.interpolate(GUIScreen.__saveTextTimer / 35,0,0.66666,EngineUtils.INTERPOLATE_SMOOTH)
+            var scaleFac = Math.sin(GUIScreen.__saveTextTimer/12)/35 + 1;
+            GUIScreen.__saveImage.alpha = alphaFac;
+            GUIScreen.__saveImage.scale.set(scaleFac);
+
+            var endOffset = 4;
+            if(GUIScreen.__saveTextTimer >= GUIScreen.__saveTextStartTime - endOffset) {
+                var fac2 = EngineUtils.interpolate((GUIScreen.__saveTextStartTime - GUIScreen.__saveTextTimer)/endOffset,0,0.66666,EngineUtils.INTERPOLATE_OUT);
+                GUIScreen.__saveImage.alpha=fac2;
+            }
+
+            if(GUIScreen.__saveTextStartTime === GUIScreen.__saveTextTimer) {
+                GUIScreen.__saveTextTimer=0;
+                GUIScreen.__saveTextStartTime=-1;
+                GUIScreen.__saveImage.alpha = 0;
+                GUIScreen.__saveText.alpha = 0.666666;
+                GUIScreen.__saveText.text="";
+            } else {
+                return;
+            }
+        }
         if(GUIScreen.__saveTextIndex<GUIScreen.__saveGameString.length) {
-            if(GUIScreen.__timer%5===0) {
+            if(GUIScreen.__saveTextTimer%5===0) {
                 GUIScreen.__saveTextIndex++;
                 GUIScreen.__saveText.text = GUIScreen.__saveGameString.substring(0,GUIScreen.__saveTextIndex);
             }
         }
-        GUIScreen.__saveTextTimer++;
-        if(GUIScreen.__saveTextTimer>240) {
+        if(GUIScreen.__saveTextTimer<=6) {
+            var fac = EngineUtils.interpolate(GUIScreen.__saveTextTimer/6,0,0.66666,EngineUtils.INTERPOLATE_IN);
+            GUIScreen.__saveText.alpha = fac
+        }
+        if(GUIScreen.__saveTextTimer > 240 + GUIScreen.__saveTextStartTime) {
             var fac = EngineUtils.interpolate((GUIScreen.__saveTextTimer-240)/60,0.666666,0,EngineUtils.INTERPOLATE_OUT);
             GUIScreen.__saveText.alpha = fac
         }
@@ -3032,7 +3068,9 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
     static showSave() {
         GUIScreen.__saveTextIndex=0;
         GUIScreen.__saveTextTimer=0;
-        GUIScreen.__saveText.alpha = 0.666666;
+        GUIScreen.__saveTextStartTime=EngineUtils.irandomRange(40,90); // fake save screen
+        GUIScreen.__saveText.alpha = 0;
+        GUIScreen.__saveImage.alpha = 0;
     }
 
     static __renderMouse() {
@@ -3100,6 +3138,7 @@ GUIScreen.__maxMousePoints = 10;
 GUIScreen.__maxMouseTrailLength = 10;
 GUIScreen.__timer=0;
 GUIScreen.__saveTextTimer=0;
+GUIScreen.__saveTextStartTime = -1;
 GUIScreen.__saveGameString = "Game saved. . . ";
 GUIScreen.__init();
 //UwU.addRenderListener(GUIScreen.tick);
