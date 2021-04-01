@@ -191,6 +191,7 @@ class CutsceneController extends EngineInstance {
                 this.adjustmentFilter.brightness = EngineUtils.interpolate(this.timer/this.transitionTime,this.adjustmentFilterStrength,1,EngineUtils.INTERPOLATE_OUT);
                 this.timer++;
                 this.transition=true;
+                this.textBox.setWaiting(true)
             } else if(this.frameLength[this.currentFrame]-this.timer <= this.transitionTime) {
                 this.textBox._clearText();
                 this.blurFilter.enabled = true;
@@ -198,12 +199,14 @@ class CutsceneController extends EngineInstance {
                 this.adjustmentFilter.brightness = EngineUtils.interpolate((this.frameLength[this.currentFrame]-this.timer)/this.transitionTime,this.adjustmentFilterStrength,1,EngineUtils.INTERPOLATE_OUT);
                 this.timer++;
                 this.transition=true;
+                this.textBox.setWaiting(true)
                 if(this.currentFrame >= this.frames-1 && !this.wipeStarted) {
                     this.endCutscene();
                 }
             } else {
                 this.blurFilter.enabled = false;
                 this.transition=false;
+                this.textBox.setWaiting(false)
             }
             
             if(this.frameLength[this.currentFrame]-this.timer===Math.floor(this.transitionTime/2)) {
@@ -478,7 +481,7 @@ class TextBox extends EngineInstance {
     }
 
     isReady() {
-        return (this.currentText === "" || this.textComplete()) && this.portraitImageCorrect() && this.textBoxReady() && !this.isWaiting();
+        return (this.currentText === "" || this.textComplete()) && this.portraitImageCorrect() && !this.isWaiting();
     }
 
     disableArrow() {
@@ -631,6 +634,10 @@ class TextBox extends EngineInstance {
     }
 
     _prepareTextBox() {
+        if(this.textWaitTimer>0) {
+            this.textWaitTimer--;
+            return;
+        }
         this.textBoxFactor = EngineUtils.interpolate(++this.showTextBoxTimer/this.showTextBoxTime,0,1,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
         this._renderMask();
     }
@@ -809,6 +816,11 @@ class TextBox extends EngineInstance {
             var data = this._extractCommand(txt);
             this.walkingTextIndex+=data.length;
             this.noShift = data.argument==="1" || data.argument.toLowerCase()==="true"
+        } else if(txt.startsWith("__break")) { // break command processing.
+            this.setTextOffset(this.portraitImage.texture.width);
+            var data = this._extractCommand(txt);
+            this.walkingTextIndex+=data.length;
+            return false;
         } else if(txt.startsWith("__playSound")) { // [snd,volume,loop]
             var data = this._extractCommand(txt);
             this.walkingTextIndex+=data.length;
