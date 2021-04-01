@@ -50,14 +50,6 @@ class SkyMinigameController extends MinigameController { // All classes that can
         this.progressText.y = $engine.getWindowSizeY()-30;
         this.updateProgressText();
 
-        this.seList = ["sky_donk","sky_drill"];
-        this.nextSoundTimer = 0;
-        this.nextSoundRand = EngineUtils.irandomRange(60,150);
-
-        this.drillTimer = 5*60;
-        this.drillTimeBase = 8*60;
-        this.drillTime = this.drillTimeBase+EngineUtils.irandomRange(-60,60);
-
         this.addOnGameEndCallback(this,function(self) {
             self.setLossReason("You're supposed to drop the block, not watch it.")
         })
@@ -88,19 +80,6 @@ class SkyMinigameController extends MinigameController { // All classes that can
             camera.setLocation(EngineUtils.irandomRange(-2,2) * fac, camera.getY() + EngineUtils.irandomRange(-2,2) * fac)
         }
         SkyMinigameController.timer++;
-
-        this.nextSoundTimer++; 
-        if(this.nextSoundTimer>=this.nextSoundRand) {
-            $engine.audioPlaySound(this.seList[0])
-            this.nextSoundTimer=0;
-            this.nextSoundRand = EngineUtils.irandomRange(150,300);
-        }
-        this.drillTimer++;
-        if(this.drillTimer>this.drillTime) {
-            this.drillTimer=0;
-            this.drillTime = this.drillTimeBase+EngineUtils.irandomRange(-60,60)
-            $engine.audioPlaySound(this.seList[1])
-        }
     }
 
     draw(gui,camera) {
@@ -140,6 +119,7 @@ class SkyBuildPlayer extends EngineInstance {
         this.lastDir = 0;
         this.fallPlayed = false;
         this.targetXDiff = 0;
+        this.maxCorrection = 56;
         for(var i =0;i<1000;i++) {
             this.registerInterpolationVariable("x","xInterp");
             this.registerInterpolationVariable("y","yInterp");
@@ -210,7 +190,7 @@ class SkyBuildPlayer extends EngineInstance {
             this.dropAngle = this.angle
             SkyMinigameController.getInstance().getTimer().pauseTimer();
             $engine.audioPlaySound("sky_wobble");
-            this.targetXDiff = EngineUtils.clamp(this.nextnext.x-this.x,-40,40);
+            this.targetXDiff = EngineUtils.clamp(this.nextnext.x-this.x,-this.maxCorrection,this.maxCorrection);
         }
 
 

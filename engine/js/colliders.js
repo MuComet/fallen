@@ -54,7 +54,8 @@ class Hitbox { // container for actual hitboxes
 
     getType() {
         this.__requireValid();
-        return this.getHitbox().getType();
+        // shockingly, was a very slow function.
+        return Number(this.forcePolygon) ? Hitbox.TYPE_POLYGON : Hitbox.TYPE_RECTANGLE; // this.getHitbox().getType();
     }
 
     getHitbox() {
@@ -326,15 +327,26 @@ class PolygonHitbox extends BaseHitbox{
         var sx = hitboxParent.sx;
         var sy = hitboxParent.sy;
         var rot = hitboxParent.rotation;
-        this.__copyFromSrc(); // rebuild hitbox from ground up.
-        for(var i =0;i<this.__polygon.points.length;i+=2) {
-            var v = Vertex.transform(this.__polygon.points[i],this.__polygon.points[i+1],rot,sx,sy,0,0)
-            xMin = Math.min(xMin,v.x);
-            yMin = Math.min(yMin,v.y);
-            xMax = Math.max(xMax,v.x);
-            yMax = Math.max(yMax,v.y);
-            this.__polygon.points[i] = v.x;
-            this.__polygon.points[i+1] = v.y;
+        //this.__copyFromSrc(); // rebuild hitbox from ground up.
+        var c = Math.cos(rot);
+        var s = Math.sin(rot);
+        var x;
+        var y;
+        var srcX;
+        var srcY;
+        for(var i =0;i<this.__srcPolygon.points.length;i+=2) {
+            // Vertex.Transform exists, but it's faster to run it inline.
+            srcX = this.__srcPolygon.points[i]*sx;
+            srcY = this.__srcPolygon.points[i+1]*sy;
+            x = srcX*c-srcY*s;
+            y = srcX*s+srcY*c;
+
+            xMin = Math.min(xMin,x);
+            yMin = Math.min(yMin,y);
+            xMax = Math.max(xMax,x);
+            yMax = Math.max(yMax,y);
+            this.__polygon.points[i] = x;
+            this.__polygon.points[i+1] = y;
         }
         this.__topLeft = new EngineLightweightPoint(xMin,yMin);
         this.__bottomRight = new EngineLightweightPoint(xMax,yMax);

@@ -313,36 +313,49 @@ class IM {
         this.__initializeVariables() // clear IM
     }
 
-    // possible optimization related to instantly breaking out if both are rectangle colliders (since PCS would be the same as an actual collision)
-    static __generatePCS(source,x,y, targets, fastForward = true) {
+    // generates a possibly collidable set and returns it as an array.
+    static __generatePCS(source,x,y, targets) {
+        var hitbox = source.hitbox;
         var lst = [];
-        if(source.hitbox.getType()==Hitbox.TYPE_RECTANGLE && fastForward) { // fast mode.
-            for(var i = 0;i<targets.length;i++) {
-                var r = IM.__queryObjects(targets[i]).filter(obj=>obj !== source && source.hitbox.checkBoundingBox(obj.hitbox,x,y))
-                for(const e of r) {
-                    if(e.hitbox.getType()===Hitbox.TYPE_RECTANGLE) {// early break out. both are rectangle so collision is done.
-                        return [e];
-                    }
-                    lst.push(e)
-                }
-            }
-        } else {
-            for(var i = 0;i<targets.length;i++) {
-                var r = IM.__queryObjects(targets[i]).filter(obj=>obj !== source && source.hitbox.checkBoundingBox(obj.hitbox,x,y))
-                for(const e of r)
-                    lst.push(e)
+        for(var i = 0;i<targets.length;i++) {
+            var query = IM.__queryObjects(targets[i]);
+            var len = query.length;
+            for(var j=0;j<len;++j) {
+                var target = query[j];
+                if(target!==source && hitbox.checkBoundingBox(target.hitbox,x,y))
+                    lst.push(target);
             }
         }
         return lst;
         
     }
 
+    // returns the first target instance that was collided with, or undefined if there were none.
+    static __performCollision(source,x,y,targets) {
+        var hitbox = source.hitbox;
+        for(var i = 0;i<targets.length;i++) {
+            var lst = IM.__queryObjects(targets[i]);
+            var len = lst.length;
+            for(var j=0;j<len;++j) {
+                var target = lst[j];
+                if(target!==source && hitbox.checkBoundingBox(target.hitbox,x,y) && hitbox.doCollision(target.hitbox,x,y))
+                    return target;
+            }
+        }
+        return undefined;
+    }
+
+    // generates a possible collidable set from a specific point
     static __generatePCSFromPoint(x,y, targets) {
         var lst = [];
         for(var i = 0;i<targets.length;i++) {
-            var r = IM.__queryObjects(targets[i]).filter(obj=>obj.hitbox.boundingBoxContainsPoint(x,y));
-            for(const e of r)
-                lst.push(e)
+            var query = IM.__queryObjects(targets[i]);
+            var len = query.length;
+            for(var j=0;j<len;++j) {
+                var target = query[j];
+                if(target.hitbox.boundingBoxContainsPoint(x,y))
+                    lst.push(target);
+            }
         }
         return lst;
     }
@@ -362,22 +375,6 @@ class IM {
                 return [v];
             return [];
         }
-    }
-
-    /**
-     * @deprecated Unused intermediate function meant to speed up collisions.
-     * Could in theory be effective if it were passed to generatePCS to be called when a valid instance is found.
-     * However that would require a minor re-write of how collisions are handled, and they run fast enough as is.
-     * Collisions right now needlessly sample all elements before testing a single one...
-     * @param {*} source 
-     * @param {*} PCS 
-     */
-    static __isCollidingWith(source, PCS) {
-        for(const inst of PCS) {
-            if(source.hitbox.doCollision(inst.hitbox))
-                return true;
-        }
-        return false;
     }
 
     /**
@@ -405,13 +402,7 @@ class IM {
      * @returns {Boolean} True if there is a collision, false otherwise
      */
     static instanceCollision(source,x,y, ...targets) {
-        var PCS = IM.__generatePCS(source,x,y,targets);
-        
-        for(const inst of PCS) {
-            if(source.hitbox.doCollision(inst.hitbox,x,y))
-                return true;
-        }
-        return false;
+        return IM.__performCollision(source,x,y,targets)!==undefined;
     }
 
     /**
@@ -424,13 +415,7 @@ class IM {
      * @returns {EngineInstance} The first EngineInstance that is collided with, or undefined if there are none.
      */
     static instancePlace(source,x,y, ...targets) {
-        var PCS = IM.__generatePCS(source,x,y,targets);
-        
-        for(const inst of PCS) {
-            if(source.hitbox.doCollision(inst.hitbox,x,y))
-                return inst;
-        }
-        return undefined;
+        return IM.__performCollision(source,x,y,targets)
     }
 
     /**
@@ -444,12 +429,14 @@ class IM {
      * @returns {EngineInstance} A non null list of all instances that collide with source
      */
     static instanceCollisionList(source,x,y,...targets) {
-        var PCS = IM.__generatePCS(source,x,y,targets,false);
-
         var lst = []
-        for(const inst of PCS) {
-            if(source.hitbox.doCollision(inst.hitbox,x,y))
-                lst.push(inst);
+        var PCS = IM.__generatePCS(source,x,y,targets);
+        var len = PCS.length;
+        var hitbox = source.hitbox;
+        for(var j=0;j<len;++j) {
+            var target = PCS[j];
+            if(hitbox.doCollision(target.hitbox,x,y))
+                lst.push(target);
         }
         return lst;
     }
@@ -463,9 +450,11 @@ class IM {
      */
     static instancePosition(x,y, ...targets) {
         var PCS = IM.__generatePCSFromPoint(x,y,targets);
-        for(const inst of PCS) {
-            if(inst.hitbox.containsPoint(x,y));
-                return inst;
+        var len = PCS.length;
+        for(var j=0;j<len;++j) {
+            var target = PCS[j];
+            if(target.hitbox.containsPoint(x,y))
+                return target;
         }
         return undefined;
     }
@@ -479,8 +468,10 @@ class IM {
      */
     static instanceCollisionPoint(x,y, ...targets) {
         var PCS = IM.__generatePCSFromPoint(x,y,targets);
-        for(const inst of PCS) {
-            if(inst.hitbox.containsPoint(x,y));
+        var len = PCS.length;
+        for(var j=0;j<len;++j) {
+            var target = PCS[j];
+            if(target.hitbox.containsPoint(x,y))
                 return true;
         }
         return false;
@@ -494,10 +485,12 @@ class IM {
      * @returns {...EngineInstance} A non null list of all instances that collide with source
      */
     static instanceCollisionPointList(x,y, ...targets) {
-        var PCS = IM.__generatePCSFromPoint(x,y,targets,false);
         var lst = [];
-        for(const inst of PCS) {
-            if(inst.hitbox.containsPoint(x,y));
+        var PCS = IM.__generatePCSFromPoint(x,y,targets);
+        var len = PCS.length;
+        for(var j=0;j<len;++j) {
+            var target = PCS[j];
+            if(target.hitbox.containsPoint(x,y))
                 lst.push(inst);
         }
         return lst;
@@ -578,10 +571,12 @@ class IM {
      * @returns {Boolean} True if any instance collides with the line, false otherwise
      */
     static instanceCollisionLine(x1,y1,x2,y2,...targets) {
+        var p1 = new EngineLightweightPoint(x1,y1);
+        var p2 = new EngineLightweightPoint(x2,y2);
         for(const i of targets) {
             var lst = IM.__queryObjects(i);
             for(const inst of lst) {
-                if(inst.hitbox.checkLineCollision(new EngineLightweightPoint(x1,y1),new EngineLightweightPoint(x2,y2)))
+                if(inst.hitbox.checkLineCollision(p1,p2))
                     return true;
             }
         }
@@ -600,11 +595,13 @@ class IM {
      * @returns {...EngineInstance} A non null list of all instances that collide with source
      */
     static instanceCollisionLineList(x1,y1,x2,y2,...targets) {
+        var p1 = new EngineLightweightPoint(x1,y1);
+        var p2 = new EngineLightweightPoint(x2,y2);
         var list = [];
         for(const i of targets) {
             var lst = IM.__queryObjects(i);
             for(const inst of lst) {
-                if(inst.hitbox.checkLineCollision(new EngineLightweightPoint(x1,y1),new EngineLightweightPoint(x2,y2)))
+                if(inst.hitbox.checkLineCollision(p1,p2))
                     list.push(inst);
             }
         }

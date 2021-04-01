@@ -421,7 +421,7 @@ class Raindrop extends EngineInstance {
         this.angle = V2D.calcDir(this.dx,this.dy)
         var dist = V2D.calcMag(this.dx,this.dy);
         this.xScale = EngineUtils.clamp(dist/6,0,2)
-        this.hitbox = new Hitbox(this, new RectangleHitbox(this,0,-1,8,1))
+        this.hitbox = new Hitbox(this, new RectangleHitbox(this,0,-1,25,1))
         this.setSprite(new PIXI.Sprite($engine.getRandomTextureFromSpritesheet("rain_sprites")))
         this.yScale = 0.5;
     }
