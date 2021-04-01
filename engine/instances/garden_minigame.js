@@ -234,7 +234,7 @@ class GardenWorm extends EngineInstance {
                 GardenMinigameController.getInstance().shake();
                 this.deathTime = this.wormTimer;
                 this.getSprite().texture = $engine.getTexture("garden_worm_dead");
-                $engine.audioPauseSound("worm_digup");
+                $engine.audioStopSound("worm_digup");
                 $engine.audioPlaySound("worm_kill");
             }
         }else if(IN.keyCheckPressed("Space") && IM.instanceCollisionPoint(GardenMinigameController.getInstance().x,
@@ -243,7 +243,7 @@ class GardenWorm extends EngineInstance {
             GardenMinigameController.getInstance().shake();
             this.deathTime = this.wormTimer;
             this.getSprite().texture = $engine.getTexture("garden_worm_dead");
-            $engine.audioPauseSound("worm_digup");
+            $engine.audioStopSound("worm_digup");
             $engine.audioPlaySound("worm_kill");
         }
 
