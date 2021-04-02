@@ -23,8 +23,9 @@ endblock
 
 block extern text
 <none>
-<none>
-<none>
+__italic[1]A few hours after the battle…\0__italic[0]__portrait[gods_profiles_4]Hey, Eson!__wait[24] Come on in.\0__portrait[eson_profiles_4]__speed[4]You called for me?\0__speed[0]__portrait[gods_profiles_7] Yes, I did!__wait[36] I just got a report from __speed[2]the Big Guys__speed[0],__wait[24] and they are VERY happy with how things turned out today!\0__portrait[eson_profiles_2]Phew! That's great news__speed[12]...__speed[0]__wait[24] So...__wait[24] does...__wait[24] that mean I get to be an angel again? 
+__portrait[gods_profiles_4]Not only that,__wait[24] but I am also promoting you to High Angel status!__wait[36] Here's your honorary badge.\0__portrait[eson_profiles_2]Oh,__wait[24] wow!__wait[36] I'm so honored,__wait[9] thank you so much!
+__italic[1]After leaving the castle, Eson makes their way to the "God Tier Bistro". They cut in line with their head held high and flash their new badge to the host, who finally lets them in.
 <none>
 <none>
 endblock
