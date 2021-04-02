@@ -1,8 +1,10 @@
+// this is a central file for the engine, RPG maker overrides, and any custom code that interacts with the overworld
+
 /** @type {Scene_Engine} */
 var $engine;
 
 /** @type {Object} */
-var $__engineData = {}
+const $__engineData = {}
 $__engineData.__textureCache = {};
 $__engineData.__textureAnimationCache = {};
 $__engineData.__soundCache = {};
@@ -22,7 +24,6 @@ $__engineData.__readyOverride = true;
 $__engineData.__shouldAutoSave = true;
 
 
-
 // things to unbork:
 // re-comment out YEP speech core at 645
 // re-enable custom cursor
@@ -39,7 +40,7 @@ $__engineData.__debugDrawAllHitboxes = false;
 $__engineData.__debugDrawAllBoundingBoxes = false;
 
 /** @type {Object} */
-var $__engineSaveData = {}; // this data is automatically read and written by RPG maker when you load a save.
+const $__engineSaveData = {}; // this data is automatically read and written by RPG maker when you load a save.
 
 $__engineSaveData.__nextStaminaLossKills = false;
 $__engineSaveData.__lastMinigameOutcome = -1;
@@ -54,6 +55,8 @@ $__engineSaveData.__minigames.lossDaily=0;
 $__engineSaveData.__minigames.lossTotal=0;
 $__engineSaveData.__minigames.cheatDaily=0;
 $__engineSaveData.__minigames.cheatTotal=0;
+
+const $__engineGlobalSaveData = {} // data that are saved globally. Loaded at the end of the file because it relies on overrides.
 
 const ENGINE_RETURN = {};
 ENGINE_RETURN.LOSS = 0;
@@ -350,7 +353,7 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
-     * Finds and returns a PIXI.Sound object for playback.
+     * Gets a sound from the cache and returns a PIXI.Sound object for playback.
      * 
      * Note that the returned PIXI sound object should ***ALWAYS*** be
      * played using either audioPlaySound() or audioPlaySoundDirect().
@@ -460,7 +463,7 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
-     * Finds and returns all sounds of that specific type
+     * Finds and returns all playing sounds of that specific type
      * 
      * Type can be one of BGM, BGS, ME, or SE (case sensitive)
      * 
@@ -769,6 +772,18 @@ class Scene_Engine extends Scene_Base {
      */
     disableAutoSave() {
         $__engineData.__shouldAutoSave = false;
+    }
+
+    getEngineGlobalData() {
+        return $__engineGlobalSaveData;
+    }
+
+    saveEngineGlobalData() {
+        StorageManager.save(-2, JSON.stringify($__engineGlobalSaveData));
+    }
+
+    deleteEngineGlobalData() {
+        Object.keys($__engineGlobalSaveData).forEach(x => delete $__engineGlobalSaveData[x])
     }
 
     /**
@@ -2121,6 +2136,39 @@ Game_BattlerBase.prototype.paramMin = function(paramId) {
     return 0;
 };
 
+// add an extra one for the engine specifically
+StorageManager.localFilePath = function(savefileId) {
+    var name;
+    if(savefileId === -2) {
+        name = 'fallenglobal.rpgsave'
+    } else if (savefileId === -1) {
+        name = 'config.rpgsave';
+    } else if (savefileId === 0) {
+        name = 'global.rpgsave';
+    } else {
+        name = 'file%1.rpgsave'.format(savefileId);
+    }
+    return this.localFileDirectoryPath() + name;
+};
+
+StorageManager.webStorageKey = function(savefileId) {
+    if(savefileId === -2) {
+        return 'Fallen Global'
+    } else if (savefileId === -1) {
+        return 'RPG Config';
+    } else if (savefileId === 0) {
+        return 'RPG Global';
+    } else {
+        return 'RPG File%1'.format(savefileId);
+    }
+};
+
+// also save engine data.
+DataManager.saveGlobalInfo = function(info) {
+    StorageManager.save(0, JSON.stringify(info));
+    $engine.saveEngineGlobalData();
+};
+
 // append to the save system.
 {
     let func1 = DataManager.makeSaveContents;
@@ -3141,6 +3189,16 @@ GUIScreen.__saveTextTimer=0;
 GUIScreen.__saveTextStartTime = -1;
 GUIScreen.__saveGameString = "Game saved. . . ";
 GUIScreen.__init();
-//UwU.addRenderListener(GUIScreen.tick);
+// UwU.addRenderListener(GUIScreen.tick);
 document.addEventListener("pointermove", GUIScreen.__mouseMoveHandler); // fix one frame lag.
 UwU.addSceneChangeListener(GUIScreen.__sceneChanged);
+
+// load the engine global save data
+{
+    let json = StorageManager.load(-2);
+    if(json) {
+        json = JSON.parse(json)
+        Object.assign($__engineGlobalSaveData, json);
+    }
+    
+}

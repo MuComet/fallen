@@ -54,8 +54,7 @@ class Hitbox { // container for actual hitboxes
 
     getType() {
         this.__requireValid();
-        // shockingly, was a very slow function.
-        return Number(this.forcePolygon) ? Hitbox.TYPE_POLYGON : Hitbox.TYPE_RECTANGLE; // this.getHitbox().getType();
+        return this.getHitbox().getType();
     }
 
     getHitbox() {

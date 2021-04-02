@@ -70,7 +70,10 @@ class DrawController extends MinigameController { // controls the minigame
 
     calcWin() {
         for(var i = 0;i<3;i++) {
-            this.totalScore+=this.drawings[i].score;
+            if(this.hasCheated())
+                this.totalScore+=this.drawings[i].baseScore;
+            else
+                this.totalScore+=this.drawings[i].score;
         }
         this.totalScore/=3;
         return this.totalScore;
@@ -171,8 +174,12 @@ class DrawController extends MinigameController { // controls the minigame
             //draw.line.distanceText.alpha = 1;
         }
         this.instructiontext.alpha=1;
-        this.instructiontext.text = "Summary: Drawing " + String(ind+1)+" -> Score = " +String(draw.score).substring(0,4) + "\n("+
-                            String(draw.baseScore).substring(0,4)+" accuracy - "+String(draw.basePenalty).substring(0,4) +" extra distance "+")";
+        if(this.hasCheated()) {
+            this.instructiontext.text = "Summary: Drawing " + String(ind+1)+" -> Score = " +String(draw.baseScore).substring(0,4);
+        } else {
+            this.instructiontext.text = "Summary: Drawing " + String(ind+1)+" -> Score = " +String(draw.score).substring(0,4) + "\n("+
+                                String(draw.baseScore).substring(0,4)+" accuracy - "+String(draw.basePenalty).substring(0,4) +" extra distance "+")";
+        }
     }
 
     notifyFramesSkipped(frames) {
@@ -374,7 +381,7 @@ class ShapeToDraw extends EngineInstance {
                 dist = Math.min(dist,EngineUtils.distanceBetweenLines(this.line.points[z],this.line.points[z+1],l3,l4));
             }
             if(dist>=6) {
-                score+=EngineUtils.clamp(1-(dist-6)/6,0,1) // extra dist / 6, 12px away = no points.
+                score+=EngineUtils.clamp(1-(dist-6)/6,0,1) // extra dist / 5, 10px away = no points.
             } else {
                 score++;
             }

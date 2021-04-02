@@ -14,6 +14,11 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 
         this.sharedGlowFilter = new PIXI.filters.GlowFilter();
 
+        this.sharedHealthGlowFilter = new PIXI.filters.GlowFilter();
+        this.sharedHealthGlowFilter.color = 0xff3340;
+        this.sharedHealthGlowFilter.outerStrength = 0;
+        
+
         this.minigameTimer.pauseTimer();
 
         this.cameraScrollSpeedX = 0;
@@ -35,6 +40,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.healthSprites = [];
         for(var i =0;i<this.playerHealth;i++) {
             var spr = $engine.createManagedRenderable(this,new PIXI.Sprite($engine.getTexture("health_point")))
+            spr.filters = [this.sharedHealthGlowFilter]
             spr.x = i*32;
             spr.y = 0;
             this.healthSprites.push(spr);
@@ -69,12 +75,12 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
     }
 
     onEnd(won) {
-        $engine.setTimescale(0);
-        $engine.startFadeOut(120);
-        $engine.audioFadeAll();
-        this.timer.pauseTimer();
-        var cheats = $gameVariables.value(19);
         if(won) {
+            $engine.setTimescale(0);
+            $engine.startFadeOut(120);
+            $engine.audioFadeAll();
+            this.timer.pauseTimer();
+            var cheats = $gameVariables.value(19);
             if(cheats===0) {
                 $engine.setRoom("BestEndingCutsceneRoom"); // no cheat and win
             } else if (cheats>5) {
@@ -83,7 +89,28 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                 $engine.setRoom("GoodEndingCutsceneRoom"); // cheat some and win
             }
         } else {
-            $engine.setRoom("BadEndingCutsceneRoom"); // lose :(
+            var renderTexture = PIXI.RenderTexture.create($engine.getWindowSizeX()*2,$engine.getWindowSizeY()*2);
+            $engine.getRenderer().render($engine,renderTexture,false,null,false); // take a snapshot of the current state.
+            FinalMinigameLoss.texture = renderTexture;
+            FinalMinigameLoss.offsetX = this.player.x-$engine.getWindowSizeX()/2-$engine.getCamera().getX();
+            FinalMinigameLoss.offsetY = this.player.y-this.getCameraTop()-$engine.getWindowSizeY()/2;
+
+            var offsetX = this.player.x - $engine.getCamera().getX();
+            var offsetY = this.player.y - $engine.getCamera().getY();
+            var skew = this.player.getSprite().skew.x;
+            var tex = this.player.getSprite().textures[this.player.getSprite().currentFrame];
+            
+            var playerData = {
+                x:offsetX,
+                y:offsetY,
+                skew:skew,
+                tex:tex,
+            }
+
+            FinalMinigameLoss.playerData = playerData;
+
+            $engine.setRoom("FinalMinigameLossRoom");
+            //$engine.setRoom("BadEndingCutsceneRoom"); // lose :(
         }
     }
 
@@ -104,8 +131,20 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         }
         this.handleCamera();
         this.handleStars();
+        this.handleLife();
         this.sharedTimer++;
         this.sharedPhaseTimer++;
+    }
+
+    handleLife() {
+        if(this.player.timeSinceLastDamage<72) {
+            var check = this.player.timeSinceLastDamage % 12 < 6;
+            this.sharedHealthGlowFilter.outerStrength = check ? 4 : 0;
+            this.sharedHealthGlowFilter.innerStrength = check ? 8 : 0;
+        } else {
+            this.sharedHealthGlowFilter.outerStrength = 0;
+            this.sharedHealthGlowFilter.innerStrength = 0;
+        }
     }
 
     handleStars() {
@@ -449,9 +488,6 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         return $engine.getCamera().getY();
     }
 
-    spawnZones() {
-
-    }
 
     takeDamage(dmg) {
         this.health-=dmg;
@@ -460,9 +496,13 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
     }
 
     checkDeath() {
-        if(this.health<=0) {
+        if(!this.isAlive()) {
             this.onEnd(false);
         }
+    }
+
+    isAlive() {
+        return this.health>0;
     }
 
     shake(frames=18) {
@@ -486,6 +526,42 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 FinalMinigameController.instance = undefined;
 FinalMinigameController.start = function() {
     $engine.setRoom("FinalMinigameRoom");
+}
+
+class BulletClearer extends EngineInstance {
+    onCreate(x,y,radius) {
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.graphics = $engine.createRenderable(this, new PIXI.Graphics());
+        this.timer = 0;
+        this.lifeTime = 48;
+        this.depth = -1;
+    }
+
+    step() {
+        var fac1 = ++this.timer/this.lifeTime
+        var fac2 = EngineUtils.interpolate(fac1,0,this.radius,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+        var fac3 = EngineUtils.interpolate(fac1,1,0,EngineUtils.INTERPOLATE_IN_EXPONENTIAL);
+
+        this.graphics.clear();
+        this.graphics.lineStyle(fac3*4,0xffffff,fac3)
+        this.graphics.drawCircle(this.x,this.y,fac2);
+
+        var xx = this.x;
+        var yy = this.y;
+
+        var fac2Sq = fac2*fac2;
+
+        IM.with(MoveLinearBullet,function(bullet) {
+            if(V2D.distanceSq(xx,yy,bullet.x,bullet.y)<fac2Sq) {
+                bullet.destroy();
+            }
+        });
+
+        if(this.timer>=this.lifeTime)
+            this.destroy();
+    }
 }
 
 class Shootable extends EngineInstance {
@@ -625,7 +701,7 @@ class FinalMingiamePlayer extends EngineInstance {
         this.animationFly = $engine.getAnimation("eson_fly");
         this.animationDodge = $engine.getAnimation("eson_dodge");
         this.setSprite(new PIXI.extras.AnimatedSprite(this.animationFly))
-        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-8,-8,8,8)));
+        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-10,-10,10,10)));
         this.sprite = this.getSprite(); // alias
         this.sprite.animationSpeed = 0.1;
         this.sprite.anchor.y = 0.5;
@@ -644,7 +720,7 @@ class FinalMingiamePlayer extends EngineInstance {
 
         this.iFrames = 0;
 
-        this.timeSinceLastDamange = 99999;
+        this.timeSinceLastDamage = 99999;
         this.damageTintTime = 20;
 
         this.invincibilityFilter = new PIXI.filters.OutlineFilter();
@@ -660,11 +736,12 @@ class FinalMingiamePlayer extends EngineInstance {
         this.weaponLogic();
         this.spriteEffectLogic();
         this.timerLogic();
+        this.depth = -this.y;
     }
 
     timerLogic() {
         this.iFrames--;
-        this.timeSinceLastDamange++;
+        this.timeSinceLastDamage++;
     }
 
     spriteEffectLogic() {
@@ -678,8 +755,8 @@ class FinalMingiamePlayer extends EngineInstance {
             this.invincibilityFilter.thickness=0;
         }
 
-        if(this.timeSinceLastDamange<=this.damageTintTime) {
-            var fac = EngineUtils.interpolate(this.timeSinceLastDamange/this.damageTintTime,0,1,EngineUtils.INTERPOLATE_IN_EXPONENTIAL);
+        if(this.timeSinceLastDamage<=this.damageTintTime) {
+            var fac = EngineUtils.interpolate(this.timeSinceLastDamage/this.damageTintTime,0,1,EngineUtils.INTERPOLATE_IN_EXPONENTIAL);
             var r=0xff, g = 0xff, b = 0xff;
             g = Math.floor(g*fac);
             b = Math.floor(b*fac);
@@ -854,19 +931,23 @@ class FinalMingiamePlayer extends EngineInstance {
         if(this.y > $engine.getWindowSizeY()+oy+playerHeight/2) {
             this.dy = 0;
             this.hurt(1,180, true);
-            this.x = $engine.getWindowSizeX()/2;
-            this.y = $engine.getWindowSizeY()*3/4;
-            this.y+=oy;
+            if(FinalMinigameController.getInstance().isAlive()) {
+                this.x = $engine.getWindowSizeX()/2;
+                this.y = $engine.getWindowSizeY()*3/4;
+                this.y+=oy;
+            }
         }
     }
 
     hurt(dmg,iFrames = 120, force = false) {
         if(!this.canBeHurt() && !force)
             return;
-        $engine.audioPlaySound("final_eson_hit")
         this.iFrames = iFrames
         FinalMinigameController.getInstance().takeDamage(dmg);
-        this.timeSinceLastDamange=0;
+        this.timeSinceLastDamage=0;
+        new BulletClearer(this.x,this.y,425);
+        if(FinalMinigameController.getInstance().isAlive())
+            $engine.audioPlaySound("final_eson_hit")
         
     }
 
@@ -1204,7 +1285,7 @@ class FinalMinigameTarget extends Shootable {
     }
 }
 
-class MoveLinearBullet extends EngineInstance{
+class MoveLinearBullet extends EngineInstance {
 
     onCreate(x,y,direction, speed, anim = "bullet_animation") {
         this.x = x;
@@ -1242,6 +1323,7 @@ class MoveLinearBullet extends EngineInstance{
     }
 
     step() {
+
         this.targetX += this.dx;
         this.targetY += this.dy;
 
@@ -1262,6 +1344,8 @@ class MoveLinearBullet extends EngineInstance{
         if(!this.inBounds())
             this.destroy();
         this.animation.update(1);
+
+        this.depth = -this.y;
     }
 
     inBounds() { // does not work for bullets that go above the screen...
