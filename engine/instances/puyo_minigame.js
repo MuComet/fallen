@@ -82,6 +82,8 @@ class PuyoBoard extends EngineInstance {
         this.columns = [0,0,0,0,0,0]
         this.chainNum = 0
         this.dropRate = 0
+        this.bufferRight = 10
+        this.bufferLeft = 10
         this.droppedColumns = [0,0,0,0,0,0]
         this.bufferChain = 30
         this.dropping = true
@@ -140,6 +142,8 @@ class PuyoBoard extends EngineInstance {
         this.next2[1].setState(1)
         this.orientation = 0
         this.currentX = [2,2]
+        this.bufferRight = 10
+        this.bufferLeft = 10
         this.currentY = [0,1]
         this.placePuyos(1)
         this.state = 1
@@ -152,29 +156,35 @@ class PuyoBoard extends EngineInstance {
     }
 
     placingMode(){
+        this.bufferRight++
+        this.bufferLeft++
+        console.log("Right: " + this.bufferRight)
+        console.log("Left: " + this.bufferLeft)
         if(IN.keyCheck('ArrowDown')){
             this.dropRate+=10
             this.score+=1
         } else {
             this.dropRate++
         }
-        if(IN.keyCheckPressed('ArrowRight')){
-            if(this.movePossible(0)){
+        if(IN.keyCheck('ArrowRight')){
+            if(this.movePossible(0) && this.bufferRight >= 10){
                 this.removePuyos(0)
                 this.currentX[0]++
                 this.currentX[1]++
                 this.placePuyos(1)
+                this.bufferRight = 0
             }
-        } else if(IN.keyCheckPressed('ArrowLeft')){
-            if(this.movePossible(1)){
+        } else if(IN.keyCheck('ArrowLeft')){
+            if(this.movePossible(1) && this.bufferLeft >= 10){
                 this.removePuyos(0)
                 this.currentX[0]--
                 this.currentX[1]--
                 this.placePuyos(1)
+                this.bufferLeft = 0
             }
-        } else if(IN.keyCheckPressed('KeyZ')){
+        } if(IN.keyCheckPressed('KeyX')){
             this.rotateController(0)
-        } else if(IN.keyCheckPressed('KeyX')){
+        } else if(IN.keyCheckPressed('KeyZ')){
             this.rotateController(1)
         }
         if(this.dropRate>=30){
