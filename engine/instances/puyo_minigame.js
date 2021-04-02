@@ -158,8 +158,6 @@ class PuyoBoard extends EngineInstance {
     placingMode(){
         this.bufferRight++
         this.bufferLeft++
-        console.log("Right: " + this.bufferRight)
-        console.log("Left: " + this.bufferLeft)
         if(IN.keyCheck('ArrowDown')){
             this.dropRate+=10
             this.score+=1
@@ -248,6 +246,7 @@ class PuyoBoard extends EngineInstance {
             }
             var j = 0
             while(j < droppedColumns[i]){
+                console.log("currentRow: " + currentRow)
                 if(this.board[currentRow][i].getState()!=0 && hole != currentRow){
                     this.board[hole][i].setPuyo(this.board[currentRow][i].getPuyo());
                     this.board[hole][i].setState(2);
@@ -497,8 +496,8 @@ class BoardSpace extends EngineInstance {
         this.yScale = 0.1;
         this.state = 0;
         this.puyo = null;
-        this.x = x*30;
-        this.y = y*30;
+        this.x = $engine.getWindowSizeX()/2+(x-5)*35;
+        this.y = $engine.getWindowSizeY() - ((16-y)*35);
         this.setSprite(new PIXI.Sprite(PIXI.Texture.empty))
     }
 
