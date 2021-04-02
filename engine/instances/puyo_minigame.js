@@ -118,14 +118,16 @@ class PuyoBoard extends EngineInstance {
                 }
             }
         }
-        if(this.state == 0){
-            this.resetValues()
-        }
-        if(this.state == 1){
-            this.placingMode()
-        }
-        if(this.state == 2){
-            this.chainMode();
+        if(!PuyoMinigameController.getInstance().minigameOver()){
+            if(this.state == 0){
+                this.resetValues()
+            }
+            if(this.state == 1){
+                this.placingMode()
+            }
+            if(this.state == 2){
+                this.chainMode();
+            }
         }
     }
 
