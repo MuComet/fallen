@@ -101,19 +101,21 @@ class PuyoBoard extends EngineInstance {
     //orientation = 3 means horizontal, pivot puyo right
 
     step() {
-        if(this.state == 0 && PuyoMinigameController.getInstance().getTimer().isTimerDone()){
-            if(this.score >= 4){
-                PuyoMinigameController.getInstance().endMinigame(true)
-            } else {
-                PuyoMinigameController.getInstance().endMinigame(false)
+        if(this.state == 0){
+            if(PuyoMinigameController.getInstance().getTimer().isTimerDone()){
+                if(this.score >= 4){
+                    PuyoMinigameController.getInstance().endMinigame(true)
+                } else {
+                    PuyoMinigameController.getInstance().endMinigame(false)
+                }
             }
-        }
-        if(this.board[1][2].getState()==2){
-            if(this.score >= 4){
-                PuyoMinigameController.getInstance().endMinigame(true)
-            }
-            else{
-                PuyoMinigameController.getInstance().endMinigame(false)
+            if(this.board[1][2].getState()==2){
+                if(this.score >= 4){
+                    PuyoMinigameController.getInstance().endMinigame(true)
+                }
+                else{
+                    PuyoMinigameController.getInstance().endMinigame(false)
+                }
             }
         }
         if(this.state == 0){
