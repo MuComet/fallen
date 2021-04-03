@@ -23,10 +23,10 @@ block extern music
 endblock
 
 block extern text
-<none>
-<none>
-<none>
-<none>
-<none>
+__wait[36]__italic[1]Eson emerges from battle victorious! Tired and bruised, they fall to the ground to rest when the Sky God's castle catches their eye. An idea pops up in their head.
+__portrait[eson_profiles_3]The Sky God__wait[24] is still stuck on earth__speed[12]...
+__speed[0]__wait[36]Inside the super secret saferoom, Eson makes no hesitation. With swift hands, they grab the glowing orb and hold it to their chest.
+__italic[0]__portrait[gods_profiles_7]WHAT__wait[24] HAVE__wait[24] YOU__wait[24] DONE__wait[24]?
+__wait[36]__italic[1]An evil smile spreads across a transformed Eson's face as they transform into a powerful "god".
 <none>
 endblock
