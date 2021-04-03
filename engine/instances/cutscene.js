@@ -628,7 +628,7 @@ class TextBox extends EngineInstance {
 
     _clearRenderTextureMask() {
         this.renderTextureGraphics.beginFill(0);
-        this.renderTextureGraphics.drawRect(-this.x,-this.y+$engine.getWindowSizeY()-this.textBoxHeight*2,$engine.getWindowSizeX()+128,this.textBoxHeight*4);
+        this.renderTextureGraphics.drawRect(-128,-this.y+$engine.getWindowSizeY()-this.textBoxHeight*2,$engine.getWindowSizeX()+256,this.textBoxHeight*4);
         this.renderTextureGraphics.endFill();
         $engine.getRenderer().render(this.renderTextureGraphics,this.textBoxRenderTexture,false,null,false);
     }
