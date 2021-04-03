@@ -2,7 +2,7 @@
 //$__engineData.loadRoom = "GardenRoom"
 //$__engineData.loadRoom = "WaterRoom"
 //$__engineData.loadRoom = "BadEndingCutsceneRoom"
-$__engineData.loadRoom = "EvilEndingCutsceneRoom"
+$__engineData.loadRoom = "GoodEndingCutsceneRoom"
 //$__engineData.loadRoom = "DrawingMinigame2"
 //$__engineData.loadRoom = "MazeRoom"
 //$__engineData.loadRoom = "PuyoRoom"
