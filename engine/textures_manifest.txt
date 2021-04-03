@@ -36,10 +36,10 @@ spritesheet dimensions 4080 624 5 1 best_ending_cutscene_sheet engine/textures/c
 require spritesheet dimensions 576 576 4 4 limit 4 4 4 4 eson_profiles engine/textures/cutscenes/eson_profiles.png 0.5 0.5
 require spritesheet dimensions 576 288 4 2 gods_profiles engine/textures/cutscenes/profiles_gods.png 0.5 0.5
 
+require text_box engine/textures/generic/text_box.png 0 1
+
 spritesheet dimensions 48 24 4 2 leaf_particles_small engine/textures/generic/leaf_particles_smol_sheet.png 0.5 0.5
 spritesheet dimensions 300 100 3 1 dust_particles engine/textures/particle/dust_particle_sheet.png 0.5 0.5
-
-text_box engine/textures/generic/text_box.png 0 1
 
 button_cheat_1 engine/textures/buttons/button_cheat.png 0.5 0.5
 button_cheat_2 engine/textures/buttons/button_cheat_down.png 0.5 0.5
@@ -55,7 +55,7 @@ spritesheet dimensions 2448 624 3 1 minigame_graphics engine/textures/minigames/
 minigame_mouse_graphic engine/textures/minigames/minigame_icon_start1.png 0.5 0.5
 minigame_keyboard_graphic engine/textures/minigames/minigame_icon_start2.png 0.5 0.5
 
-arrow engine/textures/generic/arrow.png 0 0.5
+require arrow engine/textures/generic/arrow.png 0 0.5
 black_square engine/textures/generic/black_square.png 0.5 0.5
 
 spritesheet dimensions 75 9 3 1 rain_sprites engine/textures/umbrella/rain_sprites.png 0 0.5

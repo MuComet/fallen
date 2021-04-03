@@ -636,6 +636,8 @@ class TextBox extends EngineInstance {
     _prepareTextBox() {
         if(this.textWaitTimer>0) {
             this.textWaitTimer--;
+            if(this.textWaitTimer===0)
+                while(this._preProcessText()); // account for break
             return;
         }
         this.textBoxFactor = EngineUtils.interpolate(++this.showTextBoxTimer/this.showTextBoxTime,0,1,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
@@ -773,7 +775,7 @@ class TextBox extends EngineInstance {
         return false;
     }
 
-    _tryParseCommand() {
+    _tryParseCommand() { // returns true if there was a command
         if(this.currentText[this.walkingTextIndex]!=='_')
             return false;
         var txt = this.currentText.substring(this.walkingTextIndex);
