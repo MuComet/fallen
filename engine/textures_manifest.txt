@@ -34,7 +34,7 @@ spritesheet dimensions 4080 624 5 1 best_ending_cutscene_sheet engine/textures/c
 
 
 require spritesheet dimensions 576 576 4 4 limit 4 4 4 4 eson_profiles engine/textures/cutscenes/eson_profiles.png 0.5 0.5
-require spritesheet dimensions 576 288 4 2 gods_profiles engine/textures/cutscenes/profiles_gods.png 0.5 0.5
+require spritesheet dimensions 720 432 5 3 limit 4 5 2 gods_profiles engine/textures/cutscenes/profiles_gods.png 0.5 0.5
 
 require text_box engine/textures/generic/text_box.png 0 1
 
