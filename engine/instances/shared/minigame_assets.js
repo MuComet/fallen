@@ -9,23 +9,10 @@ class MinigameTimer extends EngineInstance {
     }
 
     onCreate(frames, graphicIndex = 0) {
-        this.timerGraphic = undefined;
-        var textures = ["bar_standard_top","bar_standard_top","bar_standard_top", "bar_standard","bar_health","bar_time"]
-        this.timerGraphic = $engine.createManagedRenderable(this,new PIXI.Sprite()); // container
-        this.timerBar = $engine.createManagedRenderable(this,new PIXI.Sprite($engine.getTexture(textures[graphicIndex])))
-        this.fillGraphics = $engine.createManagedRenderable(this,new PIXI.Graphics());
-        this.fillGraphics.beginFill(0xff0000);
-        this.fillGraphics.drawRect(-16,-16,32,32)
-        this.fillGraphics.endFill();
-
-        this.timerGraphic.addChild(this.fillGraphics);
-        this.timerGraphic.addChild(this.timerBar)
-        this.timerGraphic.x = $engine.getWindowSizeX()/2;
-        if(graphicIndex <=2) {
-            this.timerGraphic.y = 0;
-        }else{
-            this.timerGraphic.y = $engine.getWindowSizeY();
-        }
+        this.timerBarGraphic = new ProgressBar(frames, graphicIndex);
+        this.timerBarGraphic.setAutoRender(false);
+        this.timerBarGraphic.setAutoText(false);
+        this.timerTextGraphic = undefined;
 
         this.timerDone = false;
         this.isPaused = false;
@@ -36,7 +23,7 @@ class MinigameTimer extends EngineInstance {
         this.gameOverText = "GAME OVER";
         this.gameCompleteText = "GAME COMPLETE";
 
-        this.timerTextPrepend = "TIME REMAINING: ";
+        this.timerTextPrepend = "";//"TIME REMAINING: ";
 
         this.usingEndText = true;
 
@@ -60,7 +47,7 @@ class MinigameTimer extends EngineInstance {
             this.timerText.anchor.x=0.5
             this.timerText.x = $engine.getWindowSizeX()/2;
             this.timerText.y = 40;
-            this.timerGraphic = this.timerText
+            this.timerTextGraphic = this.timerText
             this._updateText();
         }
         this.textMode = true;
@@ -94,7 +81,6 @@ class MinigameTimer extends EngineInstance {
             this._checkIsTimeUp();
             this.timer--;
         }
-        this.timerGraphic.alpha = this.alpha
         this._handleCreationAnimation();
     }
 
@@ -128,6 +114,8 @@ class MinigameTimer extends EngineInstance {
     // inverts the timer's behaviours. now when the timer expires, it is counted as a win.
     setSurvivalMode() {
         this.survivalMode = true;
+        this.timerBarGraphic.setAlternateTint(0x80aa62)
+        this.timerBarGraphic.setBarColour(0x80aa62);
     }
 
     isSurvivalMode() {
@@ -159,15 +147,25 @@ class MinigameTimer extends EngineInstance {
     }
 
     _updateText() {
+        this.timerText.text = this._getText();
+    }
+
+    _updateSprite() {
+        var time = this.timer;
+        if(time<0)
+            time = 0;
+        this.timerBarGraphic.setValue(time);
+        this.timerBarGraphic.setText(this._getText())
+        if(time < 300 && !this.survivalMode) // less than 5 seconds
+            this.timerBarGraphic.setFlashing(true);
+    }
+
+    _getText() {
         var time = this.timer;
         if(time<0)
             time = 0;
         var strEnd = String(EngineUtils.roundMultiple((time%60)/60,0.01))+"000"
-        this.timerText.text = this.timerTextPrepend + String(Math.floor(time/60) +":"+strEnd.substring(2,4))
-    }
-
-    _updateSprite() {
-
+        return this.timerTextPrepend + String(Math.floor(time/60) +":"+strEnd.substring(2,4))
     }
 
     _checkIsTimeUp() {
@@ -258,35 +256,39 @@ class MinigameTimer extends EngineInstance {
     }
 
     setLocation(x,y) {
-        this.timerGraphic.x = x;
-        this.timerGraphic.y = y;
+        if(this.textMode) {
+            this.timerTextGraphic.x = x;
+            this.timerTextGraphic.y = y;
+        } else {
+            this.timerBarGraphic.x = x;
+            this.timerBarGraphic.y = y;
+        }
     }
 
     setX(x) {
-        this.setLocation(x,this.timerGraphic.y);
+        this.setLocation(x,this.timerBarGraphic.y);
     }
 
     setY(y) {
-        this.setLocation(this.timerGraphic.x,y);
+        this.setLocation(this.timerBarGraphic.x,y);
     }
 
-    setAnchor(x,y) {
-        this.timerGraphic.anchor.set(x,y);
+    getTimerBar() {
+        return this.timerBarGraphic;
     }
 
     draw(gui, camera) {
         if(this.visible) {
-            $engine.requestRenderOnCameraGUI(this.timerGraphic);
+            if(this.textMode) {
+                this.timerTextGraphic.alpha = this.alpha
+                $engine.requestRenderOnCameraGUI(this.timerTextGraphic);
+            } else {
+                this.timerBarGraphic.getContainer().alpha = this.alpha
+                $engine.requestRenderOnCameraGUI(this.timerBarGraphic.getContainer());
+            }
         }
     }
-
 }
-MinigameTimer.GRAPHIC_STANDARD_TOP = 0;
-MinigameTimer.GRAPHIC_HEALTH_TOP = 1;
-MinigameTimer.GRAPHIC_TIME_TOP = 2;
-MinigameTimer.GRAPHIC_STANDARD = 3;
-MinigameTimer.GRAPHIC_HEALTH = 4;
-MinigameTimer.GRAPHIC_TIME = 5;
 
 /**
  * Overwrites:
@@ -527,7 +529,7 @@ class MinigameController extends EngineInstance {
             throw new Error("Timer already exists, use getTimer() to adjust the timer!");
         this._timer = new MinigameTimer(frames,graphic);
         this._timer.addOnTimerStopped(this,this._onMinigameEnd)
-        this._timer.setTextMode();
+        //this._timer.setTextMode();
         if(this.isPregame())
             this._timer.pauseTimer();
     }
@@ -670,7 +672,7 @@ class MinigameController extends EngineInstance {
                 this.adjustmentFilter.saturation = fac;
                 $engine.setTimescale(fac)
                 if(this._timer)
-                    this._timer.timerGraphic.alpha = fac // set directly because timescale.
+                    this._timer.timerBarGraphic.alpha = fac // set directly because timescale.
             } else {
                 if(this._timer)
                     this._timer.alpha = fac;
@@ -1328,5 +1330,233 @@ class ParallaxingBackground extends EngineInstance {
             }
         }
     }
+}
+
+class ProgressBar extends EngineInstance {
+    onCreate(max, type = ProgressBar.TIME, floating = false) {
+
+        // precalculated.
+        if(type === ProgressBar.TIME) {
+            this.offsetX = 182 - 816/2;
+            this.offsetY = 46
+
+            this.totalHeight = 33;
+            this.totalWidth = 475;
+        } else {
+            this.offsetX = 197 - 816/2;
+            this.offsetY = 46
+
+            this.totalHeight = 33;
+            this.totalWidth = 460;
+        }
+
+        this.type = type;
+        var sprite = $engine.getTexture("bar_sheet_"+String(type));
+        var mask = $engine.getTexture("bar_sheet_2");
+        this.spriteMain = $engine.createManagedRenderable(this, new PIXI.Sprite(sprite));
+        this.spriteMask = $engine.createManagedRenderable(this, new PIXI.Sprite(mask));
+
+        this.spriteMain.anchor.x = 0.5;
+        this.spriteMask.anchor.x = 0.5;
+
+        // the bar itself
+        this.container = $engine.createManagedRenderable(this, new PIXI.Sprite());
+        this.container.x = 816/2;
+
+        // the fill of the bar, generally a Graphics.
+        this.fillContianer = $engine.createManagedRenderable(this, new PIXI.Sprite());
+        this.fillGraphics = $engine.createManagedRenderable(this, new PIXI.Graphics());
+        this.fillGraphicsMask = $engine.createManagedRenderable(this, new PIXI.Graphics()); // mirrors the fillGraphics, meant for masking.
+
+        this.fillContianer.addChild(this.fillGraphics, this.fillGraphicsMask);
+
+        this.text1 = $engine.createManagedRenderable(this, new PIXI.Text("",$engine.getDefaultSubTextStyle()));
+        this.text2 = $engine.createManagedRenderable(this, new PIXI.Text("",$engine.getDefaultSubTextStyle()));
+
+        // text1 is drawn behind the progress bar fill
+        this.text1.anchor.set(0.5);
+        this.text1.y = this.offsetY+this.totalHeight/2;
+        this.text1.tint = 0xff2424
+
+        // text2 is drawn on top of the progress bar fill, and it masked by it
+        this.text2.anchor.set(0.5);
+        this.text2.y = this.offsetY+this.totalHeight/2;
+
+        this.text2.mask = this.fillGraphicsMask;
+
+        this.zoneSprite = $engine.createRenderable(this, new PIXI.extras.TilingSprite($engine.getTexture("zone_restart"),this.totalWidth+128,this.totalHeight))
+        this.zoneSprite.y = this.offsetY;
+        this.zoneSprite.mask = this.fillGraphicsMask;
+        this.zoneSprite.alpha = 0.15;
+        this.zoneSprite.tint = 0;
+
+        this.flashFilter = new PIXI.filters.GlowFilter();
+        this.flashFilter.color = 0xd56058;
+        this.flashFilter.innerStrength = 0;
+        this.flashFilter.outerStrength = 0;
+
+        this.text1.filters = [this.flashFilter];
+        this.spriteMain.filters = [this.flashFilter];
+
+        this.container.addChild(this.text1, this.fillContianer, this.zoneSprite, this.text2, this.spriteMask, this.spriteMain);
+
+        this.barColour=0xd56058;
+
+        this.fillContianer.mask = this.spriteMask; // mask the contianer with the sprite.
+
+        this.currentValue = max;
+        this.maxValue = max;
+
+        this.pixelsPerPoint = this.totalWidth/max;
+
+        this.targetLocation=this.totalWidth;
+        this.actualLocation=this.totalWidth;
+
+        this.flashing = false;
+        this.flashTimer = 0;
+
+        this.floating = floating;
+
+        this.floatingFactor = 0.2;
+
+        this.shouldAutoRender=true;
+        this.autoText=true;
+
+        this._redrawBar();
+    }
+
+    setMax(max) {
+        this.maxValue = max;
+        this.pixelsPerPoint = this.totalWidth/max;
+        this.targetLocation = this.pixelsPerPoint * this.currentValue;
+        if(!this.floating)
+            this._redrawBar();
+    }
+
+    setValue(current) {
+        this.currentValue=current;
+        this.targetLocation = this.pixelsPerPoint * this.currentValue;
+        if(!this.floating)
+            this._redrawBar();
+    }
+
+    /**
+     * @returns Normalized progress value
+     */
+    getProgress() {
+        return this.currentValue/this.maxValue;
+    }
+
+    setAutoRender(bool) {
+        this.shouldAutoRender = bool;
+    }
+
+    setAutoText(bool) {
+        this.autoText=bool;
+    }
+
+    /**
+     * Sets the current text of the progress bar. If auto text is on, it will be turned off.
+     * 
+     * @param {String} text The text to place on the progress bar
+     */
+    setText(text) {
+        this.setAutoText(false);
+        this.text1.text = text;
+        this.text2.text = text;
+    }
+
+    /**
+     * Sets the floating status of the bar. if the bar is floating, then it will gradually move to the correct location.
+     * @param {Boolean} bool Whether or not to set the bar to be floating
+     */
+    setFloating(bool) {
+        this.floating=bool;
+        if(bool) {
+            var loc = this.pixelsPerPoint * this.currentValue;
+            this.targetLocation=loc;
+            this.actualLocation=loc;
+        }
+    }
+
+    /**
+     * Sets the floating factor of the bar. Every frame the bar will move by this much % (normalized)
+     * to the target amount.
+     * 
+     * If the bar is not currently floating, it will become floating.
+     * 
+     * @param {Number} factor The new factor
+     */
+    setFloatingFactor(factor) {
+        this.floatingFactor=factor;
+        if(!this.floating)
+            this.setFloating(true);
+    }
+
+    setFlashing(bool) {
+        this.flashing = bool;
+        if(!bool) {
+            this.flashFilter.outerStrength=0;
+            this.flashFilter.innerStrength=0;
+        }
+    }
+
+    setBarColour(colour) {
+        this.barColour = colour;
+    }
+
+    setAlternateTint(tint) {
+        this.text1.tint = tint;
+    }
+
+    /**
+     * 
+     * @returns {PIXI.Sprite} The Sprite resonsible for rendering this bar.
+     */
+    getContainer() {
+        return this.container;
+    }
+
+    _redrawBar() {
+        this.fillGraphics.clear();
+        this.fillGraphicsMask.clear();
+        if(!this.floating) {
+            this.fillGraphics.beginFill(this.barColour);
+            this.fillGraphics.drawRect(this.offsetX, this.offsetY,this.targetLocation,this.totalHeight);
+            this.fillGraphicsMask.beginFill(0xffffff);
+            this.fillGraphicsMask.drawRect(this.offsetX, this.offsetY,this.targetLocation,this.totalHeight);
+        } else {
+            var diff = (this.actualLocation-this.targetLocation)*this.floatingFactor;
+            this.actualLocation-=diff;
+            this.fillGraphics.beginFill(this.barColour);
+            this.fillGraphics.drawRect(this.offsetX, this.offsetY,this.actualLocation,this.totalHeight);
+            this.fillGraphicsMask.beginFill(0xffffff);
+            this.fillGraphicsMask.drawRect(this.offsetX, this.offsetY,this.actualLocation,this.totalHeight);
+        }
+
+        if(this.autoText) {
+            var prog = this.getProgress()*100;
+            var value = String(prog).substring(0,prog >= 10 ? 5 : 4); // two decimals of percision
+            this.text1.text = value;
+            this.text2.text = value;
+        }
+
+        if(this.flashing) {
+            var check = $engine.getGameTimer() % 18 < 9;
+            var value = check ? 0 : 1;
+            this.flashFilter.innerStrength=value;
+            this.flashFilter.outerStrength=value;
+        }
+
+        this.zoneSprite.tilePosition.x = $engine.getGameTimer()/2;
+    }
+
+    draw(gui, camera) {
+        this._redrawBar();
+        if(this.shouldAutoRender)
+            $engine.requestRenderOnCameraGUI(this.container)
+    }
 
 }
+ProgressBar.TIME = 0;
+ProgressBar.HEALTH = 1;

@@ -87,6 +87,7 @@ class EngineInstance {
         if(!this.__hasSprite) 
             return;
         $engine.removeRenderable(this.__sprite);
+        this.__hasSprite=false;
     }
 
     /**
