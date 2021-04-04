@@ -18,6 +18,7 @@ $__engineData.__cheatWriteBackValue = -1
 $__engineData.cheatWriteBackIndex = -1;
 $__engineData.autoSetWriteBackIndex = -1;
 $__engineData.loadRoom = "MenuIntro";
+$__engineData.__staminaCost = -1;
 $__engineData.__lowPerformanceMode = false;
 $__engineData.__overrideRoom = undefined;
 $__engineData.__readyOverride = true;
@@ -46,6 +47,7 @@ $__engineSaveData.__nextStaminaLossKills = false;
 $__engineSaveData.__lastMinigameOutcome = -1;
 $__engineSaveData.__mapData={};
 $__engineSaveData.day=0;
+$__engineSaveData.difficulty=1; // default to easy mode
 
 $__engineSaveData.__minigames = {};
 $__engineSaveData.__minigames.minigamesTotal=0;
@@ -74,6 +76,22 @@ const SET_ENGINE_RETURN = function(indexOutcome, indexCheat, indexWriteAutoSet =
     $__engineData.outcomeWriteBackIndex = indexOutcome;
     $__engineData.cheatWriteBackIndex = indexCheat;
     $__engineData.autoSetWriteBackIndex = indexWriteAutoSet;
+}
+
+const SET_ENGINE_COST = function(cost) {
+    var difficulty = $__engineSaveData.difficulty;
+    if(difficulty===0) { // easy mde
+        if(cost%10===5)
+            cost-=5;
+        $__engineData.__staminaCost = cost / 2;
+    } else if (difficulty===1) { // standard mode
+        $__engineData.__staminaCost = cost;
+    } else if (difficulty===2) { // hard mode
+        $__engineData.__staminaCost = cost * 2;
+    } else {
+        throw new Error("Engine difficulty not set.")
+    }
+    
 }
 
 const ENGINE_START = function() {
@@ -858,6 +876,16 @@ class Scene_Engine extends Scene_Base {
     }
 
     __writeBack() {
+
+        // handle stamina outcome.
+        if($__engineData.__outcomeWriteBackValue===ENGINE_RETURN.LOSS) {
+            $gameVariables.setValue(40,$__engineData.__staminaCost)
+        } else {
+            $gameVariables.setValue(40,0);
+        }
+        $__engineData.__staminaCost=0;
+
+        // handle outcome
         if($__engineData.outcomeWriteBackIndex!==-1) {
             if($__engineData.__outcomeWriteBackValue<0)
                 throw new Error("Engine expects a non negative outcome write back value");
@@ -866,15 +894,16 @@ class Scene_Engine extends Scene_Base {
             $__engineData.outcomeWriteBackIndex=-1; // reset for next time
             $__engineData.__outcomeWriteBackValue=-1;
         }
+        // handle cheat
         if($__engineData.cheatWriteBackIndex!==-1) { 
-            if($__engineData.cheatWriteBackIndex<0)
+            if($__engineData.cheatWriteBackValue<0)
                 throw new Error("Engine expects a non negative cheat write back value");
             $gameVariables.setValue($__engineData.cheatWriteBackIndex,$__engineData.__cheatWriteBackValue);
             $__engineData.cheatWriteBackIndex=-1;
             $__engineData.__cheatWriteBackValue=-1;
         }
-        // this is a special write back that the engine will always write 1 back to. This is useful
-        // to indicate whether or not the engine ran
+        // this is a special write back that the engine will always write 1 back to. Basically just a shortcut for overworld
+        // developers so that they don't have to set a "played" value using RPG maker
         if($__engineData.autoSetWriteBackIndex!==-1) { 
             $gameVariables.setValue($__engineData.autoSetWriteBackIndex,1);
             $__engineData.autoSetWriteBackIndex=-1;
@@ -901,6 +930,18 @@ class Scene_Engine extends Scene_Base {
         }
     }
 
+    __checkDeath() {
+        var hp = $__engineSaveData.__currentHealth;
+        var diff = $gameVariables.value(40);
+        var lastStand = $__engineSaveData.__nextStaminaLossKills;
+        var after = hp-diff;
+        if(after<=0 && lastStand) { // don't bother returning, just game over immediately.
+            OwO.__gameLoss();
+            return true;
+        }
+        return false;
+    }
+
     clearDailyOutcomes() {
         var data = $__engineSaveData.__minigames;
         data.lossDaily=0;
@@ -913,16 +954,18 @@ class Scene_Engine extends Scene_Base {
     }
     
     /**
-     * RPG maker functions, do not call. if you want to end the game, use endGame().
+     * RPG maker functions, do not call. If you want to end the game, use endGame().
      */
     terminate() {
         super.terminate()
         this.__cleanup();
         this.__recordOutcome();
         this.__writeBack();
-        this.__resumeAudio();
-        if($__engineData.__shouldAutoSave)
-            this.saveGame(); // save the game
+        if(!this.__checkDeath()) {
+            this.__resumeAudio();
+            if($__engineData.__shouldAutoSave)
+                this.saveGame(); // save the game
+        }
 
         $__engineData.__shouldAutoSave=true;
         $__engineData.__haltAndReturn=false;
@@ -953,7 +996,7 @@ class Scene_Engine extends Scene_Base {
 
         var simulatedOnce = this.__timescaleFraction-1>=0;
 
-        if(!simulatedOnce && this.__timescale===0) // timescale aligned, unless timescale is zero
+        if(!simulatedOnce && this.__timescale===0) // Input is timescale aligned, unless timescale is zero, then it's frame aligned (this call)
             IN.__update();
 
         while(this.__timescaleFraction-1>=0) {
@@ -1259,8 +1302,8 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
-     * This function does nothing productive, but is used infrequently enough and could
-     * ultimately support more functions later that it's worth using.
+     * This function rebuilds all the indexes of renderables for a specific parent, which fixes the draw order if a renderable
+     * index was changed.
      * 
      * @param {EngineInstance} parent The instance which owns the renderables.
      */
@@ -1368,7 +1411,7 @@ class Scene_Engine extends Scene_Base {
                 if(d===0) {
                     var d2 = (x.id-y.id); // next, try instance creation order
                     if(d2===0) {
-                        return a.__idx - b.__idx; // finally, the renderable creation order
+                        return a.__idx - b.__idx; // finally, the renderable order
                     }
                     return d2;
                 }
@@ -2224,7 +2267,18 @@ DataManager.saveGlobalInfo = function(info) {
         if(!this._buyWindow.active)
             SceneManager.pop();
     }
+}
 
+// webGL context loss can sometimes happen (specifically in drawing minigame).
+{
+    let oldFunc = Graphics._createCanvas;
+    Graphics._createCanvas = function() {
+        oldFunc.call(this);
+        this._canvas.addEventListener("webglcontextlost",function(event) {
+            event.preventDefault();
+            throw new Error("WebGL rendering context lost. Please refresh the page.\nIf you are consistently experiencing this, please report it to the developers.")
+        },false);
+    }
 }
 
 
@@ -2427,6 +2481,7 @@ class OwO {
             }
         }
         colFilter.saturation = EngineUtils.interpolate(newHealth/100,0,1,EngineUtils.INTERPOLATE_OUT_QUAD)
+        $__engineSaveData.__currentHealth = newHealth; // save the health, since it's unavailable during map.
     }
 
     static __gameLoss() {

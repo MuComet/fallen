@@ -177,15 +177,13 @@ class IM {
 
     // does not actually render anything to the canvas, but is called in sorted order.
     static __draw() {
-        $engine.getCamera().getCameraGraphics().clear();
-        $engine.__GUIgraphics.clear();
+        var gui = $engine.__GUIgraphics;
+        var camera = $engine.getCamera().getCameraGraphics();
+        gui.clear();
+        camera.clear();
         for(const obj of IM.__objects)
-            obj.draw($engine.__GUIgraphics, $engine.getCamera().getCameraGraphics());
+            obj.draw(gui, camera);
     } 
-
-    static __sort() {
-        IM.__objectsSorted.sort(IM.__instanceSort)
-    }
 
     static __instanceSort(x,y) {
         var d = (y.depth - x.depth);
@@ -241,18 +239,6 @@ class IM {
 
     static __oidFrom(cl) {
         return cl.__oid;
-    }
-
-    static __children(oid) {
-        var obj = IM.__childMap[oid];
-        return IM.__childrenDFS([],obj);
-    }
-
-    static __childrenDFS(list, obj) {
-        list.push(obj.__oid);
-        if(obj.__children !== undefined)
-            obj.__children.forEach(x=>IM.__childrenDFS(list,x));
-        return list;
     }
 
     static __addToWorld(inst) {
