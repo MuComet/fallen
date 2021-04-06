@@ -15,7 +15,7 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
 
         // instructions
 
-        var text = new PIXI.Text("Place 4 same-coloured blobs in a group to pop them.\nTry to get a score of 2500 or more!\n Rotate with Z and X and move with the arrow keys.\nPress Enter to cheat!",$engine.getDefaultTextStyle())
+        var text = new PIXI.Text("Place 4 same-coloured blobs in a group to pop them.\nTry to get a score of 2424 or more!\n Rotate with Z and X and move with the arrow keys.\nPress Enter to cheat!",$engine.getDefaultTextStyle())
 
         this.setInstructionRenderable(text)
         this.setControls(true,false);
@@ -103,14 +103,14 @@ class PuyoBoard extends EngineInstance {
     step() {
         if(this.state == 0){
             if(PuyoMinigameController.getInstance().getTimer().isTimerDone()){
-                if(this.score >= 2500){
+                if(this.score >= 2424){
                     PuyoMinigameController.getInstance().endMinigame(true)
                 } else {
                     PuyoMinigameController.getInstance().endMinigame(false)
                 }
             }
             if(this.board[1][2].getState()==2){
-                if(this.score >= 2500){
+                if(this.score >= 2424){
                     PuyoMinigameController.getInstance().endMinigame(true)
                 }
                 else{
