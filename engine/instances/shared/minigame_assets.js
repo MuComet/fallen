@@ -639,7 +639,8 @@ class MinigameController extends EngineInstance {
     }
 
     _minigameControllerTick() {
-        if(!this.failedMinigame && ! this.wonMinigame && !this.showingInstructions && this.cheatKeyActive && this.allowActivateCheat && IN.keyCheckPressed(this.cheatKey)) {
+        if(!this.failedMinigame && ! this.wonMinigame && !this.showingInstructions && 
+                !this.showingPressAnykey && this.cheatKeyActive && this.allowActivateCheat && IN.keyCheckPressed(this.cheatKey)) {
             this.cheat();
         }
         this._handleInstruction();
@@ -1144,8 +1145,8 @@ class MinigameController extends EngineInstance {
         var len = (this.cheatTimerLength+60)
         var fac2 = EngineUtils.interpolate(Math.abs((this.cheatTimer / (len/2))-1),0.075,1,EngineUtils.INTERPOLATE_IN)
         var fac = EngineUtils.interpolate(this.cheatTimer / len,0,1,EngineUtils.INTERPOLATE_SMOOTH);
-        this.musicCheat.volume = fac*fac2;
-        this.musicStandard.volume = (1-fac)*fac2;
+        $engine.audioSetVolume(this.musicCheat, fac*fac2);
+        $engine.audioSetVolume(this.musicStandard, (1-fac)*fac2);
         
     }
 
