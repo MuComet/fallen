@@ -380,8 +380,8 @@ class ShapeToDraw extends EngineInstance {
             for(var z =0;z<this.line.points.length-1;z++) {
                 dist = Math.min(dist,EngineUtils.distanceBetweenLines(this.line.points[z],this.line.points[z+1],l3,l4));
             }
-            if(dist>=6) {
-                score+=EngineUtils.clamp(1-(dist-6)/6,0,1) // extra dist / 5, 10px away = no points.
+            if(dist>=4) {
+                score+=EngineUtils.clamp(1-(dist-4)/8,0,1) // extra dist / 8, 10px away = no points.
             } else {
                 score++;
             }

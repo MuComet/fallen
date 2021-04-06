@@ -706,9 +706,9 @@ class TextBox extends EngineInstance {
             this.setPortrait(undefined);
             this.isDone = true;
             return 0;
-        } else if(this.walkingTextIndex<this.currentText.length) { // jump to end of text
-            this._forcePortraitCorrect();
-            while(this._renderNextCharacter());
+        } else if(!(this.walkingTextIndex>=this.currentText.length)) { // jump to end of text
+            this._forcePortraitCorrect(); // the ! prevents a *very* specific bug where sometimes the text box will write a NaN into index
+            while(this._renderNextCharacter()); // causing AdvanceNow to run infinite. The cause is unknown and it is extremely rare.
             this._forceMaskAllTextBox();
             return 1;
         } else { // get next text
@@ -835,8 +835,7 @@ class TextBox extends EngineInstance {
             var data = this._extractCommand(txt);
             this.walkingTextIndex+=data.length;
             $engine.audioStopSound(data.argument);
-        }
-        else {
+        } else {
             return false;
         }
         return true; 

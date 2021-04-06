@@ -51,7 +51,7 @@ class UmbrellaMinigameController extends MinigameController {
     setupBGS() {
         this.rainSound1 = $engine.audioPlaySound("umbrella_rain_1",1.25,true);
         this.rainSound2 = $engine.audioPlaySound("umbrella_rain_2",1.25,true);
-        this.rainSound1.volume = 0;
+        $engine.audioSetVolume(this.rainSound1, 0);
         $engine.audioPauseSound(this.rainSound1);
         $engine.audioPauseSound(this.rainSound2);
         this.addOnGameEndCallback(this,function(self) {
