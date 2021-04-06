@@ -50,19 +50,21 @@ class WireMinigameController extends MinigameController {
                 var change = this.numCols/samples
                 var path = [];
 
+                var randStartY = EngineUtils.irandom(this.numRows-1);
+
                 for(var i =0;i<samples-1;i++) {
                     path.push(new EngineLightweightPoint(Math.floor(i*change)+1,EngineUtils.irandom(this.numRows-1)))
                 }
                 while(this.isNotShuffled(path))
                     EngineUtils.shuffleArray(path);
 
-                if(path[0].y===Math.floor(this.numRows/2)) {
+                if(path[0].y===randStartY) {
                     path[0].y++; // reserve this tile as the starting location.
                 }
 
                 path.push(new EngineLightweightPoint(Math.floor((samples-1)*change)+1,EngineUtils.irandom(this.numRows-1))) // add end tile
                 var cx = 0;
-                var cy = Math.floor(this.numRows/2);
+                var cy = Math.floor(randStartY);
                 this.getTileAt(cx,cy).wireSprite.tint = 0x00ff00
 
                 var pathIndex = 0;
@@ -77,13 +79,14 @@ class WireMinigameController extends MinigameController {
                 var currentParity = -1;
                 var ox, oy;
 
+                // visit every sample point
                 while((pathIndex++)<samples) {
                     var tx = target.x;
                     var ty = target.y;
                     target = path[pathIndex]; // set up for next
                     while(cx!==tx || cy !==ty) {
-                        var angle = (V2D.calcDir(tx-cx,cy-ty)+(TWO_PI))%TWO_PI;
-                        var sx = 1; // sign
+                        var angle = (V2D.calcDir(tx-cx,cy-ty)+(TWO_PI))%TWO_PI; // make sure positive
+                        var sx = 1; // desired direction you want to move (sign)
                         var sy = 1;
 
                         if(angle < Math.PI)
