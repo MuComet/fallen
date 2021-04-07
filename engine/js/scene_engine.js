@@ -4,7 +4,7 @@
 var $engine;
 
 /** @type {Object} */
-const $__engineData = {}
+var $__engineData = {}
 $__engineData.__textureCache = {};
 $__engineData.__textureAnimationCache = {};
 $__engineData.__soundCache = {};
@@ -41,7 +41,7 @@ $__engineData.__debugDrawAllHitboxes = false;
 $__engineData.__debugDrawAllBoundingBoxes = false;
 
 /** @type {Object} */
-const $__engineSaveData = {}; // this data is automatically read and written by RPG maker when you load a save.
+var $__engineSaveData = {}; // this data is automatically read and written by RPG maker when you load a save.
 
 $__engineSaveData.__nextStaminaLossKills = false;
 $__engineSaveData.__lastMinigameOutcome = -1;
@@ -58,7 +58,7 @@ $__engineSaveData.__minigames.lossTotal=0;
 $__engineSaveData.__minigames.cheatDaily=0;
 $__engineSaveData.__minigames.cheatTotal=0;
 
-const $__engineGlobalSaveData = {} // data that are saved globally. Loaded at the end of the file because it relies on overrides.
+var $__engineGlobalSaveData = {} // data that are saved globally. Loaded at the end of the file because it relies on overrides.
 
 const ENGINE_RETURN = {};
 ENGINE_RETURN.LOSS = 0;
@@ -2269,13 +2269,40 @@ DataManager.saveGlobalInfo = function(info) {
     }
 }
 
+// since we upgraded our PIXIJS, the way that renderers are created was changed slightly.
+Graphics._createRenderer = function() {
+    PIXI.dontSayHello = true;
+    var width = this._width;
+    var height = this._height;
+    var options = { view: this._canvas, powerPreference: "high-performance", width:width, height:height };
+    try {
+        switch (this._rendererType) {
+        case 'canvas':
+            this._renderer = new PIXI.CanvasRenderer(options);
+            break;
+        case 'webgl':
+            this._renderer = new PIXI.WebGLRenderer(options);
+            break;
+        default:
+            this._renderer = PIXI.autoDetectRenderer(options);
+            break;
+        }
+
+        if(this._renderer && this._renderer.textureGC)
+            this._renderer.textureGC.maxIdle = 1;
+
+    } catch (e) {
+        this._renderer = null;
+    }
+};
+
 // webGL context loss can sometimes happen (specifically in drawing minigame).
 {
     let oldFunc = Graphics._createCanvas;
     Graphics._createCanvas = function() {
         oldFunc.call(this);
         this._canvas.addEventListener("webglcontextlost",function(event) {
-            throw new Error("WebGL rendering context lost. Please refresh the page.\n If you are consistently experiencing this, please report it to the developers.")
+            //throw new Error("WebGL rendering context lost. Please refresh the page.\n If you are consistently experiencing this, please report it to the developers.")
         },false);
     }
 }
@@ -3262,8 +3289,7 @@ UwU.addSceneChangeListener(GUIScreen.__sceneChanged);
 {
     let json = StorageManager.load(-2);
     if(json) {
-        json = JSON.parse(json)
-        Object.assign($__engineGlobalSaveData, json);
+        $__engineGlobalSaveData = JSON.parse(json);
     }
     
 }
