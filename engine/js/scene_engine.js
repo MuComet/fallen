@@ -2302,7 +2302,7 @@ Graphics._createRenderer = function() {
     Graphics._createCanvas = function() {
         oldFunc.call(this);
         this._canvas.addEventListener("webglcontextlost",function(event) {
-            //throw new Error("WebGL rendering context lost. Please refresh the page.\n If you are consistently experiencing this, please report it to the developers.")
+            throw new Error("WebGL rendering context lost. Please refresh the page.\n If you are consistently experiencing this, please report it to the developers.")
         },false);
     }
 }
