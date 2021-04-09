@@ -11,7 +11,8 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
         $engine.setBackgroundColour(0xa58443);
         this.startTimer(60*60);
 
-        new ParallaxingBackground();
+        var background = new PIXI.Sprite($engine.getTexture("background_table_cards"));
+        $engine.setBackground(background);
 
         // instructions
 
@@ -73,6 +74,7 @@ class PuyoBoard extends EngineInstance {
         this.puyo3 = this.generateStartPuyo()
         this.next1 = [new BoardSpace(3,7), new BoardSpace(4,7)]
         this.next2 = [new BoardSpace(4,8), new BoardSpace(5,8)]
+        new BoardSpace(1,2,1)
         this.currentPuyo = null
         this.state = 0
         this.orientation = 0
@@ -90,6 +92,10 @@ class PuyoBoard extends EngineInstance {
         this.visited = []
         this.gameEnd = false
         this.chainPower = [0,4,12,24,33,50,101,169,254,341,428,538,648,763,876,990,999,999,999,999]
+        this.setSprite(new PIXI.Sprite($engine.getTexture("p-board_back")))
+        this.x = $engine.getWindowSizeX()/2+(3-5)*35;
+        this.y = $engine.getWindowSizeY() - ((16-7)*35);
+        this.z = -1
     }
 
     //state = 0 means nothing is happening
@@ -495,14 +501,16 @@ class BoardSpace extends EngineInstance {
     //state = 0 means space is empty
     //state = 1 means space has controllable falling Puyo
     //state = 2 means space has dropped Puyo
-    onCreate(y, x) {
-        this.xScale = 0.1;
-        this.yScale = 0.1;
+    onCreate(y, x, isX = 0) {
         this.state = 0;
         this.puyo = null;
         this.x = $engine.getWindowSizeX()/2+(x-5)*35;
         this.y = $engine.getWindowSizeY() - ((16-y)*35);
         this.setSprite(new PIXI.Sprite(PIXI.Texture.empty))
+        if(isX == 1){
+            this.z = -0.5
+            this.getSprite().texture = ($engine.getTexture("puyo-x"));
+        }
     }
 
     getPuyo() {
@@ -519,13 +527,13 @@ class BoardSpace extends EngineInstance {
         this.state = state;
         if(state != 0){
             if(this.puyo.colour == 0){
-                this.getSprite().texture = ($engine.getTexture("green_puyo"));
+                this.getSprite().texture = ($engine.getTexture("puyo-g"));
             } else if(this.puyo.colour == 1) {
-                this.getSprite().texture = ($engine.getTexture("red_puyo"));
+                this.getSprite().texture = ($engine.getTexture("puyo-r"));
             } else if(this.puyo.colour == 2) {
-                this.getSprite().texture = ($engine.getTexture("blue_puyo"));
+                this.getSprite().texture = ($engine.getTexture("puyo-b"));
             } else {
-                this.getSprite().texture = ($engine.getTexture("yellow_puyo"));
+                this.getSprite().texture = ($engine.getTexture("puyo-y"));
             }
         } else if(state == 0) {
             this.getSprite().texture = PIXI.Texture.empty;

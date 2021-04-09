@@ -129,10 +129,13 @@ arrow_left_c engine/textures/water/arrow_left_c.png 0 0
 arrow_up_c engine/textures/water/arrow_up_c.png 0 0
 arrow_right_c engine/textures/water/arrow_right_c.png 0 0
 
-green_puyo engine/textures/puyo/green_puyo.png 0.5 0.5
-blue_puyo engine/textures/puyo/blue_puyo.png 0.5 0.5
-red_puyo engine/textures/puyo/red_puyo.png 0.5 0.5
-yellow_puyo engine/textures/puyo/yellow_puyo.png 0.5 0.5
+puyo-g engine/textures/puyo/puyo-g.png 0.5 0.5
+puyo-b engine/textures/puyo/puyo-b.png 0.5 0.5
+puyo-r engine/textures/puyo/puyo-r.png 0.5 0.5
+puyo-y engine/textures/puyo/puyo-y.png 0.5 0.5
+puyo-x engine/textures/puyo/puyo-x.png 0.5 0.5
+p-board_back engine/textures/puyo/p-board_back.png 0.5 0.5
+p-prev_back engine/textures/puyo/p-prev_back.png 0.5 0.5
 
 spritesheet dimensions 816 192 1 3 pipes engine/textures/holes/pipe_sheet.png 0 0.5
 pipes_background engine/textures/holes/pipe_back.png 0 0
