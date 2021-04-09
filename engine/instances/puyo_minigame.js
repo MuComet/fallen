@@ -16,7 +16,7 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
 
         // instructions
 
-        var text = new PIXI.Text("Place 4 same-coloured blobs in a group to pop them.\nTry to get a score of 2424 or more!\n Rotate with Z and X and move with the arrow keys.\nPress Enter to cheat!",$engine.getDefaultTextStyle())
+        var text = new PIXI.Text("Place 4 same-coloured fruits in a group to pop them.\nTry to get a score of 2424 or more!\n Rotate with Z and X and move with the arrow keys.\nCreate longer chains of matches to get more points.\nWatch out for the X! Do not place a fruit in that space.\nPress Enter to cheat!",$engine.getDefaultTextStyle())
 
         this.setInstructionRenderable(text)
         this.setControls(true,false);
@@ -77,6 +77,7 @@ class PuyoBoard extends EngineInstance {
         new BoardSpace(1,2,1)
         this.currentPuyo = null
         this.state = 0
+        this.cheatNotApplied = true
         this.orientation = 0
         this.currentX = [2,2]
         this.currentY = [0,1]
@@ -137,6 +138,21 @@ class PuyoBoard extends EngineInstance {
             }
             if(this.state == 2){
                 this.chainMode();
+            }
+        }
+        if(PuyoMinigameController.getInstance().hasCheated() && this.cheatNotApplied){
+            this.cheatNotApplied = false
+            this.cheat();
+        }
+    }
+    cheat(){
+        for(var i = 0; i <= 5; i++){
+            for(var j = 12; j >= 10; j--){
+                this.board[j][i].setPuyo(new Puyo(i%3))
+                this.board[j][i].setState(2)
+            }
+            if(this.columns[i] < 3){
+                this.columns[i] = 3
             }
         }
     }
