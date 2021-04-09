@@ -72,8 +72,8 @@ class PuyoBoard extends EngineInstance {
         this.puyo1 = this.generateStartPuyo()
         this.puyo2 = this.generateStartPuyo()
         this.puyo3 = this.generateStartPuyo()
-        this.next1 = [new BoardSpace(3,7), new BoardSpace(4,7)]
-        this.next2 = [new BoardSpace(4,8), new BoardSpace(5,8)]
+        this.next1 = [new BoardSpace(3,8), new BoardSpace(4,8)]
+        this.next2 = [new BoardSpace(4,9), new BoardSpace(5,9)]
         new BoardSpace(1,2,1)
         this.currentPuyo = null
         this.state = 0
@@ -95,6 +95,10 @@ class PuyoBoard extends EngineInstance {
         this.setSprite(new PIXI.Sprite($engine.getTexture("p-board_back")))
         this.x = $engine.getWindowSizeX()/2+(3-5)*35;
         this.y = $engine.getWindowSizeY() - ((16-7)*35);
+        this.next = new PIXI.Sprite($engine.getTexture("p-prev_back"));
+        this.next.x = $engine.getWindowSizeX()/2+(9-5)*35;
+        this.next.y = $engine.getWindowSizeY() - ((16-4.5)*35);
+        $engine.createRenderable(this, this.next);
         this.z = -1
     }
 
@@ -504,6 +508,10 @@ class BoardSpace extends EngineInstance {
     onCreate(y, x, isX = 0) {
         this.state = 0;
         this.puyo = null;
+        this.high = false;
+        if(y == 0){
+            this.high = true;
+        }
         this.x = $engine.getWindowSizeX()/2+(x-5)*35;
         this.y = $engine.getWindowSizeY() - ((16-y)*35);
         this.setSprite(new PIXI.Sprite(PIXI.Texture.empty))
@@ -525,7 +533,7 @@ class BoardSpace extends EngineInstance {
 
     setState(state) {
         this.state = state;
-        if(state != 0){
+        if(state != 0 && !this.high){
             if(this.puyo.colour == 0){
                 this.getSprite().texture = ($engine.getTexture("puyo-g"));
             } else if(this.puyo.colour == 1) {
