@@ -97,6 +97,9 @@ const SET_ENGINE_COST = function(cost) {
 const ENGINE_START = function() {
     SceneManager.push(Scene_Engine);
     OwO.incrementTimeOfDay();
+    $gameMap._interpreter._index--;
+    $engine.performEmergencySave();
+    $gameMap._interpreter._index++;
 }
 
 //PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST; // set PIXI to render as nearest neighbour
@@ -691,11 +694,11 @@ class Scene_Engine extends Scene_Base {
                 this.removeFilter(this.__filters[i].filter);
             }
         }
+        this.getCamera().reset();
         RoomManager.loadRoom(roomName); // also sets current room
         IM.__startRoom();
         this.__shouldChangeRooms=false;
         this.setTimescale(1);
-        this.getCamera().reset();
     }
 
     /** @returns {Camera} The camera */
@@ -780,6 +783,16 @@ class Scene_Engine extends Scene_Base {
             OwO.addTooltip("Warn: Autosave failed...")
         }
         GUIScreen.showSave();
+    }
+
+    /**
+     * Saves the game into the RPG maker save. If the save fails, a notification will be displayed.
+     */
+    performEmergencySave() {
+        $gameSystem.onBeforeSave();
+        if (DataManager.saveGame(2)) {
+            StorageManager.cleanBackup(2);
+        }
     }
 
     /**
@@ -965,6 +978,7 @@ class Scene_Engine extends Scene_Base {
             this.__resumeAudio();
             if($__engineData.__shouldAutoSave)
                 this.saveGame(); // save the game
+            this.performEmergencySave();
         }
 
         $__engineData.__shouldAutoSave=true;
@@ -2271,10 +2285,10 @@ DataManager.saveGlobalInfo = function(info) {
 
 // since we upgraded our PIXIJS, the way that renderers are created was changed slightly.
 Graphics._createRenderer = function() {
-    PIXI.dontSayHello = true;
+    // PIXI.dontSayHello = true; // the actual line is PIXI.utils.skipHello(), but we don't use it anyway becuse: http://pixijs.download/next/docs/PIXI.utils.html#.sayHello
     var width = this._width;
     var height = this._height;
-    var options = { view: this._canvas, powerPreference: "high-performance", width:width, height:height };
+    var options = { view: this._canvas, powerPreference: "high-performance", width:width, height:height,transparent: true };
     try {
         switch (this._rendererType) {
         case 'canvas':
@@ -2302,7 +2316,12 @@ Graphics._createRenderer = function() {
     Graphics._createCanvas = function() {
         oldFunc.call(this);
         this._canvas.addEventListener("webglcontextlost",function(event) {
-            throw new Error("WebGL rendering context lost. Please refresh the page.\n If you are consistently experiencing this, please report it to the developers.")
+            $__engineGlobalSaveData.__emergencyAutoSave = true;
+            $engine.saveEngineGlobalData();
+            throw new Error("WebGL rendering context lost. Your progress has been saved and the game will prompt you to load the autosave on next launch. <br><br>"
+            + "Please refresh the page to restart the game."
+            + "<br><br>If you are consistently experiencing this and you are running a dual GPU system, "
+            + "the error is likely due to your system swapping GPU to the discrete card.")
         },false);
     }
 }
@@ -2324,6 +2343,7 @@ Input.keyMapper = {
 // YEP_MessageCore line 731 -> choice text.
 // YEP_FootstepSounds line 442 -> random pitch
 // CaeX_FootstepTime line 59 -> account for dashing
+// rpg_core line 3688 -> add passive check
 
 ////////////////// end overriding RPG maker /////////////////
 

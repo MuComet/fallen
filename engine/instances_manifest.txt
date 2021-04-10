@@ -29,7 +29,7 @@ GardenMinigameController GardenPlant GardenWorm GardenHoles engine/instances/gar
 CrateMinigameController Crate engine/instances/crate_minigame.js
 
 WaterMinigameController WaterPlant DDRTiles WaterCan engine/instances/garden_water.js
-MazeMinigameController Maze engine/instances/maze_minigame.js
+MazeMinigameController MazeBlock engine/instances/maze_minigame.js
 
 PuyoMinigameController PuyoBoard Puyo BoardSpace engine/instances/puyo_minigame.js
 

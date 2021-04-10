@@ -17,6 +17,12 @@ class MenuIntroController extends EngineInstance {
 
         $__engineData.__readyOverride=false;
 
+        this.loadText = $engine.createManagedRenderable(this, new PIXI.Text("Press L to load crash autosave.", $engine.getDefaultTextStyle()));
+        this.loadText.anchor.x = 0.5;
+        this.loadText.anchor.y = 1;
+        this.loadText.x = $engine.getWindowSizeX()/2;
+        this.loadText.y = $engine.getWindowSizeY();
+
         this.letters = [];
         //var locX = [37,159,308,451,522,671];
         var locX = [60, 160, 290, 418, 544, 660, 785, 900];
@@ -223,6 +229,27 @@ class MenuIntroController extends EngineInstance {
         if(this.timer===this.endTime+this.startTimeOffset) {
             this.startTime = window.performance.now();
         }
+
+        if($__engineGlobalSaveData.__emergencyAutoSave && IN.keyCheckPressed("KeyL") && !$engine.isBusy()) { // emergencyAutoSave
+            if (DataManager.loadGame(2)) {
+                // reload map if updated -- taken from rpg_scenes.js line 1770
+                if ($gameSystem.versionId() !== $dataSystem.versionId) {
+                    $gamePlayer.reserveTransfer($gameMap.mapId(), $gamePlayer.x, $gamePlayer.y);
+                    $gamePlayer.requestMapReload();
+                }
+                SoundManager.playLoad();
+                $engine.fadeOutAll(1);
+                $engine.audioFadeAll();
+                $engine.disableAutoSave();
+                $engine.audioFadeSound(MinigameController.getInstance().menuMusic,30);
+                IM.with(MainMenuButton,function(button) {
+                    button.enabled = false;
+                })
+                SceneManager.goto(Scene_Map);
+            } else {
+                SoundManager.playBuzzer();
+            }
+        }
     }
 
     static startNewGame() {
@@ -272,6 +299,8 @@ class MenuIntroController extends EngineInstance {
             this.graphics.drawRect(0,0,$engine.getWindowSizeX(),$engine.getWindowSizeY())
             this.graphics.endFill()
         }
+        if($__engineGlobalSaveData.__emergencyAutoSave)
+            $engine.requestRenderOnGUI(this.loadText)
     }
 
     interp(val,min,max) {
@@ -289,6 +318,8 @@ class MenuIntroController extends EngineInstance {
     cleanup() {
         UwU.removeRenderListener(this.nextFrame);
         MinigameController.controller=undefined;
+        $__engineGlobalSaveData.__emergencyAutoSave=false;
+        $engine.saveEngineGlobalData();
     }
 
     __notifyFramesSkipped(frames) {

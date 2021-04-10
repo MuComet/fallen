@@ -310,9 +310,9 @@ class Umbrella extends EngineInstance {
         do {
             this.rx = EngineUtils.randomRange(32,$engine.getWindowSizeX()-32);
         } while(Math.abs(this.rx-this.x)<$engine.getWindowSizeX()/4) // must be at least 1/4 of the screen
-        // rx can be no greater than 50% of the screen
-        var moveFac = (this.endTime-25)/50*2 // 2 at start of game, 0 at end
-        this.rx = EngineUtils.clamp(this.rx,this.x-$engine.getWindowSizeX()/(3-moveFac),this.x+$engine.getWindowSizeX()/(3-moveFac))
+        // rx can be no greater than 100%  (start of game) / 50% (end of game) of the screen
+        var moveFac = (this.endTime-25)/50 // 1 at start of game, 0 at end
+        this.rx = EngineUtils.clamp(this.rx,this.x-$engine.getWindowSizeX()/(2-moveFac),this.x+$engine.getWindowSizeX()/(2-moveFac))
         this.ry = EngineUtils.randomRange(72+4.5*(this.endTime-15),132+4.5*(this.endTime-15));
 
         this.sx = this.x;

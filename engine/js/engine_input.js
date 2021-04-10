@@ -55,7 +55,7 @@ class IN {
         document.addEventListener('pointermove',IN.__mouseMoved)
         document.addEventListener('touchmove',IN.__mouseMoved)
 
-        document.addEventListener('wheel',IN.__onMouseScrollEvent)
+        document.addEventListener('wheel',IN.__onMouseScrollEvent,false)
     }
 
     static __onMouseEvent(event) {
