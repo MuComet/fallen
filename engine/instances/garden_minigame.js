@@ -6,10 +6,11 @@ class GardenMinigameController extends MinigameController {
         this.maxScore = 5;
         this.wormsmissed = 0;
         this.wormsMax = 10;
+        this.speedup = 0;
 
         new ParallaxingBackground("background_garden1");
     
-        this.timer = 0;
+        this.timer = 40;
         this.attempts = 6;
         this.waiting = false;
         this.waitTimer = 0;
@@ -89,7 +90,7 @@ class GardenMinigameController extends MinigameController {
         if(this.minigameOver()){
             return;
         }
-        if(this.timer === 65){
+        if(this.timer >= 75 - this.speedup*0.008){
             var spawnI = EngineUtils.irandomRange(0,8);
             IM.with(GardenWorm, function(worm){
                 if(worm.index === spawnI){
@@ -107,6 +108,7 @@ class GardenMinigameController extends MinigameController {
         this.updateProgressText();
         this.handleShake();
         this.timer++;
+        this.speedup++;
     }
 
     handleShake() {
