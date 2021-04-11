@@ -96,6 +96,7 @@ paint_base engine/textures/paint_base.png 0.5 0
 spritesheet dimensions 280 110 4 1 card_faces engine/textures/card/cards_sheet.png 0.5 0.5
 spritesheet dimensions 630 330 3 1 card_faces_big engine/textures/card/cards_sheet_big.png 0.5 0
 background_table_cards engine/textures/backgrounds/background_table_cards.png 0 0
+background_paper_tile engine/textures/backgrounds/paper_tile.png 0 0
 
 
 
@@ -142,8 +143,7 @@ spritesheet dimensions 816 192 1 3 pipes engine/textures/holes/pipe_sheet.png 0 
 pipes_background engine/textures/holes/pipe_back.png 0 0
 pipes_separator  engine/textures/holes/pipe_sep.png 0.5 0.5
 
-maze_block engine/textures/maze/maze.png 0.5 0.5
-maze_runner engine/textures/maze/mazerunner.png 0.5 0.5
+spritesheet dimensions 384 128 3 1 alias 0 maze_block alias 1 maze_block_faded alias 2 maze_runner maze_assets engine/textures/maze/maze_assets.png 0.5 0.5
 
 
 white_line engine/textures/final_minigame/white_line.png 0 0.5

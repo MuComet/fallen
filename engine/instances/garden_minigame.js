@@ -77,7 +77,7 @@ class GardenMinigameController extends MinigameController {
     }
 
     notifyFramesSkipped(frames) {
-        this.getTimer().tickDown(frames);  
+        // this.getTimer().tickDown(frames); // survival mode, do nothing.
     }
 
     onCreate() { 

@@ -36,6 +36,8 @@ class MinigameTimer extends EngineInstance {
         this.creationTimer = 0;
         this.creationTime = 30;
 
+        this.warningTime = 300;
+
         this.maxFrames = undefined;
 
         this.restartTimer(frames);
@@ -132,6 +134,14 @@ class MinigameTimer extends EngineInstance {
         this.timerText.dirty = true;
     }
 
+    /**
+     * Sets the minimum number of frames before the timer starts flashing
+     * @param {Number} newTime the new time to start flashing
+     */
+    setWarningTime(newTime) {
+        this.warningTime = newTime;
+    }
+
     restartTimer(newTime) {
         this.timerDone = false;
         this.timer = newTime;
@@ -156,7 +166,7 @@ class MinigameTimer extends EngineInstance {
             time = 0;
         this.timerBarGraphic.setValue(time);
         this.timerBarGraphic.setText(this._getText())
-        if(time < 300 && !this.survivalMode) // less than 5 seconds
+        if(time < this.warningTime && !this.survivalMode) // less than warning time
             this.timerBarGraphic.setFlashing(true);
     }
 

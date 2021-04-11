@@ -19,14 +19,15 @@ class MazeMinigameController extends MinigameController {
 
         this.lampSprite = $engine.createManagedRenderable(this, new PIXI.extras.AnimatedSprite($engine.getAnimation("crate_mask_animation")));
         this.lampSprite.animationSpeed = 0.1; // 6FPS
+        
+        this.startTimer(45*60);
 
-        this.setCheatTooltip("OUTTA MY WAY!!!")
+        this.setCheatTooltip("What maze?")
 
         this.setLossReason("The colouring book mazes did not prepare you for this one.")
 
-        var background = new PIXI.Sprite($engine.getTexture("background_table_cards"));
-        $engine.setBackground(background);
-        this.startTimer(45*60);
+        this.paperBackground = new PIXI.extras.TilingSprite($engine.getTexture("background_paper_tile"),$engine.getWindowSizeX(),$engine.getWindowSizeY());
+        $engine.setBackground(this.paperBackground);
 
         var text = new PIXI.Text("Basically, M A Z E",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
@@ -279,6 +280,8 @@ class MazeMinigameController extends MinigameController {
         var ox = EngineUtils.randomRange(-this.shakeTimer/2,this.shakeTimer/2);
         var oy = EngineUtils.randomRange(-this.shakeTimer/2,this.shakeTimer/2);
         camera.translate(ox,oy);
+        this.paperBackground.tilePosition.x = -camera.getX();
+        this.paperBackground.tilePosition.y = -camera.getY();
     }
 
     animationTick() {
@@ -293,8 +296,13 @@ class MazeMinigameController extends MinigameController {
         var fac2 = EngineUtils.interpolate(this.timeSinceLastMove/12,0.5,1, EngineUtils.INTERPOLATE_OUT);
         this.x = this.toXLocation(this.lastX) + (this.toXLocation(this.targetX) - this.toXLocation(this.lastX)) * fac;
         this.y = this.toYLocation(this.lastY) + (this.toYLocation(this.targetY) - this.toYLocation(this.lastY)) * fac;
-        this.yScale = fac2 * this.baseYScale;
-        this.xScale = this.baseXScale;
+        if(this.targetY === this.lastY) {
+            this.yScale = fac2 * this.baseYScale;
+            this.xScale = this.baseXScale;
+        } else {
+            this.yScale = this.baseYScale;
+            this.xScale = fac2 * this.baseXScale;
+        }
         this.timeSinceLastMove++;
     }
 
@@ -333,7 +341,7 @@ class MazeMinigameController extends MinigameController {
 
     movement() {
         for(var i =0;i<4;i++) {
-            if(this.upBuffer.check() && this.isOpen(this.currentX,this.currentY-1)) {
+            if(((IN.keyCheck("RPGup") && this.timeSinceLastMove >=10) || this.upBuffer.check()) && this.isOpen(this.currentX,this.currentY-1)) {
                 this.upBuffer.consumeImmedaitely();
                 this.timeSinceLastMove = 0;
                 this.lastY = this.currentY;
@@ -341,7 +349,7 @@ class MazeMinigameController extends MinigameController {
                 this.targetY = this.currentY;
                 this.lastX = this.currentX;
             }
-            if(this.leftBuffer.check() && this.isOpen(this.currentX-1,this.currentY)) {
+            if(((IN.keyCheck("RPGleft") && this.timeSinceLastMove >=10) || this.leftBuffer.check()) && this.isOpen(this.currentX-1,this.currentY)) {
                 this.leftBuffer.consumeImmedaitely();
                 this.timeSinceLastMove = 0;
                 this.lastX = this.currentX;
@@ -350,7 +358,7 @@ class MazeMinigameController extends MinigameController {
                 this.lastY = this.currentY;
                 this.baseXScale=-0.5;
             }
-            if(this.rightBuffer.check() && this.isOpen(this.currentX+1,this.currentY)) {
+            if(((IN.keyCheck("RPGright") && this.timeSinceLastMove >=10) || this.rightBuffer.check()) && this.isOpen(this.currentX+1,this.currentY)) {
                 this.rightBuffer.consumeImmedaitely();
                 this.timeSinceLastMove = 0;
                 this.lastX = this.currentX;
@@ -359,7 +367,7 @@ class MazeMinigameController extends MinigameController {
                 this.lastY = this.currentY;
                 this.baseXScale=0.5;
             }
-            if(this.downBuffer.check() && this.isOpen(this.currentX,this.currentY+1)) {
+            if(((IN.keyCheck("RPGdown") && this.timeSinceLastMove >=10) || this.downBuffer.check()) && this.isOpen(this.currentX,this.currentY+1)) {
                 this.downBuffer.consumeImmedaitely();
                 this.timeSinceLastMove = 0;
                 this.lastY = this.currentY;
@@ -438,6 +446,8 @@ class MazeBlock extends EngineInstance {
             block.y+=EngineUtils.randomRange(-24,24);
             block.destroyed=true
         }
+        var block = new MazeBlock(this.x,this.y);
+        block.getSprite().texture = $engine.getTexture("maze_block_faded")
     }
     
     step() {
