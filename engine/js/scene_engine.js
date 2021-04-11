@@ -2617,12 +2617,20 @@ class OwO {
         OwO.getEvent(eventId)._starting = true;
     }
 
-    static addConditionalFilter(evId, rpgVar = -1,) {
+    /**
+     * Registers an event to have a filter applied to it, and if not in init, re-evaluates all filters.
+     * 
+     * @param {Number} evId The event that has the sprite
+     * @param {Number | -1} rpgVar The variable to check. If -1 then unconditional
+     * @param {Boolean | False} world Whether this event must be aligned to the world.
+     */
+    static addConditionalFilter(evId, rpgVar = -1, world = false) {
         var map = $gameMap._mapId;
         var arr = OwO.__getConditionalFilters(map);
         var data = {
             eventId: evId,
             RPGVariable: rpgVar, // the corresponding GameVaraible is set to 1, do not apply the filter... if this var is -1, apply always.
+            isWorldGeometry: world,
             //filter:shader, // never really used and unsupported by save data :(
             //filterUpdateFunc: filterUpdate,
         };
@@ -2694,6 +2702,10 @@ class OwO {
                 newFilters.push(...pixiObj.filters);
             }
             pixiObj.filters = newFilters;
+
+            var event = $gameMap.event(eventId);
+            if(filterData.isWorldGeometry && (event._y % 1) !== 0.125)
+                event._y+=0.125
 
             OwO.__addUpdateFunction(filterUpdate,filter,OwO.getEvent(eventId));
         }

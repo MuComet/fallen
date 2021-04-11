@@ -98,6 +98,13 @@ class HoleMinigameController extends MinigameController {
 
     step() {
         super.step();
+        if(this.minigameOver()) {
+            this.cameraDy/=1.25;
+            this.cameraY+=this.cameraDy;
+            var camera = $engine.getCamera()
+            camera.setLocation(0,this.cameraY);
+            return;
+        }
         this.cameraDy+=this.cameraDyChange;
         this.cameraY+=this.cameraDy;
         var camera = $engine.getCamera()
@@ -106,7 +113,7 @@ class HoleMinigameController extends MinigameController {
         var cameraY = $engine.getCamera().getY()
         this.spawnPlatforms(cameraY);
 
-        if(this.player.y <= cameraY) {
+        if(this.player.y <= cameraY-64) { // 64 px buffer
             this.endMinigame(false);
         }
 
@@ -166,6 +173,8 @@ class HolePlayer extends InstanceMover {
 
         this.squishFactor = 0;
         this.squishVel = 0;
+
+        this.nextDestroyHeight = -9999;
     }
 
     onCreate(x,y) {
@@ -249,9 +258,10 @@ class HolePlayer extends InstanceMover {
     }
 
     handleDestroyBlock(block) {
-        if(block.idx%2!==0) {
+        if(block.y <= this.nextDestroyHeight) {
             return false;
         }
+        this.nextDestroyHeight = block.y + HoleMinigameController.getInstance().height
 
         $engine.audioPlaySound("sky_land").speed = EngineUtils.randomRange(0.7,1.3);
         var t1 = block;

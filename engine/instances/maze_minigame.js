@@ -116,6 +116,8 @@ class MazeMinigameController extends MinigameController {
             }
             this.objects.push(arr);
         }
+        var block = new MazeBlock(this.sizeX * this.startX + this.sizeX/2, this.sizeY/2);
+        block.getSprite().texture = $engine.getTexture("maze_end");
     }
 
     resetMaze() {
@@ -236,19 +238,20 @@ class MazeMinigameController extends MinigameController {
     }
 
     checkCamera() {
-        var buf = 64;
+        var xBuf = 64;
+        var yBuf = 128;
         var cam = $engine.getCamera();
-        if(this.x - cam.getX() < buf) {
+        if(this.x - cam.getX() < xBuf) {
             this.tryMoveCamera(-$engine.getWindowSizeX(),0)
         }
-        if(this.x - cam.getX() > $engine.getWindowSizeX() - buf) {
+        if(this.x - cam.getX() > $engine.getWindowSizeX() - xBuf) {
             this.tryMoveCamera($engine.getWindowSizeX(),0)
         }
-        if(this.y - cam.getY() < buf) {
-            this.tryMoveCamera(0,-$engine.getWindowSizeY()+buf*2)
+        if(this.y - cam.getY() < yBuf) {
+            this.tryMoveCamera(0,-$engine.getWindowSizeY()+yBuf*2)
         }
-        if(this.y - cam.getY() > $engine.getWindowSizeY() - buf) {
-            this.tryMoveCamera(0,$engine.getWindowSizeY()-buf*2)
+        if(this.y - cam.getY() > $engine.getWindowSizeY() - yBuf) {
+            this.tryMoveCamera(0,$engine.getWindowSizeY()-yBuf*2)
         }
     }
 
@@ -262,12 +265,11 @@ class MazeMinigameController extends MinigameController {
             var yy = EngineUtils.clamp(camera.getY()+dy,0,this.totalHeight-$engine.getWindowSizeY());
             this.wantedCameraY = yy;
         }
-        
-        
     }
 
     cameraTick() {
         this.checkCamera();
+
         var camera = $engine.getCamera();
         var dx = this.wantedCameraX - camera.getX();
         var dy = this.wantedCameraY - camera.getY();
@@ -387,12 +389,20 @@ class MazeMinigameController extends MinigameController {
         this.lampSprite.y = this.y - $engine.getCamera().getY();
     }
 
+    checkTimerOpacity() {
+        var yDiff = this.y - $engine.getCamera().getY();
+
+        var fac = EngineUtils.interpolate((yDiff-128)/512,0.5,1,EngineUtils.INTERPOLATE_SMOOTH);
+        this.getTimer().alpha = fac;
+    }
+
     step() {
         super.step();
         
         this.cameraTick();
         this.animationTick();
         this.flashlightTick();
+        this.checkTimerOpacity();
         if(this.minigameOver()){
             return;
         }
@@ -431,6 +441,9 @@ class MazeBlock extends EngineInstance {
         this.grav = 0.25;
         this.lifeTimer = 0;
         this.lifeTime = EngineUtils.irandomRange(45,75);
+
+        this.changeTimer = EngineUtils.irandom(60);
+        this.angle = EngineUtils.randomRange(-0.05,0.05)
     }
 
     setDestroyed() {
@@ -460,6 +473,9 @@ class MazeBlock extends EngineInstance {
             this.y+=this.dy;
             this.angle+=this.dz;
             this.dy += this.grav;
+        } else if(--this.changeTimer<=0) {
+            this.changeTimer=EngineUtils.irandomRange(18,60);
+            this.angle = EngineUtils.randomRange(-0.03,0.03)
         }
     }
     
