@@ -147,7 +147,7 @@ class CardMinigameController extends MinigameController {
             this.cardAnimationLogic();
             return;
         }
-        if(this.showTimer < 30) {
+        if(this.showTimer <= 30) {
             var fac1 = EngineUtils.interpolate(this.showTimer/30,0,1,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
             this.blurFilterMain.blur = this.blurFilterStrength * fac1;
             this.startCard.y = $engine.getWindowSizeY() + 180 * (1-fac1) - 330 * fac1;

@@ -102,6 +102,13 @@ const ENGINE_START = function() {
     $gameMap._interpreter._index++;
 }
 
+const ENGINE_START_PARALLEL = function(forceWait = true) {
+    $engine.startOverworld();
+    if(forceWait) {
+        $gameMap._interpreter._waitMode = "engine";
+    }
+}
+
 //PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST; // set PIXI to render as nearest neighbour
 
 /*DEBUG CODE MANIFEST (REMOVE ALL BEFORE LAUNCH):
@@ -175,7 +182,6 @@ class Scene_Engine extends Scene_Base {
     endOverworld() {
         $__engineData.__overworldMode = false;
         this.__cleanup();
-        this.setBackgroundColour(0);
         SceneManager._scene.removeChild(this);
         UwU.removeSceneChangeListener(this.__sceneChangeListener)
     }
@@ -268,8 +274,6 @@ class Scene_Engine extends Scene_Base {
     update() {
         // RPG MAKER
         super.update();
-        if($__engineData.__haltAndReturn && !this.isBusy())
-            this.__endAndReturn()
 
         // ENGINE
         if(this.__shouldChangeRooms && !this.isBusy())
@@ -280,6 +284,9 @@ class Scene_Engine extends Scene_Base {
         this.__doSimTick();
 
         this.__globalTimer++;
+
+        if($__engineData.__haltAndReturn && !this.isBusy())
+            this.__endAndReturn()
     }
 
     /**
@@ -836,6 +843,11 @@ class Scene_Engine extends Scene_Base {
     __endAndReturn() {
 
         $__engineData.__haltAndReturn=false;
+
+        if($__engineData.__overworldMode) {
+            this.endOverworld();
+            return;
+        }
 
         if($__engineData.__overrideRoom) { // completely restart the engine if we override room.
             this.__cleanup(); // after all the intention of the programmer at this point is that the engine is to be terminated.
@@ -2335,7 +2347,52 @@ Input.keyMapper = {
     75: 'escape', 77: 'menu', 219: 'pageup',  221: 'pagedown', 45: 'escape',
     46: 'ok', 35: 'escape', 36: 'menu', 96: 'escape', 98: 'down', 100: 'left',
     102: 'right', 104: 'up', 120: 'debug' 
-  };
+};
+
+// add support for engine waiting
+Game_Interpreter.prototype.updateWaitMode = function() {
+    var waiting = false;
+    switch (this._waitMode) {
+    case 'message':
+        waiting = $gameMessage.isBusy();
+        break;
+    case 'transfer':
+        waiting = $gamePlayer.isTransferring();
+        break;
+    case 'scroll':
+        waiting = $gameMap.isScrolling();
+        break;
+    case 'route':
+        waiting = this._character.isMoveRouteForcing();
+        break;
+    case 'animation':
+        waiting = this._character.isAnimationPlaying();
+        break;
+    case 'balloon':
+        waiting = this._character.isBalloonPlaying();
+        break;
+    case 'gather':
+        waiting = $gamePlayer.areFollowersGathering();
+        break;
+    case 'action':
+        waiting = BattleManager.isActionForced();
+        break;
+    case 'video':
+        waiting = Graphics.isVideoPlaying();
+        break;
+    case 'image':
+        waiting = !ImageManager.isReady();
+        break;
+    case 'engine':
+        waiting = $__engineData.__overworldMode
+        break;
+    }
+    
+    if (!waiting) {
+        this._waitMode = '';
+    }
+    return waiting;
+};
 
 
 // notes and overrides:

@@ -481,7 +481,7 @@ class TextBox extends EngineInstance {
     }
 
     isReady() {
-        return (this.currentText === "" || this.textComplete()) && this.portraitImageCorrect() && !this.isWaiting();
+        return (this.currentText === "" || this.textComplete()) && this.portraitImageCorrect() && !this.isWaiting() && this.hasMoreText();
     }
 
     disableArrow() {
@@ -496,6 +496,10 @@ class TextBox extends EngineInstance {
         this.waiting = bool;
     }
 
+    /**
+     * 
+     * @returns True if there is more text to read
+     */
     hasMoreText() {
         return !this.isDone;
     }
