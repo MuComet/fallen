@@ -955,11 +955,12 @@ class Scene_Engine extends Scene_Base {
         return false;
     }
 
-    clearDailyOutcomes() {
+    onDayEnd() {
         var data = $__engineSaveData.__minigames;
         data.lossDaily=0;
         data.winDaily=0;
         data.cheatDaily=0;
+        OwO.resetTimeOfDay();
     }
 
     getMinigameOutcomeData() {
@@ -2461,7 +2462,6 @@ class OwO {
                 OwO.__doOverworldSetup();
 
                 OwO.__applyAllFilters();
-                OwO.__applyTimeOfDayFilter();
                 OwO.__rebindSpecialRenderLayer();
 
                 OwO.__listenForHP();
@@ -2583,8 +2583,8 @@ class OwO {
         return $gameVariables.value(OwO.__timeOfDayIndex);
     }
 
-    static __applyTimeOfDayFilter() {
-        var time = OwO.getTimeOfDay();
+    static resetTimeOfDay() {
+        return $gameVariables.setValue(OwO.__timeOfDayIndex,0);
     }
 
     // continually calls func with data as the arg until it returns true, then removes it from it's list
@@ -2627,6 +2627,12 @@ class OwO {
     static addConditionalFilter(evId, rpgVar = -1, world = false) {
         var map = $gameMap._mapId;
         var arr = OwO.__getConditionalFilters(map);
+        for(const event of arr) {
+            if(event.eventId === evId) { // if the filter exists already, remove it first.
+                OwO.removeConditionalFilter(evId)
+                break;
+            }
+        }
         var data = {
             eventId: evId,
             RPGVariable: rpgVar, // the corresponding GameVaraible is set to 1, do not apply the filter... if this var is -1, apply always.
@@ -2641,14 +2647,19 @@ class OwO {
     }
 
     static removeConditionalFilter(eventId) {
-        var map = $gameMap._mapId;
-        var data = OwO.__getMapData(map); // can't access filter list directly because we filter it.
+        var filters = OwO.__getCurrentMapFilters();
 
         if(!OwO.__isAutorunSwitchSet()) {
             OwO.discardConditionalFilters();
         }
 
-        data.filterList = data.filterList.filter(x => x.eventId !== eventId);
+        var idx = filters.findIndex(x=>x.eventId===eventId);
+        if(idx===-1) {
+            console.warn("Attempted to remove filter that does not exist. This may be a sign of faulty logic.");
+            return;
+        }
+
+        filters.splice(idx,1);
 
         if(!OwO.__isAutorunSwitchSet()) { // convenience.
             OwO.applyConditionalFilters();
@@ -2671,6 +2682,7 @@ class OwO {
         if(!data[mapId]) {
             data[mapId] = {};
             data[mapId].filterList =  [];
+            data[mapId].eventLocations = [];
             data[mapId].particleInit = -1;
             data[mapId].initialized = false;
         }
@@ -2704,8 +2716,10 @@ class OwO {
             pixiObj.filters = newFilters;
 
             var event = $gameMap.event(eventId);
-            if(filterData.isWorldGeometry && (event._y % 1) !== 0.125)
+            if(filterData.isWorldGeometry && (event._y % 1) !== 0.125) {
                 event._y+=0.125
+                event._realY+=0.125
+            }
 
             OwO.__addUpdateFunction(filterUpdate,filter,OwO.getEvent(eventId));
         }
@@ -2728,6 +2742,42 @@ class OwO {
         }
     }
 
+    static randomizeEventLocation(evId, ...locations) {
+        if(locations.length % 2 !== 0)
+            throw new Error("Supplied location must be in pairs (provided length = "+String(locations.length)+")")
+
+        var loc = [];
+        for(var i =0;i<locations.length;i+=2) {
+            loc.push(new EngineLightweightPoint(locations[i],locations[i+1]));
+        }
+
+        var loc = loc[EngineUtils.irandom(loc.length-1)];
+        var obj = {
+            eventId: evId,
+            location: loc,
+        }
+
+        var data = OwO.__getMapData($gameMap._mapId);
+        data.eventLocations.push(obj);
+
+        if(!OwO.__isAutorunSwitchSet()) { // convenience.
+            OwO.applyEventLocations();
+        }
+    }
+
+    static applyEventLocations() {
+        var data = OwO.__getMapData($gameMap._mapId);
+        for(const eventData of data.eventLocations) {
+            var loc = eventData.location;
+            var event = $gameMap.event(eventData.eventId);
+            event._x = loc.x;
+            event._y = loc.y;
+            event._realX = loc.x;
+            event._realY = loc.y;
+            
+        }
+    }
+
     static __doOverworldSetup() {
         var data = OwO.__getMapData($gameMap._mapId);
         if(!data.initialized) { // no filters, either this map has none or we're awaiting the data.
@@ -2739,6 +2789,7 @@ class OwO {
         }
         // if data exists, exectue.
         OwO.applyConditionalFilters();
+        OwO.applyEventLocations();
         if(!UwU.lastSceneWasMenu())
             OwO.__applyParticleInit();
     }
@@ -2765,8 +2816,23 @@ class OwO {
         if(!$engine.isLow())
             OwO.getMapContainer().filters = OwO.__gameFilters; // includes blur.
         else {
-            OwO.getMapContainer().filters = [OwO.__colourFilter];
+            OwO.getMapContainer().filters = [OwO.__hungerColourFilter];
         }
+        OwO.__applyTimeOfDayFilter();
+    }
+
+    static __applyTimeOfDayFilter() {
+        // PIXI requires assignment
+        var data = OwO.getMapContainer().filters;
+        data.push(OwO.__timeOfDayFilter);
+        OwO.getMapContainer().filters = data;
+
+        var time = OwO.getTimeOfDay();
+        var fac = Math.abs((time-1) / 4);
+        var blue = EngineUtils.interpolate(fac,1,0.5,EngineUtils.INTERPOLATE_LINEAR);
+        var green = EngineUtils.interpolate(fac,1,0.65,EngineUtils.INTERPOLATE_LINEAR);
+        OwO.__timeOfDayFilter.green = green;
+        OwO.__timeOfDayFilter.blue = blue;
     }
 
     static __disableMapFilters() {
@@ -2788,7 +2854,7 @@ class OwO {
     }
 
     static getColourFilter() {
-        return OwO.__colourFilter;
+        return OwO.__hungerColourFilter;
     }
 
     static getZoomBlurFilter() {
@@ -3087,7 +3153,7 @@ class OwO {
 
     // gets an event.
     static getEvent(id) {
-        var event = OwO.__buildSpriteMap()[id]._character;
+        var event = $gameMap.event(id);
         if(!event)
             throw new Error("Attempting to find non existent event "+String(id));
         return event;
@@ -3134,13 +3200,14 @@ OwO.__spriteMap = {};
 OwO.__updateFunctions = [];
 OwO.__applyFunctions = [];
 OwO.__RPGgameTimer = 0;
-OwO.__colourFilter = new PIXI.filters.AdjustmentFilter();
+OwO.__hungerColourFilter = new PIXI.filters.AdjustmentFilter();
+OwO.__timeOfDayFilter = new PIXI.filters.AdjustmentFilter();
 OwO.__zoomBlurFilter = new PIXI.filters.ZoomBlurFilter();
 OwO.__hudRedGlowFilter = new PIXI.filters.GlowFilter();
 OwO.__zoomBlurFilter.center = new PIXI.Point(816/2,624/2);
 OwO.__zoomBlurFilter.strength = 0;
 OwO.__zoomBlurFilter.innerRadius = 300;
-OwO.__gameFilters = [OwO.__colourFilter,OwO.__zoomBlurFilter];
+OwO.__gameFilters = [OwO.__hungerColourFilter,OwO.__zoomBlurFilter];
 OwO.__timeOfDayIndex = 11;
 OwO.__ignoreHpChanges = false;
 OwO.__init();
