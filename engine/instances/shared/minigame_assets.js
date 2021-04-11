@@ -822,7 +822,7 @@ class MinigameController extends EngineInstance {
         $engine.audioPlaySound("minigame_start",0.75)
 
         this.delayedAction($engine.isGamePaused() ? 0 : 60, function() {
-            if(this._timer && !this._skipPregame)
+            if(this._timer && this._skipPregame)
                 this._timer.unpauseTimer();
             this._onGameStart();
             this._startMusic();
