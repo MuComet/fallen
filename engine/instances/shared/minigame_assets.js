@@ -241,10 +241,12 @@ class MinigameTimer extends EngineInstance {
 
     pauseTimer() {
         this.isPaused = true;
+        this.timerBarGraphic.pauseAnimation();
     }
 
     unpauseTimer() {
         this.isPaused=false;
+        this.timerBarGraphic.unpauseAnimation();
     }
 
     hideTimer() {
@@ -640,7 +642,7 @@ class MinigameController extends EngineInstance {
 
     _minigameControllerTick() {
         if(!this.failedMinigame && ! this.wonMinigame && !this.showingInstructions && 
-                !this.showingPressAnykey && this.cheatKeyActive && this.allowActivateCheat && IN.keyCheckPressed(this.cheatKey)) {
+                !this.showingPressAnyKey && this.cheatKeyActive && this.allowActivateCheat && IN.keyCheckPressed(this.cheatKey)) {
             this.cheat();
         }
         this._handleInstruction();
@@ -749,19 +751,19 @@ class MinigameController extends EngineInstance {
 
     showPressAnyKey() {
         this.pressAnyKeyToContinue.y = -120;
-        this.showingPressAnykey = true;
+        this.showingPressAnyKey = true;
         if(this.pressAnyKeyToContinueTimer<0)
             this.pressAnyKeyToContinueTimer = 0;
     }
 
     hidePressAnyKey() {
-        this.showingPressAnykey = false;
+        this.showingPressAnyKey = false;
         if(this.pressAnyKeyToContinueTimer>45)
             this.pressAnyKeyToContinueTimer = (this.pressAnyKeyToContinueTimer%16)+45;
     }
 
     _pressAnyKeyTick() {
-        if(this.showingPressAnykey)
+        if(this.showingPressAnyKey)
             this.pressAnyKeyToContinueTimer++;
         else 
             this.pressAnyKeyToContinueTimer--;
@@ -820,7 +822,7 @@ class MinigameController extends EngineInstance {
         $engine.audioPlaySound("minigame_start",0.75)
 
         this.delayedAction($engine.isGamePaused() ? 0 : 60, function() {
-            if(this._timer)
+            if(this._timer && !this._skipPregame)
                 this._timer.unpauseTimer();
             this._onGameStart();
             this._startMusic();
@@ -1391,6 +1393,8 @@ class ProgressBar extends EngineInstance {
         this.zoneSprite.alpha = 0.15;
         this.zoneSprite.tint = 0;
 
+        this.zoneSpriteOffset = 0;
+
         this.flashFilter = new PIXI.filters.GlowFilter();
         this.flashFilter.color = 0xd56058;
         this.flashFilter.innerStrength = 0;
@@ -1423,7 +1427,17 @@ class ProgressBar extends EngineInstance {
         this.shouldAutoRender=true;
         this.autoText=true;
 
+        this.animationPaused=false;
+
         this._redrawBar();
+    }
+
+    pauseAnimation() {
+        this.animationPaused=true;
+    }
+
+    unpauseAnimation() {
+        this.animationPaused=false;
     }
 
     setMax(max) {
@@ -1518,6 +1532,12 @@ class ProgressBar extends EngineInstance {
         return this.container;
     }
 
+    step() {
+        if(!this.animationPaused) {
+            this.zoneSpriteOffset++;
+        }
+    }
+
     _redrawBar() {
         this.fillGraphics.clear();
         this.fillGraphicsMask.clear();
@@ -1549,7 +1569,7 @@ class ProgressBar extends EngineInstance {
             this.flashFilter.outerStrength=value;
         }
 
-        this.zoneSprite.tilePosition.x = $engine.getGameTimer()/2;
+        this.zoneSprite.tilePosition.x = this.zoneSpriteOffset/2;
     }
 
     draw(gui, camera) {

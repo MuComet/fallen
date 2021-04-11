@@ -94,6 +94,7 @@ fence_base engine/textures/fence.png 0 0
 paint_base engine/textures/paint_base.png 0.5 0
 
 spritesheet dimensions 280 110 4 1 card_faces engine/textures/card/cards_sheet.png 0.5 0.5
+spritesheet dimensions 630 330 3 1 card_faces_big engine/textures/card/cards_sheet_big.png 0.5 0
 background_table_cards engine/textures/backgrounds/background_table_cards.png 0 0
 
 
