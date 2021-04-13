@@ -50,7 +50,7 @@ require button_new_game_2 engine/textures/buttons/button_new_game_down.png 0.5 0
 
 title_card engine/textures/fallen/fallen.png 0.5 0.5
 
-spritesheet dimensions 2448 624 3 1 minigame_graphics engine/textures/minigames/minigame_sprites_sheet.png 0.5 0.5
+spritesheet dimensions 4080 624 5 1 minigame_graphics engine/textures/minigames/minigame_sprites_sheet.png 0.5 0.5
 
 minigame_mouse_graphic engine/textures/minigames/minigame_icon_start1.png 0.5 0.5
 minigame_keyboard_graphic engine/textures/minigames/minigame_icon_start2.png 0.5 0.5
@@ -131,11 +131,7 @@ arrow_left_c engine/textures/water/arrow_left_c.png 0 0
 arrow_up_c engine/textures/water/arrow_up_c.png 0 0
 arrow_right_c engine/textures/water/arrow_right_c.png 0 0
 
-puyo-g engine/textures/puyo/puyo-g.png 0.5 0.5
-puyo-b engine/textures/puyo/puyo-b.png 0.5 0.5
-puyo-r engine/textures/puyo/puyo-r.png 0.5 0.5
-puyo-y engine/textures/puyo/puyo-y.png 0.5 0.5
-puyo-x engine/textures/puyo/puyo-x.png 0.5 0.5
+spritesheet dimensions 175 35 5 1 alias 0 puyo-g alias 1 puyo-b alias 2 puyo-r alias 3 puyo-y alias 4 puyo-x puyo_shapes engine/textures/puyo/puyo_sheet.png 0.5 0.5
 p-board_back engine/textures/puyo/p-board_back.png 0.5 0.5
 p-prev_back engine/textures/puyo/p-prev_back.png 0.5 0.5
 

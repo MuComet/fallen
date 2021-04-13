@@ -937,6 +937,9 @@ class MinigameController extends EngineInstance {
             $engine.getCamera().addFilter(this.blurFilter);
         this.cheated = true;
         this.showingCheat = true;
+        // swap to cheat graphics
+        this.resultGraphicWon.texture = $engine.getTexture("minigame_graphics_3");
+        this.resultGraphicLoss.texture = $engine.getTexture("minigame_graphics_4");
     }
 
     hasCheated() {

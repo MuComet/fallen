@@ -4,6 +4,7 @@ class SiblingStoryController extends EngineInstance {
         arr.push("")
         arr.push("__portrait[eson_profiles_1]__speed[3]\"Sara\".__wait[30]__speed[0]__noShift[1]__portrait[eson_profiles_0] Aww,__wait[9] what a beautiful name.")
         arr.push("__noShift[0]__portrait[eson_profiles_1]Hmm,__wait[12] it looks like there's something written on the back__speed[4]...__speed[0]__wait[30]__speed[1]\n\"Property of the Back Alley Gang\"?!\n__noShift[1]__portrait[eson_profiles_6]__wait[60]__break[]__speed[0]__portrait[eson_profiles_10]__wait[30] Welp,__wait[24] it looks like it's my property now!")
+        arr.push("__portrait[<none>]__noShift[0]__italic[1]+ 10 gold!")
         this.textBox = new TextBox(arr);
         this.textBox.setWaiting(true)
         this.setSprite(new PIXI.Sprite($engine.getTexture("sibling")));
@@ -34,10 +35,11 @@ class SiblingStoryController extends EngineInstance {
             var fac2 =EngineUtils.interpolate((this.timer-this.moveTime)/this.moveTime,$engine.getWindowSizeY()/2,this.targetY,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
             this.y = fac2;
 
-            if(!this.ending && IN.keyCheckPressed("RPGok") || IN.mouseCheckPressed(0)) {
+            if(!this.ending && (IN.keyCheckPressed("RPGok") || IN.mouseCheckPressed(0) || IN.keyCheck("RPGcontrol"))) {
                 this.textBox.advance();
                 if(!this.textBox.hasMoreText()) {
                     this.ending = true;
+                    $gameParty.gainGold(10);
                 }
             }
         }
