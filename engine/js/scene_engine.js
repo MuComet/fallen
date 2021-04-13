@@ -23,6 +23,8 @@ $__engineData.__lowPerformanceMode = false;
 $__engineData.__overrideRoom = undefined;
 $__engineData.__readyOverride = true;
 $__engineData.__shouldAutoSave = true;
+$__engineData.__deferredAssets = -1;
+$__engineData.__loadedDeferredAssets = -1;
 
 
 // things to unbork:
@@ -1556,11 +1558,11 @@ __initializeDone = function(obj) {
 }
 
 __finishReading = function(obj) {
-    var total = 0;
-    var loaded = 0;
+    $__engineData.__deferredAssets=0;
+    $__engineData.__loadedDeferredAssets=0;
 
     const isDone = function() {
-        if(++loaded===total) {
+        if(++$__engineData.__loadedDeferredAssets===$__engineData.__deferredAssets) {
             var msg = "("+String(obj.scripts)+(obj.scripts!==1 ? " scripts, " : " script, ")+String(obj.textures)+(obj.textures!==1 ? " textures, " : " texture, ") 
                     + String(obj.rooms)+(obj.rooms!==1 ? " rooms, " : " room, ") + String(obj.sounds)+(obj.sounds!==1 ? " sounds, " : " sound, ")
                     + String(obj.instances)+(obj.instances!==1 ? " instances) ->" : " instance) ->");
@@ -1570,13 +1572,13 @@ __finishReading = function(obj) {
     }
 
     for(const soundObj of obj.deferredSounds) {
-        total++;
+        $__engineData.__deferredAssets++;
         __loadSound(obj, soundObj, () => {
             isDone();
         });
     }
     for(const texObj of obj.deferredTextures) {
-        total++;
+        $__engineData.__deferredAssets++;
         __loadTexture(obj, texObj, () => {
             isDone();
         });
@@ -2394,6 +2396,12 @@ Game_Interpreter.prototype.updateWaitMode = function() {
     return waiting;
 };
 
+// make sure our loading text is always visible
+SceneManager.onSceneLoading = function() {
+    Graphics.updateLoading();
+	Graphics.render(GUIScreen.__loadingText)
+};
+
 
 // notes and overrides:
 // YEP_CoreEngine 2475 commented out to prevent showing level
@@ -2419,6 +2427,11 @@ class UwU {
         UwU.__notifyListenersOfSceneChange(previousClass, scene);
     }
 
+    static onSceneCreate(scene) {
+        for(const func of UwU.__onSceneCreateListeners)
+            func(scene);
+    }
+
     static mapIdChanged() {
         return UwU.__lastMapId !== UwU.__currentMapId;
     }
@@ -2433,6 +2446,14 @@ class UwU {
         if(!SceneManager._previousClass)
             return false;
         return SceneManager._previousClass.prototype instanceof Scene_MenuBase;
+    }
+
+    static addSceneCreateListener(func) {
+        UwU.__onSceneCreateListeners.push(func);
+    }
+
+    static removeSceneCreateListener(func) {
+        UwU.__onSceneCreateListeners = UwU.__onSceneCreateListeners.filter(x=> x!==func);
     }
 
     static addSceneChangeListener(func) {
@@ -2485,13 +2506,24 @@ class UwU {
     }
 }
 
-var sceneManagerOnSceneStart = SceneManager.onSceneStart;
-SceneManager.onSceneStart = function() {
-    sceneManagerOnSceneStart.call(this);
-    UwU.onSceneStart(SceneManager._previousClass,SceneManager._scene)
+{
+    let sceneManagerOnSceneStart = SceneManager.onSceneStart;
+    SceneManager.onSceneStart = function() {
+        sceneManagerOnSceneStart.call(this);
+        UwU.onSceneStart(SceneManager._previousClass,SceneManager._scene)
+    }
+}
+
+{
+    let sceneManagerOnSceneCreate = SceneManager.onSceneCreate;
+    SceneManager.onSceneCreate = function() {
+        sceneManagerOnSceneCreate.call(this);
+        UwU.onSceneCreate(SceneManager._scene)
+    }
 }
 
 UwU.__onSceneChangeListeners = [];
+UwU.__onSceneCreateListeners = [];
 UwU.__lastMapId = 0;
 UwU.__currentMapId = 0;
 UwU.__onBeforeRenderListeners = [];
@@ -3276,11 +3308,12 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
     static tick() {
         GUIScreen.__updateMouseLocation();
         GUIScreen.__renderMouse();
-        GUIScreen.__textTick();
+        GUIScreen.__saveTextTick();
+        GUIScreen.__loadingTextTick();
         GUIScreen.__timer++;
     }
 
-    static __sceneChanged(previousClass, scene) {
+    static __sceneCreate(scene) {
         GUIScreen.__bindContainer();
     }
 
@@ -3291,6 +3324,9 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
         GUIScreen.__saveText.y = 0;
         GUIScreen.__saveImage.x = $engine.getWindowSizeX();
         GUIScreen.__saveImage.y = GUIScreen.__saveImage.height/2;
+
+        GUIScreen.__loadingText.x = $engine.getWindowSizeX();
+        GUIScreen.__loadingText.y = $engine.getWindowSizeY();
         /*if($engine.isLow()) {
             GUIScreen.__graphics.filters = []
         } else {
@@ -3316,9 +3352,31 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
         //GUIScreen.__container.addChild(GUIScreen.__graphics);
         GUIScreen.__graphics.filters = [GUIScreen.__filter]
         GUIScreen.__container.addChild(GUIScreen.__saveText,GUIScreen.__saveImage);
+
+        GUIScreen.__loadingText = new PIXI.Text("",style);
+        GUIScreen.__loadingText.anchor.set(1);
+        GUIScreen.__loadingText.alpha = 0.2;
+        GUIScreen.__loadingTextTimer = 0;
+        GUIScreen.__container.addChild(GUIScreen.__loadingText);
     }
 
-    static __textTick() {
+    static __loadingTextTick() {
+        if($__engineData.__loadedDeferredAssets === -1) {
+            return;
+        }
+
+        if($__engineData.__loadedDeferredAssets===$__engineData.__deferredAssets) {
+            if(GUIScreen.__loadingTextTimer>=36)
+                return;
+            GUIScreen.__loadingTextTimer++;
+            GUIScreen.__loadingText.alpha = 0.2 - GUIScreen.__loadingTextTimer/180;
+        }
+        
+        GUIScreen.__loadingText.text = String($__engineData.__loadedDeferredAssets) + " / " + String($__engineData.__deferredAssets)
+                + " assets loaded..."
+    }
+
+    static __saveTextTick() {
         GUIScreen.__saveTextTimer++;
         // fake save screen. Done to make yevhen happy.
         // fake save screen. Done to make yevhen happy.
@@ -3370,6 +3428,7 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
     }
 
     static __renderMouse() {
+        /*
         var graphics = GUIScreen.__graphics
         var locations = GUIScreen.__mousePoints;
         var length = GUIScreen.__mousePoints.length;
@@ -3396,7 +3455,7 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
             graphics.drawCircle(points[i].x,points[i].y,(size - i)/2)
         }
         graphics.endFill()
-
+        */
     }
 
     static __mouseMoveHandler(event) {
@@ -3439,7 +3498,7 @@ GUIScreen.__saveGameString = "Game saved. . . ";
 GUIScreen.__init();
 // UwU.addRenderListener(GUIScreen.tick);
 document.addEventListener("pointermove", GUIScreen.__mouseMoveHandler); // fix one frame lag.
-UwU.addSceneChangeListener(GUIScreen.__sceneChanged);
+UwU.addSceneCreateListener(GUIScreen.__sceneCreate);
 
 // load the engine global save data
 {

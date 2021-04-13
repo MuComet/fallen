@@ -481,7 +481,7 @@ class TextBox extends EngineInstance {
     }
 
     isReady() {
-        return (this.currentText === "" || this.textComplete()) && this.portraitImageCorrect() && !this.isWaiting() && this.hasMoreText();
+        return (this.currentText === "" || this.textComplete()) && this.portraitImageCorrect() && !this.isWaiting();
     }
 
     disableArrow() {
