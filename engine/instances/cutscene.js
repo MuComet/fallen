@@ -909,7 +909,7 @@ class DailyRecapCutsceneController extends CutsceneController {
 
     onGameEnd() {
         $__engineSaveData.day++;
-        $engine.clearDailyOutcomes();
+        $engine.onDayEnd();
     }
 }
 CutsceneController.returnToMenu = function() {
