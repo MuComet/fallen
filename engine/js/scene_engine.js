@@ -2884,7 +2884,7 @@ class OwO {
     }
 
     static getMapContainer() {
-        return SceneManager._scene.children[0];
+        return SceneManager._scene.children[1];
     }
 
     static getMap() {

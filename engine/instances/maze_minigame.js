@@ -94,14 +94,14 @@ class MazeMinigameController extends MinigameController {
 
     onBeforeMinigame(frames) {
         var camera = $engine.getCamera();
-        if(frames>150 && frames <= 420) {
-            var fac = EngineUtils.interpolate((frames-150)/240,0,1,EngineUtils.INTERPOLATE_SMOOTH);
+        if(frames>210 && frames <= 490) {
+            var fac = EngineUtils.interpolate((frames-210)/240,0,1,EngineUtils.INTERPOLATE_SMOOTH);
             var dy = this.totalHeight - this.totalWidth * $engine.getWindowSizeX()/$engine.getWindowSizeY()
             camera.setLocation(0,dy*fac);
         }
 
-        if(frames>420 && frames <= 450) {
-            var fac = EngineUtils.interpolate((frames-420)/30,-$engine.getWindowSizeX(),0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+        if(frames>490 && frames <= 520) {
+            var fac = EngineUtils.interpolate((frames-490)/30,-$engine.getWindowSizeX(),0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
             this.blackGraphics.x = fac;
             $engine.requestRenderOnGUI(this.blackGraphics)
         }
