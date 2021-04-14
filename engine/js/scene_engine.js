@@ -2396,10 +2396,20 @@ Game_Interpreter.prototype.updateWaitMode = function() {
     return waiting;
 };
 
-// make sure our loading text is always visible
-SceneManager.onSceneLoading = function() {
-    Graphics.updateLoading();
-	Graphics.render(GUIScreen.__loadingText)
+// make sure our progress text is rendered.
+ Graphics._paintUpperCanvas = function() {
+    this._clearUpperCanvas();
+    if (this._loadingImage && this._loadingCount >= 20) {
+        var context = this._upperCanvas.getContext('2d');
+        var dx = (this._width - this._loadingImage.width) / 2;
+        var dy = (this._height - this._loadingImage.height) / 2;
+        var alpha = ((this._loadingCount - 20) / 30).clamp(0, 1);
+        context.save();
+        context.globalAlpha = alpha;
+        context.drawImage(this._loadingImage, dx, dy);
+        context.restore();
+		Graphics.render(GUIScreen.__loadingText)
+    }
 };
 
 

@@ -232,16 +232,16 @@ class CrateMinigameController extends MinigameController {
                 this.destroyTarget.getSprite().tint = (col<<16) | (col<<8) | col
             }
 
-        } else if(!this.hasCheated()){
-            var inst = IM.instancePosition(IN.getMouseX(),IN.getMouseY(),Crate);
-            if(this.lastInst) {
-                this.lastInst.getSprite().filters = [];
-            }
-            if(inst) {
-                this.lastInst = inst;
-                inst.getSprite().filters = [this.glowFilter]
-                inst.depth = --this.depthIndex;
-            }
+        }
+        
+        var inst = IM.instancePosition(IN.getMouseX(),IN.getMouseY(),Crate);
+        if(this.lastInst) {
+            this.lastInst.getSprite().filters = [];
+        }
+        if(inst) {
+            this.lastInst = inst;
+            inst.getSprite().filters = [this.glowFilter]
+            inst.depth = --this.depthIndex;
         }
 
         this.destroyTimer++;
