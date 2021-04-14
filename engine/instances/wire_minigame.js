@@ -285,7 +285,7 @@ class WireMinigameController extends MinigameController {
             }
         }
 
-        if(currentTile===this.endTile) {
+        if(currentTile===this.endTile && currentTile.getOutputDirection(fromDir) === WireTile.EAST) {
             currentTile.liveCount++;
             currentTile.energized=true;
             for(var x = 0;x<this.numCols;x++) {
