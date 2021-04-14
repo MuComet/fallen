@@ -226,3 +226,38 @@ class LightingLayer extends EngineInstance {
         this.lightSprite.y = yy-128;
     }
 }
+
+/**
+ * An EngineInstance that holds a singular 
+ */
+class AnimatedParticle extends EngineInstance {
+    onCreate(textureArray, speed = 1) {
+        this.setSprite(new PIXI.extras.AnimatedSprite(textureArray));
+        this.anim = this.getSprite();
+        this.anim.loop = false;
+        this.anim.onComplete = this.destroy;
+        this.anim.animationSpeed = speed;
+
+        this.paused = false;
+    }
+
+    step() {
+        if(!this.paused)
+            this.anim.update(1);
+    }
+
+    setPaused(bool) {
+        this.paused=bool;
+    }
+}
+
+/**
+ * An empty EngineInstance meant to hold a sprite
+ */
+class EmptyInstance extends EngineInstance {
+    onCreate(texture) {
+        if(texture) {
+            this.setSprite(new PIXI.Sprite(texture));
+        }
+    }
+}

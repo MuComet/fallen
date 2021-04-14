@@ -31,7 +31,7 @@ class WireMinigameController extends MinigameController {
         for(var x = 0;x<this.numCols;x++) {
             var arr = [];
             for(var y = 0;y<this.numRows;y++) {
-                var tile = new WireTile(tileXStart + x * this.tileWidth, tileYStart + y * this.tileHeight, results[x*this.numRows+y]);
+                var tile = new WireTile(tileXStart + x * this.tileWidth, tileYStart + y * this.tileHeight, results[x*this.numRows+y],x,y);
                 tile.xTile = x;
                 tile.yTile = y;
                 arr.push(tile);
@@ -39,11 +39,51 @@ class WireMinigameController extends MinigameController {
             this.tiles.push(arr);
         }
 
+        this.startY = -1;
+        this.endY = -1;
+
+        this.startTile = undefined;
+        this.endTile = undefined;
+
         this.generatePath();
+        this.recalculate();
+
+        this.startTimer(60*60);
+        this.getTimer().alpha = 0.85
+
+        this.setSprite(new PIXI.Sprite($engine.getTexture("wire_board")))
+
+        $engine.setBackground(new PIXI.Sprite($engine.getTexture("wall_tile")))
+
+        var inSprite = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("wire_inputs_0")));
+        inSprite.anchor.x = 1;
+        inSprite.anchor.y = 0.5;
+        inSprite.x = tileXStart-this.tileWidth/2 - 16;
+        inSprite.y = this.startY * this.tileHeight + tileYStart
+
+        var outSprite = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("wire_inputs_1")));
+        outSprite.anchor.x = 0;
+        outSprite.anchor.y = 0.5;
+        outSprite.x = tileXStart + this.tileWidth * this.numCols - this.tileWidth/2 + 16;
+        outSprite.y = this.endY * this.tileHeight + tileYStart
+    }
+
+    step() {
+        super.step();
+        this.timerLogic();
+    }
+
+    notifyFramesSkipped(frames) {
+        this.getTimer().tickDown(frames)
+    }
+
+    timerLogic() {
+        var fac = EngineUtils.interpolate((IN.getMouseY()-96)/196,0.2,0.85,EngineUtils.INTERPOLATE_OUT);
+        this.getTimer().alpha = fac;
     }
 
     generatePath() {
-        while(1) {
+        while(true) {
             try {
                 this.resetAllTiles();
                 var samples = 5;
@@ -62,10 +102,11 @@ class WireMinigameController extends MinigameController {
                     path[0].y++; // reserve this tile as the starting location.
                 }
 
-                path.push(new EngineLightweightPoint(Math.floor((samples-1)*change)+1,EngineUtils.irandom(this.numRows-1))) // add end tile
+                var endTile = new EngineLightweightPoint(Math.floor((samples-1)*change)+1,EngineUtils.irandom(this.numRows-1))
+                path.push(endTile) // add end tile
                 var cx = 0;
                 var cy = Math.floor(randStartY);
-                this.getTileAt(cx,cy).wireSprite.tint = 0x00ff00
+                // this.getTileAt(cx,cy).wireAnimation.tint = 0x00ff00
 
                 var pathIndex = 0;
                 var target = path[0];
@@ -78,6 +119,12 @@ class WireMinigameController extends MinigameController {
                 var lastParity = 1;
                 var currentParity = -1;
                 var ox, oy;
+
+                this.startTile = this.getTileAt(cx,cy);
+                this.endTile = this.getTileAt(endTile.x,endTile.y);
+
+                this.startY = randStartY;
+                this.endY = endTile.y;
 
                 // visit every sample point
                 while((pathIndex++)<samples) {
@@ -144,7 +191,7 @@ class WireMinigameController extends MinigameController {
                 if(lastTile.visitCount===1 && lastTile.visitParity===0) // make sure last tile points to end
                     lastTile.isBend=true;
                 for(const tile of visitedTiles) {
-                    tile.wireSprite.tint = 0x00ff00
+                    // tile.wireAnimation.tint = 0x00ff00
                     if(tile.isBend)
                         tile.changeType(1);
                     else if(tile.visitCount===1)
@@ -153,9 +200,9 @@ class WireMinigameController extends MinigameController {
                         tile.changeType(2)
                 }
                 var lastTile = visitedTiles[visitedTiles.length-1];
-                for(const p of path) {
-                    this.getTileAt(p.x,p.y).wireSprite.tint = 0xff0000
-                }
+                /*for(const p of path) {
+                    this.getTileAt(p.x,p.y).wireAnimation.tint = 0xff0000
+                }*/
                 return;
             } catch (e) {};
         }
@@ -201,7 +248,7 @@ class WireMinigameController extends MinigameController {
                 this.tiles[x][y].visitParity=-1;
                 this.tiles[x][y].visitCount=0;
                 this.tiles[x][y].isBend=false;
-                this.tiles[x][y].wireSprite.tint = 0xffffff;
+                // this.tiles[x][y].wireAnimation.tint = 0xffffff;
             }
         }
     }
@@ -212,18 +259,88 @@ class WireMinigameController extends MinigameController {
             return t;
         return t[y];
     }
+
+    recalculate() {
+        // reset all tiles
+        for(var x = 0;x<this.numCols;x++) {
+            for(var y = 0;y<this.numRows;y++) {
+                this.tiles[x][y].liveCount = 0;
+                this.tiles[x][y].energized = false;
+            }
+        }
+
+        // visit all tiles
+        var currentTile = this.startTile;
+        var fromDir = WireTile.WEST
+        // if end is the current tile, check if the output dir is EAST
+        while(currentTile && !(currentTile === this.endTile && currentTile.getOutputDirection(fromDir) === WireTile.EAST)) { 
+            if(currentTile.canInputFrom(fromDir)) {
+                currentTile.liveCount++;
+                currentTile.energized=true;
+                currentTile.liveParity = (fromDir + currentTile.currentRotation) % 2;
+                fromDir = (currentTile.getOutputDirection(fromDir) + 2) % 4
+                currentTile = this.getNextTile(currentTile, fromDir);
+            } else {
+                currentTile = undefined;
+            }
+        }
+
+        if(currentTile===this.endTile) {
+            currentTile.liveCount++;
+            currentTile.energized=true;
+            for(var x = 0;x<this.numCols;x++) {
+                for(var y = 0;y<this.numRows;y++) {
+                    this.tiles[x][y].lock();
+                }
+            }
+            this.endMinigame(true);
+        }
+
+        for(var x = 0;x<this.numCols;x++) {
+            for(var y = 0;y<this.numRows;y++) {
+                this.tiles[x][y].updateSprite();
+            }
+        }
+    }
+
+    getNextTile(tile, invDirection) { // takes in the inverse output direction of the last tile
+        var cx = tile.tileX;
+        var cy = tile.tileY;
+        if(invDirection === WireTile.SOUTH) {
+            return this.getTileAt(cx,cy-1);
+        }
+        if(invDirection === WireTile.WEST) {
+            return this.getTileAt(cx+1,cy);
+        }
+        if(invDirection === WireTile.NORTH) {
+            return this.getTileAt(cx,cy+1);
+        }
+        if(invDirection === WireTile.EAST) {
+            return this.getTileAt(cx-1,cy);
+        }
+        console.log(invDirection)
+    }
 }
 
 class WireTile extends EngineInstance{
-    onCreate(x,y, type) {
+    onCreate(x,y, type, tileX, tileY) {
         this.x = x;
         this.y = y;
+
+        this.tileX = tileX;
+        this.tileY = tileY;
 
         this.visitCount = 0; // for generation
         this.isBend = false;
         this.visitParity = -1;
 
         this.currentRotation = 0;
+
+        this.visualRotation = 0;
+        this.currentVisualRotation = 0;
+
+        this.liveCount = 0; // for live sprites
+        this.liveParity = -1;
 
         this.locked = false;
 
@@ -233,51 +350,108 @@ class WireTile extends EngineInstance{
 
         this.container = $engine.createRenderable(this, new PIXI.Container())
 
-        this.wireSprite = $engine.createManagedRenderable(this, new PIXI.Sprite(PIXI.Texture.EMPTY));
-        this.wireSprite.anchor.set(0.5)
-        this.container.addChild(this.wireSprite)
+        this.wireAnimation = $engine.createManagedRenderable(this, new PIXI.extras.AnimatedSprite([PIXI.Texture.EMPTY]));
+        this.wireAnimation.anchor.set(0.5)
+        this.wireAnimation.animationSpeed=0.1;
+        this.container.addChild(this.wireAnimation)
         this.container.x = x;
         this.container.y = y;
 
+        this.standardAnimation = [];
+        this.energizedAnimation1 = [];
+        this.energizedAnimation2 = [];
+        this.energizedAnimation3 = [];
+
+        this.energized = false;
+
         this.setRotation(EngineUtils.irandom(3));
 
-        this.changeType(type);
+        this.type = type;
 
+        this.changeType(this.type);
+    }
+
+    setEnergized(bool) {
+        this.energized = bool;
+        this.updateSprite();
+        
+    }
+
+    updateSprite() {
+        if(!this.energized) {
+            this.wireAnimation.textures = this.standardAnimation;
+            return;
+        }
+        if(this.type===2)
+            this.updateSpriteCross();
+        else
+            this.updateSpriteOther();
+        
+    }
+
+    updateSpriteCross() {
+        if(this.liveCount===1) {
+            if(this.liveParity===0) {
+                this.wireAnimation.textures = this.energizedAnimation1;
+            } else {
+                this.wireAnimation.textures = this.energizedAnimation2;
+            }
+        } else {
+            this.wireAnimation.textures = this.energizedAnimation3;
+        }
+    }
+
+    updateSpriteOther() {
+        this.wireAnimation.textures = this.energizedAnimation1;
     }
 
     changeType(type) {
         switch(type) {
             case(0):
                 this.connections = [false, true, false, true] // straight line horizontal
+                this.energizedAnimation1 = $engine.getAnimation("anim_wire_straight");
             break;
             case(1):
                 this.connections = [true, true, false, false] // turn NE
+                this.energizedAnimation1 = $engine.getAnimation("anim_wire_bend");
             break;
             case(2):
                 this.connections = [true, true, true, true]
+                this.energizedAnimation1 = $engine.getAnimation("anim_wire_cross_a");
+                this.energizedAnimation2 = $engine.getAnimation("anim_wire_cross_b");
+                this.energizedAnimation3 = $engine.getAnimation("anim_wire_cross_c");
             break;
         }
-        this.wireSprite.texture = $engine.getTexture("wire_tiles_"+String(type))
+        this.standardAnimation = [$engine.getTexture("wire_tiles_"+String(type))];
+        this.updateSprite();
+        this.type = type;
     }
 
     step() {
         if(IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)) {
             this.rotate();
-            for(var i =0;i<4;i++)
-                console.log(this.canInputFrom(i));
+            WireMinigameController.getInstance().recalculate();
         }
+        this.wireAnimation.update(1);
+
+        var diff = this.visualRotation - this.currentVisualRotation;
+        this.currentVisualRotation+=diff/1.5;
+        this.container.rotation = Math.PI/2 * this.currentVisualRotation;
+
     }
 
     rotate() {
         if(this.locked)
             return;
         this.currentRotation = (this.currentRotation+1)%4;
-        this.container.rotation = Math.PI/2 * this.currentRotation;
+        this.visualRotation++;
     }
 
     setRotation(rotation) {
-        this.currentRotation= rotation;
+        this.currentRotation = rotation;
         this.container.rotation = Math.PI/2 * this.currentRotation;
+        this.currentVisualRotation=rotation;
+        this.visualRotation=rotation;
     }
 
     applySprites() {
@@ -293,12 +467,12 @@ class WireTile extends EngineInstance{
     }
 
     getOutputDirection(inputDirection) {
-        switch(type) {
+        switch(this.type) {
             case(0):
             case(2):
                 return (inputDirection+2)%4;
             case(1):
-                if(this.checkConnectionCorrected(inputDirection+1)) // a left turn
+                if(this.checkConnectionCorrected((inputDirection+1))) // a left turn
                     return (inputDirection+1)%4
                 return (inputDirection+3)%4 // + 4 - 1 (non negative)
         }

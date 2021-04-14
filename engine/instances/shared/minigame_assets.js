@@ -611,7 +611,7 @@ class MinigameController extends EngineInstance {
             return;
         this._onMinigameEndNoTimer(won);
         if(this._timer) {
-            this._timer.pause();
+            this._timer.pauseTimer();
         }
     }
 
