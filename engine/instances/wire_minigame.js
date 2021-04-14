@@ -74,6 +74,9 @@ class WireMinigameController extends MinigameController {
                         self.tiles[x][y].wireAnimation.tint = 0x888888; // make all tiles that aren't part of the generator solution darker.
                 }
             }
+
+            if(self.getTimer().getTimeRemaining()<30*60) // give them at least 30 seconds to solve
+                self.getTimer().setTimeRemaining(30*60)
         })
         this.setCheatTooltip("The inner workzings!");
         this.setLossReason("Maybe don't play with electricity...")
@@ -303,7 +306,7 @@ class WireMinigameController extends MinigameController {
             }
         }
 
-        if(currentTile===this.endTile && currentTile.getOutputDirection(fromDir) === WireTile.EAST) {
+        if(currentTile===this.endTile && this.canInputFrom(fromDir) && currentTile.getOutputDirection(fromDir) === WireTile.EAST) {
             currentTile.liveCount++;
             currentTile.energized=true;
             for(var x = 0;x<this.numCols;x++) {

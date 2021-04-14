@@ -178,7 +178,7 @@ class Scene_Engine extends Scene_Base {
 
     __bindEngine() {
         if($__engineData.__overworldMode)
-            SceneManager._scene.addChildAt(this,1);
+            SceneManager._scene.addChild(this);
     }
 
     endOverworld() {

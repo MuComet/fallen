@@ -912,6 +912,17 @@ class DailyRecapCutsceneController extends CutsceneController {
         $engine.onDayEnd();
     }
 }
+
+class EndingSummary extends EngineInstance {
+    onEngineCreate() {
+
+    }
+
+    onCreate() {
+        this.onEngineCreate();
+    }
+}
+
 CutsceneController.returnToMenu = function() {
     $engine.setRoom("MenuIntro")
 }
