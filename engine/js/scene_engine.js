@@ -3371,7 +3371,7 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
             GUIScreen.__loadingTextTimer++;
             GUIScreen.__loadingText.alpha = 0.2 - GUIScreen.__loadingTextTimer/180;
         }
-        
+
         GUIScreen.__loadingText.text = String($__engineData.__loadedDeferredAssets) + " / " + String($__engineData.__deferredAssets)
                 + " assets loaded..."
     }

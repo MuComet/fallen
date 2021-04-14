@@ -140,8 +140,8 @@ class Camera extends PIXI.Container {
         off.translate(-dx,-dy)
 
         this.__cameraRenderContainer.rotation = this.angle;
-        this.__cameraRenderContainer.x = -this.engineX - off.x;
-        this.__cameraRenderContainer.y = -this.engineY - off.y;
+        this.__cameraRenderContainer.x = (-this.engineX - off.x) * this.__cameraRenderContainer.scale.x;
+        this.__cameraRenderContainer.y = (-this.engineY - off.y) * this.__cameraRenderContainer.scale.y;
     }
 
     __getCenter() {
@@ -170,20 +170,20 @@ class Camera extends PIXI.Container {
 
     setScaleX(sx) {
         IN.__validMouse = false;
-        this.scale.x = sx;
+        this.__cameraRenderContainer.scale.x = sx;
     }
 
     getScaleX() {
-        return this.scale.x;
+        return this.__cameraRenderContainer.scale.x;
     }
 
     setScaleY(sy) {
         IN.__validMouse = false;
-        this.scale.y = sy;
+        this.__cameraRenderContainer.scale.y = sy;
     }
 
     getScaleY() {
-        return this.scale.y;
+        return this.__cameraRenderContainer.scale.y;
     }
 
     setScale(sx, sy) {
@@ -193,18 +193,18 @@ class Camera extends PIXI.Container {
     }
 
     setDimensions(w,h) {
-        var sx = w/this.CANVAS_WIDTH;
-        var sy = h/this.CANVAS_HEIGHT;
+        var sx = this.CANVAS_WIDTH/w;
+        var sy = this.CANVAS_HEIGHT/h;
         this.setScale(sx,sy);
     }
 
     setWidth(w) {
-        var sx = w/this.CANVAS_WIDTH;
+        var sx = this.CANVAS_WIDTH/w;
         this.setScaleX(sx)
     }
 
     setHeight(h) {
-        var sy = h/this.CANVAS_HEIGHT;
+        var sy = this.CANVAS_HEIGHT/h;
         this.setScaleY(sy)
     }
 

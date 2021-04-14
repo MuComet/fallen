@@ -66,6 +66,21 @@ class WireMinigameController extends MinigameController {
         outSprite.anchor.y = 0.5;
         outSprite.x = tileXStart + this.tileWidth * this.numCols - this.tileWidth/2 + 16;
         outSprite.y = this.endY * this.tileHeight + tileYStart
+
+        this.addOnCheatCallback(this, function(self) {
+            for(var x = 0;x<self.numCols;x++) {
+                for(var y = 0;y<self.numRows;y++) {
+                    if(!self.tiles[x][y].isPartOfSolution)
+                        self.tiles[x][y].wireAnimation.tint = 0x888888; // make all tiles that aren't part of the generator solution darker.
+                }
+            }
+        })
+        this.setCheatTooltip("The inner workzings!");
+        this.setLossReason("Maybe don't play with electricity...")
+        this.setControls(false,true);
+        var instr = new PIXI.Text("Click on tiles to rotate them.\nConnect the flow of electricity from the start on the left\nto the goal on the right before "
+            + "time runs out!\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle())
+        this.setInstructionRenderable(instr)
     }
 
     step() {
@@ -122,6 +137,7 @@ class WireMinigameController extends MinigameController {
 
                 this.startTile = this.getTileAt(cx,cy);
                 this.endTile = this.getTileAt(endTile.x,endTile.y);
+                this.startTile.isPartOfSolution=true;
 
                 this.startY = randStartY;
                 this.endY = endTile.y;
@@ -238,6 +254,7 @@ class WireMinigameController extends MinigameController {
         if(changedPolarity)
             lastTile.isBend=true;
         tile.visitCount++;
+        tile.isPartOfSolution=true;
         var ox = tile.xTile - lastTile.xTile;
         tile.visitParity = ox!==0 ? 1 : 0;
     }
@@ -248,6 +265,7 @@ class WireMinigameController extends MinigameController {
                 this.tiles[x][y].visitParity=-1;
                 this.tiles[x][y].visitCount=0;
                 this.tiles[x][y].isBend=false;
+                this.tiles[x][y].isPartOfSolution = false;
                 // this.tiles[x][y].wireAnimation.tint = 0xffffff;
             }
         }
@@ -333,6 +351,7 @@ class WireTile extends EngineInstance{
         this.visitCount = 0; // for generation
         this.isBend = false;
         this.visitParity = -1;
+        this.isPartOfSolution = false;
 
         this.currentRotation = 0;
 
@@ -472,7 +491,7 @@ class WireTile extends EngineInstance{
             case(2):
                 return (inputDirection+2)%4;
             case(1):
-                if(this.checkConnectionCorrected((inputDirection+1))) // a left turn
+                if(this.checkConnectionCorrected(inputDirection+1)) // a left turn
                     return (inputDirection+1)%4
                 return (inputDirection+3)%4 // + 4 - 1 (non negative)
         }

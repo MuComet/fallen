@@ -651,7 +651,7 @@ class MinigameController extends EngineInstance {
     }
 
     _minigameControllerTick() {
-        if(!this.failedMinigame && ! this.wonMinigame && !this.showingInstructions && 
+        if(!this.failedMinigame && ! this.wonMinigame && !this.showingInstructions && !this.isPregame() &&
                 !this.showingPressAnyKey && this.cheatKeyActive && this.allowActivateCheat && IN.keyCheckPressed(this.cheatKey)) {
             this.cheat();
         }
@@ -812,7 +812,7 @@ class MinigameController extends EngineInstance {
      * @returns Whether or not it is currently pregame.
      */
     isPregame() {
-        return !this._minigameStarted;
+        return !this._minigameStarted && !this._skipPregame;
     }
 
     /**
@@ -832,7 +832,7 @@ class MinigameController extends EngineInstance {
         $engine.audioPlaySound("minigame_start",0.75)
 
         this.delayedAction($engine.isGamePaused() ? 0 : 60, function() {
-            if(this._timer && this._skipPregame)
+            if(this._timer && !this._skipPregame)
                 this._timer.unpauseTimer();
             this._onGameStart();
             this._startMusic();
@@ -843,6 +843,8 @@ class MinigameController extends EngineInstance {
 
     skipPregame() {
         this._skipPregame=true;
+        if(this._timer)
+            this._timer.unpauseTimer();
     }
 
     onBeforeMinigame(frames) {

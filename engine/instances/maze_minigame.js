@@ -5,7 +5,7 @@ class MazeMinigameController extends MinigameController {
         this.score = 0;
         this.sizeX = 64;
         this.sizeY = 64;
-        this.numRows = 33;
+        this.numRows = 55;
         this.numCols = 23;
 
         this.startX = Math.floor(this.numCols/2);
@@ -26,17 +26,19 @@ class MazeMinigameController extends MinigameController {
 
         this.setLossReason("The colouring book mazes did not prepare you for this one.")
 
-        this.paperBackground = new PIXI.extras.TilingSprite($engine.getTexture("background_paper_tile"),$engine.getWindowSizeX(),$engine.getWindowSizeY());
+        this.paperBackground = new PIXI.extras.TilingSprite($engine.getTexture("background_paper_tile"),this.totalWidth,this.totalHeight);
         $engine.setBackground(this.paperBackground);
 
-        var text = new PIXI.Text("Basically, M A Z E",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Use movement keys to move Eson through the maze.\nYou start at the bottom center and must reach the top center\n"
+            + "MEMORIZE THE LAYOUT and travel through as fast as you can.\nDon't make a wrong turn!"
+            + "\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
-        this.skipPregame();
+        //this.skipPregame();
 
         this.setupMaze();
 
-        var bufferTime = 12;
+        var bufferTime = 8;
         this.upBuffer = new BufferedKeyInput("RPGup", bufferTime);
         this.leftBuffer = new BufferedKeyInput("RPGleft", bufferTime);
         this.rightBuffer = new BufferedKeyInput("RPGright", bufferTime);
@@ -47,6 +49,8 @@ class MazeMinigameController extends MinigameController {
 
         this.x = this.currentX * this.sizeX + this.sizeX/2;
         this.y = this.currentY * this.sizeY + this.sizeY/2;
+
+        // pre camera setup, overwritten below.
         var camera = $engine.getCamera();
         camera.setLocation(this.x - $engine.getWindowSizeX()/2, this.totalHeight - $engine.getWindowSizeY())
 
@@ -74,6 +78,50 @@ class MazeMinigameController extends MinigameController {
         this.shakeTimer = 0;
 
         this.flashlightTick();
+        this.lampSprite.alpha = 0;
+        this.getTimer().alpha = 0;
+
+        camera.setWidth(this.totalWidth);
+        camera.setHeight(this.totalWidth * $engine.getWindowSizeX()/$engine.getWindowSizeY());
+        camera.setLocation(0,0)
+
+        this.blackGraphics = $engine.createManagedRenderable(this, new PIXI.Graphics());
+
+        this.blackGraphics.beginFill(0);
+        this.blackGraphics.drawRect(0,0,$engine.getWindowSizeX(),$engine.getWindowSizeY());
+
+    }
+
+    onBeforeMinigame(frames) {
+        var camera = $engine.getCamera();
+        if(frames>150 && frames <= 420) {
+            var fac = EngineUtils.interpolate((frames-150)/240,0,1,EngineUtils.INTERPOLATE_SMOOTH);
+            var dy = this.totalHeight - this.totalWidth * $engine.getWindowSizeX()/$engine.getWindowSizeY()
+            camera.setLocation(0,dy*fac);
+        }
+
+        if(frames>420 && frames <= 450) {
+            var fac = EngineUtils.interpolate((frames-420)/30,-$engine.getWindowSizeX(),0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+            this.blackGraphics.x = fac;
+            $engine.requestRenderOnGUI(this.blackGraphics)
+        }
+        if(frames>520) {
+            this.lampSprite.alpha = 1;
+            this.getTimer().alpha = 1;
+
+            
+            camera.setLocation(this.x - $engine.getWindowSizeX()/2, this.totalHeight - $engine.getWindowSizeY())
+            camera.setScale(1,1);
+            var fac = EngineUtils.interpolate((frames-520)/30,0,$engine.getWindowSizeX(),EngineUtils.INTERPOLATE_IN_EXPONENTIAL);
+            this.blackGraphics.x = fac;
+            $engine.requestRenderOnGUI(this.blackGraphics)
+        }
+        if(frames>550) {
+            this.startMinigame();
+        }
+        this.paperBackground.tilePosition.x = -camera.getX()*camera.getScaleX();
+        this.paperBackground.tilePosition.y = -camera.getY()*camera.getScaleY();
+        
     }
 
     setupMaze() {
@@ -99,7 +147,7 @@ class MazeMinigameController extends MinigameController {
 
         var shortestDistance = -1;
 
-        while(shortestDistance < 40 || shortestDistance > 65) { // the maze must be solvable in at most 65 moves, and at least 40 moves
+        while(shortestDistance < 75 || shortestDistance > 115) { // the maze must be solvable in at most 115 moves, and at least 75 moves
             this.generateMaze();
             shortestDistance = this.path[this.startX][this.numRows-1];
         }
@@ -398,7 +446,8 @@ class MazeMinigameController extends MinigameController {
 
     step() {
         super.step();
-        
+        if(this.isPregame())
+            return;
         this.cameraTick();
         this.animationTick();
         this.flashlightTick();
