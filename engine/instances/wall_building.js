@@ -39,19 +39,17 @@ class WallBuilderController extends MinigameController {
         this.backdropImage = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("letter_backdrop")));
         this.backdropImage.x = this.graphicsLocationX;
         this.backdropImage.y = this.graphicsLocationY;
-        this.backdropImage.scale.x = 1.3; 
-        this.backdropImage.scale.y = 1.3; 
 
 
-        this.letterText = $engine.createRenderable(this,new PIXI.Text("",$engine.getDefaultTextStyle()));
+        var style = $engine.getDefaultTextStyle();
+        style.fontSize = 40;
+        this.letterText = $engine.createRenderable(this,new PIXI.Text("",style));
         this.letterText.anchor.set(0.5,0.5);
         this.letterText.x = this.graphicsLocationX;
         this.letterText.y = this.graphicsLocationY;
-        this.letterText.scale.x = 1.3;
-        this.letterText.scale.y = 1.3;
 
         this.buildtohere = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("build_to_here")));
-        this.buildtohere.x = $engine.getWindowSizeX()/2-60;
+        this.buildtohere.x = $engine.getWindowSizeX()/2;
         this.buildtohere.y = $engine.getWindowSizeY()-300;
 
 
@@ -79,12 +77,12 @@ class WallBuilderController extends MinigameController {
         this.endWaitTimer = 0;
         this.waiting = false;
 
-        this.startTimer(30*60,MinigameTimer.GRAPHIC_TIME)
+        this.startTimer(30*60)
     }
 
     landed(dy) {
-        this.cameraMove+=dy/8;
-        this.rotateFactor+=dy/384;
+        this.cameraMove+=dy/16;
+        this.rotateFactor+=dy/768;
     }
 
     createRope() {
@@ -228,10 +226,6 @@ class WallBuilderController extends MinigameController {
         super.step();
 
         this.updateGritRopes();
-        this.letterText.scale.x = 1.3;
-        this.letterText.scale.y = 1.3;
-        this.backdropImage.scale.x = 1.3; 
-        this.backdropImage.scale.y = 1.3; 
 
         $engine.getCamera().translate(0,this.cameraMove);
         if($engine.getCamera().getY()<=0) {
@@ -273,10 +267,10 @@ class WallBuilderController extends MinigameController {
                 this.updateText();
             }
             var fac = EngineUtils.interpolate(value, 0, 1, EngineUtils.INTERPOLATE_OUT_BACK)
-            this.letterText.scale.x = fac *1.3;
-            this.letterText.scale.y = 0.75 + fac/4 *1.3;
-            this.backdropImage.scale.x = fac*1.3;
-            this.backdropImage.scale.y = 0.75 + fac/4 *1.3;
+            this.letterText.scale.x = fac;
+            this.letterText.scale.y = 0.75 + fac/4;
+            this.backdropImage.scale.x = fac;
+            this.backdropImage.scale.y = 0.75 + fac/4;
         }
         this.flipTimer--;
 
@@ -390,7 +384,7 @@ class Brick extends EngineInstance {
 
 class TextEffect extends EngineInstance {
     onCreate(x,y,text,style) {
-        style.size = style.size*2;
+        style.fontSize = style.fontSize*2;
         this.setSprite(new PIXI.Text(text,style));
         this.getSprite().anchor.set(0.5,0.5);
         this.x = x;

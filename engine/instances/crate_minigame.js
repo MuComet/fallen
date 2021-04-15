@@ -18,9 +18,6 @@ class CrateMinigameController extends MinigameController {
         this.setControls(true,true);
         this.skipPregame();
 
-        var text = new PIXI.Text("A SINGLE marked crate is located within the room.\n Use the Mouse to move the light around and click \n on the marked crate. Arrows can be used for fine movement.\n\n Clicking the wrong crate will result in a time penalty!\n\n Press ENTER to cheat!",$engine.getDefaultTextStyle());
-        this.setInstructionRenderable(text);
-
         this.depthIndex = -1;
 
         this.lastInst = undefined;
@@ -98,6 +95,21 @@ class CrateMinigameController extends MinigameController {
         this.shakeFactor = 8;
 
         this.setCheatTooltip("Laser?!");
+
+        var container = new PIXI.Sprite(PIXI.Texture.EMPTY);
+        var text = $engine.createManagedRenderable(this,new PIXI.Text("A SINGLE marked crate is located within the room.\n Use the Mouse to move the light around and click \n"
+                + "on the marked crate. Arrows can be used for fine movement.\n\nClicking the wrong crate will result in a time penalty!\n\n"
+                + "Press ENTER to cheat!",$engine.getDefaultTextStyle()));
+
+        text.anchor.set(0.5)
+
+        var crate = $engine.createManagedRenderable(this, new PIXI.Sprite(this.targetCrate.getSprite().texture))
+        crate.anchor.set(0.5);
+        crate.y = 200;
+
+        container.addChild(text,crate);
+        
+        this.setInstructionRenderable(container);
 
     }
 
@@ -211,6 +223,14 @@ class CrateMinigameController extends MinigameController {
                 var oldTarget = this.destroyTarget; // because the engine does not immediately remove instances from the world, we must
                 if(this.destroyTarget) { // temporarily remove this instance from the pool when checking.
                     this.destroyTarget.destroy();
+                    new CrateParticle(this.destroyTarget.x-16,this.destroyTarget.y).xScale = 1;
+                    new CrateParticle(this.destroyTarget.x+16,this.destroyTarget.y).xScale = -1;
+                    for(var i=0;i<12;i++) {
+                        var part = new CrateParticle(this.destroyTarget.x,this.destroyTarget.y)
+                        part.xScale = EngineUtils.randomRange(0.2,0.5);
+                        part.yScale = EngineUtils.randomRange(0.2,0.5);
+                    }
+                    this.shake();
                     var saveTargetX = this.destroyTarget.x;
                     this.destroyTarget.x = 9999999; // get outta here.
                 }
@@ -267,10 +287,11 @@ class Crate extends EngineInstance {
         this.marked = mark;
         this.broken = 0;
         var texture = undefined;
-        if(mark) 
+        if(mark) { // i d e a l   c o d e
             texture = $engine.getRandomTextureFromSpritesheet("crate_marked");
-        else
+        } else {
             texture = $engine.getRandomTextureFromSpritesheet("crate_normal");
+        }
 
         this.setSprite(new PIXI.Sprite(texture));
         var r = EngineUtils.irandomRange(178,255);
@@ -298,8 +319,35 @@ class Crate extends EngineInstance {
                 //}   
         }
     }
+}
 
-    draw(gui, camera) {
+class CrateParticle extends EngineInstance {
+    onCreate(x,y) {
+        this.x = x;
+        this.y = y;
 
+        var texture = $engine.getTexture("box_break");
+    
+        this.setSprite(new PIXI.Sprite(texture));
+        var r = EngineUtils.irandomRange(178,255);
+        this.getSprite().tint = (r<<16) | (r<<8) | r; // add some variation via a brightness adjustment
+
+        this.dy = EngineUtils.randomRange(-8,-4);
+        this.dx = EngineUtils.randomRange(-2,2);
+        this.dz = EngineUtils.randomRange(-0.05,0.05);
+        this.grav = 0.25;
+        this.lifeTimer = 0;
+        this.lifeTime = EngineUtils.irandomRange(45,75);
+    }
+    
+    step() {
+        this.lifeTimer++;
+        if(this.lifeTime>this.lifeTime)
+            this.destroy();
+        this.alpha = EngineUtils.interpolate((this.lifeTimer-(this.lifeTime-24))/24,1,0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+        this.x+=this.dx;
+        this.y+=this.dy;
+        this.angle+=this.dz;
+        this.dy += this.grav;
     }
 }

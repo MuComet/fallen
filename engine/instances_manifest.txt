@@ -15,7 +15,7 @@ IntroMinigameController engine/instances/intro_minigame.js
 
 SiblingStoryController engine/instances/sibling.js
 
-Umbrella UmbrellaPlayer Raindrop Test engine/instances/umbrella_minigame.js
+Umbrella UmbrellaPlayer Raindrop engine/instances/umbrella_minigame.js
 DrawController ShapeToDraw DrawableLine engine/instances/drawing_minigame.js
 MenuIntroController Letter RisingSprite MainMenuButton engine/instances/menu_intro.js
 RockMinigameController RockDodgingPlayer FallingRock engine/instances/falling_rocks.js
@@ -28,7 +28,7 @@ BrokenImageController PictureComponent engine/instances/broken_image_minigame.js
 PaintImageController engine/instances/paint_image_minigame.js
 
 GardenMinigameController GardenPlant GardenWorm GardenHoles engine/instances/garden_minigame.js
-CrateMinigameController Crate engine/instances/crate_minigame.js
+CrateMinigameController Crate CrateParticle engine/instances/crate_minigame.js
 
 WaterMinigameController WaterPlant DDRTiles WaterCan engine/instances/garden_water.js
 MazeMinigameController MazeBlock engine/instances/maze_minigame.js

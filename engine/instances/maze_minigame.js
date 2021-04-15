@@ -528,8 +528,4 @@ class MazeBlock extends EngineInstance {
             this.angle = EngineUtils.randomRange(-0.03,0.03)
         }
     }
-    
-    draw(gui, camera) {
-    
-    }
 }

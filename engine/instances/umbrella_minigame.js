@@ -3,12 +3,6 @@ class UmbrellaMinigameController extends MinigameController {
         super.onEngineCreate();
 
         this.score = 750;
-        this.scoreText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
-        this.scoreText.anchor.set(0.5,0.5);
-        this.scoreText.x = $engine.getWindowSizeX()/2;
-        this.scoreText.y = $engine.getWindowSizeY()-30;
-        $engine.createManagedRenderable(this,this.scoreText);
-        this.updateScoreText();
 
         this.skipPregame();
 
@@ -33,19 +27,18 @@ class UmbrellaMinigameController extends MinigameController {
         this.getTimer().setSurvivalMode();
         $engine.setBackgroundColour(0x080820)
 
-        $engine.physicsEnable();
-
-        this.physicsFloor = Matter.Bodies.rectangle($engine.getWindowSizeX()/2,$engine.getWindowSizeY(),$engine.getWindowSizeX(),64,{isStatic:true});
-        $engine.physicsAddBodyToWorld(this.physicsFloor);
-
         this.setupBGS();
         this.bgsTimer = 0;
         this.bgsFadeTime = 30;
-    }
 
-    onBeforeMinigame(frames) {
-        if(frames===120)
-            this.startMinigame();
+        this.scoreBar = new ProgressBar(this.score, ProgressBar.HEALTH, true);
+        this.scoreBar.setFloatingFactor(0.1);
+        var container = this.scoreBar.getContainer();
+        container.x = $engine.getWindowSizeX()/2;
+        container.y = 80;
+        container.scale.set(0.5)
+        this.scoreBar.setAutoText(false);
+        this.scoreBar.setText("");
     }
 
     setupBGS() {
@@ -74,6 +67,7 @@ class UmbrellaMinigameController extends MinigameController {
             new Test(IN.getMouseX(), IN.getMouseY());
         }*/
         $engine.getCamera().setX(-($engine.getWindowSizeX()/2-this.player.x)/4)
+        this.scoreBar.setTextTint(0xffffff);
     }
 
     bgsTick() {
@@ -103,10 +97,11 @@ class UmbrellaMinigameController extends MinigameController {
             snd.speed = EngineUtils.randomRange(0.6,1.5)
         }
         this.updateScoreText();
+        this.scoreBar.setTextTint(0xff0000);
     }
 
     updateScoreText() {
-        this.scoreText.text = "Life: "+String(this.score);
+        this.scoreBar.setValue(this.score)
     }
 
     onCreate() {
@@ -115,7 +110,6 @@ class UmbrellaMinigameController extends MinigameController {
 
     draw(gui,camera) {
         super.draw(gui,camera);
-        $engine.requestRenderOnCameraGUI(this.scoreText);
         //EngineDebugUtils.drawPhysicsObject(camera,this.physicsFloor)
     }
 
@@ -125,33 +119,6 @@ class UmbrellaMinigameController extends MinigameController {
 
 }
 
-class Test extends EnginePhysicsInstance {
-    onCreate(x,y) {
-        this.x = x;
-        this.y = y;
-        const phys = Matter.Bodies.rectangle(x,y,128,64, { restitution: 0.8 });
-        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-64,-32,64,32)))
-        this.attachPhysicsObject(this.physicsObjectFromHitbox({ restitution: 0.8 }));
-        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-734/2,-245/2,734/2,245/2)))
-        this.setSprite(new PIXI.Sprite($engine.getRandomTextureFromSpritesheet("rain_sprites")))
-        this.xScale = 0.1743869;
-        this.yScale = 0.5224489/2;
-    }
-
-    step() {
-        if(IN.mouseCheckPressed(2) && IM.instanceCollisionPoint(IN.getMouseX(),IN.getMouseY(),this))
-            this.destroy();
-    }
-
-    cleanup() {
-        this.detachPhysicsObject();
-    }
-
-    draw(gui, camera) {
-        //EngineDebugUtils.drawPhysicsHitbox(camera,this)
-        //EngineDebugUtils.drawHitbox(camera,this)
-    }
-}
 
 class UmbrellaPlayer extends InstanceMover {
     onEngineCreate() {
@@ -320,8 +287,9 @@ class Umbrella extends EngineInstance {
     }
 
     step() {
+        // very old code. Literally was the first minigame programmed and was mostly to test collision.
         this.angle = EngineUtils.clamp(this.dx/64,-Math.PI/4,Math.PI/4)
-        for(var i =0;i<EngineUtils.clamp(-(this.endTime-75)/2,1,12);i++)
+        for(var i =0;i<EngineUtils.clamp(-(this.endTime-75)/2,1,14);i++)
             new Raindrop(EngineUtils.randomRange(-124,924),-64);
         this.timer++;
         if(this.timer>this.endTime*2) {
@@ -459,9 +427,6 @@ class Raindrop extends EngineInstance {
                 spd=0;
             this.dx = V2D.lengthDirX(angle,spd) +dxAdd;
             this.dy = V2D.lengthDirY(angle,spd);
-        }
-        if(IM.instanceCollision(this,this.x,this.y,Test)) {
-            this.destroy();
         }
         if(IM.instanceCollision(this,this.x,this.y,UmbrellaPlayer)) {
             UmbrellaMinigameController.getInstance().decrementScore();

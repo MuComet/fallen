@@ -2577,6 +2577,16 @@ class OwO {
         })
 
         OwO.__specialRenderLayer = new PIXI.Container();
+
+        OwO.__setupRenderLayer();
+    }
+
+    static __setupRenderLayer() {
+        OwO.__areaNameText = new PIXI.Text("",$engine.getDefaultTextStyle());
+        OwO.__areaNameText.anchor.x = 0.5;
+        OwO.__areaNameText.anchor.y = 1;
+        OwO.__areaNameText.__update = function(){}; // needed for special render layer
+        OwO.__specialRenderLayer.addChild(OwO.__areaNameText);
     }
 
     static __listenForHP() {
@@ -2753,12 +2763,10 @@ class OwO {
         }
 
         var idx = filters.findIndex(x=>x.eventId===eventId);
-        if(idx===-1) {
-            console.warn("Attempted to remove filter that does not exist. This may be a sign of faulty logic.");
-            return;
+        if(idx!==-1) {
+            filters.splice(idx,1);
         }
-
-        filters.splice(idx,1);
+        
 
         if(!OwO.__isAutorunSwitchSet()) { // convenience.
             OwO.applyConditionalFilters();
@@ -2782,10 +2790,24 @@ class OwO {
             data[mapId] = {};
             data[mapId].filterList =  [];
             data[mapId].eventLocations = [];
+            data[mapId].areaName = "";
             data[mapId].particleInit = -1;
             data[mapId].initialized = false;
         }
         return data[mapId];
+    }
+
+    static setAreaName(name) {
+        var data = OwO.__getMapData($gameMap._mapId);
+        data.areaName=name;
+        OwO.__applyAreaName();
+    }
+
+    static __applyAreaName() {
+        OwO.__areaNameText.x = $engine.getWindowSizeX()/2;
+        OwO.__areaNameText.y = 0;
+        OwO.__areaNameText.text = OwO.__getMapData($gameMap._mapId).areaName;
+        OwO.__areaNameTimer = 0;
     }
 
     static __getConditionalFilters(mapId) {
@@ -2889,6 +2911,7 @@ class OwO {
         // if data exists, exectue.
         OwO.applyConditionalFilters();
         OwO.applyEventLocations();
+        OwO.__applyAreaName();
         if(!UwU.lastSceneWasMenu())
             OwO.__applyParticleInit();
     }
@@ -3069,6 +3092,23 @@ class OwO {
             });
             OwO.__renderLayer.addChild(...children)
         }
+
+        if(OwO.__areaNameTimer<200) { // in
+            OwO.__areaNameText.y = EngineUtils.interpolate((OwO.__areaNameTimer-24)/30,-10,45,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+            OwO.__areaNameText.rotation = EngineUtils.interpolate((OwO.__areaNameTimer-24)/30,0.2,0,EngineUtils.INTERPOLATE_OUT);
+        } else { // out
+            OwO.__areaNameText.y = EngineUtils.interpolate((OwO.__areaNameTimer-200)/60,45,-10,EngineUtils.INTERPOLATE_IN_BACK);
+            OwO.__areaNameText.rotation = EngineUtils.interpolate((OwO.__areaNameTimer-200)/60,0,-0.1,EngineUtils.INTERPOLATE_IN);
+        }
+
+        if(OwO.__areaNameTimer<260) {
+            OwO.__areaNameText.scale.x = Math.sin(OwO.__RPGgameTimer/32)/32 + 1;
+            OwO.__areaNameText.y += Math.cos(OwO.__RPGgameTimer/13);
+            OwO.__areaNameText.x = $engine.getWindowSizeX()/2 + Math.sin(OwO.__RPGgameTimer/27)*2;
+        }
+
+        OwO.__areaNameTimer++;
+
     }
 
     static __specialRenderLayerTick() {
@@ -3299,6 +3339,7 @@ OwO.__spriteMap = {};
 OwO.__updateFunctions = [];
 OwO.__applyFunctions = [];
 OwO.__RPGgameTimer = 0;
+OwO.__areaNameTimer = 99999;
 OwO.__hungerColourFilter = new PIXI.filters.AdjustmentFilter();
 OwO.__timeOfDayFilter = new PIXI.filters.AdjustmentFilter();
 OwO.__zoomBlurFilter = new PIXI.filters.ZoomBlurFilter();

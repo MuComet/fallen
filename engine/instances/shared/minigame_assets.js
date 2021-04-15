@@ -1352,13 +1352,13 @@ class ProgressBar extends EngineInstance {
 
         // precalculated.
         if(type === ProgressBar.TIME) {
-            this.offsetX = 182 - 816/2;
+            this.offsetX = 182 - $engine.getWindowSizeX()/2;
             this.offsetY = 46
 
             this.totalHeight = 33;
             this.totalWidth = 475;
         } else {
-            this.offsetX = 197 - 816/2;
+            this.offsetX = 197 - $engine.getWindowSizeX()/2;
             this.offsetY = 46
 
             this.totalHeight = 33;
@@ -1376,7 +1376,7 @@ class ProgressBar extends EngineInstance {
 
         // the bar itself
         this.container = $engine.createManagedRenderable(this, new PIXI.Sprite());
-        this.container.x = 816/2;
+        this.container.x = $engine.getWindowSizeX()/2;
 
         // the fill of the bar, generally a Graphics.
         this.fillContianer = $engine.createManagedRenderable(this, new PIXI.Sprite());
@@ -1399,7 +1399,7 @@ class ProgressBar extends EngineInstance {
 
         this.text2.mask = this.fillGraphicsMask;
 
-        this.zoneSprite = $engine.createRenderable(this, new PIXI.extras.TilingSprite($engine.getTexture("zone_restart"),this.totalWidth+128,this.totalHeight))
+        this.zoneSprite = $engine.createManagedRenderable(this, new PIXI.extras.TilingSprite($engine.getTexture("zone_restart"),this.totalWidth+128,this.totalHeight))
         this.zoneSprite.y = this.offsetY;
         this.zoneSprite.mask = this.fillGraphicsMask;
         this.zoneSprite.alpha = 0.15;
@@ -1537,11 +1537,33 @@ class ProgressBar extends EngineInstance {
     }
 
     /**
+     * Tints the main text
+     * @param {Number} tint The tint
+     */
+    setTextTint(tint) {
+        this.text2.tint = tint;
+    }
+
+    /**
      * 
      * @returns {PIXI.Sprite} The Sprite resonsible for rendering this bar.
      */
     getContainer() {
         return this.container;
+    }
+
+    /**
+     * @returns The height of the source sprite.
+     */
+    getHeight() {
+        return 130;
+    }
+
+    /**
+     * @returns The width of the source sprite.
+     */
+    getWidth() {
+        return 816;
     }
 
     step() {
