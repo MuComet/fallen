@@ -71,14 +71,15 @@ class WireMinigameController extends MinigameController {
             for(var x = 0;x<self.numCols;x++) {
                 for(var y = 0;y<self.numRows;y++) {
                     if(!self.tiles[x][y].isPartOfSolution)
-                        self.tiles[x][y].wireAnimation.tint = 0x888888; // make all tiles that aren't part of the generator solution darker.
+                        self.tiles[x][y].wireAnimation.tint = 0x666666; // make all tiles that aren't part of the generator solution darker.
                 }
             }
 
-            if(self.getTimer().getTimeRemaining()<30*60) // give them at least 30 seconds to solve
+            if(self.getTimer().getTimeRemaining()<30*60) { // give them at least 30 seconds to solve
                 self.getTimer().setTimeRemaining(30*60)
+            }
         })
-        this.setCheatTooltip("The inner workzings!");
+        this.setCheatTooltip("The inner workings!");
         this.setLossReason("Maybe don't play with electricity...")
         this.setControls(false,true);
         var instr = new PIXI.Text("Click on tiles to rotate them.\nConnect the flow of electricity from the start on the left\nto the goal on the right before "
@@ -306,7 +307,7 @@ class WireMinigameController extends MinigameController {
             }
         }
 
-        if(currentTile===this.endTile && this.canInputFrom(fromDir) && currentTile.getOutputDirection(fromDir) === WireTile.EAST) {
+        if(currentTile===this.endTile && currentTile.canInputFrom(fromDir) && currentTile.getOutputDirection(fromDir) === WireTile.EAST) {
             currentTile.liveCount++;
             currentTile.energized=true;
             for(var x = 0;x<this.numCols;x++) {
@@ -450,8 +451,8 @@ class WireTile extends EngineInstance{
     }
 
     step() {
-        if(IN.mouseCheckPressed(0) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)) {
-            this.rotate();
+        if((IN.mouseCheckPressed(0) || IN.mouseCheckPressed(2)) && IM.instanceCollisionPoint(IN.getMouseX(), IN.getMouseY(), this)) {
+            this.rotate(IN.mouseCheckPressed(0) ? 1 : -1);
             WireMinigameController.getInstance().recalculate();
         }
         this.wireAnimation.update(1);
@@ -462,11 +463,11 @@ class WireTile extends EngineInstance{
 
     }
 
-    rotate() {
+    rotate(dir) {
         if(this.locked)
             return;
-        this.currentRotation = (this.currentRotation+1)%4;
-        this.visualRotation++;
+        this.currentRotation = ((this.currentRotation + dir) + 4) %4;
+        this.visualRotation+=dir;
     }
 
     setRotation(rotation) {

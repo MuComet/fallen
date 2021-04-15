@@ -166,8 +166,7 @@ class MinigameTimer extends EngineInstance {
             time = 0;
         this.timerBarGraphic.setValue(time);
         this.timerBarGraphic.setText(this._getText())
-        if(time < this.warningTime && !this.survivalMode) // less than warning time
-            this.timerBarGraphic.setFlashing(true);
+        this.timerBarGraphic.setFlashing(time < this.warningTime && !this.survivalMode);
     }
 
     _getText() {

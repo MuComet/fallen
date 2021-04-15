@@ -881,11 +881,11 @@ class DailyRecapCutsceneController extends CutsceneController {
             arr.push("__noShift[0]__portrait[gods_profiles_7]That's right,__wait[12] I heard what you said about me earlier. __wait[20]__noShift[1]__portrait[gods_profiles_7]I've got ears everywhere!");
 
             if(wins>1) { // won at least one.
-                arr.push("__portrait[gods_profiles_4]Anyways,__wait[9] I've come to let you know that you're doing a great job!__wait[20] Keep this up and you'll have your wings back in no time.")
+                arr.push("__portrait[gods_profiles_4]Anyways,__wait[9] I've come to let you know that you're doing a great job!__wait[24] Keep this up and you'll have your wings back in no time.")
                 arr.push("__choice[Believe it or not, but~You may not believe it, but] I truly am rooting for you.");
                 arr.push("__portrait[gods_profiles_5]I have to go now, __wait[20]__noShift[1]__portrait[gods_profiles_4]but keep up the good work!");
             } else {
-                var str ="__portrait[gods_profiles_7]I must say,__wait[9] I am very disappointed in you.__wait[20]__noShift[1]__portrait[gods_profiles_6] "
+                var str ="__portrait[gods_profiles_7]I must say,__wait[9] I am very disappointed in you.__wait[24]__noShift[1]__portrait[gods_profiles_6] "
                     + (wins===0 ? "You didn't manage to help a single person today." : "You hardly managed to help anyone today.")
                     + "__wait[20]__portrait[gods_profiles_6] Do you really want your wings back?__wait[12] Because time is ticking!";
                 arr.push(str);
@@ -893,16 +893,16 @@ class DailyRecapCutsceneController extends CutsceneController {
             }
         } else { // day 2
             if(wins>1) {
-                arr.push("__portrait[gods_profiles_4]Hey __choice[kid~son]!__wait[12] I just got a report from the big guys and it turns out you're doing really good.__wait[12] Great job!__wait[20] You're making me look really good.");
+                arr.push("__portrait[gods_profiles_4]Hey __choice[kid~son]!__wait[12] I just got a report from the big guys and it turns out you're doing really good.__wait[24] Great job!__wait[20] You're making me look really good.");
                 arr.push("__portrait[gods_profiles_5]I have to go now, __wait[20]__noShift[1]__portrait[gods_profiles_4]but keep up the great work!");
                 arr.push("__noShift[1]__portrait[<none>]__wait[45]O__portrait[gods_profiles_7]h!__wait[12] Almost forgot,__wait[12]__noShift[1]__portrait[gods_profiles_5] your final judgement is tomorrow night.__wait[12]__portrait[gods_profiles_4] I'll see you at the south forest tomorrow. I'm sure you'll do just fine.");
             } else {
-                arr.push("__portrait[gods_profiles_7]Hey Eson!__wait[12] Listen kid,__wait[9] I just got a report from the big guys and__portrait[gods_profiles_6]__noShift[1] things are not looking good.");
-                arr.push("You're making me look really bad here.__wait[6] Do you not want to become an angel again or something?!");
-                arr.push("__noShift[0]__portrait[gods_profiles_7]My disappointment is immeasurable, Eson!__wait[12]__speed[3] IMMEASURABLE!");
+                arr.push("__portrait[gods_profiles_7]Hey Eson!__wait[24] Listen kid,__wait[9] I just got a report from the big guys and__portrait[gods_profiles_6]__noShift[1] things are not looking good.");
+                arr.push("You're making me look really bad here.__wait[24] Do you not want to become an angel again or something?!");
+                arr.push("__noShift[0]__portrait[gods_profiles_7]My disappointment is immeasurable,__wait[12] Eson!__wait[12]__speed[3] IMMEASURABLE!");
                 arr.push("__portrait[gods_profiles_5]__italic[1]Sigh");
                 arr.push("__portrait[gods_profiles_7]__italic[0]And now my day is ruined. __noShift[1]__wait[24]__portrait[gods_profiles_6] Do better next time.__wait[24] Goodbye!");
-                arr.push("__noShift[1]__portrait[<none>]__wait[45]W__portrait[gods_profiles_7]ait!__wait[12] Don't forget your final judgement is tomorrow night.__noShift[1]__wait[12]__portrait[gods_profiles_6] Meet me at the south forest and don't be late.");
+                arr.push("__noShift[1]__portrait[<none>]__wait[45]W__portrait[gods_profiles_7]ait!__wait[12] Don't forget your final judgement is tomorrow night.__noShift[1]__wait[24]__portrait[gods_profiles_6] Meet me at the south forest and don't be late.");
             }
         }
     }
