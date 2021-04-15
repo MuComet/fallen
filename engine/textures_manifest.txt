@@ -80,6 +80,7 @@ zone_restart engine/textures/tutorial/zone.png 0.5 0
 falling_object_spike engine/textures/falling_object/spike.png 0.5 0.5
 falling_object_flower engine/textures/falling_object/flower.png 0.5 0.5
 falling_object_shadow engine/textures/falling_object/shadow.png 0.5 0.5
+falling_object_warning engine/textures/falling_object/warning.png 0.5 0.5
 
 build_to_here engine/textures/wall/BTH.png 0.5 0.5
 wall_building_brick_1 engine/textures/wall/brick.png 0.5 1
