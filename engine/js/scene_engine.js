@@ -2604,7 +2604,7 @@ class OwO {
         var colFilter = OwO.getColourFilter()
         var zoomFilter = OwO.getZoomBlurFilter()
         if(newHealth<50) {
-            colFilter.brightness = EngineUtils.interpolate(newHealth/50,0.75,1,EngineUtils.INTERPOLATE_OUT)
+            colFilter.brightness = EngineUtils.interpolate(newHealth/50,0.90,1,EngineUtils.INTERPOLATE_OUT)
             colFilter.green = EngineUtils.interpolate(newHealth/50,0.85,1,EngineUtils.INTERPOLATE_OUT)
             colFilter.blue = EngineUtils.interpolate(newHealth/50,0.85,1,EngineUtils.INTERPOLATE_OUT)
             zoomFilter.strength = EngineUtils.interpolate(newHealth/50,0.05,0,EngineUtils.INTERPOLATE_OUT)

@@ -541,8 +541,8 @@ class MinigameController extends EngineInstance {
         this._timer = new MinigameTimer(frames,graphic);
         this._timer.addOnTimerStopped(this,this._onMinigameEnd)
         //this._timer.setTextMode();
-        if(this.isPregame())
-            this._timer.pauseTimer();
+        //if(this.isPregame()) // breaks too much code, just do it yourself.
+        //    this._timer.pauseTimer();
     }
 
     getTimer() {
@@ -842,8 +842,6 @@ class MinigameController extends EngineInstance {
 
     skipPregame() {
         this._skipPregame=true;
-        if(this._timer)
-            this._timer.unpauseTimer();
     }
 
     onBeforeMinigame(frames) {

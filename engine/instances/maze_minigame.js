@@ -21,6 +21,7 @@ class MazeMinigameController extends MinigameController {
         this.lampSprite.animationSpeed = 0.1; // 6FPS
         
         this.startTimer(45*60);
+        this.getTimer().pauseTimer();
 
         this.setCheatTooltip("What maze?")
 
