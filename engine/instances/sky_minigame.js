@@ -9,7 +9,7 @@ class SkyMinigameController extends MinigameController { // All classes that can
         SkyMinigameController.pCamY = 0;
         SkyMinigameController.nCamY = 0;
         SkyMinigameController.iBuffer = undefined
-        SkyMinigameController.maxScore = 32;
+        SkyMinigameController.maxScore = 24;
 
         new SkyBuildPlayer($engine.getWindowSizeX()/2,0,0);
         new FallingTowerPlatform($engine.getWindowSizeX()/2,$engine.getWindowSizeY()-50);
@@ -127,7 +127,7 @@ class SkyBuildPlayer extends EngineInstance {
     }
 
     swingMove() {
-        var sin = Math.sin($engine.getGameTimer()/EngineUtils.clamp(32-SkyMinigameController.score,3.5,32) + this.randomOffset);
+        var sin = Math.sin($engine.getGameTimer()/EngineUtils.clamp(24-SkyMinigameController.score,3.5,24) + this.randomOffset);
         this.angle = -sin/2;
         var angle2 = Math.PI*3/2+sin/2;
         this.lastX=this.x;
@@ -146,7 +146,7 @@ class SkyBuildPlayer extends EngineInstance {
             } else {
                 $engine.audioPlaySound("sky_woosh_2")
             }
-        }
+        } 
     }
 
     step() {
