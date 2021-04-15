@@ -141,6 +141,8 @@ pipes_separator  engine/textures/holes/pipe_sep.png 0.5 0.5
 
 spritesheet dimensions 512 128 4 1 alias 0 maze_block alias 1 maze_block_faded alias 2 maze_runner alias 3 maze_end maze_assets engine/textures/maze/maze_assets.png 0.5 0.5
 
+spritesheet dimensions 384 64 6 1 animate bubble_animation 3 0 1 2 alias 3 sponge alias 4 sponge_mask alias 5 water_tile graffiti_assets engine/textures/graffiti/graffiti_assets.png 0.5 0.5
+
 sibling engine/textures/extras/sibling.png 0.5 0.5
 
 white_line engine/textures/final_minigame/white_line.png 0 0.5

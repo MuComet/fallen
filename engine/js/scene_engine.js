@@ -1717,6 +1717,8 @@ __readTextures = function(texture_file,obj) { // already sync
         for (const d of data) {
             const arr = EngineUtils.strToArrWhitespace(d);
             
+            if(arr.length<4)
+                throw new Error("Texture command \""+String(d)+"\" contains less than 4 tokens.");
 
             const type = arr[0];
             let len = arr.length;

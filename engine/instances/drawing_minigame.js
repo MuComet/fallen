@@ -19,8 +19,6 @@ class DrawController extends MinigameController { // controls the minigame
         }
 
 
-
-
         this.buffer = new BufferedMouseInput(0,30);
 
         this.currentLine = undefined;
@@ -309,6 +307,7 @@ class ShapeToDraw extends EngineInstance {
         this.y = $engine.getWindowSizeY()/2;
         this.alpha = 0;
         this.pathData = ShapeToDraw.paths[index];
+
         if(!DrawController.getInstance().alternate){
             this.saveDataArrayIndex = $engine.getSaveData().drawingMinigameLines.data.length;
             $engine.getSaveData().drawingMinigameLines.data.push({
@@ -405,8 +404,13 @@ class ShapeToDraw extends EngineInstance {
         this.score = EngineUtils.clamp(score,0,1);
 
         if(!DrawController.getInstance().alternate){
-            $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].line = this.line.points;
-            $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].distance = this.line.totalDist;
+            if(this.line) {
+                $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].line = this.line.points;
+                $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].distance = this.line.totalDist;
+            }/* else {
+                $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].line = this.pathData.path;
+                $engine.getSaveData().drawingMinigameLines.data[this.saveDataArrayIndex].distance = this.pathData.dist;
+            }*/
         }
     }
 }

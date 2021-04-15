@@ -211,8 +211,6 @@ class MinigameTimer extends EngineInstance {
      * This will fire all onTimerStopped methods and input an argument of 'false'
      */
     stopTimer() {
-        for(const f of this.onTimerUp)
-            f.func(f.parent,false);
         this.timerDone=true;
 
         if(this.textMode && this.usingEndText) {
@@ -221,6 +219,9 @@ class MinigameTimer extends EngineInstance {
             else
                 this.timerText.text = this.gameCompleteText;
         }
+
+        for(const f of this.onTimerUp)
+            f.func(f.parent,false);
     }
 
     /**
@@ -233,15 +234,17 @@ class MinigameTimer extends EngineInstance {
     expire() {
         if(!this.canExpire || this.timerDone)
             return;
-        for(const f of this.onTimerUp)
-                f.func(f.parent,true);
+            
         this.timerDone = true;
+
         if(this.textMode && this.usingEndText) {
             if(this.survivalMode)
                 this.timerText.text = this.gameCompleteText;
             else
                 this.timerText.text = this.gameOverText;
         }
+        for(const f of this.onTimerUp)
+                f.func(f.parent,true);
     }
 
     isTimerDone() {
