@@ -30,7 +30,7 @@ class DrawController extends MinigameController { // controls the minigame
 
         this.totalScore=0;
 
-        var text = new PIXI.Text("Click the mouse to start drawing, and make sure \n to HOLD, don't let go until you are done. \n Trace the entire outline of the shape.\n\n Make no extra lines in the process.\nThere are 3 drawings total to trace.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Click the mouse to start drawing, and make sure \n to HOLD, don't let go until you are done. \n Trace the entire outline of the shape.\n\n Make no extra lines in the process.\nThere are 3 drawings to trace in 20 sec.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(false,true);
         this.setCheatTooltip("Snap time!");
@@ -47,7 +47,7 @@ class DrawController extends MinigameController { // controls the minigame
         })
         this.waitTimer = 0;
 
-        this.startTimer(60*25) // 25 seconds zoom zoom zoom
+        this.startTimer(60*20) // Yevhen Note: changed the time down to 20* seconds zoom zoom zoom
 
         this.setPreventEndOnTimerExpire(true); // take direct control using below function
 
