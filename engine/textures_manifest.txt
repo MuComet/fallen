@@ -83,6 +83,7 @@ falling_object_shadow engine/textures/falling_object/shadow.png 0.5 0.5
 
 build_to_here engine/textures/wall/BTH.png 0.5 0.5
 wall_building_brick_1 engine/textures/wall/brick.png 0.5 1
+spritesheet dimensions 256 32 4 1 brick_sheet engine/textures/wall/brick_sheet.png 0.5 1
 letter_backdrop engine/textures/wall/board.png 0.5 0.5
 wall_building_grit engine/textures/wall/grit.png 0.5 0.5
 

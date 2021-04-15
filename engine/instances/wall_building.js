@@ -318,7 +318,7 @@ class Brick extends EngineInstance {
         this.fallTime = 0;
         this.correct = correct
         this.phase = 0; // 0 = falling, 1 = dactivated, 2 = bOrked
-        this.setSprite(new PIXI.Sprite($engine.getTexture("wall_building_brick_1")));
+        this.setSprite(new PIXI.Sprite($engine.getTexture("brick_sheet_"+ String(EngineUtils.irandomRange(0, 3)))));
 
         this.landedOnce = false;
 
