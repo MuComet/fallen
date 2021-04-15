@@ -34,15 +34,26 @@ class WallBuilderController extends MinigameController {
         this.graphicsOffsetY = 0;
         this.graphicsTint=0xffffff;
 
-        this.backdropImage = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("letter_backdrop")))
+
+
+        this.backdropImage = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("letter_backdrop")));
         this.backdropImage.x = this.graphicsLocationX;
         this.backdropImage.y = this.graphicsLocationY;
+        this.backdropImage.scale.x = 1.3; 
+        this.backdropImage.scale.y = 1.3; 
 
 
         this.letterText = $engine.createRenderable(this,new PIXI.Text("",$engine.getDefaultTextStyle()));
         this.letterText.anchor.set(0.5,0.5);
         this.letterText.x = this.graphicsLocationX;
         this.letterText.y = this.graphicsLocationY;
+        this.letterText.scale.x = 1.3;
+        this.letterText.scale.y = 1.3;
+
+        this.buildtohere = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("build_to_here")));
+        this.buildtohere.x = $engine.getWindowSizeX()/2-60;
+        this.buildtohere.y = $engine.getWindowSizeY()-300;
+
 
 
         this.flipTimer = 0;
@@ -68,7 +79,7 @@ class WallBuilderController extends MinigameController {
         this.endWaitTimer = 0;
         this.waiting = false;
 
-        this.startTimer(60*60,MinigameTimer.GRAPHIC_TIME)
+        this.startTimer(30*60,MinigameTimer.GRAPHIC_TIME)
     }
 
     landed(dy) {
@@ -115,6 +126,8 @@ class WallBuilderController extends MinigameController {
         do {
             this.currentKey = EngineUtils.randomFromArray(this.possibleLetters);
         } while(this.currentKey===this.lastLetter)
+        //this.letterText.scale.x = 2;
+        //this.letterText.scale.y = 2;
         this.lastLetter=this.currentKey;
     }
 
@@ -136,9 +149,9 @@ class WallBuilderController extends MinigameController {
 
     keyCorrect() {
         this.spawnFadingLetter(true);
-        var times = 1;
+        var times = 2;
         if(this.hasCheated()) {
-            times = 3;
+            times = 4;
         }
         for(var i =0;i<times;i++) {
             this.spawnBrick(true);
@@ -215,6 +228,10 @@ class WallBuilderController extends MinigameController {
         super.step();
 
         this.updateGritRopes();
+        this.letterText.scale.x = 1.3;
+        this.letterText.scale.y = 1.3;
+        this.backdropImage.scale.x = 1.3; 
+        this.backdropImage.scale.y = 1.3; 
 
         $engine.getCamera().translate(0,this.cameraMove);
         if($engine.getCamera().getY()<=0) {
@@ -256,10 +273,10 @@ class WallBuilderController extends MinigameController {
                 this.updateText();
             }
             var fac = EngineUtils.interpolate(value, 0, 1, EngineUtils.INTERPOLATE_OUT_BACK)
-            this.letterText.scale.x = fac;
-            this.letterText.scale.y = 0.75 + fac/4;
-            this.backdropImage.scale.x = fac;
-            this.backdropImage.scale.y = 0.75 + fac/4;
+            this.letterText.scale.x = fac *1.3;
+            this.letterText.scale.y = 0.75 + fac/4 *1.3;
+            this.backdropImage.scale.x = fac*1.3;
+            this.backdropImage.scale.y = 0.75 + fac/4 *1.3;
         }
         this.flipTimer--;
 

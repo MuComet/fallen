@@ -81,6 +81,7 @@ falling_object_spike engine/textures/falling_object/spike.png 0.5 0.5
 falling_object_flower engine/textures/falling_object/flower.png 0.5 0.5
 falling_object_shadow engine/textures/falling_object/shadow.png 0.5 0.5
 
+build_to_here engine/textures/wall/BTH.png 0.5 0.5
 wall_building_brick_1 engine/textures/wall/brick.png 0.5 1
 letter_backdrop engine/textures/wall/board.png 0.5 0.5
 wall_building_grit engine/textures/wall/grit.png 0.5 0.5
@@ -97,8 +98,6 @@ spritesheet dimensions 280 110 4 1 card_faces engine/textures/card/cards_sheet.p
 spritesheet dimensions 630 330 3 1 card_faces_big engine/textures/card/cards_sheet_big.png 0.5 0
 background_table_cards engine/textures/backgrounds/background_table_cards.png 0 0
 background_paper_tile engine/textures/backgrounds/paper_tile.png 0 0
-
-
 
 spritesheet dimensions 200 74 4 1 plant engine/textures/garden/plant_sheet.png 0.5 0.5
 selector_cloud engine/textures/garden/selector_cloud.png 0.5 0.5
