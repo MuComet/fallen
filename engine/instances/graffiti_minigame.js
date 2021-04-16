@@ -116,7 +116,7 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
         var test = this.averageScoreTotal;
         test+= this.totalGraphics - this.graphicInd-1;
         test/=this.totalGraphics;
-        if(test<this.winThreshold) {
+        if(test<0.5) { // if the best score they could get at this point (i.e. they ace all subsequent ones) is < 0.5, just end early.
             this.endMinigame(false);
             this.setLossReason("Now that's just a sad display.")
         }
@@ -146,7 +146,9 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
 
     reloadDrawings() {
         var data = $engine.getSaveData().drawingMinigameLines;
+        var offset = false;
         if(!data) { // player didn't play drawing minigame day 0
+            offset = true;
             data = [];
             var rand = [0,1,2,3,4,5]; // pick 3 random drawings
             EngineUtils.shuffleArray(rand);
@@ -157,9 +159,11 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
                 })
             }
         }
+        data = data.data;
         this.images = [];
-        for(var i=0;i<3;i++) {
-            this.images.push(new ShapeToClean(data[i]))
+        for(var i=0;i<3 && data[i].distance!==-1;i++) {
+            this.images.push(new ShapeToClean(data[i],offset))
+            this.totalGraphics=i+1;
         }
     }
 
@@ -220,7 +224,7 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
             }
         } else if(this.waitTimer > this.maxAllowedTime){
             var score = this.getLastScore()*100;
-            this.instructiontext.text = "Percent cleaned: "+String(score).substring(0,4) + "\n" + (score >= this.winThreshold*100 ? "PASS!" : "FAIL!")
+            this.instructiontext.text = "Percent cleaned: "+String(score).substring(0,4)
                  + "\nCurrent average score: "+String(this.averageScoreTotal/this.countedScores*100).substring(0,4);
             this.instructiontext.alpha = 1;
         }
@@ -373,7 +377,7 @@ class Droplet extends EngineInstance {
 
 class ShapeToClean extends EngineInstance {
 
-    onCreate(data) {
+    onCreate(data, useOffset) {
         if(data.distance===-1)
             return;
 
@@ -389,9 +393,14 @@ class ShapeToClean extends EngineInstance {
 
         this.percentCleaned = -1;
 
-        this.createImages(data.line);
+        this.createImages(data.line, useOffset);
 
         this.setVisible(false);
+
+        if(!useOffset) {
+            this.startLocation.x-=$engine.getWindowSizeX()/2;
+            this.startLocation.y-=$engine.getWindowSizeY()/2;
+        }
         
     }
 
@@ -431,13 +440,16 @@ class ShapeToClean extends EngineInstance {
         return this.distance
     }
 
-    createImages(points) {
+    createImages(points, useOffset) {
         var graphics = new PIXI.Graphics();
         var colourOuter = 0xdfdfdf
         var colourInner = 0xbfbfbf
 
-        graphics.x = $engine.getWindowSizeX()/2;
-        graphics.y = $engine.getWindowSizeY()/2;
+
+        if(useOffset) {
+            graphics.x = $engine.getWindowSizeX()/2;
+            graphics.y = $engine.getWindowSizeY()/2;
+        }
 
         graphics.moveTo(points[0].x,points[0].y);
         graphics.lineStyle(12,colourOuter)

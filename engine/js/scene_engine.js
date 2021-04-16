@@ -785,7 +785,7 @@ class Scene_Engine extends Scene_Base {
      * Saves the game into the RPG maker save. If the save fails, a notification will be displayed.
      */
     saveGame() {
-        $gameSystem.onBeforeSave();
+        $gameSystem.onBeforeSave(); // just saves audio
         if (DataManager.saveGame(1)) {
             StorageManager.cleanBackup(1);
         } else {
@@ -795,10 +795,9 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
-     * Saves the game into the RPG maker save. If the save fails, a notification will be displayed.
+     * Saves the game into the RPG maker save slot 2 (emergency saves).
      */
     performEmergencySave() {
-        $gameSystem.onBeforeSave();
         if (DataManager.saveGame(2)) {
             StorageManager.cleanBackup(2);
         }

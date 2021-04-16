@@ -1498,7 +1498,7 @@
             var characterTarget = null;
 			var filterFunc = function( character ) {
               // Filter out events that player cannot reach
-              return !( character._eventId && !character.isNormalPriority() );
+              return character._eventId && character.isNormalPriority();
             } 
             var touchedCharacters = [];
 			// prioritize the character under the cursor first.
@@ -1512,7 +1512,8 @@
 					touchedCharacters.push(...targets);
 			}
 			
-			touchedChacters = touchedCharacters.filter(filterFunc)
+			touchedCharacters = touchedCharacters.filter(filterFunc)
+			
             if ( this.isInVehicle() ) {
               // In vehicle
               if ( touchedCharacters.contains( $gamePlayer.vehicle() ) ) {
@@ -1538,7 +1539,6 @@
                 touchedCharacters = touchedCharacters.filter( function( character ) {
                   return !!character._eventId && character._trigger === 0;
                 } );
-
                 if ( touchedCharacters.length ) {
                   // Move toward character
                   characterTarget = touchedCharacters[0];
