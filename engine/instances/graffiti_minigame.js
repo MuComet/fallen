@@ -15,14 +15,31 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
             + "There are 3 drawings to trace in 20 sec.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
-        this.setCheatTooltip("Big eraser!");
+        this.setCheatTooltip("Zoom zoom zoom zoom zoom!");
         this.skipPregame();
 
         this.reloadDrawings();
         this.graphicInd=-1;
         this.totalGraphics = this.images.length
-
         this.currentGraphic = undefined;
+        this.targetTime = -1;
+
+        this.timeToNextDroplet = EngineUtils.irandomRange(6,12);
+        this.dropletContainer = $engine.createManagedRenderable(this, new PIXI.Sprite(PIXI.Texture.EMPTY))
+
+        this.currentTurnSpeed = 0;
+
+        this.baseSpeed = 2;
+        this.baseTurnRate = Math.PI/256; // 64 frames to turn around
+
+        this.bufferTime = 0*60; // 0 extra seconds. (can cut corners)
+
+        this.cheatFactor = 1;
+
+        this.addOnCheatCallback(this, function(self) {
+            self.cheatFactor = 3; // ZOOM ZOOM ZOOM
+            self.currentTurnSpeed=0;
+        })
 
         this.addOnGameStartCallback(this, function(self) {
             this.waitTimer = 0;
@@ -30,18 +47,19 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
         this.waitTimer = 0;
 
 
-        this.startTimer(60*10)
-
-        this.setPreventEndOnTimerExpire(true); // take direct control using below function
-
-        this.getTimer().addOnTimerStopped(this, function(self) {
-            self.onImageComplete();
-        })
-
         $engine.setCeilTimescale(true)
         this.nextGraphic();
 
+        this.startTimer(this.targetTime)
+        this.setPreventEndOnTimerExpire(true); // take direct control using below function
+        this.getTimer().addOnTimerStopped(this, function(self) {
+            self.onImageComplete();
+        })
+        this.getTimer().setWarningTime(this.bufferTime); // 3 seconds.
+
         this.setupControllerGraphics();
+
+        this.arrowGraphic = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("arrow")))
 
         this.depth = -1;
     }
@@ -58,6 +76,14 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
         this.spongeMask.scale.y = this.yScale;
         this.spongeMask.rotation = this.angle;
         this.currentGraphic.render(this.spongeMask);
+        IM.with(Droplet,function(drop) {
+            drop.maskSprite.x = drop.x;
+            drop.maskSprite.y = drop.y;
+            drop.maskSprite.rotation = drop.angle;
+            drop.maskSprite.xScale = drop.xScale;
+            drop.maskSprite.alpha = drop.alpha;
+        })
+        this.currentGraphic.render(this.dropletContainer)
     }
 
     onImageComplete() {
@@ -65,7 +91,7 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
         this.images[this.graphicInd].calculateScore()
         if(this.graphicInd < this.totalGraphics) {
             this.nextGraphic();
-            this.getTimer().restartTimer(60*10)
+            this.getTimer().restartTimer(this.targetTime)
         } else {
             this.finishMinigame();
         }
@@ -119,6 +145,8 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
             return;
         }
 
+        IM.destroy(Droplet)
+
         if(this.graphicInd>0) {
             this.images[this.graphicInd-1].setVisible(false)
         }
@@ -129,9 +157,17 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
             this.done = true;
             return;
         }
+
+        this.targetTime = this.currentGraphic.getDistance() / this.baseSpeed + this.bufferTime; // time to clean + buffer.
+
         $engine.audioPlaySound("draw_start")
         $engine.audioPlaySound("draw_shake",1,true)
         
+        var loc = this.currentGraphic.getStartLocation();
+        this.x = loc.x + $engine.getWindowSizeX()/2;
+        this.y = loc.y + $engine.getWindowSizeY()/2;
+        this.currentDirection = this.currentGraphic.getStartAngle();
+        this.currentTurnSpeed = 0;
     }
 
     step() {
@@ -152,10 +188,49 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
         } else {
             this.instructiontext.text = "";
         }
-        this.x = IN.getMouseX();
-        this.y = IN.getMouseY();
+        this.handleMove();
         this.wobble();
+        this.handleDroplets();
         this.renderToMasks();
+    }
+
+    handleDroplets() {
+        if(--this.timeToNextDroplet<=0) {
+            this.timeToNextDroplet = EngineUtils.irandomRange(6,12);
+            new Droplet(this.x+EngineUtils.randomRange(-24,24),this.y+EngineUtils.randomRange(-24,24));
+        }
+    }
+
+    handleMove() {
+        if(IN.keyCheck("RPGright")) {
+            if(this.hasCheated()) {
+                this.currentDirection+=this.baseTurnRate * 4; // direct
+            } else {
+                this.currentTurnSpeed+=this.baseTurnRate;
+            }
+        }
+        if(IN.keyCheck("RPGleft")) {
+            if(this.hasCheated()) {
+                this.currentDirection-=this.baseTurnRate * 4; // direct
+            } else {
+                this.currentTurnSpeed-=this.baseTurnRate;
+            }
+        }
+        this.currentDirection+=this.currentTurnSpeed;
+        this.currentTurnSpeed*=0.965
+        var xMove = Math.cos(this.currentDirection) * this.baseSpeed * this.cheatFactor;
+        var yMove = Math.sin(this.currentDirection) * this.baseSpeed * this.cheatFactor;
+        if(this.x+xMove < 0 || this.x + xMove > $engine.getWindowSizeX()) {
+            this.currentDirection = V2D.mirrorAngle(this.currentDirection,0);
+            xMove = -xMove;
+        }
+        if(this.y+yMove < 0 || this.y + yMove > $engine.getWindowSizeY()) {
+            this.currentDirection = V2D.mirrorAngle(this.currentDirection,Math.PI/2);
+            yMove = -yMove;
+        }
+
+        this.x+=xMove
+        this.y+=yMove
     }
 
     wobble() {
@@ -171,6 +246,63 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
     draw(gui, camera) {
         super.draw(gui, camera);
         $engine.requestRenderOnCamera(this.instructiontext);
+        this.updateArrow()
+    }
+
+    updateArrow() {
+        var constOffset = 12
+        var offsetFactor = 30
+        var dir = this.currentDirection;
+        var fac2 = Math.abs(Math.sin($engine.getGameTimer()/16))/8 + 0.25
+        this.arrowGraphic.scale.set(fac2)
+        this.arrowGraphic.x = this.x + V2D.lengthDirX(dir,constOffset+fac2*offsetFactor);
+        this.arrowGraphic.y = this.y - V2D.lengthDirY(dir,constOffset+fac2*offsetFactor);
+        this.arrowGraphic.rotation = dir;
+    }
+
+    getDropletContainer() {
+        return this.dropletContainer;
+    }
+
+}
+
+class BubbleParticle extends EngineInstance {
+
+}
+
+class Droplet extends EngineInstance {
+    onCreate(x,y) {
+        this.depth = -2;
+        this.dy = 0;
+        this.grav = 0.25;
+        this.angle = Math.PI/2;
+        this.x = x;
+        this.y = y;
+        var idx = EngineUtils.irandom(2);
+        this.maskSprite = new PIXI.Sprite($engine.getTexture("drop_sprites_"+String(idx+3)));
+        GraffitiMinigameController.getInstance().getDropletContainer().addChild(this.maskSprite); // for fast rendering
+        this.sprite = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("drop_sprites_"+String(idx))),true);
+        this.lifeTime = EngineUtils.irandomRange(30,50);
+        this.lifeTimer=0;
+        this.yScale = 0.5;
+        this.fadeTime = EngineUtils.irandomRange(5,20);
+    }
+
+    step() {
+        this.y+=this.dy;
+        this.dy+=this.grav;
+        this.xScale = EngineUtils.clamp(this.dy,0,1.5)
+        if(this.lifeTimer>this.lifeTime) {
+            this.destroy();
+        }
+        if(this.lifeTimer>=this.lifeTime-this.fadeTime) {
+            this.alpha = EngineUtils.interpolate((this.lifeTimer-(this.lifeTime-this.fadeTime))/this.fadeTime,1,0,EngineUtils.INTERPOLATE_OUT);
+        }
+        this.lifeTimer++
+    }
+
+    onDestroy() {
+        GraffitiMinigameController.getInstance().getDropletContainer().removeChild(this.maskSprite);
     }
 
 }
@@ -182,6 +314,14 @@ class ShapeToClean extends EngineInstance {
             return;
 
         this.distance = data.distance;
+        this.startLocation = data.line[0]
+        var nextPoint = data.line[1];
+        if(nextPoint) { // edge case of 1 long line.
+            this.startAngle = V2D.calcDir(nextPoint.x - this.startLocation.x, nextPoint.y - this.startLocation.y);
+        } else {
+            this.startAngle=0;
+        }
+        
 
         this.percentCleaned = -1;
 
@@ -202,9 +342,29 @@ class ShapeToClean extends EngineInstance {
 
     render(spr) {
         spr.tint = 0;
+        if(spr.children) {
+            for(const child of spr.children)
+                child.tint = 0;
+        }
         $engine.getRenderer().render(spr,this.renderTextureClean1,false,null,false);
         spr.tint = 0xffffff;
+        if(spr.children) {
+            for(const child of spr.children)
+                child.tint = 0xffffff;
+        }
         $engine.getRenderer().render(spr,this.renderTextureClean2,false,null,false);
+    }
+
+    getStartLocation() {
+        return this.startLocation
+    }
+
+    getStartAngle() {
+        return this.startAngle
+    }
+
+    getDistance() {
+        return this.distance
     }
 
     createImages(points) {
