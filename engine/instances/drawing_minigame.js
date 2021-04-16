@@ -64,6 +64,8 @@ class DrawController extends MinigameController { // controls the minigame
             this.setLossReason("Try following the lines next time.")
         }
         this.endMinigame(won);
+        if(!this.alternate)
+            $engine.getSaveData().drawingMinigameResult = won;
     }
 
     calcWin() {
