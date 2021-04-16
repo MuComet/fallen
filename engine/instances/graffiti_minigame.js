@@ -101,10 +101,11 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
     }
 
     onImageComplete() {
-        this.nextImageWaitTimer = 240;
+        this.nextImageWaitTimer = 200;
         this.waitTimer=this.maxAllowedTime
         this.images[this.graphicInd].calculateScore()
         IM.destroy(Droplet)
+        $engine.audioStopSound("graffiti_wipe");
         this.isWaiting=true;
         this.checkCanWin();
     }
@@ -214,6 +215,8 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
                 this.instructiontext.alpha=1;
                 this.instructiontext.text = "WAIT! " + String(60-this.waitTimer)
             } else {
+                if(this.waitTimer===61)
+                    $engine.audioPlaySound("graffiti_wipe",1,true);
                 this.isWaiting=false;
                 this.getTimer().unpauseTimer();
                 this.instructiontext.text = "GO!!!!"
