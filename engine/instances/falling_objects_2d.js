@@ -394,7 +394,7 @@ class FallingObjectsPlayer extends InstanceMover {
     }
 
     draw(gui, camera) {
-        EngineDebugUtils.drawHitbox(camera,this);
+        //EngineDebugUtils.drawHitbox(camera,this);
         //EngineDebugUtils.drawBoundingBox(camera,this);
     }
 }
