@@ -22,7 +22,7 @@ MenuIntroController Letter RisingSprite MainMenuButton engine/instances/menu_int
 RockMinigameController RockDodgingPlayer FallingRock engine/instances/falling_rocks.js
 SkyMinigameController SkyBuildPlayer FallingTowerPlatform engine/instances/sky_minigame.js
 CardMinigameController CardBoard engine/instances/card_minigame.js
-FallingObjectsController FallingObjectsPlayer FallingObject engine/instances/falling_objects_2d.js
+FallingObjectsController FallingObjectsPlayer FallingObject FallingHealth engine/instances/falling_objects_2d.js
 WallBuilderController Brick engine/instances/wall_building.js
 HoleMinigameController HolePlayer HolePlatform HoleSeparator engine/instances/holes_minigame.js
 BrokenImageController PictureComponent engine/instances/broken_image_minigame.js

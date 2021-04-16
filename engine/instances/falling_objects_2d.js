@@ -12,19 +12,28 @@ class FallingObjectsController extends MinigameController {
         this.player = new FallingObjectsPlayer($engine.getWindowSizeX()/2,$engine.getWindowSizeY()-32);
 
         this.fallTimer = 25;
-        this.nextObject = 40;
+        this.nextObject = 30;
         this.cameraShakeTimer = 0;
         this.dropArr = [0,1,2,3,4,5,6,7,8,9];
+        this.healthArr = [1,1,1,1,1];
 
         this.score = 0;
-        this.maxScore = 12;
+        this.maxScore = 15;
         this.lives = 5;
+        this.noleaf = 0;
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         $engine.createManagedRenderable(this,this.progressText);
         this.progressText.anchor.set(0.5,0.5);
         this.progressText.x = $engine.getWindowSizeX()/2;
         this.progressText.y = $engine.getWindowSizeY()-30;
+        for(var h = 0; h < 5; h++){
+            new FallingHealth(730 - 25*h, 590, h);
+        }
+        this.shakeTimer = 0;
+        this.shakeFactor = 8;
 
+        this.setControls(true,false);
+        this.skipPregame();
         this.updateProgressText();
     }
 
@@ -35,43 +44,168 @@ class FallingObjectsController extends MinigameController {
 
     step() {
         super.step();
-        this.fallTimer++;
+
+        if(this.minigameOver()){
+            return;
+        }
+        if(this.score >= this.maxScore && this.lives > 0){
+            this.endMinigame(true);
+        }
+        if(this.lives <= 0){
+            this.endMinigame(false);
+        }
+       
         if(this.fallTimer>=this.nextObject) {
             this.fallTimer = 0;
            
             this.dropArr.sort(() => Math.random() - Math.random()).slice(0, 3);
 
-            if(EngineUtils.irandomRange(0,100) >= 75){
-                new FallingObject(26 + 80 * this.dropArr[0],-50,0);
+            if(EngineUtils.irandomRange(0,100) >= 75 || this.noleaf >= 3){
+                this.noleaf = 0;
+                new FallingObject(EngineUtils.irandomRange(26,52) + 80 * this.dropArr[0],-50,0);
             }else{
-                new FallingObject(26 + 80 * this.dropArr[2],-50,1);
+                this.noleaf++;
+                new FallingObject(EngineUtils.irandomRange(26,52) + 80 * this.dropArr[2],-50,1);
             }   
             
 
         }
 
+        this.fallTimer++;
+        this.handleShake();
         this.updateProgressText();
     }
 
+    handleShake() {
+        var camera = $engine.getCamera();
+        var fac = EngineUtils.interpolate(this.shakeTimer/this.shakeFactor,0,1,EngineUtils.INTERPOLATE_OUT_QUAD);
+        camera.setRotation(EngineUtils.randomRange(-0.01,0.01)*fac);
+        camera.setLocation(EngineUtils.irandomRange(-2,2) * fac, EngineUtils.irandomRange(-2,2) * fac);
+        this.shakeTimer--;
+    }
+
+    shake(factor = 20) {
+        if(this.shakeTimer < 0);
+            this.shakeTimer=0;
+        this.shakeTimer+=factor;
+    }
 
     shakeCamera(fac) {
         this.cameraShakeTimer+=fac;
     }
 
     updateProgressText() {
-        this.progressText.text = "Progress:  Leaves  "+String(this.score+" / "+String(this.maxScore + "   LIVES  " +String(this.lives+" / "+String(5))));
+        this.progressText.text = "Progress:  Leaves  "+String(this.score+" / "+String(this.maxScore));
     }
 
     draw(gui,camera) {
         super.draw(gui,camera);
-        $engine.requestRenderOnCameraGUI(this.progressText);
+        $engine.requestRenderOnCamera(this.progressText);
     }
 
     notifyFramesSkipped(frames) {
-        this.minigameTimer.tickDown(frames);
     }
     
 }
+
+class FallingHealth extends EngineInstance {
+    onEngineCreate() {
+        this.setSprite(new PIXI.Sprite($engine.getTexture("health_heart")));
+        this.xScale = 0.7;
+        this.yScale = 0.7;
+    }
+
+    onCreate(x,y,num) {
+        this.x = x;            
+        this.y = y;
+        this.num = num;
+        this.onEngineCreate();
+    }
+
+    step() {
+        if(FallingObjectsController.getInstance().healthArr[this.num] == 0){
+            $engine.audioPlaySound("worm_die");
+            this.destroy();
+        }
+    }
+    draw(gui,camera) {
+    }
+}
+
+
+
+class FallingObject extends EngineInstance {
+
+    onEngineCreate() {
+        this.dx = EngineUtils.randomRange(-0.4,0.4);
+        this.dy = EngineUtils.randomRange(15,17);
+        this.warningTime = 40;
+
+        this.hitbox = new Hitbox(this, new RectangleHitbox(this,-25,-25,25,25))
+        var image = this.object ? "falling_object_spike" : "leaf_particles";
+        var sign = this.object ? "falling_object_warning" : "falling_object_leaf";
+        this.warning = new PIXI.Sprite($engine.getTexture(sign));
+        this.warning.y = 200;
+        this.warning.x = this.x;
+
+        if(this.object == 0){
+            this.setSprite(new PIXI.Sprite($engine.getRandomTextureFromSpritesheet(image)));
+            this.yScale = 0.4;
+            this.xScale = 0.4;
+        }else{
+            this.setSprite(new PIXI.Sprite($engine.getTexture(image)));
+        }
+    }
+
+    onCreate(x,y,object) {
+        this.x=x;
+        this.y=y;
+        this.object = object;
+        this.onEngineCreate();
+    }
+
+    step() {
+        this.warningTime--;
+        if(this.warningTime > 0){
+            this.warning.visible = true;
+        }else{
+            this.warning.visible = false;
+            this.x+=this.dx;
+            this.y+=this.dy;
+        }
+
+
+        if(this.y > $engine.getWindowSizeY() - 100){
+            this.destroy();
+        }
+       
+
+        if(IM.instanceCollision(this,this.x,this.y,FallingObjectsPlayer)) {
+            if(this.object == 0){
+                FallingObjectsController.getInstance().score++;
+                $engine.audioPlaySound("sky_bonk");
+            }else{
+                FallingObjectsController.getInstance().lives--;
+                FallingObjectsController.getInstance().healthArr[FallingObjectsController.getInstance().lives] = 0;
+                FallingObjectsController.getInstance().shake();
+                //console.log(FallingObjectsController.getInstance().healthArr);
+                $engine.audioPlaySound("sky_donk");
+            }
+            //IM.find(FallingObjectsPlayer,0).hasBeenHurt = true;
+            this.destroy();
+        }
+
+    }
+
+    draw(gui,camera) {
+        $engine.requestRenderOnCamera(this.warning);
+        //EngineDebugUtils.drawHitbox(camera,this);
+        //EngineDebugUtils.drawBoundingBox(camera,this);
+    }
+}
+
+
+
 
 class FallingObjectsPlayer extends InstanceMover {
     onEngineCreate() {
@@ -186,67 +320,3 @@ class FallingObjectsPlayer extends InstanceMover {
     }
 }
 
-class FallingObject extends EngineInstance {
-
-    onEngineCreate() {
-        this.dx = EngineUtils.randomRange(-0.4,0.4);
-        this.dy = EngineUtils.randomRange(10,13);
-        this.warningTime = 65;
-
-        this.hitbox = new Hitbox(this, new RectangleHitbox(this,-25,-25,25,25))
-        var image = this.object ? "falling_object_spike" : "leaf_particles";
-        var sign = this.object ? "falling_object_warning" : "falling_object_leaf";
-        this.warning = new PIXI.Sprite($engine.getTexture(sign));
-        this.warning.y = 200;
-        this.warning.x = this.x;
-
-        if(this.object == 0){
-            this.setSprite(new PIXI.Sprite($engine.getRandomTextureFromSpritesheet(image)));
-            this.yScale = 0.4;
-            this.xScale = 0.4;
-        }else{
-            this.setSprite(new PIXI.Sprite($engine.getTexture(image)));
-        }
-    }
-
-    onCreate(x,y,object) {
-        this.x=x;
-        this.y=y;
-        this.object = object;
-        this.onEngineCreate();
-    }
-
-    step() {
-        this.warningTime--;
-        if(this.warningTime > 0){
-            this.warning.visible = true;
-        }else{
-            this.warning.visible = false;
-            this.x+=this.dx;
-            this.y+=this.dy;
-        }
-
-
-        if(this.y > $engine.getWindowSizeY() - 100){
-            this.destroy();
-        }
-       
-
-        if(IM.instanceCollision(this,this.x,this.y,FallingObjectsPlayer)) {
-            if(this.object == 0){
-                FallingObjectsController.getInstance().score++;
-            }else{
-                FallingObjectsController.getInstance().lives--;
-            }
-            //IM.find(FallingObjectsPlayer,0).hasBeenHurt = true;
-            this.destroy();
-        }
-
-    }
-
-    draw(gui,camera) {
-        $engine.requestRenderOnGUI(this.warning);
-        //EngineDebugUtils.drawHitbox(camera,this);
-        //EngineDebugUtils.drawBoundingBox(camera,this);
-    }
-}

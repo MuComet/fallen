@@ -78,6 +78,7 @@ spritesheet dimensions 2448 624 3 1 tutorial_sheet engine/textures/tutorial/tuto
 zone_restart engine/textures/tutorial/zone.png 0.5 0
 
 falling_object_spike engine/textures/falling_object/spike.png 0.5 0.5
+health_heart engine/textures/falling_object/health.png 0.5 0.5 
 falling_object_flower engine/textures/falling_object/flower.png 0.5 0.5
 falling_object_shadow engine/textures/falling_object/shadow.png 0.5 0.5
 falling_object_warning engine/textures/falling_object/warning.png 0.5 0.5
