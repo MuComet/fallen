@@ -30,7 +30,7 @@ class FallingObjectsController extends MinigameController {
         this.progressText.anchor.set(0.5,0.5);
         this.progressText.x = $engine.getWindowSizeX()/2;
         this.progressText.y = $engine.getWindowSizeY()-30;
-        for(var h = 0; h < 5; h++){
+        for(var h = 0; h < this.lives; h++){
             new FallingHealth(730 - 25*h, 590, h);
         }
         this.shakeTimer = 0;

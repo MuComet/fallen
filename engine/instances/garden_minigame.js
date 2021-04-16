@@ -8,6 +8,7 @@ class GardenMinigameController extends MinigameController {
         this.wormsMax = 10;
         this.speedup = 0;
 
+
         new ParallaxingBackground("background_garden1");
     
         this.timer = 40;
@@ -39,7 +40,7 @@ class GardenMinigameController extends MinigameController {
 
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
 
-        var text = new PIXI.Text("Use Arrows to select a worm's spawn hole. Protect the \n garden's vegetation and spray the worms\n before they can retreat and eat the plants. \n Press SPACE to spray.\n\n You may lose at most 5 plants \n OR miss spraying at most 10 worms. \n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Use Arrows to select a worm's spawn hole. Protect the \n garden's vegetation and spray the worms\n before they can retreat and eat the plants. \n Press SPACE to spray.\n\n You may lose at most 5 plants \n AND miss spraying at most 10 worms. \n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
         this.skipPregame();
@@ -47,7 +48,7 @@ class GardenMinigameController extends MinigameController {
         this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
         $engine.createManagedRenderable(this,this.progressText);
         this.progressText.anchor.set(0.5,0.5);
-        this.progressText.x = $engine.getWindowSizeX()/2;
+        this.progressText.x = $engine.getWindowSizeX()/2 - 30;
         this.progressText.y = $engine.getWindowSizeY()-30;
 
         var plant_array = [];
@@ -71,6 +72,13 @@ class GardenMinigameController extends MinigameController {
                 new GardenHoles(90*2+200*(i-6), $engine.getWindowSizeY()/2 +150);
             }
         }
+
+        this.healthArr = [1,1,1,1,1,1,1,1,1,1];
+        for(var h = 0; h < this.wormsMax; h++){
+            new GardenHealth(760 - 25*h, 590, h);
+        }
+
+
         this.updateProgressText();
         this.setCheatTooltip("I found an EXTRA spray can!");
         this.setLossReason("Haha worms go brrrrrrrr!");
@@ -126,7 +134,7 @@ class GardenMinigameController extends MinigameController {
     }
 
     updateProgressText() {
-        this.progressText.text = "Progress:  Plants Left  "+String(this.score+" / "+String(this.maxScore + "   Worms Missed  " +String(this.wormsmissed+" / "+String(this.wormsMax))));
+        this.progressText.text = "Progress:  Plants Left  "+String(this.score+" / "+String(this.maxScore));
     }
   
     countPlants(){
@@ -224,6 +232,7 @@ class GardenWorm extends EngineInstance {
         
         if(this.wormTimer >= this.wormTimerEat && this.deathTime === 0){            
             GardenMinigameController.getInstance().plant_array[this.index] = undefined;
+            GardenMinigameController.getInstance().healthArr[9 - GardenMinigameController.getInstance().wormsmissed] = 0;
             GardenMinigameController.getInstance().wormsmissed++;
             this.destroy();
         }
@@ -274,5 +283,29 @@ class GardenPlant extends EngineInstance {
             $engine.audioPlaySound("worm_chomp");
             this.clicked = true;
         }
+    }
+}
+
+class GardenHealth extends EngineInstance {
+    onEngineCreate() {
+        this.setSprite(new PIXI.Sprite($engine.getTexture("health_heart")));
+        this.xScale = 0.7;
+        this.yScale = 0.7;
+    }
+
+    onCreate(x,y,num) {
+        this.x = x;            
+        this.y = y;
+        this.num = num;
+        this.onEngineCreate();
+    }
+
+    step() {
+        if(FallingObjectsController.getInstance().healthArr[this.num] == 0){
+            $engine.audioPlaySound("worm_die");
+            this.destroy();
+        }
+    }
+    draw(gui,camera) {
     }
 }
