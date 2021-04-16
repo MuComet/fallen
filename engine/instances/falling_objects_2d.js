@@ -13,6 +13,8 @@ class FallingObjectsController extends MinigameController {
 
         this.fallTimer = 25;
         this.nextObject = 30;
+        this.gameEndDelay = 40;
+        this.gameEndDelaySwitch = false;
         this.cameraShakeTimer = 0;
         this.dropArr = [0,1,2,3,4,5,6,7,8,9];
         this.healthArr = [1,1,1,1,1];
@@ -70,12 +72,24 @@ class FallingObjectsController extends MinigameController {
             })
             this.endMinigame(true);
         }
-        if(this.lives <= 0){
+        if(this.lives <= 0 && !this.gameEndDelaySwitch){
             IM.with(FallingObject, function(object){
                 object.destroy();
-            })
-            this.endMinigame(false);
+            });
+            for(var l = 0; l< 100; l++){
+                new FallingObject(EngineUtils.irandomRange(200,600),-50,0,this.leafDir,-1);
+            }
+            this.gameEndDelaySwitch = true;
+        }          
+        
+        if(this.gameEndDelaySwitch){
+            this.gameEndDelay--;
+            if(this.gameEndDelay == 0){
+                this.endMinigame(false);
+            }
         }
+
+
        
         if(this.fallTimer>=this.nextObject) {
             this.fallTimer = 0;
@@ -84,10 +98,10 @@ class FallingObjectsController extends MinigameController {
 
             if(EngineUtils.irandomRange(0,100) >= 75 || this.noleaf >= 3){
                 this.noleaf = 0;
-                new FallingObject(EngineUtils.irandomRange(26,52) + 80 * this.dropArr[0],-50,0,this.leafDir);
+                new FallingObject(EngineUtils.irandomRange(26,52) + 80 * this.dropArr[0],-50,0,this.leafDir,40);
             }else{
                 this.noleaf++;
-                new FallingObject(EngineUtils.irandomRange(26,52) + 80 * this.dropArr[2],-50,1,this.leafDir);
+                new FallingObject(EngineUtils.irandomRange(26,52) + 80 * this.dropArr[2],-50,1,this.leafDir,40);
             }   
             
 
@@ -165,7 +179,6 @@ class FallingObject extends EngineInstance {
     onEngineCreate() {
         
         this.dy = EngineUtils.randomRange(17,21);
-        this.warningTime = 40;
         this.fell = false;
 
         this.hitbox = new Hitbox(this, new RectangleHitbox(this,-25,-25,25,25))
@@ -199,12 +212,13 @@ class FallingObject extends EngineInstance {
             this.dy/=4;
     }
 
-    onCreate(x,y,object,leafDir) {
+    onCreate(x,y,object,leafDir,time) {
         this.x=x;
         this.y=y;
         this.dx = leafDir;
         this.object = object;
         this.isLeaf = object===0
+        this.warningTime = time;
         this.onEngineCreate();
     }
 
