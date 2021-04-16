@@ -146,20 +146,16 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
 
     reloadDrawings() {
         var data = $engine.getSaveData().drawingMinigameLines;
-        if(!data) { // testing
+        if(!data) { // player didn't play drawing minigame day 0
             data = [];
-            data.push({
-                line:ShapeToDraw.paths[0].path,
-                distance:ShapeToDraw.paths[0].dist
-            })
-            data.push({
-                line:ShapeToDraw.paths[1].path,
-                distance:ShapeToDraw.paths[1].dist
-            })
-            data.push({
-                line:ShapeToDraw.paths[2].path,
-                distance:ShapeToDraw.paths[2].dist
-            })
+            var rand = [0,1,2,3,4,5]; // pick 3 random drawings
+            EngineUtils.shuffleArray(rand);
+            for(var i =0;i<3;i++) {
+                data.push({
+                    line:ShapeToDraw.paths[rand[i]].path,
+                    distance:ShapeToDraw.paths[rand[i]].dist
+                })
+            }
         }
         this.images = [];
         for(var i=0;i<3;i++) {
@@ -276,7 +272,7 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
             }
         }
         this.currentDirection+=this.currentTurnSpeed;
-        this.currentTurnSpeed*=0.965
+        this.currentTurnSpeed*=0.945
         var xMove = Math.cos(this.currentDirection) * this.baseSpeed * this.cheatFactor;
         var yMove = Math.sin(this.currentDirection) * this.baseSpeed * this.cheatFactor;
         if(this.x+xMove < 0 || this.x + xMove > $engine.getWindowSizeX()) {
