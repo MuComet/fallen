@@ -138,8 +138,10 @@ class FallingObject extends EngineInstance {
 
     onEngineCreate() {
         this.dx = EngineUtils.randomRange(-0.4,0.4);
-        this.dy = EngineUtils.randomRange(15,17);
+        this.dy = EngineUtils.randomRange(17,21);
         this.warningTime = 40;
+        this.floorTime;
+        this.fell = false;
 
         this.hitbox = new Hitbox(this, new RectangleHitbox(this,-25,-25,25,25))
         var image = this.object ? "falling_object_spike" : "leaf_particles";
@@ -175,9 +177,20 @@ class FallingObject extends EngineInstance {
         }
 
 
-        if(this.y > $engine.getWindowSizeY() - 100){
+        if(this.y > $engine.getWindowSizeY() - 80 && !this.fell){
+            this.dy = -1;
+            this.floorTime = 20;
+            this.fell = true;
+        }
+
+        if(this.floorTime <= 10 && this.fell){
+            this.dy = 2;
+        }
+
+        if(this.fell && this.y > $engine.getWindowSizeY() + 40){
             this.destroy();
         }
+        this.floorTime--;
        
 
         if(IM.instanceCollision(this,this.x,this.y,FallingObjectsPlayer)) {
@@ -212,7 +225,7 @@ class FallingObjectsPlayer extends InstanceMover {
         super.onEngineCreate();
         this.stunTimer=0;
         this.dx=0;
-        this.hitbox = new Hitbox(this, new RectangleHitbox(this,-64,-464,64,-64))
+        this.hitbox = new Hitbox(this, new RectangleHitbox(this,-64,-464,64,-220));
         this.maxVelocity=14;
         this.turnLagStop=5;
         this.turnLag=1;
