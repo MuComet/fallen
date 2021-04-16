@@ -158,8 +158,9 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
                     distance:ShapeToDraw.paths[rand[i]].dist
                 })
             }
+        } else {
+            data = data.data;
         }
-        data = data.data;
         this.images = [];
         for(var i=0;i<3 && data[i].distance!==-1;i++) {
             this.images.push(new ShapeToClean(data[i],offset))
