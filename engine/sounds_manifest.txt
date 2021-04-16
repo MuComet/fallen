@@ -73,6 +73,16 @@ worm_digup engine/audio/se/worms/DigUp.ogg SE
 worm_digdown engine/audio/se/worms/DigDown.ogg SE
 worm_kill engine/audio/se/worms/Kill.ogg SE
 
+puyo_chain1 engine/audio/se/puyo/Chain1.ogg SE
+puyo_chain2 engine/audio/se/puyo/Chain2.ogg SE
+puyo_chain3 engine/audio/se/puyo/Chain3.ogg SE
+puyo_chain4 engine/audio/se/puyo/Chain4.ogg SE
+puyo_chain5 engine/audio/se/puyo/Chain5.ogg SE
+puyo_chain6 engine/audio/se/puyo/Chain6.ogg SE
+puyo_chain7 engine/audio/se/puyo/Chain7.ogg SE
+puyo_move engine/audio/se/puyo/Move.ogg SE
+puyo_rotate engine/audio/se/puyo/Rotate.ogg SE
+puyo_land engine/audio/se/puyo/Land.ogg SE
 
 final_eson_die engine/audio/se/final/ByeEson.ogg SE
 final_seye_die engine/audio/se/final/ByeSeye.ogg SE

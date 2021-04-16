@@ -176,6 +176,10 @@ class PuyoBoard extends EngineInstance {
         this.bufferLeft = 10
         this.currentY = [0,1]
         this.placePuyos(1)
+        if(!this.movePossible(2)){
+            this.board[this.currentY[0]][this.currentX[0]].getPuyo().aboutToLand()
+            this.board[this.currentY[1]][this.currentX[1]].getPuyo().aboutToLand()
+        }
         this.state = 1
         this.chainNum = 0
         this.dropRate = 0
@@ -188,11 +192,23 @@ class PuyoBoard extends EngineInstance {
     placingMode(){
         this.bufferRight++
         this.bufferLeft++
+        if(!this.movePossible(2)){
+            this.board[this.currentY[0]][this.currentX[0]].getPuyo().landing = true
+            this.board[this.currentY[1]][this.currentX[1]].getPuyo().landing = true
+        }
+        else{
+            this.board[this.currentY[0]][this.currentX[0]].getPuyo().landing = false
+            this.board[this.currentY[1]][this.currentX[1]].getPuyo().landing = false
+        }
         if(IN.keyCheck('ArrowDown')){
             this.dropRate+=10
             this.score+=1
+            this.board[this.currentY[0]][this.currentX[0]].getPuyo().fastfall()
+            this.board[this.currentY[1]][this.currentX[1]].getPuyo().fastfall()
         } else {
-            this.dropRate++
+            this.dropRate+=0.5   
+            this.board[this.currentY[0]][this.currentX[0]].getPuyo().fall()
+            this.board[this.currentY[1]][this.currentX[1]].getPuyo().fall()
         }
         if(IN.keyCheck('ArrowRight')){
             if(this.movePossible(0) && this.bufferRight >= 10){
@@ -200,6 +216,8 @@ class PuyoBoard extends EngineInstance {
                 this.currentX[0]++
                 this.currentX[1]++
                 this.placePuyos(1)
+                this.board[this.currentY[0]][this.currentX[0]].getPuyo().moveRight()
+                this.board[this.currentY[1]][this.currentX[1]].getPuyo().moveRight()
                 this.bufferRight = 0
             }
         } else if(IN.keyCheck('ArrowLeft')){
@@ -208,6 +226,8 @@ class PuyoBoard extends EngineInstance {
                 this.currentX[0]--
                 this.currentX[1]--
                 this.placePuyos(1)
+                this.board[this.currentY[0]][this.currentX[0]].getPuyo().moveLeft()
+                this.board[this.currentY[1]][this.currentX[1]].getPuyo().moveLeft()
                 this.bufferLeft = 0
             }
         } if(IN.keyCheckPressed('KeyX')){
@@ -215,14 +235,16 @@ class PuyoBoard extends EngineInstance {
         } else if(IN.keyCheckPressed('KeyZ')){
             this.rotateController(1)
         }
-        if(this.dropRate>=30){
-            this.dropRate = 0
+        if(this.dropRate>=35){
+            this.dropRate -= 35
             if(this.movePossible(2)){
                 this.removePuyos(0)
                 this.currentY[0]++
                 this.currentY[1]++
                 this.placePuyos(1)
             } else {
+                this.board[this.currentY[0]][this.currentX[0]].getPuyo().land(this.currentY[1])
+                this.board[this.currentY[1]][this.currentX[1]].getPuyo().land(this.currentY[0])
                 this.columns[this.currentX[0]]++
                 this.columns[this.currentX[1]]++
                 this.state = 2
@@ -508,11 +530,62 @@ class Puyo extends EngineInstance {
 
     onCreate(colour, pivot) {
         this.colour = colour;
-        this.pivot = pivot;
+        this.x = $engine.getWindowSizeX()/2+(2-5)*35;
+        if(pivot){
+            this.y = $engine.getWindowSizeY() - ((16-1)*35);
+        }
+        else{
+            this.y = $engine.getWindowSizeY() - ((16-0)*35);
+        }
+        this.setSprite(new PIXI.Sprite(PIXI.Texture.empty))
+        if(colour == 0){
+            this.getSprite().texture = ($engine.getTexture("puyo-g"));
+        } else if(colour == 1) {
+            this.getSprite().texture = ($engine.getTexture("puyo-r"));
+        } else if(colour == 2) {
+            this.getSprite().texture = ($engine.getTexture("puyo-b"));
+        } else {
+            this.getSprite().texture = ($engine.getTexture("puyo-y"));
+        }
+        this.landing = false
     }
 
     getColour() {
         return this.colour;
+    }
+
+    fall(){
+        if(!this.landing){
+            this.y += 0.5
+        }
+    }
+
+    fastfall(){
+        if(!this.landing){
+            this.y += 10 
+        }
+    }
+
+    aboutToLand(){
+        this.landing = true
+    }
+
+    moveLeft(){
+        this.x -= 35
+        $engine.audioPlaySound("puyo_move")
+    }
+
+    moveRight(){
+        this.x += 35
+        $engine.audioPlaySound("puyo_move")
+    }
+
+    land(row){
+        for(i = 0; i <= 60; i++){
+            this.yScale = Math.pow((Math.cos(((2*Math.PI)/60)*i)+2)/3, 4)
+        }
+        this.y = $engine.getWindowSizeY() - ((16-row)*35);
+        $engine.audioPlaySound("puyo_land")
     }
 }
 
@@ -549,19 +622,19 @@ class BoardSpace extends EngineInstance {
 
     setState(state) {
         this.state = state;
-        if(state != 0 && !this.high){
-            if(this.puyo.colour == 0){
-                this.getSprite().texture = ($engine.getTexture("puyo-g"));
-            } else if(this.puyo.colour == 1) {
-                this.getSprite().texture = ($engine.getTexture("puyo-r"));
-            } else if(this.puyo.colour == 2) {
-                this.getSprite().texture = ($engine.getTexture("puyo-b"));
-            } else {
-                this.getSprite().texture = ($engine.getTexture("puyo-y"));
-            }
-        } else if(state == 0) {
-            this.getSprite().texture = PIXI.Texture.empty;
-        }
+        // if(state != 0 && !this.high){
+        //     if(this.puyo.colour == 0){
+        //         this.getSprite().texture = ($engine.getTexture("puyo-g"));
+        //     } else if(this.puyo.colour == 1) {
+        //         this.getSprite().texture = ($engine.getTexture("puyo-r"));
+        //     } else if(this.puyo.colour == 2) {
+        //         this.getSprite().texture = ($engine.getTexture("puyo-b"));
+        //     } else {
+        //         this.getSprite().texture = ($engine.getTexture("puyo-y"));
+        //     }
+        // } else if(state == 0) {
+        //     this.getSprite().texture = PIXI.Texture.empty;
+        // }
     }
 
     setPuyo(puyo){
