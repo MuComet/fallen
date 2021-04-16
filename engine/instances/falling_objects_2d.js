@@ -34,8 +34,8 @@ class FallingObjectsController extends MinigameController {
         this.shakeTimer = 0;
         this.shakeFactor = 8;
 
-        this.setCheatTooltip("??? SET PLeZ");
-        this.setLossReason("LEAvES");
+        this.setCheatTooltip("Damn, this sucks!");
+        this.setLossReason("Them darn leaves, ughhh...");
 
         this.setControls(true,false);
         this.skipPregame();
@@ -176,7 +176,7 @@ class FallingObject extends EngineInstance {
         this.warning.x = this.x;
 
         
-        this.dx = EngineUtils.randomRange(-2,2);
+        
         this.dz = EngineUtils.randomRange(-0.05,0.05);
         this.grav = 0.25;
 
@@ -220,6 +220,7 @@ class FallingObject extends EngineInstance {
 
 
         if(this.y > $engine.getWindowSizeY() - 80 && !this.fell){
+            this.dx = EngineUtils.randomRange(-2,2);
             this.dy = EngineUtils.randomRange(-5,-2.5);
             this.fell = true;
         }
