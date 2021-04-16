@@ -17,6 +17,8 @@ class FallingObjectsController extends MinigameController {
         this.dropArr = [0,1,2,3,4,5,6,7,8,9];
         this.healthArr = [1,1,1,1,1];
 
+        this.leafDir = EngineUtils.randomRange(-0.4,0.4);
+
         this.score = 0;
         this.maxScore = 15;
         this.lives = 5;
@@ -31,6 +33,9 @@ class FallingObjectsController extends MinigameController {
         }
         this.shakeTimer = 0;
         this.shakeFactor = 8;
+
+        this.setCheatTooltip("??? SET PLeZ");
+        this.setLossReason("LEAvES");
 
         this.setControls(true,false);
         this.skipPregame();
@@ -48,10 +53,27 @@ class FallingObjectsController extends MinigameController {
         if(this.minigameOver()){
             return;
         }
+
+        if(this.hasCheated){
+            if(FallingObjectsPlayer.x > $engine.getWindowSizeX()/2){
+                this.leafDir = 0.4;
+            }else{
+                this.leafDir = -0.4;
+            }
+            
+        }else{
+            this.leafDir = EngineUtils.randomRange(-0.4,0.4);
+        }
         if(this.score >= this.maxScore && this.lives > 0){
+            IM.with(FallingObject, function(object){
+                object.destroy();
+            })
             this.endMinigame(true);
         }
         if(this.lives <= 0){
+            IM.with(FallingObject, function(object){
+                object.destroy();
+            })
             this.endMinigame(false);
         }
        
@@ -62,10 +84,10 @@ class FallingObjectsController extends MinigameController {
 
             if(EngineUtils.irandomRange(0,100) >= 75 || this.noleaf >= 3){
                 this.noleaf = 0;
-                new FallingObject(EngineUtils.irandomRange(26,52) + 80 * this.dropArr[0],-50,0);
+                new FallingObject(EngineUtils.irandomRange(26,52) + 80 * this.dropArr[0],-50,0,this.leafDir);
             }else{
                 this.noleaf++;
-                new FallingObject(EngineUtils.irandomRange(26,52) + 80 * this.dropArr[2],-50,1);
+                new FallingObject(EngineUtils.irandomRange(26,52) + 80 * this.dropArr[2],-50,1,this.leafDir);
             }   
             
 
@@ -137,7 +159,7 @@ class FallingHealth extends EngineInstance {
 class FallingObject extends EngineInstance {
 
     onEngineCreate() {
-        this.dx = EngineUtils.randomRange(-0.4,0.4);
+        
         this.dy = EngineUtils.randomRange(17,21);
         this.warningTime = 40;
         this.floorTime;
@@ -159,9 +181,10 @@ class FallingObject extends EngineInstance {
         }
     }
 
-    onCreate(x,y,object) {
+    onCreate(x,y,object,leafDir) {
         this.x=x;
         this.y=y;
+        this.dx = leafDir;
         this.object = object;
         this.onEngineCreate();
     }
