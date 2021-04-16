@@ -55,6 +55,7 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
 
         this.addOnGameStartCallback(this, function(self) {
             this.waitTimer = 0;
+            $engine.audioPlaySound("draw_start")
         })
 
         this.setupControllerGraphics();
@@ -191,7 +192,8 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
         if(this.targetTime>this.maxAllowedTime)
             this.targetTime=this.maxAllowedTime;
 
-        $engine.audioPlaySound("draw_start")
+        if(this.graphicInd!==0) // pick up at game start
+            $engine.audioPlaySound("draw_start")
         
         var loc = this.currentGraphic.getStartLocation();
         this.x = loc.x + $engine.getWindowSizeX()/2;
@@ -237,7 +239,6 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
 
     awaitNextImage() {
         if(--this.nextImageWaitTimer<=0) {
-            console.log(this.graphicInd)
             if(!this.done) {
                 this.nextGraphic();
                 this.getTimer().restartTimer(this.targetTime)
