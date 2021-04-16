@@ -7,33 +7,13 @@ class FallingObjectsController extends MinigameController {
         var text = new PIXI.Text("Use Arrow Keys to walk left and right.\n Acquire CRUNCHY Leafs, Disregard the Earthy Clumps! \n\nPress ENTER to cheat!", $engine.getDefaultTextStyle());
 
         this.setInstructionRenderable(text);
-//=================================================================================================
-        this.leaf_sign = new PIXI.Sprite($engine.getTexture("falling_object_leaf"));
-        this.leaf_sign.visible = false;
-        this.leaf_sign.y = 200;
-
-        this.warning1 = new PIXI.Sprite($engine.getTexture("falling_object_warning"));
-        this.warning1.visible = false;
-        this.warning1.y = 200;
-
-        this.warning2 = new PIXI.Sprite($engine.getTexture("falling_object_warning"));
-        this.warning2.visible = false;
-        this.warning2.y = 200;
-
-        this.warning3 = new PIXI.Sprite($engine.getTexture("falling_object_warning"));
-        this.warning3.visible = false;
-        this.warning3.y = 200;
-
-        this.dropNew = false;
-//=================================================================================================
 
         this.startTimer(30*60);
         this.player = new FallingObjectsPlayer($engine.getWindowSizeX()/2,$engine.getWindowSizeY()-32);
 
-        this.fallTimer = 55;
-        this.nextObject = 105;
-        this.warningTimer = 0;
-        this.cameraShakeTimer =0;
+        this.fallTimer = 25;
+        this.nextObject = 40;
+        this.cameraShakeTimer = 0;
         this.dropArr = [0,1,2,3,4,5,6,7,8,9];
 
         this.score = 0;
@@ -57,38 +37,19 @@ class FallingObjectsController extends MinigameController {
         super.step();
         this.fallTimer++;
         if(this.fallTimer>=this.nextObject) {
-            this.warningTimer = 50;
             this.fallTimer = 0;
-            this.leaf_sign.visible = true;
            
             this.dropArr.sort(() => Math.random() - Math.random()).slice(0, 3);
-            this.leaf_sign.x = 26 + 80 * this.dropArr[0];
-            this.warning1.x = 26 + 80 * this.dropArr[1];
-            this.warning2.x = 26 + 80 * this.dropArr[2];
-            this.warning3.x = 26 + 80 * this.dropArr[3];
 
-            this.dropNew = true;
+            if(EngineUtils.irandomRange(0,100) >= 75){
+                new FallingObject(26 + 80 * this.dropArr[0],-50,0);
+            }else{
+                new FallingObject(26 + 80 * this.dropArr[2],-50,1);
+            }   
+            
+
         }
 
-        if(this.warningTimer > 0){
-            this.leaf_sign.visible = true;
-            this.warning1.visible = true;
-            this.warning2.visible = true;
-            this.warning3.visible = true; 
-        }else if (this.dropNew){
-            new FallingObject(this.leaf_sign.x,0,0);
-            new FallingObject(this.warning1.x,0,1);
-            new FallingObject(this.warning2.x,0,1);
-            new FallingObject(this.warning3.x,0,1);
-
-            this.leaf_sign.visible = false;
-            this.warning1.visible = false;
-            this.warning2.visible = false;
-            this.warning3.visible = false; 
-            this.dropNew = false;
-        }
-
-        this.warningTimer--;
         this.updateProgressText();
     }
 
@@ -104,11 +65,6 @@ class FallingObjectsController extends MinigameController {
     draw(gui,camera) {
         super.draw(gui,camera);
         $engine.requestRenderOnCameraGUI(this.progressText);
-        $engine.requestRenderOnGUI(this.scoreText);
-        $engine.requestRenderOnGUI(this.leaf_sign);
-        $engine.requestRenderOnGUI(this.warning1);
-        $engine.requestRenderOnGUI(this.warning2);
-        $engine.requestRenderOnGUI(this.warning3);
     }
 
     notifyFramesSkipped(frames) {
@@ -235,10 +191,15 @@ class FallingObject extends EngineInstance {
     onEngineCreate() {
         this.dx = EngineUtils.randomRange(-0.4,0.4);
         this.dy = EngineUtils.randomRange(10,13);
-        this.grav = 0.25;
+        this.warningTime = 65;
 
         this.hitbox = new Hitbox(this, new RectangleHitbox(this,-25,-25,25,25))
         var image = this.object ? "falling_object_spike" : "leaf_particles";
+        var sign = this.object ? "falling_object_warning" : "falling_object_leaf";
+        this.warning = new PIXI.Sprite($engine.getTexture(sign));
+        this.warning.y = 200;
+        this.warning.x = this.x;
+
         if(this.object == 0){
             this.setSprite(new PIXI.Sprite($engine.getRandomTextureFromSpritesheet(image)));
             this.yScale = 0.4;
@@ -246,8 +207,6 @@ class FallingObject extends EngineInstance {
         }else{
             this.setSprite(new PIXI.Sprite($engine.getTexture(image)));
         }
-        
-
     }
 
     onCreate(x,y,object) {
@@ -258,8 +217,15 @@ class FallingObject extends EngineInstance {
     }
 
     step() {
-        this.x+=this.dx;
-        this.y+=this.dy;
+        this.warningTime--;
+        if(this.warningTime > 0){
+            this.warning.visible = true;
+        }else{
+            this.warning.visible = false;
+            this.x+=this.dx;
+            this.y+=this.dy;
+        }
+
 
         if(this.y > $engine.getWindowSizeY() - 100){
             this.destroy();
@@ -279,6 +245,7 @@ class FallingObject extends EngineInstance {
     }
 
     draw(gui,camera) {
+        $engine.requestRenderOnGUI(this.warning);
         //EngineDebugUtils.drawHitbox(camera,this);
         //EngineDebugUtils.drawBoundingBox(camera,this);
     }
