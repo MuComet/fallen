@@ -55,6 +55,33 @@ class V2D extends PIXI.Point {
         return this.dir
     }
 
+    /**
+     * Mirrors input across the line projected out by mirror
+     * 
+     * Note this method does not *reflect*, it mirrors it across the plane
+     * 
+     * @param {Number} input The input angle
+     * @param {Number} mirror The mirror angle
+     * @returns Input mirrored across mirror
+     */
+    static mirrorAngle(input, mirror) {
+        var diff = V2D.angleDiff(input,mirror);
+        var sign = Math.sign(diff);
+        diff = Math.PI / 2 - Math.abs(diff);
+        return input - diff * 2 * sign;
+    }
+
+    /**
+     * Reflects input as if it struck a mirror. Convenience function.
+     * 
+     * @param {Number} input The input angle
+     * @param {Number} mirror The mirror angle
+     * @returns Input reflected by mirror
+     */
+    static reflectAngle(input, mirror) {
+        return V2D.mirrorAngle(input,mirror+Math.PI/2)
+    }
+
     static lengthDirX(angle, distance) {
 		return Math.cos(angle)*distance;
 	}
