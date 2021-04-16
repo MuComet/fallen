@@ -127,6 +127,10 @@ class FallingObjectsController extends MinigameController {
 
     notifyFramesSkipped(frames) {
     }
+
+    getPlayer() {
+        return this.player;
+    }
     
 }
 
@@ -162,7 +166,6 @@ class FallingObject extends EngineInstance {
         
         this.dy = EngineUtils.randomRange(17,21);
         this.warningTime = 40;
-        this.floorTime;
         this.fell = false;
 
         this.hitbox = new Hitbox(this, new RectangleHitbox(this,-25,-25,25,25))
@@ -172,13 +175,28 @@ class FallingObject extends EngineInstance {
         this.warning.y = 200;
         this.warning.x = this.x;
 
-        if(this.object == 0){
+        
+        this.dx = EngineUtils.randomRange(-2,2);
+        this.dz = EngineUtils.randomRange(-0.05,0.05);
+        this.grav = 0.25;
+
+        this.xScale = EngineUtils.irandom(1)===1 ? 1 : -1;
+        this.angle = EngineUtils.random(10);
+
+        this.drag = 0.95;
+        this.magnetEffect =  0.15;
+        this.magnetFalloffDistance = 256;
+
+        if(this.isLeaf){
             this.setSprite(new PIXI.Sprite($engine.getRandomTextureFromSpritesheet(image)));
             this.yScale = 0.4;
             this.xScale = 0.4;
         }else{
             this.setSprite(new PIXI.Sprite($engine.getTexture(image)));
         }
+
+        if(this.isLeaf && FallingObjectsController.getInstance().hasCheated())
+            this.dy/=4;
     }
 
     onCreate(x,y,object,leafDir) {
@@ -186,6 +204,7 @@ class FallingObject extends EngineInstance {
         this.y=y;
         this.dx = leafDir;
         this.object = object;
+        this.isLeaf = object===0
         this.onEngineCreate();
     }
 
@@ -201,36 +220,45 @@ class FallingObject extends EngineInstance {
 
 
         if(this.y > $engine.getWindowSizeY() - 80 && !this.fell){
-            this.dy = -1;
-            this.floorTime = 20;
+            this.dy = EngineUtils.randomRange(-5,-2.5);
             this.fell = true;
         }
 
-        if(this.floorTime <= 10 && this.fell){
-            this.dy = 2;
+        if(this.fell) {
+            this.x+=this.dx;
+            this.y+=this.dy;
+            this.angle+=this.dz;
+            this.dy += this.grav;
         }
 
         if(this.fell && this.y > $engine.getWindowSizeY() + 40){
             this.destroy();
         }
-        this.floorTime--;
+
+        var controller = FallingObjectsController.getInstance();
+
+        if(controller.hasCheated() && this.isLeaf) {
+            var off = this.x - controller.getPlayer().x
+            var fac = EngineUtils.interpolate(Math.abs(off/this.magnetFalloffDistance),this.magnetEffect,0,EngineUtils.INTERPOLATE_IN_QUAD);
+            this.dx+=fac * -Math.sign(off);
+            this.dx*=this.drag
+        }
        
 
-        if(IM.instanceCollision(this,this.x,this.y,FallingObjectsPlayer)) {
+        if(!this.fell && IM.instanceCollision(this,this.x,this.y,FallingObjectsPlayer)) {
             if(this.object == 0){
-                FallingObjectsController.getInstance().score++;
+                controller.score++;
                 $engine.audioPlaySound("sky_bonk");
             }else{
-                FallingObjectsController.getInstance().lives--;
-                FallingObjectsController.getInstance().healthArr[FallingObjectsController.getInstance().lives] = 0;
-                FallingObjectsController.getInstance().shake();
-                //console.log(FallingObjectsController.getInstance().healthArr);
+                controller.lives--;
+                controller.healthArr[controller.lives] = 0;
+                controller.shake();
+                //console.log(controller.healthArr);
                 $engine.audioPlaySound("sky_donk");
             }
             //IM.find(FallingObjectsPlayer,0).hasBeenHurt = true;
             this.destroy();
         }
-
     }
 
     draw(gui,camera) {
