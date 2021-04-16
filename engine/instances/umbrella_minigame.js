@@ -11,7 +11,7 @@ class UmbrellaMinigameController extends MinigameController {
         this.setCheatTooltip("That's one big umbrella!");
 
 
-        var text = new PIXI.Text("Use Arrow Keys to walk left and right.\n Avoid getting Cano Pe wet by staying under the umbrella! \n\nPress ENTER to cheat!", $engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Use movement keys to walk left and right.\n Avoid getting Cano Pe wet by staying under the umbrella! \n\nPress ENTER to cheat!", $engine.getDefaultTextStyle());
 
         this.setInstructionRenderable(text);
 
