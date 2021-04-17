@@ -3,8 +3,6 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         FinalMinigameController.instance = this;
         this.phase = -1;
         this.survivalTime = 0;
-        this.minigameTimer = new MinigameTimer(60*60);
-        this.minigameTimer.alpha = 0;
         this.zoneLocation = 0;
 
         this.totalWidth = $engine.getWindowSizeX()+64;
@@ -18,9 +16,6 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.sharedHealthGlowFilter.color = 0xff3340;
         this.sharedHealthGlowFilter.outerStrength = 0;
         
-
-        this.minigameTimer.pauseTimer();
-
         this.cameraScrollSpeedX = 0;
         this.cameraScrollSpeedY = -1;
 
@@ -57,6 +52,9 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.baseCameraY = 0;
 
         this.cameraShakeTimer = 0;
+
+        this.totalCheats = $gameVariables.value(19);
+        this.totalPossibleCheats = 8;
 
         $engine.startFadeIn();
 
@@ -152,6 +150,30 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             new FinalMinigameStar(EngineUtils.irandom($engine.getWindowSizeX()+116)-58,this.getCameraTop()-128);
     }
 
+    /**
+     * Checks if the player has cheated at least this many times
+     * 
+     * @param {Number} value The minimum number of cheats
+     * @returns True if the player cheated at least this many times, false otherwise
+     */
+    checkCheats(value) {
+        return value >= this.totalCheats;
+    }
+
+    getNumCheats() {
+        return this.totalCheats;
+    }
+
+    /**
+     * Convenience for EngineUtils.clamp()
+     * @param {Number} min Minimum
+     * @param {Number} max Max
+     * @returns The amount of cheats, clamped to within the value
+     */
+    getNumCheatsClamped(min, max) {
+        return EngineUtils.clamp(this.totalCheats,min,max);
+    }
+
     onSwitchPhase(newPhase) {
         this.sharedPhaseTimer=-1;
         switch(newPhase) {
@@ -224,7 +246,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
     }
 
     tutorialNext() {
-        this.sharedPhaseTimer = Math.ceil(this.sharedPhaseTimer/320)*320-1;
+        this.sharedPhaseTimer = Math.ceil(this.sharedPhaseTimer/400)*400-1;
     }
 
     phaseOne() {
@@ -233,24 +255,32 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                 return IN.keyCheck("RPGleft") || IN.keyCheck("RPGright") || IN.keyCheck("RPGup") || IN.keyCheck("RPGdown")
             });
         }
-        if(this.sharedPhaseTimer===320) {
+        if(this.sharedPhaseTimer===400*1) {
             new FinalMinigameInstruction("Press right click or middle mouse button to dodge!",false, function() {
                 return IN.mouseCheck(2) || IN.mouseCheck(1);
             });
         }
-        if(this.sharedPhaseTimer===640) {
+        if(this.sharedPhaseTimer===400*2) {
+            this.attackLine()
+            var v = new FinalMinigameInstruction("Dodge through bullets!",false, function() {
+                return IM.find(FinalMingiamePlayer).y < this.y;
+            });
+            v.y+=16;
+            v.speed = 2;
+        }
+        if(this.sharedPhaseTimer===400*3) {
             new FinalMinigameInstruction("Left click to shoot",false, function() {
                 return IN.mouseCheck(0);
             });
         }
-        if(this.sharedPhaseTimer===960) {
+        if(this.sharedPhaseTimer===400*4) {
             new FinalMinigameInstruction("Shoot me!",true, function() {
                 return this.hasBeenShot
             });
         }
-        if(this.sharedPhaseTimer>=1280) {
+        if(this.sharedPhaseTimer>=400*5) {
             this.timer.alpha = this.sharedPhaseTimer%20 < 10 ? 1 : 0.25;
-            if(this.sharedPhaseTimer>1340) {
+            if(this.sharedPhaseTimer>400*5+120) {
                 this.nextPhase();
                 this.timer.unpauseTimer();
                 $engine.audioPlaySound("final_music_1")
@@ -263,35 +293,37 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             this.sequenceAttackHoming(4,60);
         } else if(this.sharedPhaseTimer===120) {
             this.sequenceAttackLines(1);
-        } else if(this.sharedPhaseTimer===210) {
+        } else if(this.sharedPhaseTimer===210 && this.checkCheats(2)) {
             this.sequenceAttackLines(2);
-        }else if(this.sharedPhaseTimer===350) {
+        }else if(this.sharedPhaseTimer===350 && this.checkCheats(3)) {
             this.sequenceAttackLines(3);
         }
 
 
         if(this.sharedPhaseTimer>400 && this.sharedPhaseTimer<1000 && this.sharedPhaseTimer%90===0) {
             this.attackLineHorizontal(this.sharedPhaseTimer%180===0)
-            this.attackLine();
+            if(this.checkCheats(this.sharedPhaseTimer - 400)/90) // each line represents one cheat
+                this.attackLine();
         }
 
-        if(this.sharedPhaseTimer===800) {
+        if(this.sharedPhaseTimer===800 && this.checkCheats(5)) { // this one a bit evil
             this.sequenceSpawnCorners(2,60,12)
         }
 
         if(this.sharedPhaseTimer===1000) {
-            this.sequenceAttackHoming(3,45);
+            this.sequenceAttackHoming(this.getNumCheatsClamped(0,3),45);
         }
 
         if(this.sharedPhaseTimer>1200 && this.sharedPhaseTimer%180===0 && this.sharedPhaseTimer<2000) {
-            this.sequenceAttackLines(3);
+            if(this.checkCheats(this.sharedPhaseTimer - 1200)/180 + 4) // each line represents one cheat
+                this.sequenceAttackLines(this.checkCheats(5) ? 3 : 1); // if you cheated only 4 times, then you get an easy one
         }
 
         if(this.sharedPhaseTimer===1200) {
             this.sequenceFireAtPlayer();
         }
 
-        if(this.sharedPhaseTimer===1200 || this.sharedPhaseTimer===1400 || this.sharedPhaseTimer===1600) {
+        if((this.checkCheats(6) && this.sharedPhaseTimer===1200) || (this.checkCheats(4) && this.sharedPhaseTimer===1400) || this.sharedPhaseTimer===1600) {
             this.sequenceAttackWipe();
         }
 
@@ -299,7 +331,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             this.sequenceFireAtPlayer();
         }
 
-        if(this.sharedPhaseTimer===1800 || this.sharedPhaseTimer===1960 || this.sharedPhaseTimer===2020) {
+        if((this.checkCheats(7) && this.sharedPhaseTimer===1800) || (this.checkCheats(6) && this.sharedPhaseTimer===1960) || (this.checkCheats(5) && this.sharedPhaseTimer===2020)) {
             this.sequenceAttackWipe();
         }
 
@@ -613,13 +645,14 @@ class FinalMinigameInstruction extends Shootable {
         this.alive = true;
         this.deathTimer = 0;
         this.func = func
+        this.speed = 1;
         this.setHitbox(new Hitbox(this, new RectangleHitbox(this, -spr.width/2,-spr.height,spr.width/2,0)))
     }
 
     step() {
         super.step();
-        this.y+=1;
-        if(this.y>=FinalMinigameController.getInstance().getCameraTop()+512 || this.func.call(this)) {
+        this.y+=this.speed;
+        if(this.alive && (this.y>=FinalMinigameController.getInstance().getCameraTop()+512 || this.func.call(this))) {
             this.alive = false;
             FinalMinigameController.getInstance().tutorialNext();
         }
@@ -658,6 +691,39 @@ class FinalMinigameStar extends EngineInstance {
         if(this.y>=FinalMinigameController.getInstance().getCameraTop()+1000)
             this.destroy();
         this.alpha = Math.abs(Math.sin(($engine.getGameTimer()+this.randOffset)/32))*this.baseAlpha
+    }
+}
+
+class FinalMinigameWarning extends EngineInstance {
+    onCreate(x,y, frames, absolute = false) {
+        this.x = x;
+        this.y = y;
+        this.alignToCamera = absolute
+        this.originalX = this.x;
+        this.originalY = this.y;
+        this.depth = -99999999;
+        this.lifeTime = frames;
+        this.lifeTimer = 0;
+        this.fadeTime = 30;
+        this.setSprite(new PIXI.Sprite($engine.getTexture("warning_sign")))
+    }
+
+    step() {
+        if(this.lifeTimer <= this.fadeTime) {
+            var alphaFac = EngineUtils.interpolate(this.lifeTimer/this.fadeTime,0,1,EngineUtils.INTERPOLATE_OUT)
+            this.alpha = alphaFac;
+        }
+
+        if(this.lifeTimer >= this.lifeTime - this.fadeTime) {
+            var alphaFac = EngineUtils.interpolate((this.lifeTimer - (this.lifeTime - this.fadeTime))/this.fadeTime,1,0,EngineUtils.INTERPOLATE_IN)
+            this.alpha = alphaFac;
+        }
+        if(this.alignToCamera) {
+            this.x = $engine.getCamera().getX()+this.originalX;
+            this.y = $engine.getCamera().getY()+this.originalY;
+        }
+        this.getSprite().tint = this.lifeTimer % 16 < 8 ? 0x555555 : 0xffffff;
+        this.lifeTimer++;
     }
 }
 

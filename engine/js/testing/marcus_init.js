@@ -1,4 +1,4 @@
-$__engineData.loadRoom = "GraffitiRoom"
+$__engineData.loadRoom = "FinalMinigameRoom"
 $__engineData.__debugPreventReturn=true;
 $__engineData.__debugRequireAllTextures = true;
 $__engineData.__debugRequireAllSounds = true;

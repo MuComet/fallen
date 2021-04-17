@@ -281,11 +281,17 @@ class MinigameTimer extends EngineInstance {
     }
 
     setX(x) {
-        this.setLocation(x,this.timerBarGraphic.y);
+        if(this.textMode)
+            this.setLocation(x,this.timerTextGraphic.y);
+        else
+            this.setLocation(x,this.timerBarGraphic.y);
     }
 
     setY(y) {
-        this.setLocation(this.timerBarGraphic.x,y);
+        if(this.textMode)
+            this.setLocation(this.timerTextGraphic.x,y);
+        else
+            this.setLocation(this.timerBarGraphic.x,y);
     }
 
     getTimerBar() {

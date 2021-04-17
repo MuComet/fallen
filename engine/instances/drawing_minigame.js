@@ -246,7 +246,11 @@ class DrawableLine extends EngineInstance {
 
     startDrawing() {
         this.isDrawing=true;
-        this.points.push(new EngineLightweightPoint(IN.getMouseX(),IN.getMouseY()));
+        var point = new EngineLightweightPoint(IN.getMouseX(),IN.getMouseY());
+        if(DrawController.getInstance().hasCheated()) {
+            point = this.nearestPositionOnDrawing(point)
+        }
+        this.points.push(point);
         this.lastPoint = this.points[0];
         $engine.audioPlaySound("draw_spray",1,true)
     }

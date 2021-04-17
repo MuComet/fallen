@@ -12,8 +12,8 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
         this.lastScore = 0;
 
         var text = new PIXI.Text("Use the left and right movement keys to\nchange the direction of the sponge.\n"
-            + "Follow the lines as best as possible\n\nYou must clean at least 85/100 of all the graffiti on the wall.\n"
-            + "Each graffiti gets it's own timer.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
+            + "Scrub off all the graffiti\n\nYou must clean at least 85/100 of all the graffiti on the wall.\n"
+            + "Each graffiti gets its own timer.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
         this.setCheatTooltip("Zoom zoom zoom zoom zoom!");
@@ -266,18 +266,18 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
             if(this.hasCheated()) {
                 this.currentDirection+=this.baseTurnRate * 12; // direct
             } else {
-                this.currentTurnSpeed+=this.baseTurnRate;
+                this.currentTurnSpeed+=this.baseTurnRate / 1.4;
             }
         }
         if(IN.keyCheck("RPGleft")) {
             if(this.hasCheated()) {
                 this.currentDirection-=this.baseTurnRate * 12; // direct
             } else {
-                this.currentTurnSpeed-=this.baseTurnRate;
+                this.currentTurnSpeed-=this.baseTurnRate / 1.4;
             }
         }
         this.currentDirection+=this.currentTurnSpeed;
-        this.currentTurnSpeed*=0.945
+        this.currentTurnSpeed*=0.94
         var xMove = Math.cos(this.currentDirection) * this.baseSpeed * this.cheatFactor;
         var yMove = Math.sin(this.currentDirection) * this.baseSpeed * this.cheatFactor;
         if(this.x+xMove < 0 || this.x + xMove > $engine.getWindowSizeX()) {

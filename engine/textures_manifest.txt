@@ -164,6 +164,7 @@ end_scroll engine/textures/final_minigame/end_scroll.png 0.5 1
 end_arena engine/textures/final_minigame/end_arena.png 0.5 1
 star engine/textures/final_minigame/star.png 0.5 0.5
 health_point engine/textures/final_minigame/health.png 0 0
+warning_sign engine/textures/final_minigame/warning.png 0.5 0.5
 
 spritesheet dimensions 400 100 1 2 wire_inputs engine/textures/wires/wire_inputs.png 0.5 0.5
 wire_board engine/textures/wires/wire_board.png 0 0
