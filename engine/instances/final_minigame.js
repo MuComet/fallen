@@ -813,7 +813,7 @@ class FinalMingiamePlayer extends EngineInstance {
         this.sprite.animationSpeed = 0.1;
         this.sprite.anchor.y = 0.5;
 
-        this.hitboxSprite = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("eson_hitbox"),true));
+        this.hitboxSprite = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("eson_hitbox")),true);
         this.hitboxSprite.filters = [FinalMinigameController.getInstance().sharedHealthGlowFilter];
 
         this.defaultXScale = 1;
@@ -1464,7 +1464,9 @@ class MoveLinearBullet extends EngineInstance {
     }
 
     onDestroy() {
-        var part = new AnimatedParticle("bullet_disappear");
+        if(!this.inBounds())
+            return;
+        var part = new AnimatedParticle($engine.getAnimation("bullet_disappear"),0.5);
         part.x = this.x;
         part.y = this.y;
         part.depth = this.depth

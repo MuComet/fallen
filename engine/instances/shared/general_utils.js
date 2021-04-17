@@ -228,14 +228,17 @@ class LightingLayer extends EngineInstance {
 }
 
 /**
- * An EngineInstance that holds a singular 
+ * An EngineInstance that displays an animation
  */
 class AnimatedParticle extends EngineInstance {
     onCreate(textureArray, speed = 0.1) {
         this.setSprite(new PIXI.extras.AnimatedSprite(textureArray));
         this.anim = this.getSprite();
         this.anim.loop = false;
-        this.anim.onComplete = this.destroy;
+        var self = this;
+        this.anim.onComplete = function() {
+            self.destroy();
+        };
         this.anim.animationSpeed = speed;
 
         this.paused = false;
@@ -265,13 +268,13 @@ class EmptyInstance extends EngineInstance {
 class ExplosionParticle extends EngineInstance {
     onCreate(tex,x,y, xScale=1, yScale=1, recurseCount = 0, animated = false) {
         if(animated) {
-            if(tex instanceof String) {
+            if(typeof(tex)==="string") {
                 tex = $engine.getAnimation(tex);
             }
             this.setSprite(new PIXI.extras.AnimatedSprite(tex,false));
             this.sprite.animationSpeed = 0.1;
         } else {
-            if(tex instanceof String) {
+            if(typeof(tex)==="string") {
                 tex = $engine.getTexture(tex);
             }
             this.setSprite(new PIXI.Sprite(tex));
@@ -317,7 +320,7 @@ class ExplosionParticle extends EngineInstance {
             this.getSprite().update(1);
         
         this.lifeTimer++;
-        if(this.lifeTime>this.lifeTime)
+        if(this.lifeTimer>this.lifeTime)
             this.destroy();
         this.alpha = EngineUtils.interpolate((this.lifeTimer-(this.lifeTime-24))/24,1,0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
         this.x+=this.dx;
