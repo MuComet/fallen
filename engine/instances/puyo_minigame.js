@@ -108,12 +108,15 @@ class PuyoBoard extends EngineInstance {
         this.edge = new EmptyInstance($engine.getTexture("p-board_edge"))
         this.edge.x = $engine.getWindowSizeX()/2+(3-5)*35;
         this.edge.y = $engine.getWindowSizeY() - ((15-7)*35);
-        this.edge.depth = -4
+        this.edge.depth = 1
         $engine.createRenderable(this, this.next);
         $engine.createManagedRenderable(this, this.edge);
         this.z = -1
         this.chaText = $engine.createManagedRenderable(this,new PIXI.Text(this.chainNum + "-chain!", $engine.getDefaultSubTextStyle()));
-        this.chaText.anchor.set(1,1)
+        this.chaText.anchor.set(0,0)
+        this.chaText.alpha = 0
+        this.depth = 3
+        this.chaining = false
     }
 
     //state = 0 means nothing is happening
@@ -123,9 +126,9 @@ class PuyoBoard extends EngineInstance {
     //orientation = 1 means horizontal, pivot puyo left
     //orientation = 2 means upright, pivot puyo above
     //orientation = 3 means horizontal, pivot puyo right
-    // draw(){
-    //     $engine.requestRenderOnCameraGUI(this.edge)
-    // }
+    draw(){
+        $engine.requestRenderOnCameraGUI(this.chaText)
+    }
 
     step() {
         if(this.state == 0){
@@ -227,6 +230,8 @@ class PuyoBoard extends EngineInstance {
     }
 
     placingMode(){
+        var prevLanding1 = this.board[this.currentY[0]][this.currentX[0]].getPuyo().landing
+        var prevLanding2 = this.board[this.currentY[1]][this.currentX[1]].getPuyo().landing
         this.bufferRight++
         this.bufferLeft++
         if(!this.movePossible(2)){
@@ -236,6 +241,9 @@ class PuyoBoard extends EngineInstance {
         else{
             this.board[this.currentY[0]][this.currentX[0]].getPuyo().landing = false
             this.board[this.currentY[1]][this.currentX[1]].getPuyo().landing = false
+            if(prevLanding1 || prevLanding2){
+                this.dropRate = 34 - (($engine.getWindowSizeY() - this.board[this.currentY[0]][this.currentX[0]].getPuyo().y - 1) % 35)
+            }
         }
         if(IN.keyCheck('ArrowDown')){
             this.dropRate+=10
@@ -256,6 +264,9 @@ class PuyoBoard extends EngineInstance {
                 this.board[this.currentY[0]][this.currentX[0]].getPuyo().moveRight()
                 this.board[this.currentY[1]][this.currentX[1]].getPuyo().moveRight()
                 this.bufferRight = 0
+                if(prevLanding1 || prevLanding2){
+                    this.dropRate = 0
+                }
             }
         } else if(IN.keyCheck('ArrowLeft')){
             if(this.movePossible(1) && this.bufferLeft >= 8){
@@ -266,6 +277,9 @@ class PuyoBoard extends EngineInstance {
                 this.board[this.currentY[0]][this.currentX[0]].getPuyo().moveLeft()
                 this.board[this.currentY[1]][this.currentX[1]].getPuyo().moveLeft()
                 this.bufferLeft = 0
+                if(prevLanding1 || prevLanding2){
+                    this.dropRate = 0
+                }
             }
         } if(IN.keyCheckPressed('KeyX')){
             this.rotateController(0)
@@ -293,11 +307,13 @@ class PuyoBoard extends EngineInstance {
         this.chaText.y = $engine.getWindowSizeY() - ((17-8)*35) - Math.sin(bufferChain*Math.PI/30)*2
         this.chaText.alpha = Math.sin(bufferChain*Math.PI/30)
         this.chaText.x = $engine.getWindowSizeX()/2+(9-5)*35;
+        this.chaText.text = this.chainNum + "-chain!";
+        this.chaText.style.fontSize = this.chainNum + 35
     }
 
     chainMode(){
-        var chaining = false
         if(this.bufferChain >= 30 && this.dropping){
+            this.chaining = false
             this.droppedColumns = this.drop();
             this.dropping = false;
             this.bufferChain = 0;
@@ -308,7 +324,7 @@ class PuyoBoard extends EngineInstance {
             var puyo = chainInfo[1]
             console.log(chainInfo)
             if(isChain){
-                chaining = true
+                this.chaining = true
                 this.chainNum++;
                 var audioChain = Math.min(7, this.chainNum)
                 $engine.audioPlaySound("puyo_chain"+audioChain)
@@ -319,7 +335,7 @@ class PuyoBoard extends EngineInstance {
             this.dropping = true;
             this.bufferChain = 0;
         }
-        if(chaining){
+        if(this.chaining){
             this.chainText(this.bufferChain+1)
         }
         this.bufferChain++;
@@ -512,6 +528,7 @@ class PuyoBoard extends EngineInstance {
             if(!this.movePossible(2)) {
                 this.currentY[0]--;
                 move = true
+                this.dropRate = 0
             }
             this.currentY[1] = this.currentY[0]+1;
             this.currentX[1] = this.currentX[0];
@@ -620,11 +637,11 @@ class Puyo extends EngineInstance {
         this.destroyed = false;
         this.dropToggle = false;
         this.dropLength = 0
-        this.depth = -2
+        this.depth = 2
     }
 
     step(){
-        if(this.landToggle){
+        if(this.landToggle && !this.rotateToggle && !this.dropToggle){
             this.land2()
             this.i++
             if(this.i >= 7){
@@ -640,7 +657,7 @@ class Puyo extends EngineInstance {
                 this.i = 0
             }
         }
-        if(this.dropToggle){
+        if(this.dropToggle && !this.rotateToggle){
             this.dropping()
             this.i++
             if(this.i >= 7){
@@ -840,17 +857,18 @@ class Puyo extends EngineInstance {
     }
 
     pop(){
-        this.depth = -6
         this.destroyed = true
     }
 
     land(){
         this.landToggle = true
-        $engine.audioPlaySound("puyo_land")
-        this.y += ($engine.getWindowSizeY()-10-this.y)%35 - 25
     }
 
     land2(){
+        if(this.i == 0){
+            $engine.audioPlaySound("puyo_land")
+            this.y += ($engine.getWindowSizeY()-10-this.y)%35 - 25
+        }
         this.yScale = (Math.cos(((2*Math.PI)/6)*this.i)+2)/3
     }
 }
