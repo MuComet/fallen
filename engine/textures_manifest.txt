@@ -134,6 +134,7 @@ arrow_right_c engine/textures/water/arrow_right_c.png 0 0
 spritesheet dimensions 175 35 5 1 alias 0 puyo-g alias 1 puyo-b alias 2 puyo-r alias 3 puyo-y alias 4 puyo-x puyo_shapes engine/textures/puyo/puyo_sheet.png 0.5 0.5
 p-board_back engine/textures/puyo/p-board_back.png 0.5 0.5
 p-prev_back engine/textures/puyo/p-prev_back.png 0.5 0.5
+p-board_edge engine/textures/puyo/p-board-edge.png 0.5 0.5
 
 spritesheet dimensions 816 192 1 3 pipes engine/textures/holes/pipe_sheet.png 0 0.5
 pipes_background engine/textures/holes/pipe_back.png 0 0

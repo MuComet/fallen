@@ -101,12 +101,19 @@ class PuyoBoard extends EngineInstance {
         this.chainPower = [0,4,12,24,33,50,101,169,254,341,428,538,648,763,876,990,999,999,999,999]
         this.setSprite(new PIXI.Sprite($engine.getTexture("p-board_back")))
         this.x = $engine.getWindowSizeX()/2+(3-5)*35;
-        this.y = $engine.getWindowSizeY() - ((16-7)*35);
+        this.y = $engine.getWindowSizeY() - ((15-7)*35);
         this.next = new PIXI.Sprite($engine.getTexture("p-prev_back"));
         this.next.x = $engine.getWindowSizeX()/2+(9-5)*35;
-        this.next.y = $engine.getWindowSizeY() - ((16-4.5)*35);
+        this.next.y = $engine.getWindowSizeY() - ((17-4.5)*35);
+        this.edge = new EmptyInstance($engine.getTexture("p-board_edge"))
+        this.edge.x = $engine.getWindowSizeX()/2+(3-5)*35;
+        this.edge.y = $engine.getWindowSizeY() - ((15-7)*35);
+        this.edge.depth = -4
         $engine.createRenderable(this, this.next);
+        $engine.createManagedRenderable(this, this.edge);
         this.z = -1
+        this.chaText = $engine.createManagedRenderable(this,new PIXI.Text(this.chainNum + "-chain!", $engine.getDefaultSubTextStyle()));
+        this.chaText.anchor.set(1,1)
     }
 
     //state = 0 means nothing is happening
@@ -116,6 +123,9 @@ class PuyoBoard extends EngineInstance {
     //orientation = 1 means horizontal, pivot puyo left
     //orientation = 2 means upright, pivot puyo above
     //orientation = 3 means horizontal, pivot puyo right
+    // draw(){
+    //     $engine.requestRenderOnCameraGUI(this.edge)
+    // }
 
     step() {
         if(this.state == 0){
@@ -161,7 +171,7 @@ class PuyoBoard extends EngineInstance {
     cheat(){
         for(var i = 0; i <= 5; i++){
             for(var j = 12; j >= 10; j--){
-                var newPuyo = new Puyo(i%3,false,i,j)
+                var newPuyo = new Puyo(i%3,false,i,j+2)
                 if(this.board[j][i].getState()==2){
                     this.board[j][i].getPuyo().destroy()
                 }
@@ -238,7 +248,7 @@ class PuyoBoard extends EngineInstance {
             this.board[this.currentY[1]][this.currentX[1]].getPuyo().fall()
         }
         if(IN.keyCheck('ArrowRight')){
-            if(this.movePossible(0) && this.bufferRight >= 10){
+            if(this.movePossible(0) && this.bufferRight >= 8){
                 this.removePuyos(0)
                 this.currentX[0]++
                 this.currentX[1]++
@@ -248,7 +258,7 @@ class PuyoBoard extends EngineInstance {
                 this.bufferRight = 0
             }
         } else if(IN.keyCheck('ArrowLeft')){
-            if(this.movePossible(1) && this.bufferLeft >= 10){
+            if(this.movePossible(1) && this.bufferLeft >= 8){
                 this.removePuyos(0)
                 this.currentX[0]--
                 this.currentX[1]--
@@ -279,7 +289,14 @@ class PuyoBoard extends EngineInstance {
         }
     }
 
+    chainText(bufferChain){
+        this.chaText.y = $engine.getWindowSizeY() - ((17-8)*35) - Math.sin(bufferChain*Math.PI/30)*2
+        this.chaText.alpha = Math.sin(bufferChain*Math.PI/30)
+        this.chaText.x = $engine.getWindowSizeX()/2+(9-5)*35;
+    }
+
     chainMode(){
+        var chaining = false
         if(this.bufferChain >= 30 && this.dropping){
             this.droppedColumns = this.drop();
             this.dropping = false;
@@ -291,13 +308,19 @@ class PuyoBoard extends EngineInstance {
             var puyo = chainInfo[1]
             console.log(chainInfo)
             if(isChain){
+                chaining = true
                 this.chainNum++;
+                var audioChain = Math.min(7, this.chainNum)
+                $engine.audioPlaySound("puyo_chain"+audioChain)
                 this.score += this.scoreCalculate(puyo);
             } else{
                 this.state = 0;
             }
             this.dropping = true;
             this.bufferChain = 0;
+        }
+        if(chaining){
+            this.chainText(this.bufferChain+1)
         }
         this.bufferChain++;
     }
@@ -578,7 +601,7 @@ class Puyo extends EngineInstance {
         this.colour = colour;
         this.pivot = pivot
         this.x = $engine.getWindowSizeX()/2+(x-5)*35;
-        this.y = $engine.getWindowSizeY() - ((16-y)*35);
+        this.y = $engine.getWindowSizeY() - ((17-y)*35);
         this.setSprite(new PIXI.Sprite(PIXI.Texture.empty))
         this.landing = false
         this.landToggle = false
@@ -597,6 +620,7 @@ class Puyo extends EngineInstance {
         this.destroyed = false;
         this.dropToggle = false;
         this.dropLength = 0
+        this.depth = -2
     }
 
     step(){
@@ -642,14 +666,14 @@ class Puyo extends EngineInstance {
         if(this.i == 0){    
             this.x = $engine.getWindowSizeX()/2+(2-5)*35;
             if(this.pivot){
-                this.y = $engine.getWindowSizeY() - ((16-0)*35);
+                this.y = $engine.getWindowSizeY() - ((15-0)*35);
             }
             else{
-                this.getSprite().texture = ($engine.getTexture(PIXI.Texture.empty));
-                this.y = $engine.getWindowSizeY() - ((16+1)*35);
+                this.getSprite().texture = PIXI.Texture.empty;
+                this.y = $engine.getWindowSizeY() - ((15+1)*35);
             }
         }
-        if(this.i == 4){
+        if(this.i == 6){
             if(this.colour == 0){
                 this.getSprite().texture = ($engine.getTexture("puyo-g"));
             } else if(this.colour == 1) {
@@ -674,9 +698,9 @@ class Puyo extends EngineInstance {
     sendNext1(){
         this.x = $engine.getWindowSizeX()/2+(8-5)*35;
         if(this.pivot){
-            this.y = $engine.getWindowSizeY() - ((16-4)*35);
+            this.y = $engine.getWindowSizeY() - ((17-4)*35);
         } else {
-            this.y = $engine.getWindowSizeY() - ((16-3)*35);
+            this.y = $engine.getWindowSizeY() - ((17-3)*35);
         }
     }
 
@@ -761,6 +785,7 @@ class Puyo extends EngineInstance {
             if(this.move){
                 this.y -= 5
                 this.pivotY -= 5
+                this.landing = false
             }
         }
         else if(this.target == 3){
@@ -800,22 +825,29 @@ class Puyo extends EngineInstance {
     }
 
     drop(hole){
-        this.dropLength = (($engine.getWindowSizeY() - ((16-hole)*35))-this.y)/7
+        this.hole = hole
+        this.dropLength = (($engine.getWindowSizeY() - ((15-hole)*35))-this.y)/7
         this.dropToggle = true
     }
 
     dropping(){
-        this.y += this.dropLength
+        if(this.i == 6){
+            this.y = $engine.getWindowSizeY() - ((15-this.hole)*35)
+        }
+        else{
+            this.y += this.dropLength
+        }
     }
 
     pop(){
+        this.depth = -6
         this.destroyed = true
     }
 
     land(){
         this.landToggle = true
         $engine.audioPlaySound("puyo_land")
-        this.y += ($engine.getWindowSizeY()-17-this.y)%35 - 18
+        this.y += ($engine.getWindowSizeY()-10-this.y)%35 - 25
     }
 
     land2(){
@@ -836,7 +868,7 @@ class BoardSpace extends EngineInstance {
             this.high = true;
         }
         this.x = $engine.getWindowSizeX()/2+(x-5)*35;
-        this.y = $engine.getWindowSizeY() - ((16-y)*35);
+        this.y = $engine.getWindowSizeY() - ((15-y)*35);
         this.setSprite(new PIXI.Sprite(PIXI.Texture.empty))
         if(isX == 1){
             this.z = -0.5
