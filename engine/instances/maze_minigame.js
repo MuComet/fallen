@@ -399,6 +399,7 @@ class MazeMinigameController extends MinigameController {
                 this.currentY--;
                 this.targetY = this.currentY;
                 this.lastX = this.currentX;
+                $engine.audioPlaySound("eson_move_maze").speed = EngineUtils.randomRange(0.85,1.15);
             }
             if(((IN.keyCheck("RPGleft") && this.timeSinceLastMove >=10) || this.leftBuffer.check()) && this.isOpen(this.currentX-1,this.currentY)) {
                 this.leftBuffer.consumeImmedaitely();
@@ -408,6 +409,7 @@ class MazeMinigameController extends MinigameController {
                 this.targetX = this.currentX;
                 this.lastY = this.currentY;
                 this.baseXScale=-0.5;
+                $engine.audioPlaySound("eson_move_maze").speed = EngineUtils.randomRange(0.85,1.15);
             }
             if(((IN.keyCheck("RPGright") && this.timeSinceLastMove >=10) || this.rightBuffer.check()) && this.isOpen(this.currentX+1,this.currentY)) {
                 this.rightBuffer.consumeImmedaitely();
@@ -417,6 +419,7 @@ class MazeMinigameController extends MinigameController {
                 this.targetX = this.currentX;
                 this.lastY = this.currentY;
                 this.baseXScale=0.5;
+                $engine.audioPlaySound("eson_move_maze").speed = EngineUtils.randomRange(0.85,1.15);
             }
             if(((IN.keyCheck("RPGdown") && this.timeSinceLastMove >=10) || this.downBuffer.check()) && this.isOpen(this.currentX,this.currentY+1)) {
                 this.downBuffer.consumeImmedaitely();
@@ -425,6 +428,7 @@ class MazeMinigameController extends MinigameController {
                 this.currentY++;
                 this.targetY = this.currentY;
                 this.lastX = this.currentX;
+                $engine.audioPlaySound("eson_move_maze").speed = EngineUtils.randomRange(0.85,1.15);
             }
         }
         if(this.currentX===this.startX && this.currentY===0) {
@@ -499,6 +503,7 @@ class MazeBlock extends EngineInstance {
     setDestroyed() {
         if(this.destroyed)
             return;
+        $engine.audioPlaySound("explosion_maze").speed = EngineUtils.randomRange(0.85,1.15);
         this.destroyed = true
         var count = EngineUtils.irandomRange(8,24);
         for(var i = 0;i<count;i++) { // reduce, reuse, recycle

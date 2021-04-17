@@ -141,8 +141,8 @@ class CrateMinigameController extends MinigameController {
     handleShake() {
         var camera = $engine.getCamera();
         var fac = EngineUtils.interpolate(this.shakeTimer/this.shakeFactor,0,1,EngineUtils.INTERPOLATE_OUT_QUAD);
-        camera.setRotation(EngineUtils.randomRange(-0.01,0.01)*fac);
-        camera.translate(EngineUtils.irandomRange(-2,2) * fac, EngineUtils.irandomRange(-2,2) * fac);
+        camera.setRotation(EngineUtils.randomRange(-0.005,0.005)*fac);
+        camera.translate(EngineUtils.randomRange(-2,2) * fac, EngineUtils.irandomRange(-2,2) * fac);
         this.shakeTimer--;
     }
 
@@ -223,6 +223,7 @@ class CrateMinigameController extends MinigameController {
                 var oldTarget = this.destroyTarget; // because the engine does not immediately remove instances from the world, we must
                 if(this.destroyTarget) { // temporarily remove this instance from the pool when checking.
                     this.destroyTarget.destroy();
+                    $engine.audioPlaySound("explosion_maze",0.4).speed = EngineUtils.randomRange(0.5,2);
                     new CrateParticle(this.destroyTarget.x-16,this.destroyTarget.y).xScale = 1;
                     new CrateParticle(this.destroyTarget.x+16,this.destroyTarget.y).xScale = -1;
                     for(var i=0;i<12;i++) {
@@ -242,9 +243,10 @@ class CrateMinigameController extends MinigameController {
                 this.destroyTarget = IM.instanceNearestPoint(this.x,this.y,...instances);
                 if(this.destroyTarget) {
                     this.destroyTimer=0;
+                    $engine.audioPlaySound("crate_laser",0.3).speed = EngineUtils.randomRange(1.5,2);
                 }
                 if(oldTarget) {
-                    oldTarget.x = saveTargetX;
+                    oldTarget.x = saveTargetX; // ok you can come back now
                 }
             }
             if(this.destroyTarget) {

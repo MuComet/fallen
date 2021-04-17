@@ -68,6 +68,11 @@ thunder_0 engine/audio/se/cutscene/Thunder9.ogg SE
 thunder_1 engine/audio/se/cutscene/Thunder6.ogg SE
 thunder_2 engine/audio/se/cutscene/Thunder10.ogg SE
 
+eson_move_maze engine/audio/se/maze/EsonMove.ogg SE
+explosion_maze engine/audio/se/maze/Explode.ogg SE
+
+crate_laser engine/audio/se/crate/Laser.ogg SE
+
 worm_appear engine/audio/se/worms/Appear.ogg SE
 worm_chomp engine/audio/se/worms/Chomp.ogg SE
 worm_die engine/audio/se/worms/Die.ogg SE
