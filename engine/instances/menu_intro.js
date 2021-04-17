@@ -170,11 +170,11 @@ class MenuIntroController extends EngineInstance {
 
         this.buttons.difficultyBack = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2 - 200 + offsetDifficulty);
         this.buttons.difficultyBack.setTextures("back_button_0","back_button_0","back_button_1")
-        this.buttons.difficultyEasy = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2 - 80 + offsetDifficulty);
+        this.buttons.difficultyEasy = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2 - 100 + offsetDifficulty);
         this.buttons.difficultyEasy.setTextures("difficulty_buttons_0","difficulty_buttons_0","difficulty_buttons_1")
-        this.buttons.difficultyNormal = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2 + 40 + offsetDifficulty);
+        this.buttons.difficultyNormal = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2 + offsetDifficulty);
         this.buttons.difficultyNormal.setTextures("difficulty_buttons_2","difficulty_buttons_2","difficulty_buttons_3")
-        this.buttons.difficultyHard = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2 + 160 + offsetDifficulty);
+        this.buttons.difficultyHard = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2 + 100 + offsetDifficulty);
         this.buttons.difficultyHard.setTextures("difficulty_buttons_4","difficulty_buttons_4","difficulty_buttons_5")
 
         this.setupMainMenuButtons();

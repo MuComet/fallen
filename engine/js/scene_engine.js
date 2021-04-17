@@ -2464,6 +2464,13 @@ class UwU {
         return SceneManager._previousClass.prototype instanceof Scene_MenuBase;
     }
 
+    static lastSceneWasEngine() {
+        // .prototype returns the object from the constructor (_previousClass).
+        if(!SceneManager._previousClass)
+            return false;
+        return SceneManager._previousClass === Scene_Engine;
+    }
+
     static addSceneCreateListener(func) {
         UwU.__onSceneCreateListeners.push(func);
     }
@@ -2918,7 +2925,8 @@ class OwO {
         // if data exists, exectue.
         OwO.applyConditionalFilters();
         OwO.applyEventLocations();
-        OwO.__applyAreaName();
+        if(!UwU.lastSceneWasMenu() && !UwU.lastSceneWasEngine())
+            OwO.__applyAreaName();
         if(!UwU.lastSceneWasMenu())
             OwO.__applyParticleInit();
     }
@@ -3101,11 +3109,13 @@ class OwO {
         }
 
         if(OwO.__areaNameTimer<200) { // in
-            OwO.__areaNameText.y = EngineUtils.interpolate((OwO.__areaNameTimer-24)/30,-10,45,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+            OwO.__areaNameText.y = EngineUtils.interpolate((OwO.__areaNameTimer-24)/30,-30,45,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
             OwO.__areaNameText.rotation = EngineUtils.interpolate((OwO.__areaNameTimer-24)/30,0.2,0,EngineUtils.INTERPOLATE_OUT);
+            OwO.__areaNameText.scale.y = EngineUtils.interpolate((OwO.__areaNameTimer-24)/24,1.5,1,EngineUtils.INTERPOLATE_OUT_BACK);
         } else { // out
             OwO.__areaNameText.y = EngineUtils.interpolate((OwO.__areaNameTimer-200)/60,45,-10,EngineUtils.INTERPOLATE_IN_BACK);
             OwO.__areaNameText.rotation = EngineUtils.interpolate((OwO.__areaNameTimer-200)/60,0,-0.1,EngineUtils.INTERPOLATE_IN);
+            OwO.__areaNameText.scale.y = EngineUtils.interpolate((OwO.__areaNameTimer-200)/60,1,1.5,EngineUtils.INTERPOLATE_IN_BACK);
         }
 
         if(OwO.__areaNameTimer<260) {
@@ -3114,7 +3124,11 @@ class OwO {
             OwO.__areaNameText.x = $engine.getWindowSizeX()/2 + Math.sin(OwO.__RPGgameTimer/27)*2;
         }
 
-        OwO.__areaNameTimer++;
+        if(OwO.__specialRenderLayer.children.length === 1) { // if the area text is the only text, render it
+            OwO.__areaNameTimer++;
+        } else if(OwO.__areaNameTimer<260) { // reset if interrupted
+            OwO.__areaNameTimer = 0;
+        }
 
     }
 
