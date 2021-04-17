@@ -40,10 +40,17 @@ class FinalMinigameLoss extends EngineInstance {
                 camera.setLocation(this.offX * fac2, this.offY * fac2);
             }
         } else {
+            this.playerSprite.alpha = EngineUtils.interpolate((++this.timer-140)/60,1,0,EngineUtils.INTERPOLATE_IN_EXPONENTIAL);
+
+            if(this.timer > 240) {
+                $engine.setRoom("BadEndingCutsceneRoom"); // lose :(
+            }
 
         }
         
     }
 
-}  
+}
+// written by final minigame when the player dies.
+FinalMinigameLoss.playerData = undefined;
 FinalMinigameLoss.texture = undefined;

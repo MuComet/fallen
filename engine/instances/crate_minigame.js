@@ -98,7 +98,7 @@ class CrateMinigameController extends MinigameController {
 
         var container = new PIXI.Sprite(PIXI.Texture.EMPTY);
         var text = $engine.createManagedRenderable(this,new PIXI.Text("A SINGLE marked crate is located within the room.\n Use the Mouse to move the light around and click \n"
-                + "on the marked crate. Movement keys can be used for fine movement.\n\nClicking the wrong crate will result in a time penalty!\n\n"
+                + "on the marked crate.\nMovement keys can be used to move the camera.\n\nClicking the wrong crate will result in a time penalty!\n\n"
                 + "Press ENTER to cheat!",$engine.getDefaultTextStyle()));
 
         text.anchor.set(0.5)
@@ -342,7 +342,7 @@ class CrateParticle extends EngineInstance {
     
     step() {
         this.lifeTimer++;
-        if(this.lifeTime>this.lifeTime)
+        if(this.lifeTimer>this.lifeTime)
             this.destroy();
         this.alpha = EngineUtils.interpolate((this.lifeTimer-(this.lifeTime-24))/24,1,0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
         this.x+=this.dx;

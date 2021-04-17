@@ -108,7 +108,6 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             FinalMinigameLoss.playerData = playerData;
 
             $engine.setRoom("FinalMinigameLossRoom");
-            //$engine.setRoom("BadEndingCutsceneRoom"); // lose :(
         }
     }
 

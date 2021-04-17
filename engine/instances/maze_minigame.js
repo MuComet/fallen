@@ -516,7 +516,7 @@ class MazeBlock extends EngineInstance {
     step() {
         if(this.destroyed) {
             this.lifeTimer++;
-            if(this.lifeTime>this.lifeTime)
+            if(this.lifeTimer>this.lifeTime)
                 this.destroy();
             this.alpha = EngineUtils.interpolate((this.lifeTimer-(this.lifeTime-24))/24,1,0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
             this.x+=this.dx;

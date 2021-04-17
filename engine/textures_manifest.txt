@@ -78,12 +78,9 @@ spritesheet dimensions 2448 624 3 1 tutorial_sheet engine/textures/tutorial/tuto
 zone_restart engine/textures/tutorial/zone.png 0.5 0
 spritesheet dimensions 288 144 2 1 innkeeper_profiles engine/textures/tutorial/innkeeper_profiles.png 0.5 0.5
 
-falling_object_spike engine/textures/falling_object/spike.png 0.5 0.5
-health_heart engine/textures/falling_object/health.png 0.5 0.5 
-falling_object_flower engine/textures/falling_object/flower.png 0.5 0.5
-falling_object_shadow engine/textures/falling_object/shadow.png 0.5 0.5
-falling_object_warning engine/textures/falling_object/warning.png 0.5 0.5
-falling_object_leaf engine/textures/falling_object/leaf_sign.png 0.5 0.5
+spritesheet dimensions 512 128 4 1 falling_object_rocks engine/textures/falling_object/rocks_sheet.png 0.5 0.5
+spritesheet dimensions 2400 640 4 1 animate eson_walk_basket 4 1 2 3 2 eson_walk_basket engine/textures/falling_object/eson_walk_basket.png 0.5 1
+spritesheet dimensions 180 60 3 1 alias 0 health_heart alias 1 falling_object_leaf alias 2 falling_object_warning falling_object_assets engine/textures/falling_object/falling_object_assets.png 0.5 0.5
 
 build_to_here engine/textures/wall/BTH.png 0.5 0.5
 spritesheet dimensions 256 32 4 1 brick_sheet engine/textures/wall/brick_sheet.png 0.5 1

@@ -475,6 +475,7 @@ class TextBox extends EngineInstance {
         this.text = array;
         this.isDone = array.length===0;
         this.currentText = "";
+        this.textIndex = 0;
         this._clearText()
         if(autoCreate)
             this.advance();
@@ -536,8 +537,16 @@ class TextBox extends EngineInstance {
         } else {
             if(this.showTextBoxTimer>0) 
                 this._hideTextBox();
+            else {
+                this._setVisisble(false);
+            }
         }
         this._portraitTick();
+    }
+
+    _setVisisble(bool) { // save GPU
+        this.textBoxRenderTextureSprite.visible=bool;
+        this.textBox.visible=bool;
     }
 
     _portraitTick() {
@@ -626,18 +635,23 @@ class TextBox extends EngineInstance {
             this.yc = this.locations[0].y;
             this.showTextBoxTimer=0;
         } else {
-            this.textInterrupted= ! this.textBoxReady();
+            this._clearText();
+            this.showInterrupted= ! this.textBoxReady();
         }
     }
 
     _clearRenderTextureMask() {
+        var camera = $engine.getCamera();
+        var offX = camera.getX();
+        var offY = camera.getY();
         this.renderTextureGraphics.beginFill(0);
-        this.renderTextureGraphics.drawRect(-128,-this.y+$engine.getWindowSizeY()-this.textBoxHeight*2,$engine.getWindowSizeX()+256,this.textBoxHeight*4);
+        this.renderTextureGraphics.drawRect(-128 + offX,-this.y+$engine.getWindowSizeY()-this.textBoxHeight*2 + offY,$engine.getWindowSizeX()+256,this.textBoxHeight*4);
         this.renderTextureGraphics.endFill();
         $engine.getRenderer().render(this.renderTextureGraphics,this.textBoxRenderTexture,false,null,false);
     }
 
     _prepareTextBox() {
+        this._setVisisble(true);
         if(this.textWaitTimer>0) {
             this.textWaitTimer--;
             if(this.textWaitTimer===0)
@@ -662,8 +676,11 @@ class TextBox extends EngineInstance {
     }
 
     _forceMaskAllTextBox() {
+        var camera = $engine.getCamera();
+        var offX = camera.getX();
+        var offY = camera.getY();
         this.renderTextureGraphics.beginFill(0xffffff);
-        this.renderTextureGraphics.drawRect(-this.x,-this.y+$engine.getWindowSizeY()-this.textBoxHeight*2,$engine.getWindowSizeX()+128,this.textBoxHeight*4);
+        this.renderTextureGraphics.drawRect(-this.x + offX,-this.y+$engine.getWindowSizeY()-this.textBoxHeight*2 + offY,$engine.getWindowSizeX()+128,this.textBoxHeight*4);
         this.renderTextureGraphics.endFill();
         $engine.getRenderer().render(this.renderTextureGraphics,this.textBoxRenderTexture,false,null,false);
     }
@@ -677,7 +694,7 @@ class TextBox extends EngineInstance {
     }
 
     _hideTextBox() {
-        if(!this.textInterrupted) {
+        if(!this.showInterrupted) {
             this.textBoxFactor = EngineUtils.interpolate(--this.showTextBoxTimer/this.showTextBoxTime,0,1,EngineUtils.INTERPOLATE_IN_EXPONENTIAL);
             this.textBox.alpha = this.textBoxFactor;
         } else {

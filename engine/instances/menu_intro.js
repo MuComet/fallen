@@ -12,6 +12,9 @@ class MenuIntroController extends EngineInstance {
         this.loadText.x = $engine.getWindowSizeX()/2;
         this.loadText.y = $engine.getWindowSizeY();
 
+        this.activeButtons = [];
+        this.activeButton = undefined;
+
         this.letters = [];
         //var locX = [37,159,308,451,522,671];
         var locX = [60, 160, 290, 418, 544, 660, 785, 900];
@@ -107,6 +110,9 @@ class MenuIntroController extends EngineInstance {
             $engine.setRoom("IntroCutsceneRoom")
         }
 
+        var difficultyTextBox = new TextBox();
+        difficultyTextBox.disableArrow();
+
         // easy
         this.buttons.difficultyEasy.setTestPressed(function() {
             return commonSetTestPressedScript.call(this);
@@ -116,6 +122,9 @@ class MenuIntroController extends EngineInstance {
             commonPressedScript.call(this);
             $engine.getSaveData().difficulty = ENGINE_DIFFICULTY.EASY;
         });
+        this.buttons.difficultyEasy.setOnSelected(function() {
+            difficultyTextBox.setTextArray(["Easy mode halves stamina loss."]);
+        })
 
         // normal
         this.buttons.difficultyNormal.setTestPressed(function() {
@@ -125,6 +134,9 @@ class MenuIntroController extends EngineInstance {
             commonPressedScript.call(this);
             $engine.getSaveData().difficulty = ENGINE_DIFFICULTY.MEDIUM;
         });
+        this.buttons.difficultyNormal.setOnSelected(function() {
+            difficultyTextBox.setTextArray(["The intended way to play Fallen."]);
+        })
 
         // hard
         this.buttons.difficultyHard.setTestPressed(function() {
@@ -135,7 +147,13 @@ class MenuIntroController extends EngineInstance {
             commonPressedScript.call(this);
             $engine.getSaveData().difficulty = ENGINE_DIFFICULTY.HARD;
         });
+        this.buttons.difficultyHard.setOnSelected(function() {
+            difficultyTextBox.setTextArray(["Doubles stamina loss."]);
+        })
 
+        this.buttons.difficultyBack.setOnSelected(function() {
+            difficultyTextBox.showTextBox(false)
+        })
         this.buttons.difficultyBack.setOnPressed(function() {
             MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_MAIN);
         })
@@ -150,14 +168,14 @@ class MenuIntroController extends EngineInstance {
         
         var offsetDifficulty = $engine.getWindowSizeY();
 
-        this.buttons.difficultyEasy = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+40 - offsetDifficulty);
-        this.buttons.difficultyEasy.setTextures("difficulty_buttons_0","difficulty_buttons_0","difficulty_buttons_1")
-        this.buttons.difficultyNormal = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2 -80 - offsetDifficulty);
-        this.buttons.difficultyNormal.setTextures("difficulty_buttons_2","difficulty_buttons_2","difficulty_buttons_3")
-        this.buttons.difficultyHard = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2-200 - offsetDifficulty);
-        this.buttons.difficultyHard.setTextures("difficulty_buttons_4","difficulty_buttons_4","difficulty_buttons_5")
-        this.buttons.difficultyBack = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+160 - offsetDifficulty);
+        this.buttons.difficultyBack = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2 - 200 + offsetDifficulty);
         this.buttons.difficultyBack.setTextures("back_button_0","back_button_0","back_button_1")
+        this.buttons.difficultyEasy = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2 - 80 + offsetDifficulty);
+        this.buttons.difficultyEasy.setTextures("difficulty_buttons_0","difficulty_buttons_0","difficulty_buttons_1")
+        this.buttons.difficultyNormal = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2 + 40 + offsetDifficulty);
+        this.buttons.difficultyNormal.setTextures("difficulty_buttons_2","difficulty_buttons_2","difficulty_buttons_3")
+        this.buttons.difficultyHard = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2 + 160 + offsetDifficulty);
+        this.buttons.difficultyHard.setTextures("difficulty_buttons_4","difficulty_buttons_4","difficulty_buttons_5")
 
         this.setupMainMenuButtons();
         this.setupDifficultyButtons();
@@ -192,6 +210,7 @@ class MenuIntroController extends EngineInstance {
             if(this.timer===this.endTime+1) {
                 IM.with(RisingSprite, function(cloud){cloud.alpha = 1});
                 IM.with(MainMenuButton, function(button){button.enable()})
+                this.enableRegion(MenuIntroController.REGION_MAIN);
                 for(var i=0;i<8;i++) {
                     var letter = this.letters[i]
                     letter.angle = 0;
@@ -219,6 +238,13 @@ class MenuIntroController extends EngineInstance {
         camera.translate(offX/32,offY/32);
     }
 
+    handleKeyboardNavigation() { // buttons are generally laid out top to bottom.
+        if(IN.keyCheckPressed("RPGdown") || IN.keyCheckPressed("RPGright") || IN.keyCheckPressed("RPGtab"))
+            this.cycleButtonBackward();
+        if(IN.keyCheckPressed("RPGup") || IN.keyCheckPressed("RPGleft"))
+            this.cycleButtonForward();
+    }
+
     step() {
 
         if(IN.anyKeyPressed() && this.timer < this.endTime) {
@@ -228,6 +254,7 @@ class MenuIntroController extends EngineInstance {
         this.handleFloatingObjects();
         this.handleLetters();
         this.handleCamera();
+        this.handleKeyboardNavigation();
 
         this.timer++;
 
@@ -325,7 +352,7 @@ class MenuIntroController extends EngineInstance {
             break;
             case(MenuIntroController.REGION_DIFFICULTY):
                 this.cameraTargetX = 0;
-                this.cameraTargetY = -$engine.getWindowSizeY();
+                this.cameraTargetY = $engine.getWindowSizeY();
             break;
             case(MenuIntroController.REGION_EXTRAS):
             break;
@@ -342,18 +369,21 @@ class MenuIntroController extends EngineInstance {
         IM.with(MainMenuButton, function(button) {
             button.disable();
         })
+        this.activeButtons = [];
         switch(region) {
             case(MenuIntroController.REGION_MAIN):
                 this.buttons.startButton.setSelected();
                 this.buttons.startButton.enable();
                 this.buttons.continueButton.enable();
+                this.activeButtons = [this.buttons.continueButton, this.buttons.startButton]
             break;
             case(MenuIntroController.REGION_DIFFICULTY):
-                this.buttons.difficultyNormal.setSelected();
+                this.buttons.difficultyBack.setSelected();
                 this.buttons.difficultyEasy.enable();
                 this.buttons.difficultyNormal.enable();
                 this.buttons.difficultyHard.enable();
                 this.buttons.difficultyBack.enable();
+                this.activeButtons = [this.buttons.difficultyHard, this.buttons.difficultyNormal, this.buttons.difficultyEasy, this.buttons.difficultyBack]
             break;
             case(MenuIntroController.REGION_EXTRAS):
             break;
@@ -364,6 +394,40 @@ class MenuIntroController extends EngineInstance {
             case(MenuIntroController.REGION_EXTRAS_UNLOCKS):
             break;
         }
+    }
+
+    cycleButtonForward() {
+        var idx = this.activeButtons.indexOf(this.activeButton);
+        if(idx===-1)
+            return;
+        var check = idx+1;
+        while(check!==idx) {
+            check%=this.activeButtons.length;
+            if(this.activeButtons[check].canActivate()) {
+                this.activeButtons[check].select();
+                break;
+            }
+            check++;
+        }
+    }
+
+    cycleButtonBackward() {
+        var idx = this.activeButtons.indexOf(this.activeButton);
+        if(idx===-1)
+            return;
+        var check = idx-1;
+        while(check!==idx) {
+            check=(check + this.activeButtons.length) % this.activeButtons.length;
+            if(this.activeButtons[check].canActivate()) {
+                this.activeButtons[check].select();
+                break;
+            }
+            check++;
+        }
+    }
+
+    notifyButtonFocused(button) {
+        this.activeButton = button;
     }
 
     static getInstance() {
@@ -490,6 +554,7 @@ class MainMenuButton extends EngineInstance {
         this.yScale = 0.25;
         this.active = false;
         this.onlyOnce = false;
+        this.canBePushed = true;
     }
 
     setTextures(def, armed, fire) {
@@ -510,7 +575,7 @@ class MainMenuButton extends EngineInstance {
         this.rand2 = EngineUtils.irandom(128);
         this.rand3 = EngineUtils.irandom(128);
         this.rand4 = EngineUtils.irandomRange(64,128);
-        this.outlineFilter = new PIXI.filters.OutlineFilter(4,0xffffff);
+        this.outlineFilter = new PIXI.filters.OutlineFilter(8,0xffffff);
         this.fitlers = [];
         this.framesSinceEnabled=0;
         this.onEngineCreate();
@@ -547,7 +612,7 @@ class MainMenuButton extends EngineInstance {
     }
 
     outlineTick() {
-        var strength = 4;
+        var strength = 6;
         var correction = Math.sin($engine.getGameTimer()/18)*0.25 + 0.75; // between 0.5 and 1
         this.outlineFilter.thickness = strength * correction;
     }
@@ -561,6 +626,7 @@ class MainMenuButton extends EngineInstance {
         this.getSprite().filters = [this.outlineFilter];
         if(this.onSelected)
             this.onSelected.call(this);
+        MenuIntroController.getInstance().notifyButtonFocused(this);
     }
 
     select() {
@@ -580,7 +646,7 @@ class MainMenuButton extends EngineInstance {
 
 
         // this is the literal definition of spaghetti haha
-        if(!this.enabled)
+        if(!this.canActivate())
             return;
         
         var mouseOnSelf = this.hitbox.containsPoint(IN.getMouseX(),IN.getMouseY());
@@ -602,7 +668,7 @@ class MainMenuButton extends EngineInstance {
             this.getSprite().texture = this.tex1;
         }
 
-        if(this.framesSinceEnabled>0 && this.active && (IN.keyCheckPressed("Enter") || IN.keyCheckPressed("Space"))) {
+        if(this.framesSinceEnabled>0 && this.active && (IN.keyCheckPressed("RPGok"))) {
             this.testPress();
         }
         this.framesSinceEnabled++;
@@ -616,6 +682,19 @@ class MainMenuButton extends EngineInstance {
             this.onPressed.call(this);
             this.getSprite().texture = this.tex3; // pressed
         }
+    }
+
+    lock() {
+        this.canBePushed = false;
+        this.getSprite().tint = 707070;
+    }
+
+    unlock() {
+        this.canBePushed = true;
+    }
+
+    canActivate() {
+        return this.canBePushed && this.enabled;
     }
 
     disable() {

@@ -92,7 +92,7 @@ class IntroMinigameController extends MinigameController {
         this.text = new TextBox();
         this.text.disableArrow();
         this.text.setTextArray(["__portrait[innkeeper_profiles_1]Alright Eson,__wait[9] Reach your hand down in the drain.",
-                            "__portrait[innkeeper_profiles_0]Great,__wait[9] now go grab that junk and bring it back!__wait[24]\nShouldn't take you longer than a few minutes."]);
+                            "__portrait[innkeeper_profiles_0]Great,__wait[9] now go grab that junk and bring it back!__wait[12]\nShouldn't take you long at all."]);
         this.text.setAdvanceCondition(this, this.mouseInZoneBounds);
         this.text.addAdvanceConditionListener(this,function(self) {
             self.nextTutorial();
@@ -114,6 +114,7 @@ class IntroMinigameController extends MinigameController {
         this.lighting.renderSprite(pixelSprite);
         this.lighting.updatePixels();
         $engine.freeRenderable(pixelSprite);
+        this.lighting.raytraceFrom(IN.getMouseX(), IN.getMouseY())
     }
 
     nextTutorial() {
