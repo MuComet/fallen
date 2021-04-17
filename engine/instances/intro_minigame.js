@@ -91,8 +91,8 @@ class IntroMinigameController extends MinigameController {
 
         this.text = new TextBox();
         this.text.disableArrow();
-        this.text.setTextArray(["__portrait[eson_profiles_15]Alright Eson, Reach your hand down in the drain.",
-                            "__portrait[eson_profiles_14]Great, now go grab that junk and bring it back!\nShouldn't take you longer than a few minutes."]);
+        this.text.setTextArray(["__portrait[innkeeper_profiles_1]Alright Eson,__wait[9] Reach your hand down in the drain.",
+                            "__portrait[innkeeper_profiles_0]Great,__wait[9] now go grab that junk and bring it back!__wait[24]\nShouldn't take you longer than a few minutes."]);
         this.text.setAdvanceCondition(this, this.mouseInZoneBounds);
         this.text.addAdvanceConditionListener(this,function(self) {
             self.nextTutorial();

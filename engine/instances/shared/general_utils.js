@@ -231,7 +231,7 @@ class LightingLayer extends EngineInstance {
  * An EngineInstance that holds a singular 
  */
 class AnimatedParticle extends EngineInstance {
-    onCreate(textureArray, speed = 1) {
+    onCreate(textureArray, speed = 0.1) {
         this.setSprite(new PIXI.extras.AnimatedSprite(textureArray));
         this.anim = this.getSprite();
         this.anim.loop = false;
@@ -259,5 +259,70 @@ class EmptyInstance extends EngineInstance {
         if(texture) {
             this.setSprite(new PIXI.Sprite(texture));
         }
+    }
+}
+
+class ExplosionParticle extends EngineInstance {
+    onCreate(tex,x,y, xScale=1, yScale=1, recurseCount = 0, animated = false) {
+        if(animated) {
+            if(tex instanceof String) {
+                tex = $engine.getAnimation(tex);
+            }
+            this.sprite = $engine.createRenderable(this, new PIXI.extras.AnimatedSprite(tex,false),true)
+            this.sprite.animationSpeed = 0.1;
+        } else {
+            if(tex instanceof String) {
+                tex = $engine.getTexture(tex);
+            }
+            this.sprite = $engine.createRenderable(this, new PIXI.Sprite(tex),true);
+        }
+        
+        this.x = x;
+        this.y = y;
+
+        this.baseXScale = xScale;
+        this.baseYScale = yScale;
+        this.xScale = xScale;
+        this.yScale = yScale;
+
+        this.dy = EngineUtils.randomRange(-8,-4);
+        this.dx = EngineUtils.randomRange(-2,2);
+        this.dz = EngineUtils.randomRange(-0.05,0.05);
+        this.angle = EngineUtils.random(10);
+        this.grav = 0.25;
+        this.lifeTimer = 0;
+        this.lifeTime = EngineUtils.irandomRange(45,75);
+
+        this.animated = animated
+
+        for(var i =0;i<recurseCount;i++) {
+            var offX = EngineUtils.randomRange(-8,8);
+            var offY = EngineUtils.randomRange(-8,8);
+            new ExplosionParticle(tex,x+offX,y+offY,xScale/4,yScale/4,0,animated);
+        }
+    }
+
+    setLifeTime(life) {
+        this.lifeTime = life;
+    }
+
+    setAnimationSpeed(speed) {
+        if(!this.animated)
+            return;
+        this.sprite.animationSpeed = speed;
+    }
+
+    step() {
+        if(this.animated)
+            this.sprite.update(1);
+        
+        this.lifeTimer++;
+        if(this.lifeTime>this.lifeTime)
+            this.destroy();
+        this.alpha = EngineUtils.interpolate((this.lifeTimer-(this.lifeTime-24))/24,1,0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+        this.x+=this.dx;
+        this.y+=this.dy;
+        this.angle+=this.dz;
+        this.dy += this.grav;
     }
 }

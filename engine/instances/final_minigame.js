@@ -157,7 +157,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
      * @returns True if the player cheated at least this many times, false otherwise
      */
     checkCheats(value) {
-        return value >= this.totalCheats;
+        return this.totalCheats >= value;
     }
 
     getNumCheats() {
@@ -295,14 +295,26 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             this.sequenceAttackLines(1);
         } else if(this.sharedPhaseTimer===210 && this.checkCheats(2)) {
             this.sequenceAttackLines(2);
-        }else if(this.sharedPhaseTimer===350 && this.checkCheats(3)) {
+        } else if(this.sharedPhaseTimer===350 && this.checkCheats(3)) {
             this.sequenceAttackLines(3);
+        }
+
+        if(this.checkCheats(1) && this.sharedPhaseTimer === 120) {
+            this.attackLineHorizontal(true)
+            this.attackLineHorizontal(false)
+        }
+
+        if(this.checkCheats(9) && this.sharedPhaseTimer==350) { // die.
+            this.sequenceSpawnCorners(3,150,8);
+        }
+        if(this.checkCheats(9) && this.sharedPhaseTimer==425) { // die.
+            this.sequenceSpawnCorners(3,150,12);
         }
 
 
         if(this.sharedPhaseTimer>400 && this.sharedPhaseTimer<1000 && this.sharedPhaseTimer%90===0) {
             this.attackLineHorizontal(this.sharedPhaseTimer%180===0)
-            if(this.checkCheats(this.sharedPhaseTimer - 400)/90) // each line represents one cheat
+            if(this.checkCheats((this.sharedPhaseTimer - 400)/90)) // each line represents one cheat
                 this.attackLine();
         }
 
@@ -323,6 +335,14 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             this.sequenceFireAtPlayer();
         }
 
+        if(this.checkCheats(2) && this.sharedPhaseTimer===1400) {
+            this.sequenceFireAtPlayer();
+        }
+
+        if(this.checkCheats(4) && this.sharedPhaseTimer===1600) {
+            this.sequenceFireAtPlayer();
+        }
+
         if((this.checkCheats(6) && this.sharedPhaseTimer===1200) || (this.checkCheats(4) && this.sharedPhaseTimer===1400) || this.sharedPhaseTimer===1600) {
             this.sequenceAttackWipe();
         }
@@ -331,7 +351,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             this.sequenceFireAtPlayer();
         }
 
-        if((this.checkCheats(7) && this.sharedPhaseTimer===1800) || (this.checkCheats(6) && this.sharedPhaseTimer===1960) || (this.checkCheats(5) && this.sharedPhaseTimer===2020)) {
+        if((this.checkCheats(5) && this.sharedPhaseTimer===1800) || (this.checkCheats(4) && this.sharedPhaseTimer===1960) || (this.checkCheats(3) && this.sharedPhaseTimer===2020)) {
             this.sequenceAttackWipe();
         }
 
@@ -340,24 +360,40 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         }
 
         if(this.sharedPhaseTimer===2300) {
-            this.sequenceAttackHoming(8,60);
+            if(this.checkCheats(4))
+                this.sequenceAttackHoming(8,60);
             this.sequenceSpawnCorners(2,150,10);
-            this.sequenceFireAtPlayer();
+            if(this.checkCheats(5))
+                this.sequenceFireAtPlayer();
         }
-        if(this.sharedPhaseTimer===2315) {
+        if(this.checkCheats(8) && this.sharedPhaseTimer===2315) {
             this.sequenceSpawnCorners(2,150,20);
         }
+
         if(this.sharedPhaseTimer>2500 && this.sharedPhaseTimer<3000 && this.sharedPhaseTimer%75===0) {
             this.attackLineHorizontal(this.sharedPhaseTimer%150===0)
             this.attackLine();
         }
 
+        if(this.checkCheats(10) && this.sharedPhaseTimer==3300) { // die
+            this.sequenceSpawnCorners(3,150,8);
+        }
+        if(this.checkCheats(7) && this.sharedPhaseTimer==3375) { // die
+            this.sequenceSpawnCorners(3,150,12);
+        }
+
         if(this.sharedPhaseTimer===3100) {
             this.sequenceAttackHoming(8,60);
             this.sequenceSpawnCorners(2,150,10);
-            this.sequenceFireAtPlayer();
+            if(this.checkCheats(1))
+                this.sequenceFireAtPlayer();
         }
-        if(this.sharedPhaseTimer===3115) {
+
+        if((this.checkCheats(6) && this.sharedPhaseTimer===3115)) {
+            this.sequenceSpawnCorners(2,150,20);
+        }
+
+        if(!this.checkCheats(6) && (this.checkCheats(3) && this.sharedPhaseTimer === 3200)) { // alt of above.
             this.sequenceSpawnCorners(2,150,20);
         }
 
@@ -366,7 +402,12 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             this.sequenceSpawnCorners(2,150,10);
             this.sequenceFireAtPlayer();
         }
-        if(this.sharedPhaseTimer===3315) {
+
+        if((this.checkCheats(5) && this.sharedPhaseTimer===3315)) {
+            this.sequenceSpawnCorners(2,150,20);
+        }
+
+        if(!this.checkCheats(5) && (this.checkCheats(2) && this.sharedPhaseTimer === 3400)) { // alt of above.
             this.sequenceSpawnCorners(2,150,20);
         }
         
@@ -771,6 +812,9 @@ class FinalMingiamePlayer extends EngineInstance {
         this.sprite = this.getSprite(); // alias
         this.sprite.animationSpeed = 0.1;
         this.sprite.anchor.y = 0.5;
+
+        this.hitboxSprite = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("eson_hitbox"),true));
+        this.hitboxSprite.filters = [FinalMinigameController.getInstance().sharedHealthGlowFilter];
 
         this.defaultXScale = 1;
         this.defaultYScale = 1;
@@ -1417,6 +1461,13 @@ class MoveLinearBullet extends EngineInstance {
     inBounds() { // does not work for bullets that go above the screen...
         var off = $engine.getCamera().getY();
         return this.targetX > -128 && this.targetX < $engine.getWindowSizeX()+128 && this.targetY < $engine.getWindowSizeY()+128+off;
+    }
+
+    onDestroy() {
+        var part = new AnimatedParticle("bullet_disappear");
+        part.x = this.x;
+        part.y = this.y;
+        part.depth = this.depth
     }
 }
 

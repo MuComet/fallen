@@ -76,6 +76,7 @@ sky_platform engine/textures/skybuild/sandbottom.png 0.5 0
 tutorial_junk engine/textures/tutorial/junk.png 0.5 0.5
 spritesheet dimensions 2448 624 3 1 tutorial_sheet engine/textures/tutorial/tutorial_sheet.png 0.5 0.5
 zone_restart engine/textures/tutorial/zone.png 0.5 0
+spritesheet dimensions 288 144 2 1 innkeeper_profiles engine/textures/tutorial/innkeeper_profiles.png 0.5 0.5
 
 falling_object_spike engine/textures/falling_object/spike.png 0.5 0.5
 health_heart engine/textures/falling_object/health.png 0.5 0.5 
@@ -159,11 +160,15 @@ spritesheet dimensions 600 175 4 1 animate eson_fly 4 0 1 2 3 eson_fly engine/te
 
 spritesheet dimensions 1000 900 4 3 animate seye_idle 4 0 1 2 3 animate seye_direct_attack 4 4 5 6 7 animate seye_external_attack 4 8 9 10 11 seye_sprites engine/textures/final_minigame/seye_sheet.png 0.5 0.5
 
+spritesheet dimensions 96 40 3 1 animate bullet_disappear 3 0 1 2 bullet_disappear engine/textures/final_minigame/bullet_disappear.png 0.5 0.5
+
+
 damage_zone engine/textures/final_minigame/damage_zone.png 0.5 0.5
 end_scroll engine/textures/final_minigame/end_scroll.png 0.5 1
 end_arena engine/textures/final_minigame/end_arena.png 0.5 1
 star engine/textures/final_minigame/star.png 0.5 0.5
 health_point engine/textures/final_minigame/health.png 0 0
+eson_hitbox engine/textures/final_minigame/heart_small.png 0.5 0.5
 warning_sign engine/textures/final_minigame/warning.png 0.5 0.5
 
 spritesheet dimensions 400 100 1 2 wire_inputs engine/textures/wires/wire_inputs.png 0.5 0.5
