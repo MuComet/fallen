@@ -72,13 +72,13 @@ class PuyoBoard extends EngineInstance {
         this.puyo1 = this.generateStartPuyo()
         this.puyo2 = this.generateStartPuyo()
         this.puyo3 = this.generateStartPuyo()
-        this.next1 = [new BoardSpace(3,8), new BoardSpace(4,8)]
-        this.next2 = [new BoardSpace(4,9), new BoardSpace(5,9)]
+        this.next1 = [new BoardSpace(4,8), new BoardSpace(3,8)]
+        this.next2 = [new BoardSpace(5,9), new BoardSpace(4,9)]
         new BoardSpace(1,2,1)
         this.currentPuyo = null
         this.state = 0
         this.cheatNotApplied = true
-        this.orientation = 0
+        this.orientation = 2
         this.currentX = [2,2]
         this.currentY = [0,1]
         this.score = 0
@@ -170,11 +170,11 @@ class PuyoBoard extends EngineInstance {
         this.next1[1].setState(1)
         this.next2[0].setState(1)
         this.next2[1].setState(1)
-        this.orientation = 0
+        this.orientation = 2
         this.currentX = [2,2]
         this.bufferRight = 10
         this.bufferLeft = 10
-        this.currentY = [0,1]
+        this.currentY = [1,0]
         this.placePuyos(1)
         if(!this.movePossible(2)){
             this.board[this.currentY[0]][this.currentX[0]].getPuyo().aboutToLand()
@@ -374,6 +374,7 @@ class PuyoBoard extends EngineInstance {
 
     pop(y,x,direction,colour){
         this.columns[x]--;
+        this.board[y][x].getPuyo().destroy()
         this.board[y][x].setPuyo(null);
         this.board[y][x].setState(0);
         if(direction != 1 && y <= 11 && this.board[y+1][x].getState() == 2 && this.board[y+1][x].getPuyo().getColour() == colour){
@@ -548,6 +549,38 @@ class Puyo extends EngineInstance {
             this.getSprite().texture = ($engine.getTexture("puyo-y"));
         }
         this.landing = false
+        this.landToggle = false
+        this.nextToggle = false
+        this.rotateToggle = false
+        this.i = 0
+        this.orientation = Math.PI/2
+    }
+
+    step(){
+        if(this.landToggle){
+            this.land2()
+            this.i++
+            if(this.i >= 7){
+                this.landToggle = false
+                this.i = 0
+            }
+        }
+        if(this.nextToggle){
+            this.moveNext()
+            this.i++
+            if(this.i >= 7){
+                this.nextToggle = false
+                this.i = 0
+            }
+        }
+        if(this.rotateToggle){
+            this.rotation()
+            this.i++
+            if(this.i >= 7){
+                this.rotateToggle = false
+                this.i = 0
+            }
+        }
     }
 
     getColour() {
@@ -580,12 +613,23 @@ class Puyo extends EngineInstance {
         $engine.audioPlaySound("puyo_move")
     }
 
-    land(row){
-        for(i = 0; i <= 60; i++){
-            this.yScale = Math.pow((Math.cos(((2*Math.PI)/60)*i)+2)/3, 4)
-        }
-        this.y = $engine.getWindowSizeY() - ((16-row)*35);
+    rotate(){
+        this.rotateToggle = true
+        $engine.audioPlaySound("puyo_rotate")
+    }
+
+    rotation(){
+
+    }
+
+    land(){
+        this.landToggle = true
         $engine.audioPlaySound("puyo_land")
+        this.y -= (this.y-$engine.getWindowSizeY())%35
+    }
+
+    land2(){
+        this.yScale = (Math.cos(((2*Math.PI)/6)*this.i)+2)/3
     }
 }
 
