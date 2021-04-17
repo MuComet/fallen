@@ -45,8 +45,8 @@ require button_continue_1 engine/textures/buttons/button_continue.png 0.5 0.5
 require button_continue_2 engine/textures/buttons/button_continue_down.png 0.5 0.5
 require button_new_game_1 engine/textures/buttons/button_new_game.png 0.5 0.5
 require button_new_game_2 engine/textures/buttons/button_new_game_down.png 0.5 0.5
-require spritesheet dimensions 731 1470 1 6 difficulty_buttons engine/textures/buttons/difficulty_sheet 0.5 0.5
-require spritesheet dimensions 706 382 1 2 back_button engine/textures/buttons/back_sheet 0.5 0.5
+require spritesheet dimensions 731 1470 1 6 difficulty_buttons engine/textures/buttons/difficulty_sheet.png 0.5 0.5
+require spritesheet dimensions 706 382 1 2 back_button engine/textures/buttons/back_sheet.png 0.5 0.5
 
 title_card engine/textures/fallen/fallen.png 0.5 0.5
 
