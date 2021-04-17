@@ -166,8 +166,9 @@ class PuyoBoard extends EngineInstance {
                     this.board[j][i].getPuyo().destroy()
                 }
                 if(this.board[j][i].getState()==1){
-                    this.board[j][i].getPuyo().destroy()
                     this.state = 0
+                    this.currentPuyo[0].destroy()
+                    this.currentPuyo[1].destroy()
                 }
                 this.board[j][i].setPuyo(newPuyo)
                 newPuyo.sendNext2()
@@ -326,7 +327,9 @@ class PuyoBoard extends EngineInstance {
             while(j < droppedColumns[i]){
                 console.log("currentRow: " + currentRow)
                 if(this.board[currentRow][i].getState()!=0 && hole != currentRow){
-                    this.board[hole][i].setPuyo(this.board[currentRow][i].getPuyo());
+                    var thePuyo = this.board[currentRow][i].getPuyo()
+                    this.board[hole][i].setPuyo(thePuyo);
+                    thePuyo.drop(hole)
                     this.board[hole][i].setState(2);
                     this.board[currentRow][i].setPuyo(null);
                     this.board[currentRow][i].setState(0);
@@ -334,6 +337,7 @@ class PuyoBoard extends EngineInstance {
                     hole--
                 } else if (this.board[currentRow][i].getState()!=0 && hole == currentRow) {
                     this.board[hole][i].setState(2);
+                    this.board[hole][i].getPuyo().land()
                     j++
                     hole--
                 }
@@ -470,7 +474,7 @@ class PuyoBoard extends EngineInstance {
             this.orientation++;
             this.orientation%=4;
         }
-        this.rotate();
+        this.rotate(rotation);
     }
 
 
@@ -478,26 +482,34 @@ class PuyoBoard extends EngineInstance {
     //orientation = 1 means horizontal, pivot puyo left
     //orientation = 2 means upright, pivot puyo above
     //orientation = 3 means horizontal, pivot puyo right
-    rotate(){
+    rotate(direction){
+        var move = false
         if(this.orientation == 0){
             this.removePuyos(0);
             if(!this.movePossible(2)) {
                 this.currentY[0]--;
+                move = true
             }
             this.currentY[1] = this.currentY[0]+1;
             this.currentX[1] = this.currentX[0];
             this.placePuyos(1);
+            this.currentPuyo[0].rotate(0,direction,move)
+            this.currentPuyo[1].rotate(0,direction,move)
         }
         if(this.orientation == 1){
             this.removePuyos(0);
             if(this.movePossible(0)) {
                 this.currentX[1] = this.currentX[0]+1;
                 this.currentY[1] = this.currentY[0];
+                this.currentPuyo[0].rotate(1,direction,false)
+                this.currentPuyo[1].rotate(1,direction,false)
             } else {
                 if(this.movePossible(1)){
                     this.currentX[0]--;
                     this.currentX[1] = this.currentX[0]+1;
                     this.currentY[1] = this.currentY[0];
+                    this.currentPuyo[0].rotate(1,direction,true)
+                    this.currentPuyo[1].rotate(1,direction,true)
                 }
             }
             this.placePuyos(1);
@@ -506,21 +518,28 @@ class PuyoBoard extends EngineInstance {
             this.removePuyos(0);
             if(!this.movePossible(3)) {
                 this.currentY[0]++;
+                move = true
             }
             this.currentY[1] = this.currentY[0]-1;
             this.currentX[1] = this.currentX[0];
             this.placePuyos(1);
+            this.currentPuyo[0].rotate(2,direction,move)
+            this.currentPuyo[1].rotate(2,direction,move)
         }
         if(this.orientation == 3){
             this.removePuyos(0);
             if(this.movePossible(1)) {
                 this.currentX[1] = this.currentX[0]-1;
                 this.currentY[1] = this.currentY[0];
+                this.currentPuyo[0].rotate(3,direction,false)
+                this.currentPuyo[1].rotate(3,direction,false)
             } else {
                 if(this.movePossible(0)){
                     this.currentX[0]++;
                     this.currentX[1] = this.currentX[0]-1;
                     this.currentY[1] = this.currentY[0];
+                    this.currentPuyo[0].rotate(3,direction,true)
+                    this.currentPuyo[1].rotate(3,direction,true)
                 }
             }
             this.placePuyos(1);
@@ -564,10 +583,10 @@ class Puyo extends EngineInstance {
         this.landing = false
         this.landToggle = false
         this.rotateToggle = false
-        this.i = 0
-        this.orientation = Math.PI/2
-        this.target = Math.PI/2
         this.direction = 0
+        this.i = 0
+        this.currentAngle = Math.PI/2
+        this.target = 0
         this.move = false
         this.dy = EngineUtils.randomRange(-8,-4);
         this.dx = EngineUtils.randomRange(-2,2);
@@ -576,6 +595,8 @@ class Puyo extends EngineInstance {
         this.lifeTimer = 0;
         this.lifeTime = EngineUtils.irandomRange(45,75);
         this.destroyed = false;
+        this.dropToggle = false;
+        this.dropLength = 0
     }
 
     step(){
@@ -592,6 +613,15 @@ class Puyo extends EngineInstance {
             this.i++
             if(this.i >= 7){
                 this.rotateToggle = false
+                this.i = 0
+            }
+        }
+        if(this.dropToggle){
+            this.dropping()
+            this.i++
+            if(this.i >= 7){
+                this.dropToggle = false
+                this.land()
                 this.i = 0
             }
         }
@@ -632,7 +662,9 @@ class Puyo extends EngineInstance {
         }
         this.y += 5
         if(this.i == 6){
-            this.i = 0
+            this.i = 0 
+            this.pivotX = this.x
+            this.pivotY = this.y + 35
             return true
         }
         this.i++
@@ -667,12 +699,14 @@ class Puyo extends EngineInstance {
     fall(){
         if(!this.landing){
             this.y += 0.5
+            this.pivotY += 0.5
         }
     }
 
     fastfall(){
         if(!this.landing){
             this.y += 10 
+            this.pivotY += 10
         }
     }
 
@@ -682,21 +716,96 @@ class Puyo extends EngineInstance {
 
     moveLeft(){
         this.x -= 35
+        this.pivotX -= 35
         $engine.audioPlaySound("puyo_move")
     }
 
     moveRight(){
         this.x += 35
+        this.pivotX += 35
         $engine.audioPlaySound("puyo_move")
     }
 
-    rotate(){
+    rotate(target, direction, move){
+        this.target = target
+        this.direction = direction
+        this.move = move
         this.rotateToggle = true
         $engine.audioPlaySound("puyo_rotate")
+        var targetAngle
+        if(this.target == 0){
+            targetAngle = 3*Math.PI/2
+        }
+        else if(this.target == 3){
+            targetAngle = Math.PI
+        }
+        else if(this.target == 2){
+            targetAngle = Math.PI/2
+        }
+        else{
+            targetAngle = 0
+        }
+        if(direction == 0 && this.currentAngle < targetAngle){
+            this.currentAngle += 2*Math.PI
+        }
+        else if(direction == 1 && this.currentAngle > targetAngle){
+            this.currentAngle -= 2*Math.PI
+        }
+        this.angleShift = Math.abs(this.currentAngle-targetAngle)/7
     }
 
     rotation(){
+        var targetAngle
+        if(this.target == 0){
+            targetAngle = 3*Math.PI/2
+            if(this.move){
+                this.y -= 5
+                this.pivotY -= 5
+            }
+        }
+        else if(this.target == 3){
+            targetAngle = Math.PI
+            if(this.move){
+                this.x += 5
+                this.pivotX += 5
+            }
+        }
+        else if(this.target == 2){
+            targetAngle = Math.PI/2
+            if(this.move){
+                this.y += 5
+                this.pivotY += 5
+            }
+        }
+        else{
+            targetAngle = 0
+            if(this.move){
+                this.x -= 5
+                this.pivotX -= 5
+            }
+        }
+        if(this.direction == 0){
+            this.currentAngle -= this.angleShift
+        }
+        else{
+            this.currentAngle += this.angleShift
+        }
+        if(this.i == 6){
+            this.currentAngle = targetAngle
+        }
+        if(!this.pivot){
+            this.x = this.pivotX + Math.cos(this.currentAngle)*35
+            this.y = this.pivotY - Math.sin(this.currentAngle)*35
+        }
+    }
 
+    drop(hole){
+        this.dropLength = (($engine.getWindowSizeY() - ((16-hole)*35))-this.y)/7
+        this.dropToggle = true
+    }
+
+    dropping(){
+        this.y += this.dropLength
     }
 
     pop(){
@@ -706,7 +815,7 @@ class Puyo extends EngineInstance {
     land(){
         this.landToggle = true
         $engine.audioPlaySound("puyo_land")
-        this.y += ($engine.getWindowSizeY()-1-this.y)%35 -35
+        this.y += ($engine.getWindowSizeY()-17-this.y)%35 - 18
     }
 
     land2(){
