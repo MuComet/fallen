@@ -984,6 +984,15 @@ class Scene_Engine extends Scene_Base {
     getMinigameOutcomeData() {
         return $__engineSaveData.__minigames
     }
+
+    __applyBlendModes() { // applies the khas blend modes every time the engine quits. Fixes a bug with khas.
+        var renderer = this.getRenderer();
+        var gl = renderer.gl;
+        PIXI.BLEND_MODES.KHAS_LIGHT = 31;
+        PIXI.BLEND_MODES.KHAS_LIGHTING = 32;
+        renderer.state.blendModes[PIXI.BLEND_MODES.KHAS_LIGHT] = [gl.SRC_ALPHA, gl.ONE];
+        renderer.state.blendModes[PIXI.BLEND_MODES.KHAS_LIGHTING] = [gl.ZERO, gl.SRC_COLOR];
+    }
     
     /**
      * RPG maker functions, do not call. If you want to end the game, use endGame().
@@ -993,6 +1002,7 @@ class Scene_Engine extends Scene_Base {
         this.__cleanup();
         this.__recordOutcome();
         this.__writeBack();
+        this.__applyBlendModes();
         if(!this.__checkDeath()) {
             this.__resumeAudio();
             if($__engineData.__shouldAutoSave)
