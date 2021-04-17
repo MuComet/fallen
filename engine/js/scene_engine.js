@@ -68,6 +68,11 @@ ENGINE_RETURN.WIN = 1;
 ENGINE_RETURN.NO_CHEAT = 0;
 ENGINE_RETURN.CHEAT = 1;
 
+const ENGINE_DIFFICULTY = {};
+ENGINE_DIFFICULTY.EASY = 0;
+ENGINE_DIFFICULTY.MEDIUM = 1;
+ENGINE_DIFFICULTY.HARD = 2;
+
 // convenience functions for overworld progammers.
 
 const SET_ENGINE_ROOM = function(room) {
@@ -2635,6 +2640,7 @@ class OwO {
                     OwO.__gameLoss();
                 } else {
                     $__engineSaveData.__nextStaminaLossKills = true;
+                    $gameTemp.reserveCommonEvent(1) // call the common event for last stand
                     newHealth = 1;
                     OwO.__changeHpNoListener(newHealth); // last stand.
                 }

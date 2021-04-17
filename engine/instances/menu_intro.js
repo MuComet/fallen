@@ -4,17 +4,6 @@ class MenuIntroController extends EngineInstance {
 
     onEngineCreate() {
 
-        // please never do this in actual minigame code -- hook into minigamecontroller
-        MinigameController.controller = this;
-        this.startTime = window.performance.now(); // overwritten later...
-
-        this.perfTime = 0;
-
-        this.renderedFrames = 0;
-
-        this.sampling = false;
-        UwU.addRenderListener(this.nextFrame);
-
         $__engineData.__readyOverride=false;
 
         this.loadText = $engine.createManagedRenderable(this, new PIXI.Text("Press L to load crash autosave.", $engine.getDefaultTextStyle()));
@@ -49,32 +38,33 @@ class MenuIntroController extends EngineInstance {
         this.isFading=false;
         $engine.startFadeIn();
 
-        // overwrite the mouse location, PIXI doesn't update immedaitely...
-        IN.getMouseX()
-        IN.__mouseX=410;
-        IN.__mouseY=120;
+        MenuIntroController.instance = this;
 
-        var startButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2);
-        startButton.setTextures("button_new_game_1","button_new_game_1","button_new_game_2")
-        startButton.setOnPressed(function(){
-            $engine.audioFadeSound(MinigameController.getInstance().menuMusic,30);
-            IM.with(MainMenuButton,function(button) {
-                button.enabled = false;
-            })
-            AudioManager.playSe($engine.generateAudioReference("GameStart"))
-            $engine.audioFadeAll();
-            return true
-        });
-        startButton.setScript(function() {
-            $engine.setRoom("IntroCutsceneRoom")
-        });
-        startButton.setSelected();
-        
-        var continueButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+120);
-        continueButton.setTextures("button_continue_1","button_continue_1","button_continue_2")
-        continueButton.setOnPressed(function() {
-            var time = window.performance.now();
-            var ret = false;
+        // overwrite the mouse location, PIXI doesn't update immedaitely...
+        /*IN.getMouseXGUI()
+        IN.__mouseXGUI=410;
+        IN.__mouseYGUI=120;*/
+
+        this.cameraTargetX =0;
+        this.cameraTargetY =0;
+
+        this.menuMusic = $engine.audioPlaySound("title_music",1,true)
+        $engine.audioSetLoopPoints(this.menuMusic,10,50);
+
+        this.createButtons();
+    }
+
+    setupMainMenuButtons() {
+        // main menu
+        this.buttons.continueButton.setOnPressed(function() {
+            SceneManager.goto(Scene_Map);
+            var oldFunc = $engine.terminate;
+            $engine.terminate = function() { // hijack... myself?
+                oldFunc.call(this);
+                $gameSystem.onAfterLoad();
+            }
+        })
+        this.buttons.continueButton.setTestPressed(function() {
             if (DataManager.loadGame(1)) {
                 // reload map if updated -- taken from rpg_scenes.js line 1770
                 if ($gameSystem.versionId() !== $dataSystem.versionId) {
@@ -85,73 +75,159 @@ class MenuIntroController extends EngineInstance {
                 $engine.fadeOutAll(1);
                 $engine.audioFadeAll();
                 $engine.disableAutoSave();
-                $engine.audioFadeSound(MinigameController.getInstance().menuMusic,30);
                 IM.with(MainMenuButton,function(button) {
-                    button.enabled = false;
+                    button.disable();
                 })
-                ret =  true;
+                return true;
             } else {
                 SoundManager.playBuzzer();
-                ret = false;
-            }
-            MinigameController.getInstance().timeCorrection+=window.performance.now()-time;
-            return ret;
-        });
-        continueButton.setScript(function() {
-            SceneManager.goto(Scene_Map);
-            var oldFunc = $engine.terminate;
-            $engine.terminate = function() { // hijack... myself?
-                oldFunc.call(this);
-                $gameSystem.onAfterLoad();
+                return false;
             }
         });
+        
+        this.buttons.startButton.setOnPressed(function() {
+            MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_DIFFICULTY);
+        });
+        this.buttons.startButton.setSelected();   
+    }
 
-        this.menuMusic = $engine.audioPlaySound("title_music",1,true)
-        $engine.audioSetLoopPoints(this.menuMusic,10,50);
-
-        this.renderTexture = $engine.createManagedRenderable(this, PIXI.RenderTexture.create($engine.getWindowSizeX(),$engine.getWindowSizeY()));
-        this.brush = $engine.createManagedRenderable(this,new PIXI.Container());
-        for(var i =0;i<250;i++) {
-            var child = $engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("intro_background")))
-            child.x = EngineUtils.irandomRange(-2048,2048);
-            child.y = EngineUtils.irandomRange(-2048,2048);
-            child.rotation = EngineUtils.randomRange(-2048,2048);
-            this.brush.addChild(child);
+    setupDifficultyButtons() {
+        var commonSetTestPressedScript = function() {
+            $engine.fadeOutAll(1);
+            $engine.startFadeOut(60)
+            $engine.audioFadeAll();
+            IM.with(MainMenuButton,function(button) {
+                button.disable();
+            })
+            AudioManager.playSe($engine.generateAudioReference("GameStart"))
+            return true
         }
-        this.brush.filters = [new PIXI.filters.BlurFilter(),new PIXI.filters.ZoomBlurFilter()];
-        this.sample(); // prepare for samples later.
-    }
 
-    // low perforance check. basically a couple sprites to the screen to make the GPU have a stroke.
-    sample() {
-        for(var k =0;k<10;k++) {
-            $engine.getRenderer().render(this.brush,this.renderTexture,false,null,false);
+        var commonPressedScript = function() {
+            $engine.setRoom("IntroCutsceneRoom")
         }
+
+        // easy
+        this.buttons.difficultyEasy.setTestPressed(function() {
+            return commonSetTestPressedScript.call(this);
+
+        });
+        this.buttons.difficultyEasy.setOnPressed(function() {
+            commonPressedScript.call(this);
+            $engine.getSaveData().difficulty = ENGINE_DIFFICULTY.EASY;
+        });
+
+        // normal
+        this.buttons.difficultyNormal.setTestPressed(function() {
+            return commonSetTestPressedScript.call(this);
+        });
+        this.buttons.difficultyNormal.setOnPressed(function() {
+            commonPressedScript.call(this);
+            $engine.getSaveData().difficulty = ENGINE_DIFFICULTY.MEDIUM;
+        });
+
+        // hard
+        this.buttons.difficultyHard.setTestPressed(function() {
+            return commonSetTestPressedScript.call(this);
+
+        });
+        this.buttons.difficultyHard.setOnPressed(function() {
+            commonPressedScript.call(this);
+            $engine.getSaveData().difficulty = ENGINE_DIFFICULTY.HARD;
+        });
+
+        this.buttons.difficultyBack.setOnPressed(function() {
+            MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_MAIN);
+        })
     }
 
-    testPerformance() {
-        this.perfTime = window.performance.now() - this.perfTime;
+    createButtons() {
+        this.buttons = {};
+        this.buttons.continueButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+120);
+        this.buttons.continueButton.setTextures("button_continue_1","button_continue_1","button_continue_2")
+        this.buttons.startButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2);
+        this.buttons.startButton.setTextures("button_new_game_1","button_new_game_1","button_new_game_2")
+        
+        var offsetDifficulty = $engine.getWindowSizeY();
+
+        this.buttons.difficultyEasy = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+40 - offsetDifficulty);
+        this.buttons.difficultyEasy.setTextures("difficulty_buttons_0","difficulty_buttons_0","difficulty_buttons_1")
+        this.buttons.difficultyNormal = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2 -80 - offsetDifficulty);
+        this.buttons.difficultyNormal.setTextures("difficulty_buttons_2","difficulty_buttons_2","difficulty_buttons_3")
+        this.buttons.difficultyHard = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2-200 - offsetDifficulty);
+        this.buttons.difficultyHard.setTextures("difficulty_buttons_4","difficulty_buttons_4","difficulty_buttons_5")
+        this.buttons.difficultyBack = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+160 - offsetDifficulty);
+        this.buttons.difficultyBack.setTextures("back_button_0","back_button_0","back_button_1")
+
+        this.setupMainMenuButtons();
+        this.setupDifficultyButtons();
     }
 
-    nextFrame() {
-        var inst = MinigameController.getInstance()
-        if(inst.sampling) {
-            inst.renderedFrames++;
-            if(inst.renderedFrames>15) {
-                inst.sampling = false;
-                inst.testPerformance();
+    handleFloatingObjects() {
+        this.nextCloud--;
+        if(this.nextCloud<=0) {
+            let cloud = new RisingSprite(EngineUtils.random($engine.getWindowSizeX()*3),$engine.getTexture("cloud_generic_"+EngineUtils.irandomRange(1,4)))
+            this.nextCloud = EngineUtils.irandomRange(20,60);
+            if(this.timer<this.endTime) {
+                cloud.alpha = 0;
             }
         }
+        this.nextLeaf--;
+        if(this.nextLeaf<=0) {
+            let leaf = new RisingSprite(EngineUtils.random($engine.getWindowSizeX()*3),$engine.getRandomTextureFromSpritesheet("leaf_particles"))
+            leaf.rotateFactor = 10;
+            leaf.changeScale(0.5,0.5)
+            leaf.flipHoriz = true;
+            leaf.flipVert = true;
+            leaf.speed*=EngineUtils.randomRange(1.6,3);
+            this.nextLeaf = EngineUtils.irandomRange(4,8);
+            if(this.timer<this.endTime) {
+                leaf.alpha = 0;
+            }
+        }
+    }
+
+    handleLetters() {
+        if(this.timer>this.endTime) {
+            if(this.timer===this.endTime+1) {
+                IM.with(RisingSprite, function(cloud){cloud.alpha = 1});
+                IM.with(MainMenuButton, function(button){button.enable()})
+                for(var i=0;i<8;i++) {
+                    var letter = this.letters[i]
+                    letter.angle = 0;
+                }
+            }
+            for(var i =0;i<8;i++)
+                this.letters[i].floatRandom();
+        } else {
+            for(var i=0;i<8;i++) {
+                var letter = this.letters[i]
+                if(this.timer>letter.randomOffset) {
+                    var val = (this.timer-letter.randomOffset)/(this.endTime-letter.randomOffset)
+                    letter.y = this.interp(val,$engine.getWindowSizeY()+120,letter.destY)
+                    letter.x = this.interp(val,letter.xRandStart,letter.destX)
+                    letter.angle = this.interp(val,letter.randomOffsetAngle,0)
+                }
+            }
+        }
+    }
+
+    handleCamera() {
+        var camera = $engine.getCamera();
+        var offX = this.cameraTargetX - camera.getX()
+        var offY = this.cameraTargetY - camera.getY()
+        camera.translate(offX/32,offY/32);
     }
 
     step() {
-        if(this.sampling) {
-            this.simulatedFrames++;
-        }
 
         if(IN.anyKeyPressed() && this.timer < this.endTime) {
             this.endTime=this.timer;
         }
+
+        this.handleFloatingObjects();
+        this.handleLetters();
+        this.handleCamera();
 
         this.timer++;
 
@@ -161,74 +237,10 @@ class MenuIntroController extends EngineInstance {
             this.musicStarted = true;
         }
 
-        /*if(!AudioManager._bgmBuffer.isReady() && !this.musicStarted) {
-            console.log("started")
-            AudioManager._bgmBuffer.play()
-            this.musicStarted=true;
-        }*/
-
-        this.nextCloud--;
-        if(this.nextCloud<=0) {
-            let cloud = new RisingSprite(EngineUtils.random($engine.getWindowSizeX()),$engine.getTexture("cloud_generic_"+EngineUtils.irandomRange(1,4)))
-            this.nextCloud = EngineUtils.irandomRange(60,120);
-            if(this.timer<this.endTime) {
-                cloud.alpha = 0;
-            }
-        }
-        this.nextLeaf--;
-        if(this.nextLeaf<=0) {
-            let leaf = new RisingSprite(EngineUtils.random($engine.getWindowSizeX()),$engine.getRandomTextureFromSpritesheet("leaf_particles"))
-            leaf.rotateFactor = 10;
-            leaf.changeScale(0.5,0.5)
-            leaf.flipHoriz = true;
-            leaf.flipVert = true;
-            leaf.speed*=EngineUtils.randomRange(1.6,3);
-            this.nextLeaf = EngineUtils.irandomRange(12,24);
-            if(this.timer<this.endTime) {
-                leaf.alpha = 0;
-            }
-        }
-
-        if(this.timer>this.endTime) {
-            if(this.timer===this.endTime+1) {
-                IM.with(RisingSprite, function(cloud){cloud.alpha = 1});
-                IM.with(MainMenuButton, function(button){button.enable()})
-                for(var i=0;i<8;i++) {
-                    var letter = this.letters[i]
-                    letter.y = letter.destY
-                    letter.x = letter.destX
-                    letter.angle = 0;
-                }
-            }
-            for(var i =0;i<8;i++)
-                this.letters[i].floatRandom();
-        } else {
-            for(var i=0;i<8;i++) {
-                var letter = this.letters[i]
-                if(this.timer>=letter.randomOffset) {
-                    var val = (this.timer-letter.randomOffset)/(this.endTime-letter.randomOffset)
-                    letter.y = this.interp(val,$engine.getWindowSizeY()+120,letter.destY)
-                    letter.x = this.interp(val,letter.xRandStart,letter.destX)
-                    letter.angle = this.interp(val,letter.randomOffsetAngle,0)
-                }
-            }
-        }
-
-        var mouseOffset = $engine.getWindowSizeX()/2-IN.getMouseX();
+        var mouseOffset = $engine.getWindowSizeX()/2-IN.getMouseXGUI();
         var diff = (this.bg.x + 92 - (this.bg.x - mouseOffset)/16);
 
         this.bg.x -= diff/128
-
-        if(this.isFading) {
-            this.fadeTimer++;
-            if(this.fadeTimer>=this.endFadeTime) {
-                this.afterFade.apply(this.afterFadeArgs);
-            }
-        }
-
-        if(this.timer===this.endTime+this.startTimeOffset) {
-            this.startTime = window.performance.now();
-        }
 
         if($__engineGlobalSaveData.__emergencyAutoSave && IN.keyCheckPressed("KeyL") && !$engine.isBusy()) { // emergencyAutoSave
             if (DataManager.loadGame(2)) {
@@ -241,7 +253,6 @@ class MenuIntroController extends EngineInstance {
                 $engine.fadeOutAll(1);
                 $engine.audioFadeAll();
                 $engine.disableAutoSave();
-                $engine.audioFadeSound(MinigameController.getInstance().menuMusic,30);
                 IM.with(MainMenuButton,function(button) {
                     button.enabled = false;
                 })
@@ -267,15 +278,8 @@ class MenuIntroController extends EngineInstance {
         this.graphics.clear();
         if(this.timer>this.endTime && this.timer <= this.endTime+36) {
             this.graphics.beginFill(0xffffff);
-            if(this.timer-this.endTime<12) { // drawing of the while fade, but also the performance sampling
-                if(this.timer-this.endTime===1) {
-                    this.perfTime=window.performance.now();
-                    this.sampling = true; // we sample 15 frames from this point forward.
-                }
+            if(this.timer-this.endTime<12) { // drawing of the while fade
                 this.graphics.alpha=1;
-                if((this.timer-this.endTime)%3 == 0) {
-                    //this.sample();
-                }
             } else {
                 this.graphics.alpha=1-this.interp((this.timer-this.endTime-12)/24,0,1)
             }
@@ -307,37 +311,72 @@ class MenuIntroController extends EngineInstance {
         return (max-min)*((val-1)**3+1)+min;
     }
 
-    beginFade(func, ...args) {
-        this.isFading = true;
-        this.fadeTimer = 0;
-        this.endFadeTime = 60;
-        this.afterFade=func;
-        this.afterFadeArgs=args;
-    }
-
     cleanup() {
-        UwU.removeRenderListener(this.nextFrame);
-        MinigameController.controller=undefined;
         $__engineGlobalSaveData.__emergencyAutoSave=false;
         $engine.saveEngineGlobalData();
     }
 
-    __notifyFramesSkipped(frames) {
-        if(this.timer>this.endTime+this.startTimeOffset) // don't bother, we haven't started recording.
-            this.timeCorrection+=frames*16.66666;
+    moveToRegion(region) {
+        this.enableRegion(region);
+        switch(region) {
+            case(MenuIntroController.REGION_MAIN):
+                this.cameraTargetX = 0;
+                this.cameraTargetY = 0;
+            break;
+            case(MenuIntroController.REGION_DIFFICULTY):
+                this.cameraTargetX = 0;
+                this.cameraTargetY = -$engine.getWindowSizeY();
+            break;
+            case(MenuIntroController.REGION_EXTRAS):
+            break;
+            case(MenuIntroController.REGION_ENDINGS):
+            break;
+            case(MenuIntroController.REGION_MINIGAME_BROWSER):
+            break;
+            case(MenuIntroController.REGION_EXTRAS_UNLOCKS):
+            break;
+        }
     }
 
-    onRoomEnd() {
-        if(this.perfTime > 550) {
-            if(!$engine.isLow()) {
-                console.warn("It looks like you're playing on a low spec system... The game will automatically lower render quality to account for this.")
-                console.warn("Test render took "+String(this.perfTime)+" ms...");
-            }
-            //$engine.setLowPerformanceMode(true)
+    enableRegion(region) {
+        IM.with(MainMenuButton, function(button) {
+            button.disable();
+        })
+        switch(region) {
+            case(MenuIntroController.REGION_MAIN):
+                this.buttons.startButton.setSelected();
+                this.buttons.startButton.enable();
+                this.buttons.continueButton.enable();
+            break;
+            case(MenuIntroController.REGION_DIFFICULTY):
+                this.buttons.difficultyNormal.setSelected();
+                this.buttons.difficultyEasy.enable();
+                this.buttons.difficultyNormal.enable();
+                this.buttons.difficultyHard.enable();
+                this.buttons.difficultyBack.enable();
+            break;
+            case(MenuIntroController.REGION_EXTRAS):
+            break;
+            case(MenuIntroController.REGION_ENDINGS):
+            break;
+            case(MenuIntroController.REGION_MINIGAME_BROWSER):
+            break;
+            case(MenuIntroController.REGION_EXTRAS_UNLOCKS):
+            break;
         }
+    }
 
+    static getInstance() {
+        return MenuIntroController.instance
     }
 }
+MenuIntroController.REGION_MAIN = 0;
+MenuIntroController.REGION_DIFFICULTY = 1
+MenuIntroController.REGION_EXTRAS = 2
+MenuIntroController.REGION_ENDINGS = 3 // like main
+MenuIntroController.REGION_MINIGAME_BROWSER = 4
+MenuIntroController.REGION_EXTRAS_UNLOCKS = 5 // stories
+MenuIntroController.instance = undefined;
 
 class Letter extends EngineInstance {
 
@@ -422,9 +461,12 @@ class RisingSprite extends EngineInstance {
     }
 
     step() {
+        var camera = $engine.getCamera()
+        this.getSprite().visible = this.x > camera.getX()-120 && this.x < camera.getX() + $engine.getWindowSizeX() + 120;
+
         this.y-=this.speed;
         this.getSprite().tint = 0xffffff
-        if(this.y<=-120)
+        if(this.y<=-120 - $engine.getWindowSizeY())
             this.destroy();
         this.angle = this.baseAngle+Math.sin(this.randRot+$engine.getGameTimer()/32)/16 * this.rotateFactor;
         if(this.flipHoriz) {
@@ -441,11 +483,13 @@ class MainMenuButton extends EngineInstance {
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-368,-125,368,125));
         this.alpha = 0;
         this.enabled = false;
-        this.script = undefined;
         this.onPressed = undefined;
+        this.testPressed = undefined;
+        this.onSelected = undefined;
         this.xScale = 0.25;
         this.yScale = 0.25;
         this.active = false;
+        this.onlyOnce = false;
     }
 
     setTextures(def, armed, fire) {
@@ -468,15 +512,38 @@ class MainMenuButton extends EngineInstance {
         this.rand4 = EngineUtils.irandomRange(64,128);
         this.outlineFilter = new PIXI.filters.OutlineFilter(4,0xffffff);
         this.fitlers = [];
+        this.framesSinceEnabled=0;
         this.onEngineCreate();
     }
 
-    setOnPressed(scr) {
-        this.onPressed = scr;
+    setOneTime() {
+        this.onlyOnce = true;
     }
 
-    setScript(scr) {
-        this.script = scr;
+    /**
+     * Calls a function when the button is initally selected
+     * @param {Function} func The function
+     */
+    setOnSelected(func) {
+        this.onSelected = func;
+    }
+
+    /**
+     * Sets a precondition
+     * 
+     * @param {Function} scr a precondition to test if the button should be pressed 
+     */
+    setTestPressed(scr) {
+        this.testPressed = scr;
+    }
+
+    /**
+     * The script to execute if the button is clicked
+     * 
+     * @param {Function} scr The script to be executed if the button is clicked and setTestPressed script returns true
+     */
+    setOnPressed(scr) {
+        this.onPressed = scr;
     }
 
     outlineTick() {
@@ -492,6 +559,8 @@ class MainMenuButton extends EngineInstance {
         })
         this.active=true;
         this.getSprite().filters = [this.outlineFilter];
+        if(this.onSelected)
+            this.onSelected.call(this);
     }
 
     select() {
@@ -527,30 +596,35 @@ class MainMenuButton extends EngineInstance {
             }
             if(IN.mouseCheckReleased(0)) {       // released
                 this.getSprite().texture = this.tex3;
-                this.testPressed();
+                this.testPress();
             }
         } else {
             this.getSprite().texture = this.tex1;
         }
 
-        // i hate this -- fix same frame skip and start...
-        var controller = IM.find(MenuIntroController);
-        if(controller.timer-1>controller.endTime && this.active && (IN.keyCheckPressed("Enter") || IN.keyCheckPressed("Space"))) {
-            this.testPressed();
+        if(this.framesSinceEnabled>0 && this.active && (IN.keyCheckPressed("Enter") || IN.keyCheckPressed("Space"))) {
+            this.testPress();
         }
+        this.framesSinceEnabled++;
     }
 
-    testPressed() {
-        if(this.onPressed()) {
-            IM.find(MenuIntroController,0).beginFade(this.script);
-            this.pressed = true;
+    testPress() {
+        if(!this.testPressed || this.testPressed()) {
+            if(this.onlyOnce)
+                this.pressed = true;
+            SoundManager.playSystemSound(1)
+            this.onPressed.call(this);
             this.getSprite().texture = this.tex3; // pressed
         }
     }
 
+    disable() {
+        this.enabled=false;
+    }
 
     enable() {
         this.enabled=true;
+        this.framesSinceEnabled = 0;
         this.alpha = 1;
     }
 }

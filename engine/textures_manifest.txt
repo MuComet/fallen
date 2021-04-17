@@ -41,12 +41,12 @@ require text_box engine/textures/generic/text_box.png 0 1
 spritesheet dimensions 48 24 4 2 leaf_particles_small engine/textures/generic/leaf_particles_smol_sheet.png 0.5 0.5
 spritesheet dimensions 300 100 3 1 dust_particles engine/textures/particle/dust_particle_sheet.png 0.5 0.5
 
-button_cheat_1 engine/textures/buttons/button_cheat.png 0.5 0.5
-button_cheat_2 engine/textures/buttons/button_cheat_down.png 0.5 0.5
 require button_continue_1 engine/textures/buttons/button_continue.png 0.5 0.5
 require button_continue_2 engine/textures/buttons/button_continue_down.png 0.5 0.5
 require button_new_game_1 engine/textures/buttons/button_new_game.png 0.5 0.5
 require button_new_game_2 engine/textures/buttons/button_new_game_down.png 0.5 0.5
+require spritesheet dimensions 731 1470 1 6 difficulty_buttons engine/textures/buttons/difficulty_sheet 0.5 0.5
+require spritesheet dimensions 706 382 1 2 back_button engine/textures/buttons/back_sheet 0.5 0.5
 
 title_card engine/textures/fallen/fallen.png 0.5 0.5
 

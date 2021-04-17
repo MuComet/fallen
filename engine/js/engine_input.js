@@ -351,9 +351,9 @@ IN.__mouseValid = false;
 IN.__debugRecordKeyPress = false;
 IN.__debugRecordMousePress = false;
 
-IN.__inputMousePageX = -999999;
-IN.__inputMousePageY = -999999;
-IN.__inputMouseX = -999999;
-IN.__inputMouseY = -999999;
+IN.__inputMousePageX = 0;
+IN.__inputMousePageY = 0;
+IN.__inputMouseX = 0;
+IN.__inputMouseY = 0;
 
 IN.__register();
