@@ -268,13 +268,13 @@ class ExplosionParticle extends EngineInstance {
             if(tex instanceof String) {
                 tex = $engine.getAnimation(tex);
             }
-            this.sprite = $engine.createRenderable(this, new PIXI.extras.AnimatedSprite(tex,false),true)
+            this.setSprite(new PIXI.extras.AnimatedSprite(tex,false));
             this.sprite.animationSpeed = 0.1;
         } else {
             if(tex instanceof String) {
                 tex = $engine.getTexture(tex);
             }
-            this.sprite = $engine.createRenderable(this, new PIXI.Sprite(tex),true);
+            this.setSprite(new PIXI.Sprite(tex));
         }
         
         this.x = x;
@@ -314,7 +314,7 @@ class ExplosionParticle extends EngineInstance {
 
     step() {
         if(this.animated)
-            this.sprite.update(1);
+            this.getSprite().update(1);
         
         this.lifeTimer++;
         if(this.lifeTime>this.lifeTime)
