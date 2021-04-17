@@ -69,9 +69,15 @@ class PuyoBoard extends EngineInstance {
             this.board[i] = [new BoardSpace(i,0), new BoardSpace(i,1), new BoardSpace(i,2), new BoardSpace(i,3), new BoardSpace(i,4), new BoardSpace(i,5)]
         }
         PuyoMinigameController.getInstance().setPreventEndOnTimerExpire(true)
-        this.puyo1 = this.generateStartPuyo()
-        this.puyo2 = this.generateStartPuyo()
-        this.puyo3 = this.generateStartPuyo()
+        this.puyo1 = this.generateStartPuyo(3,8)
+        this.puyo2 = this.generateStartPuyo(4,9)
+        this.puyo3 = this.generateStartPuyo(4,9)
+        this.puyo1[0].sendNext2()
+        this.puyo1[1].sendNext2()
+        this.puyo1[0].sendNext1()
+        this.puyo1[1].sendNext1()
+        this.puyo2[0].sendNext2()
+        this.puyo2[1].sendNext2()
         this.next1 = [new BoardSpace(4,8), new BoardSpace(3,8)]
         this.next2 = [new BoardSpace(5,9), new BoardSpace(4,9)]
         new BoardSpace(1,2,1)
@@ -133,6 +139,13 @@ class PuyoBoard extends EngineInstance {
             if(this.state == 0){
                 this.resetValues()
             }
+            if(this.state==0.1){
+                var done = this.currentPuyo[0].sendNext()
+                var done2 = this.currentPuyo[1].sendNext()
+                if(done && done2){
+                    this.state = 1
+                }
+            }
             if(this.state == 1){
                 this.placingMode()
             }
@@ -148,7 +161,16 @@ class PuyoBoard extends EngineInstance {
     cheat(){
         for(var i = 0; i <= 5; i++){
             for(var j = 12; j >= 10; j--){
-                this.board[j][i].setPuyo(new Puyo(i%3))
+                var newPuyo = new Puyo(i%3,false,i,j)
+                if(this.board[j][i].getState()==2){
+                    this.board[j][i].getPuyo().destroy()
+                }
+                if(this.board[j][i].getState()==1){
+                    this.board[j][i].getPuyo().destroy()
+                    this.state = 0
+                }
+                this.board[j][i].setPuyo(newPuyo)
+                newPuyo.sendNext2()
                 this.board[j][i].setState(2)
             }
             if(this.columns[i] < 3){
@@ -162,6 +184,10 @@ class PuyoBoard extends EngineInstance {
         this.puyo1 = this.puyo2
         this.puyo2 = this.puyo3
         this.puyo3 = this.generatePuyo()
+        this.puyo1[0].sendNext1()
+        this.puyo1[1].sendNext1()
+        this.puyo2[0].sendNext2()
+        this.puyo2[1].sendNext2()
         this.next1[0].setPuyo(this.puyo1[0])
         this.next1[1].setPuyo(this.puyo1[1])
         this.next2[0].setPuyo(this.puyo2[0])
@@ -180,7 +206,7 @@ class PuyoBoard extends EngineInstance {
             this.board[this.currentY[0]][this.currentX[0]].getPuyo().aboutToLand()
             this.board[this.currentY[1]][this.currentX[1]].getPuyo().aboutToLand()
         }
-        this.state = 1
+        this.state = 0.1
         this.chainNum = 0
         this.dropRate = 0
         this.droppedColumns = [0,0,0,0,0,0]
@@ -374,7 +400,7 @@ class PuyoBoard extends EngineInstance {
 
     pop(y,x,direction,colour){
         this.columns[x]--;
-        this.board[y][x].getPuyo().destroy()
+        this.board[y][x].getPuyo().pop()
         this.board[y][x].setPuyo(null);
         this.board[y][x].setState(0);
         if(direction != 1 && y <= 11 && this.board[y+1][x].getState() == 2 && this.board[y+1][x].getPuyo().getColour() == colour){
@@ -517,11 +543,11 @@ class PuyoBoard extends EngineInstance {
     }
 
     generatePuyo() {
-        return [new Puyo(Math.floor(Math.random()*4), true), new Puyo(Math.floor(Math.random()*4), false)];
+        return [new Puyo(Math.floor(Math.random()*4), true,9,5), new Puyo(Math.floor(Math.random()*4), false,9,4)];
     }
 
     generateStartPuyo() {
-        return [new Puyo(Math.floor(Math.random()*3), true), new Puyo(Math.floor(Math.random()*3), false)];
+        return [new Puyo(Math.floor(Math.random()*3), true,9,5), new Puyo(Math.floor(Math.random()*3), false,9,4)];
     }
 }
 
@@ -529,31 +555,27 @@ class PuyoBoard extends EngineInstance {
 
 class Puyo extends EngineInstance {
 
-    onCreate(colour, pivot) {
+    onCreate(colour, pivot, x, y) {
         this.colour = colour;
-        this.x = $engine.getWindowSizeX()/2+(2-5)*35;
-        if(pivot){
-            this.y = $engine.getWindowSizeY() - ((16-1)*35);
-        }
-        else{
-            this.y = $engine.getWindowSizeY() - ((16-0)*35);
-        }
+        this.pivot = pivot
+        this.x = $engine.getWindowSizeX()/2+(x-5)*35;
+        this.y = $engine.getWindowSizeY() - ((16-y)*35);
         this.setSprite(new PIXI.Sprite(PIXI.Texture.empty))
-        if(colour == 0){
-            this.getSprite().texture = ($engine.getTexture("puyo-g"));
-        } else if(colour == 1) {
-            this.getSprite().texture = ($engine.getTexture("puyo-r"));
-        } else if(colour == 2) {
-            this.getSprite().texture = ($engine.getTexture("puyo-b"));
-        } else {
-            this.getSprite().texture = ($engine.getTexture("puyo-y"));
-        }
         this.landing = false
         this.landToggle = false
-        this.nextToggle = false
         this.rotateToggle = false
         this.i = 0
         this.orientation = Math.PI/2
+        this.target = Math.PI/2
+        this.direction = 0
+        this.move = false
+        this.dy = EngineUtils.randomRange(-8,-4);
+        this.dx = EngineUtils.randomRange(-2,2);
+        this.dz = EngineUtils.randomRange(-0.05,0.05);
+        this.grav = 0.25;
+        this.lifeTimer = 0;
+        this.lifeTime = EngineUtils.irandomRange(45,75);
+        this.destroyed = false;
     }
 
     step(){
@@ -565,14 +587,6 @@ class Puyo extends EngineInstance {
                 this.i = 0
             }
         }
-        if(this.nextToggle){
-            this.moveNext()
-            this.i++
-            if(this.i >= 7){
-                this.nextToggle = false
-                this.i = 0
-            }
-        }
         if(this.rotateToggle){
             this.rotation()
             this.i++
@@ -580,6 +594,69 @@ class Puyo extends EngineInstance {
                 this.rotateToggle = false
                 this.i = 0
             }
+        }
+        if(this.destroyed) {
+            new ExplosionParticle(this.getSprite().texture,this.x,this.y)
+            this.lifeTimer++;
+            if(this.lifeTime>this.lifeTime)
+                this.destroy();
+            this.alpha = EngineUtils.interpolate((this.lifeTimer-(this.lifeTime-24))/24,1,0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+            this.x+=this.dx;
+            this.y+=this.dy;
+            this.angle+=this.dz;
+            this.dy += this.grav;
+        }
+    }
+
+    sendNext(){
+        if(this.i == 0){    
+            this.x = $engine.getWindowSizeX()/2+(2-5)*35;
+            if(this.pivot){
+                this.y = $engine.getWindowSizeY() - ((16-0)*35);
+            }
+            else{
+                this.getSprite().texture = ($engine.getTexture(PIXI.Texture.empty));
+                this.y = $engine.getWindowSizeY() - ((16+1)*35);
+            }
+        }
+        if(this.i == 4){
+            if(this.colour == 0){
+                this.getSprite().texture = ($engine.getTexture("puyo-g"));
+            } else if(this.colour == 1) {
+                this.getSprite().texture = ($engine.getTexture("puyo-r"));
+            } else if(this.colour == 2) {
+                this.getSprite().texture = ($engine.getTexture("puyo-b"));
+            } else {
+                this.getSprite().texture = ($engine.getTexture("puyo-y"));
+            }
+        }
+        this.y += 5
+        if(this.i == 6){
+            this.i = 0
+            return true
+        }
+        this.i++
+        return false
+    }
+
+    sendNext1(){
+        this.x = $engine.getWindowSizeX()/2+(8-5)*35;
+        if(this.pivot){
+            this.y = $engine.getWindowSizeY() - ((16-4)*35);
+        } else {
+            this.y = $engine.getWindowSizeY() - ((16-3)*35);
+        }
+    }
+
+    sendNext2(){
+        if(this.colour == 0){
+            this.getSprite().texture = ($engine.getTexture("puyo-g"));
+        } else if(this.colour == 1) {
+            this.getSprite().texture = ($engine.getTexture("puyo-r"));
+        } else if(this.colour == 2) {
+            this.getSprite().texture = ($engine.getTexture("puyo-b"));
+        } else {
+            this.getSprite().texture = ($engine.getTexture("puyo-y"));
         }
     }
 
@@ -622,10 +699,14 @@ class Puyo extends EngineInstance {
 
     }
 
+    pop(){
+        this.destroyed = true
+    }
+
     land(){
         this.landToggle = true
         $engine.audioPlaySound("puyo_land")
-        this.y -= (this.y-$engine.getWindowSizeY())%35
+        this.y += ($engine.getWindowSizeY()-1-this.y)%35 -35
     }
 
     land2(){
