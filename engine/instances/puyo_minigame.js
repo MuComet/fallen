@@ -376,7 +376,7 @@ class PuyoBoard extends EngineInstance {
                     hole--
                 } else if (this.board[currentRow][i].getState()!=0 && hole == currentRow) {
                     this.board[hole][i].setState(2);
-                    this.board[hole][i].getPuyo().land()
+                    this.board[hole][i].getPuyo().land(hole)
                     j++
                     hole--
                 }
@@ -638,10 +638,14 @@ class Puyo extends EngineInstance {
         this.dropToggle = false;
         this.dropLength = 0
         this.depth = 2
+        this.j = 0
+        this.k = 0
+        this.l = 0
     }
 
     step(){
         if(this.landToggle && !this.rotateToggle && !this.dropToggle){
+            this.dropping()
             this.land2()
             this.i++
             if(this.i >= 7){
@@ -657,12 +661,39 @@ class Puyo extends EngineInstance {
                 this.i = 0
             }
         }
+        if(this.left){
+            this.x -= 5
+            this.pivotX -= 5
+            this.j++
+            if(this.j >= 7){
+                this.left = false
+                this.j = 0
+            }
+        }
+        if(this.right){
+            this.x += 5
+            this.pivotX += 5
+            this.k++
+            if(this.k >= 7){
+                this.right = false
+                this.k = 0
+            }
+        }
+        if(this.up){
+            this.y -= 5
+            this.pivotY -= 5
+            this.l++
+            if(this.l >= 7){
+                this.up = false
+                this.l = 0
+            }
+        }
         if(this.dropToggle && !this.rotateToggle){
             this.dropping()
             this.i++
             if(this.i >= 7){
                 this.dropToggle = false
-                this.land()
+                this.land(this.hole)
                 this.i = 0
             }
         }
@@ -768,6 +799,11 @@ class Puyo extends EngineInstance {
     }
 
     rotate(target, direction, move){
+        if(this.rotateToggle){
+            this.i = 6
+            this.rotation()
+            this.i = 0
+        }
         this.target = target
         this.direction = direction
         this.move = move
@@ -776,15 +812,24 @@ class Puyo extends EngineInstance {
         var targetAngle
         if(this.target == 0){
             targetAngle = 3*Math.PI/2
+            if(this.move){
+                this.up = true
+            }
         }
         else if(this.target == 3){
             targetAngle = Math.PI
+            if(this.move){
+                this.right = true
+            }
         }
         else if(this.target == 2){
             targetAngle = Math.PI/2
         }
         else{
             targetAngle = 0
+            if(this.move){
+                this.left = true
+            }
         }
         if(direction == 0 && this.currentAngle < targetAngle){
             this.currentAngle += 2*Math.PI
@@ -799,18 +844,9 @@ class Puyo extends EngineInstance {
         var targetAngle
         if(this.target == 0){
             targetAngle = 3*Math.PI/2
-            if(this.move){
-                this.y -= 5
-                this.pivotY -= 5
-                this.landing = false
-            }
         }
         else if(this.target == 3){
             targetAngle = Math.PI
-            if(this.move){
-                this.x += 5
-                this.pivotX += 5
-            }
         }
         else if(this.target == 2){
             targetAngle = Math.PI/2
@@ -821,10 +857,6 @@ class Puyo extends EngineInstance {
         }
         else{
             targetAngle = 0
-            if(this.move){
-                this.x -= 5
-                this.pivotX -= 5
-            }
         }
         if(this.direction == 0){
             this.currentAngle -= this.angleShift
@@ -860,7 +892,9 @@ class Puyo extends EngineInstance {
         this.destroyed = true
     }
 
-    land(){
+    land(y){
+        this.drop(y)
+        this.dropToggle = false
         this.landToggle = true
     }
 
