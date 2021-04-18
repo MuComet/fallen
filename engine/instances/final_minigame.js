@@ -26,6 +26,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.timer.setTextMode();
         this.timer.pauseTimer()
         this.timer.setSurvivalMode();
+        this.timer.setGameCompleteText("")
 
         this.textBox = new TextBox();
         this.textBox.disableArrow();
@@ -86,6 +87,8 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             new FinalMinigameStar(EngineUtils.irandom($engine.getWindowSizeX()+116)-58,EngineUtils.irandom($engine.getWindowSizeY()+116)-58)
         }
 
+
+        // NOTE: this is repeated on phase 4 init for testing.
         this.maxHealth = 100 + this.getNumCheats()*25; // 25 extra HP per cheat, max health is 350
 
         this.currentHealth = this.maxHealth;
@@ -287,6 +290,9 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             break;
             case(4):
                 this.player.setCanFire(true);
+                IM.find(FinalMinigameWeapon).setShouldPauseOnHit(false); // too many enemies, don't pause
+                this.maxHealth = 100 + this.getNumCheats()*25; // 25 extra HP per cheat, max health is 350 (this is here for testing, re-evaluates what is above)
+                this.currentHealth = this.maxHealth;
             break;
             case(5):
             break;
@@ -601,10 +607,11 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             var healthFac = (1-this.currentHealth/this.maxHealth) // value between 0 and 1 where 0 means that the boss is full health
 
 
-            rand-= healthFac/8; // reduce to 12.5% chance of idle at 0HP
-            rand-= (0.25 * (this.getNumCheats() / this.getNumPossibleCheats())) // always attacking if you cheated max times
+            // 75% chance to idle if you didn't cheat.
+            rand-= healthFac/8 * 5; // reduce to 12.5% chance of idle at 0HP
+            rand-= (0.75 * (this.getNumCheats() / this.getNumPossibleCheats())) // always attacking if you cheated max times
 
-            if(rand>0.75 || this.attacked) { // always idle after an attack, but also chance to idle anyway
+            if(rand>0.25 || this.attacked) { // always idle after an attack, but also chance to idle anyway
                 EngineUtils.setAnimation(this.animation,this.animationIdle);
                 this.genericTimer = EngineUtils.irandomRange(120,240) // wait 2-4 seconds and then do another attack
                 this.attacked = false;
@@ -621,7 +628,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                 this.genericTimer = 360
             } else if(rand===1) { // damage zones
                 EngineUtils.setAnimation(this.animation,this.animationExternal);
-                this.delayedAction(60,this.sequenceAttackDamageZones,75,45,20,10 + this.getNumCheats() * 4)
+                this.delayedAction(60,this.sequenceAttackDamageZones,75,45,20,10 + this.getNumCheats())
                 this.genericTimer = EngineUtils.irandomRange(360,420)
             } else if(rand===2) { // grid
                 EngineUtils.setAnimation(this.animation,this.animationExternal);
@@ -668,7 +675,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         if(this.genericTimer2<0) { // random add attacks, scales with cheats
             var cheatFactor = (this.getNumCheats() / this.getNumPossibleCheats()) // 1 if always cheated, 0 if never
 
-            this.genericTimer2 = EngineUtils.irandomRange(600,720) * (1.4-cheatFactor);
+            this.genericTimer2 = EngineUtils.irandomRange(600,720) * (1.4-cheatFactor/2);
 
             var rand = EngineUtils.irandom(2)
             if(rand===0) { // homing delayed
@@ -872,9 +879,9 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 
         var dx = (this.totalWidth)/(width-1)
         var pathWidth = 3;
-        var dy = -100;
+        var dy = -80;
 
-        for(var i =0;i<30;i++) {
+        for(var i =0;i<15;i++) {
             while(path===nextLocation) {
                 nextLocation= EngineUtils.irandomRange(pathWidth,width-pathWidth);
             }
@@ -946,8 +953,8 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         if(this.cameraShakeTimer < 0)
             this.cameraShakeTimer=0;
         this.cameraShakeTimer+=frames;
-        if(this.cameraShakeTimer>60) {
-            this.cameraShakeTimer=60;
+        if(this.cameraShakeTimer>30) {
+            this.cameraShakeTimer=30;
         }
     }
 
@@ -1566,6 +1573,8 @@ class FinalMinigameWeapon extends EngineInstance {
         this.aimX = this.x;
         this.aimY = this.y;
 
+        this.shouldPauseOnHit = true;
+
         this.fireAnimationTimer=999;
 
         this.shotAnimationContainer = $engine.createRenderable(this,new PIXI.Sprite(PIXI.Texture.empty),false)
@@ -1581,6 +1590,10 @@ class FinalMinigameWeapon extends EngineInstance {
         this.shotAnimationContainer.alpha = 0;
 
         this.setupGraphics();
+    }
+
+    setShouldPauseOnHit(bool) {
+        this.shouldPauseOnHit = bool;
     }
 
     createShotRope() {
@@ -1740,11 +1753,13 @@ class FinalMinigameWeapon extends EngineInstance {
 
         for(const inst of instances) {
             if(inst.isAlive && inst.canBeHurt()) {
-                $engine.pauseGameSpecial(this);
-                this.hasPause = true;
-                this.pauseTimer = this.pauseTime;
-                this.cameraX = $engine.getCamera().getX();
-                this.cameraY = $engine.getCamera().getY();
+                if(this.shouldPauseOnHit) {
+                    $engine.pauseGameSpecial(this);
+                    this.hasPause = true;
+                    this.pauseTimer = this.pauseTime;
+                    this.cameraX = $engine.getCamera().getX();
+                    this.cameraY = $engine.getCamera().getY();
+                }
                 inst.onHit();
             }
         }
