@@ -72,9 +72,9 @@ class FallingObjectsController extends MinigameController {
             IM.with(FallingObject, function(object){
                 object.destroy();
             });
-            for(var l = 0; l< 100; l++){
+            /*for(var l = 0; l< 100; l++) {
                 new FallingObject(EngineUtils.irandomRange(200,600),-50,0,leafCorrection,-1);
-            }
+            }*/
             this.gameEndDelaySwitch = true;
         }          
         

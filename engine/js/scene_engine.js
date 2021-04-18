@@ -951,6 +951,10 @@ class Scene_Engine extends Scene_Base {
     }
 
     __checkDeath() {
+        var cheatIndex = $__engineSaveData.cheatWriteBackIndex;
+        var outcomeIndex = $__engineSaveData.outcomeWriteBackIndex;
+        if(outcomeIndex===-1 && cheatIndex===-1)
+            return false; // not a minigame, can't die
         var hp = $__engineSaveData.__currentHealth;
         var diff = $gameVariables.value(40);
         var lastStand = $__engineSaveData.__nextStaminaLossKills;
@@ -1002,9 +1006,10 @@ class Scene_Engine extends Scene_Base {
         this.__cleanup();
         this.__recordOutcome();
         this.__writeBack();
-        this.__applyBlendModes();
+        var shouldDie = this.__checkDeath();
         this.__resetVariables();
-        if(!this.__checkDeath()) {
+        this.__applyBlendModes();
+        if(!shouldDie) {
             this.__resumeAudio();
             if($__engineData.__shouldAutoSave)
                 this.saveGame(); // save the game
@@ -2687,7 +2692,7 @@ class OwO {
             zoomFilter.strength = 0;
         }
         // undefined check is becuase RPG maker resets HP from undefined on room change.
-        var wentDown = oldHealth !== undefined && newHealth <= oldHealth; 
+        var wentDown = oldHealth !== undefined && newHealth <= oldHealth;
 
         // I hate this logic. if you hit 1 twice in a row, ONLY from losting stamina you die. AND only if you lost the minigame.
         if(wentDown) {
@@ -3218,8 +3223,10 @@ class OwO {
 
         if(OwO.__specialRenderLayer.children.length === 1) { // if the area text is the only text, render it
             OwO.__areaNameTimer++;
-        } else if(OwO.__areaNameTimer<260) { // reset if interrupted
+        } else if(OwO.__areaNameTimer<30) { // reset if interrupted
             OwO.__areaNameTimer = 0;
+        } else {
+            OwO.__areaNameTimer = 260; // end
         }
 
     }

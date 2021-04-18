@@ -81,7 +81,7 @@ class GardenMinigameController extends MinigameController {
 
         this.updateProgressText();
         this.setCheatTooltip("I found an EXTRA spray can!");
-        this.setLossReason("Haha worms go brrrrrrrr!");
+        this.setLossReason("WORMS SLOW DOWN PLEASE");
     }
 
     notifyFramesSkipped(frames) {
