@@ -157,7 +157,7 @@ spritesheet dimensions 320 50 4 1 animate homing_bullet_animation 4 0 1 2 3 homi
 spritesheet dimensions 600 175 4 1 animate eson_dodge 4 0 1 2 3 eson_spin engine/textures/final_minigame/eson_spin.png 0.5 0.5
 spritesheet dimensions 600 175 4 1 animate eson_fly 4 0 1 2 3 eson_fly engine/textures/final_minigame/eson_fly.png 0.5 0.5
 
-spritesheet dimensions 1000 900 4 3 animate seye_idle 4 0 1 2 3 animate seye_direct_attack 4 4 5 6 7 animate seye_external_attack 4 8 9 10 11 seye_sprites engine/textures/final_minigame/seye_sheet.png 0.5 0.5
+spritesheet dimensions 1000 1200 4 3 animate seye_idle 4 0 1 2 3 animate seye_direct_attack 4 4 5 6 7 animate seye_external_attack 4 8 9 10 11 seye_sprites engine/textures/final_minigame/seye_sheet.png 0.5 0
 
 spritesheet dimensions 96 40 3 1 animate bullet_disappear 3 0 1 2 bullet_disappear engine/textures/final_minigame/bullet_disappear.png 0.5 0.5
 

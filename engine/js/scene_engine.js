@@ -2685,10 +2685,12 @@ class OwO {
             colFilter.green = EngineUtils.interpolate(newHealth/50,0.85,1,EngineUtils.INTERPOLATE_OUT)
             colFilter.blue = EngineUtils.interpolate(newHealth/50,0.85,1,EngineUtils.INTERPOLATE_OUT)
             zoomFilter.strength = EngineUtils.interpolate(newHealth/50,0.05,0,EngineUtils.INTERPOLATE_OUT)
+            colFilter.saturation = EngineUtils.interpolate(newHealth/50,0,1,EngineUtils.INTERPOLATE_OUT_QUAD)
         } else {
             colFilter.brightness = 1;
             colFilter.green = 1;
             colFilter.blue = 1;
+            colFilter.saturation = 1;
             zoomFilter.strength = 0;
         }
         // undefined check is becuase RPG maker resets HP from undefined on room change.
@@ -2714,7 +2716,6 @@ class OwO {
                 $__engineSaveData.__nextStaminaLossKills=false; // exit last stand... (MAYBE REMOVE!)
             }
         }
-        colFilter.saturation = EngineUtils.interpolate(newHealth/100,0,1,EngineUtils.INTERPOLATE_OUT_QUAD)
         $__engineSaveData.__currentHealth = newHealth; // save the health, since it's unavailable during map.
     }
 

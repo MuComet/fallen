@@ -265,6 +265,13 @@ class EngineInstance {
     }
 
     /**
+     * Cancel all pending delayed actions.
+     */
+    cancelAllDelayedActions() {
+        this.__delayedActions = [];
+    }
+
+    /**
      * Engine functions. Do not override.
      */
     __postStep() {
