@@ -33,6 +33,7 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
         this.maxAllowedTime = 3600;
 
         this.timeToNextDroplet = EngineUtils.irandomRange(6,12);
+        this.timeToNextBubble = EngineUtils.irandomRange(6,12);
         this.dropletContainer = $engine.createManagedRenderable(this, new PIXI.Sprite(PIXI.Texture.EMPTY))
 
         this.isWaiting = true;
@@ -105,6 +106,7 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
         this.waitTimer=this.maxAllowedTime
         this.images[this.graphicInd].calculateScore()
         IM.destroy(Droplet)
+        IM.destroy(BubbleParticle)
         $engine.audioStopSound("graffiti_wipe");
         this.isWaiting=true;
         this.checkCanWin();
@@ -247,6 +249,7 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
         if(!this.isWaiting) {
             this.handleMove();
             this.handleDroplets();
+            this.handleBubbles();
             this.renderToMasks();
         }
         this.awaitNextImage();
@@ -269,6 +272,13 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
         if(--this.timeToNextDroplet<=0) {
             this.timeToNextDroplet = EngineUtils.irandomRange(6,12);
             new Droplet(this.x+EngineUtils.randomRange(-12,12),this.y+EngineUtils.randomRange(-12,12));
+        }
+    }
+
+    handleBubbles() {
+        if(--this.timeToNextBubble<=0) {
+            this.timeToNextBubble = EngineUtils.irandomRange(8,24);
+            new BubbleParticle(this.x+EngineUtils.randomRange(-12,12),this.y+EngineUtils.randomRange(-12,12));
         }
     }
 
@@ -347,6 +357,42 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
 }
 
 class BubbleParticle extends EngineInstance {
+
+    onCreate(x,y) {
+        this.x = x;
+        this.startX = x;
+        this.y = y;
+        this.animation = $engine.createRenderable(this, new PIXI.extras.AnimatedSprite($engine.getAnimation("bubble_animation"),false),true);
+        this.animation.animationSpeed = 0.1;
+        this.rand1 = EngineUtils.random(20); // offset into frame period
+        this.rand2 = EngineUtils.randomRange(20,45); // frame period
+        this.rand3 = EngineUtils.randomRange(6,24); // how much to wobble
+
+        this.dy = EngineUtils.randomRange(-2,-1);
+
+        this.lifeTime = EngineUtils.irandomRange(60,180)
+        this.lifeTimer=0;
+
+        var randSize = EngineUtils.randomRange(0.1,0.5);
+        this.xScale = randSize
+        this.yScale = randSize
+    }
+
+    step() {
+        this.animation.update(1);
+
+
+        var startFac = EngineUtils.interpolate(this.lifeTimer/24,0,1,EngineUtils.INTERPOLATE_OUT_QUAD);
+        this.y+=this.dy;
+        this.x = this.startX + Math.sin((this.lifeTimer + this.rand1)/this.rand2) * this.rand3 * startFac;
+
+        var endFac = EngineUtils.interpolate((this.lifeTimer-this.lifeTime+30)/30,1,0,EngineUtils.INTERPOLATE_OUT);
+        this.alpha = endFac;
+        if(this.lifeTimer > this.lifeTime)
+            this.destroy();
+
+        this.lifeTimer++;
+    }
 
 }
 

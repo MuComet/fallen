@@ -162,6 +162,10 @@ class UmbrellaPlayer extends InstanceMover {
             accel[0]-=1.6;
         }
 
+        if((this.vel[0] != 0 && $engine.getGlobalTimer() % 20 === 0)) {
+            $engine.audioPlaySound("walking");
+        }
+
         this.move(accel,this.vel);
 
         if(Math.abs(this.vel[0])<0.1) {

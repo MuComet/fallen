@@ -74,7 +74,7 @@ const SET_ENGINE_COST = function(cost) {
     } else if (difficulty===1) { // standard mode
         $__engineSaveData.__staminaCost = cost;
     } else if (difficulty===2) { // hard mode
-        $__engineSaveData.__staminaCost = cost * 2;
+        $__engineSaveData.__staminaCost = EngineUtils.clamp(cost * 2,0,100);
     } else {
         throw new Error("Engine difficulty not set.")
     }
@@ -951,6 +951,10 @@ class Scene_Engine extends Scene_Base {
     }
 
     __checkDeath() {
+        var cheatIndex = $__engineSaveData.cheatWriteBackIndex;
+        var outcomeIndex = $__engineSaveData.outcomeWriteBackIndex;
+        if(outcomeIndex===-1 && cheatIndex===-1)
+            return false; // not a minigame, can't die
         var hp = $__engineSaveData.__currentHealth;
         var diff = $gameVariables.value(40);
         var lastStand = $__engineSaveData.__nextStaminaLossKills;
@@ -1002,9 +1006,10 @@ class Scene_Engine extends Scene_Base {
         this.__cleanup();
         this.__recordOutcome();
         this.__writeBack();
-        this.__applyBlendModes();
+        var shouldDie = this.__checkDeath();
         this.__resetVariables();
-        if(!this.__checkDeath()) {
+        this.__applyBlendModes();
+        if(!shouldDie) {
             this.__resumeAudio();
             if($__engineData.__shouldAutoSave)
                 this.saveGame(); // save the game
@@ -2687,7 +2692,7 @@ class OwO {
             zoomFilter.strength = 0;
         }
         // undefined check is becuase RPG maker resets HP from undefined on room change.
-        var wentDown = oldHealth !== undefined && newHealth <= oldHealth; 
+        var wentDown = oldHealth !== undefined && newHealth <= oldHealth;
 
         // I hate this logic. if you hit 1 twice in a row, ONLY from losting stamina you die. AND only if you lost the minigame.
         if(wentDown) {
@@ -2794,7 +2799,7 @@ class OwO {
      * Registers an event to have a filter applied to it, and if not in init, re-evaluates all filters.
      * 
      * @param {Number} evId The event that has the sprite
-     * @param {Number | -1} rpgVar The variable to check. If -1 then unconditional
+     * @param {Number | -1} rpgVar The variable to check. If -1 then unconditional. If -2, never apply (used for world offset)
      * @param {Boolean | False} world Whether this event must be aligned to the world.
      */
     static addConditionalFilter(evId, rpgVar = -1, world = false) {
@@ -2870,28 +2875,29 @@ class OwO {
         var spriteMap = OwO.__buildSpriteMap();
         for(const filterData of OwO.__getCurrentMapFilters()) {
             var RPGVariable = filterData.RPGVariable;
-            // check fail, do not apply filter.
-            if(RPGVariable!==-1 && $gameVariables.value(RPGVariable)===1)
-                continue;
-            var filter = OwO.__getDefaultOutlineShader(); //filterData.filter;
-            var filterUpdate = OwO.__defaultUpdateFunc; //filterData.filterUpdateFunc;
 
             var eventId = filterData.eventId;
             var pixiObj = spriteMap[eventId];
             if(pixiObj===undefined)
                 throw new Error("event ID "+String(eventId)+" did not match back to a valid Character.")
 
+            var event = $gameMap.event(eventId);
+            if(filterData.isWorldGeometry && (event._y % 1) !== 0.125) { // match the world
+                event._y+=0.125
+                event._realY+=0.125
+            }
+
+            // check fail, do not apply filter.
+            if((RPGVariable!==-1 && $gameVariables.value(RPGVariable)===1) || RPGVariable === -2) // -2 means never apply (world sprites)
+                continue;
+            var filter = OwO.__getDefaultOutlineShader(); //filterData.filter;
+            var filterUpdate = OwO.__defaultUpdateFunc; //filterData.filterUpdateFunc;
+
             var newFilters = [filter];
             if(pixiObj.filters && pixiObj.filters.length!==0) {
                 newFilters.push(...pixiObj.filters);
             }
             pixiObj.filters = newFilters;
-
-            var event = $gameMap.event(eventId);
-            if(filterData.isWorldGeometry && (event._y % 1) !== 0.125) {
-                event._y+=0.125
-                event._realY+=0.125
-            }
 
             OwO.__addUpdateFunction(filterUpdate,filter,OwO.getEvent(eventId));
         }
@@ -3217,8 +3223,10 @@ class OwO {
 
         if(OwO.__specialRenderLayer.children.length === 1) { // if the area text is the only text, render it
             OwO.__areaNameTimer++;
-        } else if(OwO.__areaNameTimer<260) { // reset if interrupted
+        } else if(OwO.__areaNameTimer<30) { // reset if interrupted
             OwO.__areaNameTimer = 0;
+        } else {
+            OwO.__areaNameTimer = 260; // end
         }
 
     }
