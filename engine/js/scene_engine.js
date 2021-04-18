@@ -3143,7 +3143,7 @@ class OwO {
     static initializeRenderLayer() {
         OwO.__renderLayerIndex = 0;
         OwO.__deallocateRenderLayer();
-        OwO.__renderLayer = new PIXI.Container();
+        OwO.__renderLayer = new PIXI.particles.ParticleContainer();
         OwO.__rebindRenderLayer();
         OwO.__syncRenderLayer();
     }
@@ -3434,6 +3434,7 @@ class OwO {
         var newStrength = EngineUtils.interpolate((dist-EngineUtils.clamp(OwO.distanceToPlayer(event),0,dist))/dist,0,strength,EngineUtils.INTERPOLATE_OUT);
         var correction = Math.sin(OwO.getGameTimer()/18)*0.25 + 0.75; // between 0.5 and 1
         filter.thickness = newStrength * correction;
+        filter.enabled = filter.thickness!==0
     }
 
     static __getDefaultOutlineShader() {

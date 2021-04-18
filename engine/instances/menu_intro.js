@@ -514,7 +514,9 @@ class RisingSprite extends EngineInstance {
         f1.blur = EngineUtils.clamp(Math.abs(dist/600)*8,0,5);
         if(f1.blur < 3)
             f1.blur = 1;
+        f1.blur*=4; // cache as bitmap ANNIHILATES this filter for no reason.
         this.getSprite().filters = [f1]
+        this.getSprite().cacheAsBitmap = true; // you're welcome low spec.
     }
 
     changeScale(sx,sy) {
@@ -529,7 +531,6 @@ class RisingSprite extends EngineInstance {
         this.getSprite().visible = this.x > camera.getX()-120 && this.x < camera.getX() + $engine.getWindowSizeX() + 120;
 
         this.y-=this.speed;
-        this.getSprite().tint = 0xffffff
         if(this.y<=-120)
             this.destroy();
         this.angle = this.baseAngle+Math.sin(this.randRot+$engine.getGameTimer()/32)/16 * this.rotateFactor;
