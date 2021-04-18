@@ -148,7 +148,7 @@ class MenuIntroController extends EngineInstance {
             $engine.getSaveData().difficulty = ENGINE_DIFFICULTY.HARD;
         });
         this.buttons.difficultyHard.setOnSelected(function() {
-            difficultyTextBox.setTextArray(["Doubles stamina loss."]);
+            difficultyTextBox.setTextArray(["Doubles stamina loss.\nSave deleted on loss."]);
         })
 
         this.buttons.difficultyBack.setOnSelected(function() {
@@ -487,7 +487,7 @@ class RisingSprite extends EngineInstance {
 
     onCreate(x, texture) {
         this.x = x;
-        this.y = $engine.getWindowSizeY()+120;
+        this.y = $engine.getWindowSizeY()*2+120;
 
         this.angle = this.baseAngle = EngineUtils.randomRange(-0.17,0.17)
         var dist = EngineUtils.irandomRange(-800,600);
@@ -530,7 +530,7 @@ class RisingSprite extends EngineInstance {
 
         this.y-=this.speed;
         this.getSprite().tint = 0xffffff
-        if(this.y<=-120 - $engine.getWindowSizeY())
+        if(this.y<=-120)
             this.destroy();
         this.angle = this.baseAngle+Math.sin(this.randRot+$engine.getGameTimer()/32)/16 * this.rotateFactor;
         if(this.flipHoriz) {

@@ -18,6 +18,7 @@ class SkyMinigameController extends MinigameController { // All classes that can
         SkyMinigameController.iBuffer = new BufferedKeyInput('Space',2);
 
         this.startTimer(5*60);
+        this.getTimer().setWarningTime(2*60); // last 2 seconds
 
         //SkyMinigameController.minigameTimer = new MinigameTimer(60*5);
         /*SkyMinigameController.minigameTimer.addOnTimerStopped(this, function(parent, bool) {

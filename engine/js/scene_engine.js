@@ -12,13 +12,7 @@ $__engineData.__spritesheets = {};
 $__engineData.__haltAndReturn = false;
 $__engineData.__ready = false;
 $__engineData.__fullyReady = false;
-$__engineData.__outcomeWriteBackValue = -1
-$__engineData.outcomeWriteBackIndex = -1;
-$__engineData.__cheatWriteBackValue = -1
-$__engineData.cheatWriteBackIndex = -1;
-$__engineData.autoSetWriteBackIndex = -1;
 $__engineData.loadRoom = "MenuIntro";
-$__engineData.__staminaCost = -1;
 $__engineData.__lowPerformanceMode = false;
 $__engineData.__overrideRoom = undefined;
 $__engineData.__readyOverride = true;
@@ -44,21 +38,7 @@ $__engineData.__debugDrawAllBoundingBoxes = false;
 
 /** @type {Object} */
 var $__engineSaveData = {}; // this data is automatically read and written by RPG maker when you load a save.
-
-$__engineSaveData.__nextStaminaLossKills = false;
-$__engineSaveData.__lastMinigameOutcome = -1;
-$__engineSaveData.__mapData={};
-$__engineSaveData.day=0;
-$__engineSaveData.difficulty=1; // default to easy mode
-
-$__engineSaveData.__minigames = {};
-$__engineSaveData.__minigames.minigamesTotal=0;
-$__engineSaveData.__minigames.winDaily=0;
-$__engineSaveData.__minigames.winTotal=0;
-$__engineSaveData.__minigames.lossDaily=0;
-$__engineSaveData.__minigames.lossTotal=0;
-$__engineSaveData.__minigames.cheatDaily=0;
-$__engineSaveData.__minigames.cheatTotal=0;
+// it is initialized in 'freeSaveData'
 
 var $__engineGlobalSaveData = {} // data that are saved globally. Loaded at the end of the file because it relies on overrides.
 
@@ -80,9 +60,9 @@ const SET_ENGINE_ROOM = function(room) {
 }
 
 const SET_ENGINE_RETURN = function(indexOutcome, indexCheat, indexWriteAutoSet = -1) {
-    $__engineData.outcomeWriteBackIndex = indexOutcome;
-    $__engineData.cheatWriteBackIndex = indexCheat;
-    $__engineData.autoSetWriteBackIndex = indexWriteAutoSet;
+    $__engineSaveData.outcomeWriteBackIndex = indexOutcome;
+    $__engineSaveData.cheatWriteBackIndex = indexCheat;
+    $__engineSaveData.autoSetWriteBackIndex = indexWriteAutoSet;
 }
 
 const SET_ENGINE_COST = function(cost) {
@@ -90,11 +70,11 @@ const SET_ENGINE_COST = function(cost) {
     if(difficulty===0) { // easy mde
         if(cost%10===5)
             cost-=5;
-        $__engineData.__staminaCost = cost / 2;
+        $__engineSaveData.__staminaCost = cost / 2;
     } else if (difficulty===1) { // standard mode
-        $__engineData.__staminaCost = cost;
+        $__engineSaveData.__staminaCost = cost;
     } else if (difficulty===2) { // hard mode
-        $__engineData.__staminaCost = cost * 2;
+        $__engineSaveData.__staminaCost = cost * 2;
     } else {
         throw new Error("Engine difficulty not set.")
     }
@@ -733,11 +713,11 @@ class Scene_Engine extends Scene_Base {
     }
 
     setOutcomeWriteBackValue(value) {
-        $__engineData.__outcomeWriteBackValue=value;
+        $__engineSaveData.__outcomeWriteBackValue=value;
     }
 
     setCheatWriteBackValue(value) {
-        $__engineData.__cheatWriteBackValue=value;
+        $__engineSaveData.__cheatWriteBackValue=value;
     }
 
     pauseGame() {
@@ -908,46 +888,50 @@ class Scene_Engine extends Scene_Base {
 
     __writeBack() {
 
+        // check if it was a minigame (this also prevents a very specific bug related to loading autosaves)
+        var cheatIndex = $__engineSaveData.cheatWriteBackIndex;
+        var outcomeIndex = $__engineSaveData.outcomeWriteBackIndex;
+        if(outcomeIndex===-1 && cheatIndex===-1)
+            return;
+
         // handle stamina outcome.
-        if($__engineData.__outcomeWriteBackValue===ENGINE_RETURN.LOSS) {
-            $gameVariables.setValue(40,$__engineData.__staminaCost)
+        if($__engineSaveData.__outcomeWriteBackValue===ENGINE_RETURN.LOSS) {
+            $gameVariables.setValue(40,$__engineSaveData.__staminaCost)
         } else {
             $gameVariables.setValue(40,0);
         }
-        $__engineData.__staminaCost=0;
 
         // handle outcome
-        if($__engineData.outcomeWriteBackIndex!==-1) {
-            if($__engineData.__outcomeWriteBackValue<0)
+        if($__engineSaveData.outcomeWriteBackIndex!==-1) {
+            if($__engineSaveData.__outcomeWriteBackValue<0)
                 throw new Error("Engine expects a non negative outcome write back value");
-            $gameVariables.setValue($__engineData.outcomeWriteBackIndex,$__engineData.__outcomeWriteBackValue);
-            $__engineSaveData.__lastMinigameOutcome = $__engineData.__outcomeWriteBackValue;
-            $__engineData.outcomeWriteBackIndex=-1; // reset for next time
-            $__engineData.__outcomeWriteBackValue=-1;
+            $gameVariables.setValue($__engineSaveData.outcomeWriteBackIndex,$__engineSaveData.__outcomeWriteBackValue);
+            $__engineSaveData.__lastMinigameOutcome = $__engineSaveData.__outcomeWriteBackValue;
+            
         }
         // handle cheat
-        if($__engineData.cheatWriteBackIndex!==-1) { 
+        if($__engineSaveData.cheatWriteBackIndex!==-1) { 
             if($__engineData.cheatWriteBackValue<0)
                 throw new Error("Engine expects a non negative cheat write back value");
-            $gameVariables.setValue($__engineData.cheatWriteBackIndex,$__engineData.__cheatWriteBackValue);
-            $__engineData.cheatWriteBackIndex=-1;
-            $__engineData.__cheatWriteBackValue=-1;
+            $gameVariables.setValue($__engineSaveData.cheatWriteBackIndex,$__engineSaveData.__cheatWriteBackValue);
+            
         }
         // this is a special write back that the engine will always write 1 back to. Basically just a shortcut for overworld
         // developers so that they don't have to set a "played" value using RPG maker
-        if($__engineData.autoSetWriteBackIndex!==-1) { 
-            $gameVariables.setValue($__engineData.autoSetWriteBackIndex,1);
-            $__engineData.autoSetWriteBackIndex=-1;
+        if($__engineSaveData.autoSetWriteBackIndex!==-1) { 
+            $gameVariables.setValue($__engineSaveData.autoSetWriteBackIndex,1);
         }
     }
 
     __recordOutcome() {
         // was not a mingiame
-        if($__engineData.outcomeWriteBackIndex===-1 && $__engineData.cheatWriteBackIndex===-1)
+        var cheatIndex = $__engineSaveData.cheatWriteBackIndex;
+        var outcomeIndex = $__engineSaveData.outcomeWriteBackIndex;
+        if(outcomeIndex===-1 && cheatIndex===-1)
             return;
         var data = $__engineSaveData.__minigames
         data.minigamesTotal++
-        if($__engineData.__outcomeWriteBackValue===ENGINE_RETURN.WIN) {
+        if($__engineSaveData.__outcomeWriteBackValue===ENGINE_RETURN.WIN) {
             data.winDaily++;
             data.winTotal++;
         } else {
@@ -955,9 +939,14 @@ class Scene_Engine extends Scene_Base {
             data.lossTotal++;
         }
 
-        if($__engineData.__cheatWriteBackValue===ENGINE_RETURN.CHEAT) {
+        if($__engineSaveData.__cheatWriteBackValue===ENGINE_RETURN.CHEAT) {
             data.cheatDaily++;
             data.cheatTotal++;
+        }
+
+        data.dailyPlayed++;
+        if(data.dailyCount !== 0 && data.dailyPlayed===data.dailyCount) {
+            $gameTemp.reserveCommonEvent(3); // common event 3 is the done all minigames event.
         }
     }
 
@@ -978,6 +967,8 @@ class Scene_Engine extends Scene_Base {
         data.lossDaily=0;
         data.winDaily=0;
         data.cheatDaily=0;
+        data.dailyPlayed=0;
+        data.dailyCount=0;
         OwO.resetTimeOfDay();
     }
 
@@ -993,6 +984,15 @@ class Scene_Engine extends Scene_Base {
         renderer.state.blendModes[PIXI.BLEND_MODES.KHAS_LIGHT] = [gl.SRC_ALPHA, gl.ONE];
         renderer.state.blendModes[PIXI.BLEND_MODES.KHAS_LIGHTING] = [gl.ZERO, gl.SRC_COLOR];
     }
+
+    __resetVariables() { // we must save this data for the stamina system to work with autosaves.
+        $__engineSaveData.__staminaCost=0;
+        $__engineSaveData.outcomeWriteBackIndex=-1;
+        $__engineSaveData.__outcomeWriteBackValue=-1;
+        $__engineSaveData.cheatWriteBackIndex=-1;
+        $__engineSaveData.__cheatWriteBackValue=-1;
+        $__engineSaveData.autoSetWriteBackIndex=-1;
+    }
     
     /**
      * RPG maker functions, do not call. If you want to end the game, use endGame().
@@ -1003,12 +1003,14 @@ class Scene_Engine extends Scene_Base {
         this.__recordOutcome();
         this.__writeBack();
         this.__applyBlendModes();
+        this.__resetVariables();
         if(!this.__checkDeath()) {
             this.__resumeAudio();
             if($__engineData.__shouldAutoSave)
                 this.saveGame(); // save the game
             this.performEmergencySave();
         }
+        
 
         $__engineData.__shouldAutoSave=true;
         $__engineData.__haltAndReturn=false;
@@ -1211,6 +1213,37 @@ class Scene_Engine extends Scene_Base {
      */
     getSaveData() {
         return $__engineSaveData;
+    }
+
+    /**
+     * Deletes the engine save data associated with the current save file. Sets up the game for a new game
+     */
+    freeSaveData() {
+        $__engineSaveData = {};
+
+        $__engineSaveData.__nextStaminaLossKills = false;
+        $__engineSaveData.__lastMinigameOutcome = -1;
+        $__engineSaveData.__mapData={};
+        $__engineSaveData.day=0;
+        $__engineSaveData.difficulty=1; // default to easy mode
+
+        $__engineSaveData.__outcomeWriteBackValue = -1
+        $__engineSaveData.outcomeWriteBackIndex = -1;
+        $__engineSaveData.__cheatWriteBackValue= -1
+        $__engineSaveData.cheatWriteBackIndex = -1;
+        $__engineSaveData.__staminaCost = -1;
+        $__engineSaveData.autoSetWriteBackIndex = -1;
+
+        $__engineSaveData.__minigames = {};
+        $__engineSaveData.__minigames.minigamesTotal=0;
+        $__engineSaveData.__minigames.dailyCount=0;
+        $__engineSaveData.__minigames.dailyPlayed=0;
+        $__engineSaveData.__minigames.winDaily=0;
+        $__engineSaveData.__minigames.winTotal=0;
+        $__engineSaveData.__minigames.lossDaily=0;
+        $__engineSaveData.__minigames.lossTotal=0;
+        $__engineSaveData.__minigames.cheatDaily=0;
+        $__engineSaveData.__minigames.cheatTotal=0;
     }
 
     /**
@@ -2271,6 +2304,12 @@ DataManager.saveGlobalInfo = function(info) {
         func2.call(this,contents);
         $__engineSaveData = contents.engineSave;
     }
+
+    let func3 = DataManager.setupNewGame;
+    DataManager.setupNewGame = function() {
+        func3.call(this);
+        $engine.freeSaveData();
+    }
 }
 
 // make shop more streamlined.
@@ -2675,7 +2714,8 @@ class OwO {
     }
 
     static __gameLoss() {
-        $engine.deleteSave(); // hehe so long save
+        if($__engineSaveData.difficulty === ENGINE_DIFFICULTY.HARD)
+            $engine.deleteSave(); // hehe so long save
         $__engineData.loadRoom="GameOverRoom"
         SceneManager.goto(Scene_Engine)
     }
@@ -2821,19 +2861,6 @@ class OwO {
         return data[mapId];
     }
 
-    static setAreaName(name) {
-        var data = OwO.__getMapData($gameMap._mapId);
-        data.areaName=name;
-        OwO.__applyAreaName();
-    }
-
-    static __applyAreaName() {
-        OwO.__areaNameText.x = $engine.getWindowSizeX()/2;
-        OwO.__areaNameText.y = 0;
-        OwO.__areaNameText.text = OwO.__getMapData($gameMap._mapId).areaName;
-        OwO.__areaNameTimer = 0;
-    }
-
     static __getConditionalFilters(mapId) {
         return OwO.__getMapData(mapId).filterList;
     }
@@ -2884,6 +2911,60 @@ class OwO {
             if(pixiObj===undefined)
                 throw new Error("event ID "+String(eventId)+" did not match back to a valid Character.")
             pixiObj.filters = [];
+        }
+    }
+
+    static setAreaName(name) {
+        var data = OwO.__getMapData($gameMap._mapId);
+        data.areaName=name;
+        OwO.__applyAreaName();
+    }
+
+    static __applyAreaName() {
+        OwO.__areaNameText.x = $engine.getWindowSizeX()/2;
+        OwO.__areaNameText.y = 0;
+        OwO.__areaNameText.text = OwO.__getMapData($gameMap._mapId).areaName;
+        OwO.__areaNameTimer = 0;
+    }
+
+    /**
+     * Conditionally adds a minigame to the list of available minigames.
+     * 
+     * The minigame will be added if ALL game variable passed in are zero
+     * 
+     * @param  {...any} values The game variables to check
+     */
+    static registerMinigame(... values) {
+        var data = $engine.getMinigameOutcomeData();
+        if(values === undefined || values[0] === -1) { // unconditional add.
+            data.dailyCount++;
+            return;
+        }
+        for(const variable of values) {
+            if($gameVariables.value(variable)!==0) // cheated previously, not available.
+                return;
+        }
+        data.dailyCount++;
+    }
+
+    /**
+     * Conditionally adds a minigame to the list of available minigames.
+     * 
+     * The minigame will be added if ANY game variable passed in is nonzero
+     * 
+     * @param  {...any} values The game variables to check
+     */
+    static registerAltMinigame(... values) {
+        var data = $engine.getMinigameOutcomeData();
+        if(values === undefined || values[0] === -1) { // unconditional add.
+            data.dailyCount++;
+            return;
+        }
+        for(const variable of values) {
+            if($gameVariables.value(variable)!==0) { // cheated previously, available
+                data.dailyCount++;
+                return;
+            }
         }
     }
 

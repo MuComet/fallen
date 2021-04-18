@@ -101,7 +101,7 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
     }
 
     onImageComplete() {
-        this.nextImageWaitTimer = 200;
+        this.nextImageWaitTimer = 140;
         this.waitTimer=this.maxAllowedTime
         this.images[this.graphicInd].calculateScore()
         IM.destroy(Droplet)
@@ -146,9 +146,9 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
 
     reloadDrawings() {
         var data = $engine.getSaveData().drawingMinigameLines;
-        var offset = false;
+        var offset = [false,false,false]; // the source drawings are centered at 0,0. But user drawings are centered at the center of the screen.
         if(!data) { // player didn't play drawing minigame day 0
-            offset = true;
+            offset = [true,true,true];
             data = [];
             var rand = [0,1,2,3,4,5]; // pick 3 random drawings
             EngineUtils.shuffleArray(rand);
@@ -159,11 +159,22 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
                 })
             }
         } else {
+            // acquire the drawing minigame data
             data = data.data;
+
+            // fill in blanks, if applicable
+            for(var i=0;i<3;i++) {
+                if(data[i].distance===-1) { // player missed that drawing, fill in the blanks with the source
+                    var sourceIndex = data[i].index;
+                    data[i].line = ShapeToDraw.paths[sourceIndex].path
+                    data[i].distance = ShapeToDraw.paths[sourceIndex].dist
+                    offset[i] = true;
+                }
+            }
         }
         this.images = [];
         for(var i=0;i<3 && data[i].distance!==-1;i++) {
-            this.images.push(new ShapeToClean(data[i],offset))
+            this.images.push(new ShapeToClean(data[i],offset[i]))
             this.totalGraphics=i+1;
         }
     }

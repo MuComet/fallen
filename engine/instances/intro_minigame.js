@@ -91,8 +91,8 @@ class IntroMinigameController extends MinigameController {
 
         this.text = new TextBox();
         this.text.disableArrow();
-        this.text.setTextArray(["__portrait[innkeeper_profiles_1]Alright Eson,__wait[9] Reach your hand down in the drain.",
-                            "__portrait[innkeeper_profiles_0]Great,__wait[9] now go grab that junk and bring it back!__wait[12]\nShouldn't take you long at all."]);
+        this.text.setTextArray(["__portrait[innkeeper_profiles_1]Alright Eson,__wait[9] reach your hand down in the drain.",
+                            "__portrait[innkeeper_profiles_0]Great,__wait[9] now go grab that junk and bring it back!__wait[24]\nShouldn't take you long at all.__wait[60] "]);
         this.text.setAdvanceCondition(this, this.mouseInZoneBounds);
         this.text.addAdvanceConditionListener(this,function(self) {
             self.nextTutorial();
@@ -102,7 +102,7 @@ class IntroMinigameController extends MinigameController {
             return new EngineLightweightPoint(IN.getMouseXGUI(),IN.getMouseYGUI());
         })
 
-        $engine.pauseGameSpecial(this.text)
+        //$engine.pauseGameSpecial(this.text)
 
         this.lighting = new LightingLayer();
         this.lighting.setPixelsPerStep(6)
@@ -121,7 +121,7 @@ class IntroMinigameController extends MinigameController {
         this.tutorialIndex++;
         if(this.tutorialIndex===1) {
             this.text.setAdvanceCondition(this, function() {
-                return !this.mouseInZoneBounds();
+                return !this.mouseInZoneBounds() && this.text.isReady();
             });
         }
         if(this.tutorialIndex===2)

@@ -7,7 +7,6 @@ class DrawController extends MinigameController { // controls the minigame
         this.instructiontext.y = $engine.getWindowSizeY()-80;
 
         // drawing minigame has 2 versions. the external data "version" will tell us which one we're doing.
-        //this.alternate = RoomManager.currentRoom().getExtern("version")[0]==="1";
         this.alternate = RoomManager.currentRoom().getExtern("version")[0]==="1";
 
         if(!this.alternate){
@@ -57,8 +56,10 @@ class DrawController extends MinigameController { // controls the minigame
     }
 
     finishMinigame() {
-        if(this.currentLine) 
+        if(this.currentLine && this.getTimer().isTimerDone()) { // interrupted a drawing, calc score
             this.currentLine.endDrawing();
+            this.drawings[this.drawingInd].calculateScore();
+        }
         var won = this.calcWin()>0.75;
         if(!won) {
             this.setLossReason("Try following the lines next time.")
@@ -134,7 +135,7 @@ class DrawController extends MinigameController { // controls the minigame
         }
 
         // start drawing
-        if(this.waitTimer >=60 && !this.drawing && this.buffer.consumeImmedaitely()) {
+        if(this.waitTimer >=60 && !this.drawing && this.buffer.consumeImmedaitely() && IN.mouseInBounds()) {
             this.currentLine = new DrawableLine()
             this.currentLine.startDrawing();
             this.currentLine.drawing = this.drawings[this.drawingInd];
