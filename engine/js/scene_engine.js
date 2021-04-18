@@ -74,7 +74,7 @@ const SET_ENGINE_COST = function(cost) {
     } else if (difficulty===1) { // standard mode
         $__engineSaveData.__staminaCost = cost;
     } else if (difficulty===2) { // hard mode
-        $__engineSaveData.__staminaCost = cost * 2;
+        $__engineSaveData.__staminaCost = EngineUtils.clamp(cost * 2,0,100);
     } else {
         throw new Error("Engine difficulty not set.")
     }
@@ -2794,7 +2794,7 @@ class OwO {
      * Registers an event to have a filter applied to it, and if not in init, re-evaluates all filters.
      * 
      * @param {Number} evId The event that has the sprite
-     * @param {Number | -1} rpgVar The variable to check. If -1 then unconditional
+     * @param {Number | -1} rpgVar The variable to check. If -1 then unconditional. If -2, never apply (used for world offset)
      * @param {Boolean | False} world Whether this event must be aligned to the world.
      */
     static addConditionalFilter(evId, rpgVar = -1, world = false) {
@@ -2870,8 +2870,15 @@ class OwO {
         var spriteMap = OwO.__buildSpriteMap();
         for(const filterData of OwO.__getCurrentMapFilters()) {
             var RPGVariable = filterData.RPGVariable;
+
+            var event = $gameMap.event(eventId);
+            if(filterData.isWorldGeometry && (event._y % 1) !== 0.125) { // match the world
+                event._y+=0.125
+                event._realY+=0.125
+            }
+
             // check fail, do not apply filter.
-            if(RPGVariable!==-1 && $gameVariables.value(RPGVariable)===1)
+            if((RPGVariable!==-1 && $gameVariables.value(RPGVariable)===1) || RPGVariable === -2) // -2 means never apply (world sprites)
                 continue;
             var filter = OwO.__getDefaultOutlineShader(); //filterData.filter;
             var filterUpdate = OwO.__defaultUpdateFunc; //filterData.filterUpdateFunc;
@@ -2886,12 +2893,6 @@ class OwO {
                 newFilters.push(...pixiObj.filters);
             }
             pixiObj.filters = newFilters;
-
-            var event = $gameMap.event(eventId);
-            if(filterData.isWorldGeometry && (event._y % 1) !== 0.125) {
-                event._y+=0.125
-                event._realY+=0.125
-            }
 
             OwO.__addUpdateFunction(filterUpdate,filter,OwO.getEvent(eventId));
         }

@@ -2,7 +2,14 @@ class FallingObjectsController extends MinigameController {
     onEngineCreate() {
         super.onEngineCreate();
 
-        new ParallaxingBackground("background_sheet_2");
+        var bg = new ParallaxingBackground("background_sheet_2");
+        var spr = new PIXI.Sprite($engine.getTexture("background_leaves_0"));
+        spr.anchor.set(0);
+        bg.addIndex(5,spr);
+        var foreground = new EmptyInstance($engine.getTexture("background_leaves_1"));
+        foreground.x = $engine.getWindowSizeX()/2;
+        foreground.y = $engine.getWindowSizeY()/2;
+        foreground.depth = -2;
 
         var text = new PIXI.Text("Use movement keys to walk left and right.\n Acquire CRUNCHY Leaves, disregard the earthy clumps! \n\nPress ENTER to cheat!", $engine.getDefaultTextStyle());
 
@@ -97,6 +104,7 @@ class FallingObjectsController extends MinigameController {
         this.fallTimer++;
         this.handleShake();
         this.updateProgressText();
+        
     }
 
     handleShake() {
@@ -227,6 +235,10 @@ class FallingObject extends EngineInstance {
             this.dy = EngineUtils.randomRange(-5,-2.5);
             this.dz = EngineUtils.randomRange(-0.05,0.05);
             this.fell = true;
+            if(!this.isLeaf) {
+                $engine.audioPlaySound("sky_donk",0.8).speed = EngineUtils.randomRange(0.8,1.2);
+                FallingObjectsController.getInstance().shake(5);
+            }
         }
 
         if(this.fell) {
@@ -315,6 +327,10 @@ class FallingObjectsPlayer extends InstanceMover {
         }
         if(IN.keyCheck("RPGleft")) {
             accel[0]-=1.6;
+        }
+
+        if((this.vel[0] != 0 && $engine.getGlobalTimer() % 20 === 0)) {
+            $engine.audioPlaySound("walking");
         }
 
         this.move(accel,this.vel);
