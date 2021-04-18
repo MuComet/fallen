@@ -638,6 +638,8 @@ class Puyo extends EngineInstance {
         this.dropToggle = false;
         this.dropLength = 0
         this.depth = 2
+        this.j = 0
+        this.k = 0
     }
 
     step(){
@@ -655,6 +657,24 @@ class Puyo extends EngineInstance {
             if(this.i >= 7){
                 this.rotateToggle = false
                 this.i = 0
+            }
+        }
+        if(this.left){
+            this.x -= 5
+            this.pivotX -= 5
+            this.j++
+            if(this.j >= 7){
+                this.left = false
+                this.j = 0
+            }
+        }
+        if(this.right){
+            this.x += 5
+            this.pivotX += 5
+            this.k++
+            if(this.k >= 7){
+                this.right = false
+                this.k = 0
             }
         }
         if(this.dropToggle && !this.rotateToggle){
@@ -768,6 +788,11 @@ class Puyo extends EngineInstance {
     }
 
     rotate(target, direction, move){
+        if(this.rotateToggle){
+            this.i = 6
+            this.rotation()
+            this.i = 0
+        }
         this.target = target
         this.direction = direction
         this.move = move
@@ -779,12 +804,18 @@ class Puyo extends EngineInstance {
         }
         else if(this.target == 3){
             targetAngle = Math.PI
+            if(this.move){
+                this.right = true
+            }
         }
         else if(this.target == 2){
             targetAngle = Math.PI/2
         }
         else{
             targetAngle = 0
+            if(this.move){
+                this.left = true
+            }
         }
         if(direction == 0 && this.currentAngle < targetAngle){
             this.currentAngle += 2*Math.PI
@@ -807,10 +838,6 @@ class Puyo extends EngineInstance {
         }
         else if(this.target == 3){
             targetAngle = Math.PI
-            if(this.move){
-                this.x += 5
-                this.pivotX += 5
-            }
         }
         else if(this.target == 2){
             targetAngle = Math.PI/2
@@ -821,10 +848,6 @@ class Puyo extends EngineInstance {
         }
         else{
             targetAngle = 0
-            if(this.move){
-                this.x -= 5
-                this.pivotX -= 5
-            }
         }
         if(this.direction == 0){
             this.currentAngle -= this.angleShift
