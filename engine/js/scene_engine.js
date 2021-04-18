@@ -2871,6 +2871,11 @@ class OwO {
         for(const filterData of OwO.__getCurrentMapFilters()) {
             var RPGVariable = filterData.RPGVariable;
 
+            var eventId = filterData.eventId;
+            var pixiObj = spriteMap[eventId];
+            if(pixiObj===undefined)
+                throw new Error("event ID "+String(eventId)+" did not match back to a valid Character.")
+
             var event = $gameMap.event(eventId);
             if(filterData.isWorldGeometry && (event._y % 1) !== 0.125) { // match the world
                 event._y+=0.125
@@ -2882,11 +2887,6 @@ class OwO {
                 continue;
             var filter = OwO.__getDefaultOutlineShader(); //filterData.filter;
             var filterUpdate = OwO.__defaultUpdateFunc; //filterData.filterUpdateFunc;
-
-            var eventId = filterData.eventId;
-            var pixiObj = spriteMap[eventId];
-            if(pixiObj===undefined)
-                throw new Error("event ID "+String(eventId)+" did not match back to a valid Character.")
 
             var newFilters = [filter];
             if(pixiObj.filters && pixiObj.filters.length!==0) {

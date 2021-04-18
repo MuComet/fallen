@@ -97,8 +97,6 @@ class FallingObjectsController extends MinigameController {
                 this.noleaf++;
                 new FallingObject(EngineUtils.irandomRange(26,52) + 80 * EngineUtils.irandom(this.columns),-50,1,leafCorrection,80);
             }   
-            
-
         }
 
         this.fallTimer++;
