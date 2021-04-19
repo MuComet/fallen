@@ -7,7 +7,7 @@ class WallBuilderController extends MinigameController {
             this.possibleLetters.push("Key"+String.fromCharCode(i+65));
         this.lastLetter = "";
         this.delayToNext = 999;
-        this.maxDelayToNext = 60; // if you mess up
+        this.maxDelayToNext = 30; // if you mess up
         this.currentKey = "";
 
         this.progress = 0;

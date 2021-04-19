@@ -431,12 +431,12 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             });
         }
         if(this.sharedPhaseTimer===400*2) {
-            this.attackLine()
-            var v = new FinalMinigameInstruction("Dodge through bullets!",false, function() {
+            this.attackLine(1)
+            var v = new FinalMinigameInstruction("Dodge through bullets!\nDon't let bullets touch your heart!",false, function() {
                 return IM.find(FinalMinigamePlayer).y < this.y;
             });
-            v.y+=16;
-            v.speed = 2;
+            v.y-=48;
+            v.speed = 1;
         }
         if(this.sharedPhaseTimer===400*3) {
             new FinalMinigameInstruction("Hold left click to shoot",false, function() {
@@ -474,22 +474,15 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             this.attackLineHorizontal(false)
         }
 
-        if(this.checkCheats(9) && this.sharedPhaseTimer==350) { // die.
-            this.sequenceSpawnCorners(3,150,8);
-        }
-        if(this.checkCheats(9) && this.sharedPhaseTimer==425) { // die.
-            this.sequenceSpawnCorners(3,150,12);
+        if(this.checkCheats(9) && this.sharedPhaseTimer==350) {
+            this.sequenceSpawnCorners(1,150,8);
         }
 
 
         if(this.sharedPhaseTimer>400 && this.sharedPhaseTimer<1000 && this.sharedPhaseTimer%120===0) {
             this.attackLineHorizontal(this.sharedPhaseTimer%240===0)
-            if(this.checkCheats((this.sharedPhaseTimer - 400)/120)) // each line represents one cheat
+            if(this.checkCheats((this.sharedPhaseTimer - 400)/120 + 1)) // each line represents one cheat
                 this.attackLine();
-        }
-
-        if(this.sharedPhaseTimer===800 && this.checkCheats(5)) { // this one a bit evil
-            this.sequenceSpawnCorners(2,60,12)
         }
 
         if(this.sharedPhaseTimer===1000) {
@@ -517,11 +510,11 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             this.sequenceAttackWipe();
         }
 
-        if(this.sharedPhaseTimer===2000) {
+        if(this.checkCheats(7) && this.sharedPhaseTimer===2000) {
             this.sequenceFireAtPlayer();
         }
 
-        if((this.checkCheats(5) && this.sharedPhaseTimer===1800) || (this.checkCheats(4) && this.sharedPhaseTimer===1960) || (this.checkCheats(3) && this.sharedPhaseTimer===2020)) {
+        if((this.checkCheats(5) && this.sharedPhaseTimer===1800)) {
             this.sequenceAttackWipe();
         }
 
@@ -531,7 +524,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 
         if(this.sharedPhaseTimer===2300) {
             if(this.checkCheats(4))
-                this.sequenceAttackHoming(8,60);
+                this.sequenceAttackHoming(4,60);
             this.sequenceSpawnCorners(2,150,10);
             if(this.checkCheats(5))
                 this.sequenceFireAtPlayer();
@@ -541,15 +534,16 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         }
 
         if(this.sharedPhaseTimer>2500 && this.sharedPhaseTimer<3000 && this.sharedPhaseTimer%150===0) {
-            this.attackLineHorizontal(this.sharedPhaseTimer%300===0)
+            if(this.checkCheats(1))
+                this.attackLineHorizontal(this.sharedPhaseTimer%300===0)
             this.attackLine();
         }
 
         if(this.checkCheats(10) && this.sharedPhaseTimer==3300) { // die
-            this.sequenceSpawnCorners(3,150,8);
+            this.sequenceSpawnCorners(2,150,8);
         }
         if(this.checkCheats(7) && this.sharedPhaseTimer==3375) { // die
-            this.sequenceSpawnCorners(3,150,12);
+            this.sequenceSpawnCorners(2,150,12);
         }
 
         if(this.sharedPhaseTimer===3100) {
@@ -569,8 +563,8 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 
         if(this.sharedPhaseTimer===3300) {
             this.sequenceAttackHoming(8,60);
-            this.sequenceSpawnCorners(2,150,10);
-            this.sequenceFireAtPlayer();
+            if(this.checkCheats(9))
+                this.sequenceSpawnCorners(2,150,10);
         }
 
         if(this.checkCheats(5) && this.sharedPhaseTimer===3315) {
@@ -1073,11 +1067,11 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         }
     }
 
-    attackLine() {
+    attackLine(speed = 2) {
         var num = 16;
         var dx = (this.totalWidth-64)/num;
         for(var i =0;i<=num+1;i++) {
-            new MoveLinearBullet(dx*i+this.cameraLeft/2,this.getCameraTop()-32,Math.PI/2*3,2,false)
+            new MoveLinearBullet(dx*i+this.cameraLeft/2,this.getCameraTop()-32,Math.PI/2*3,speed,false)
         }
     }
 

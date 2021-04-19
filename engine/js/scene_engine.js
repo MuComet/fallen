@@ -55,17 +55,17 @@ ENGINE_DIFFICULTY.HARD = 2;
 
 const ENGINE_ITEMS = {}; // a mapping of all items in the game
 
-ENGINE_ITEMS.CARROT = {name:"Carrot", shop:[0,7,0,0],persistent:true};
-ENGINE_ITEMS.SANDWICH = {name:"Sandwich", shop:[0,5,0,0],persistent:true};
-ENGINE_ITEMS.LUNCH_BAG = {name:"Lunch Bag", shop:[0,6,0,0],persistent:true};
-ENGINE_ITEMS.BOOZE = {name:"Booze", shop:[0,1,0,0],persistent:false};
-ENGINE_ITEMS.LAMP_OIL = {name:"Lamp Oil", shop:[0,2,0,0],persistent:false}; // rope, bombs
-ENGINE_ITEMS.CATNIP = {name:"Catnip", shop:[0,3,0,0],persistent:false};
-ENGINE_ITEMS.SUNGLASSES = {name:"Sunglasses", shop:[0,4,0,0],persistent:false}; // most important item
-ENGINE_ITEMS.FERTILIZER = {name:"Fertilizer", shop:[0,8,0,0],persistent:false};
-ENGINE_ITEMS.PLUNGER = {name:"Plunger", shop:[0,9,0,0],persistent:false};
-ENGINE_ITEMS.ENIGMA_DECRYPTER = {name:"Enigma Decrypter", shop:[0,10,0,0],persistent:false};
-ENGINE_ITEMS.BRICK_LAYER = {name:"Brick Layer", shop:[0,11,0,0],persistent:false};
+ENGINE_ITEMS.CARROT = {name:"Carrot", shop:[0,7,0,0],persistent:false};
+ENGINE_ITEMS.SANDWICH = {name:"Sandwich", shop:[0,5,0,0],persistent:false};
+ENGINE_ITEMS.LUNCH_BAG = {name:"Lunch Bag", shop:[0,6,0,0],persistent:false};
+ENGINE_ITEMS.BOOZE = {name:"Booze", shop:[0,1,0,0],persistent:true};
+ENGINE_ITEMS.LAMP_OIL = {name:"Lamp Oil", shop:[0,2,0,0],persistent:true}; // rope, bombs
+ENGINE_ITEMS.CATNIP = {name:"Catnip", shop:[0,3,0,0],persistent:true};
+ENGINE_ITEMS.SUNGLASSES = {name:"Sunglasses", shop:[0,4,0,0],persistent:true}; // most important item
+ENGINE_ITEMS.FERTILIZER = {name:"Fertilizer", shop:[0,8,0,0],persistent:true};
+ENGINE_ITEMS.PLUNGER = {name:"Plunger", shop:[0,9,0,0],persistent:true};
+ENGINE_ITEMS.ENIGMA_DECRYPTER = {name:"Enigma Decrypter", shop:[0,10,0,0],persistent:true};
+ENGINE_ITEMS.BRICK_LAYER = {name:"Brick Layer", shop:[0,11,0,0],persistent:true};
 
 const ENGINE_MINIGAMES = {} // names are never actually used
 ENGINE_MINIGAMES.TUTORIAL = {name:"Tutorial"}
@@ -772,7 +772,7 @@ class Scene_Engine extends Scene_Base {
     __itemFromName(name) {
         for(const itemRef in ENGINE_ITEMS) {
             if(ENGINE_ITEMS[String(itemRef)].name === name)
-                return itemRef;
+                return ENGINE_ITEMS[String(itemRef)];
         }
     }
 
@@ -789,6 +789,8 @@ class Scene_Engine extends Scene_Base {
     }
 
     __getAllPurchasableItems() { // for shop
+        if(this.isDifficulty(ENGINE_DIFFICULTY.EASY))
+            return [ENGINE_ITEMS.CARROT.shop, ENGINE_ITEMS.SANDWICH.shop, ENGINE_ITEMS.LUNCH_BAG.shop];
         var items = [];
         for(const itemRef in ENGINE_ITEMS) { // we love JS (iterate through all keys)
             var item = ENGINE_ITEMS[String(itemRef)];
