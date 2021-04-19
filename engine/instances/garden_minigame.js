@@ -45,11 +45,11 @@ class GardenMinigameController extends MinigameController {
         this.setControls(true,false);
         this.skipPregame();
 
-        this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
-        $engine.createManagedRenderable(this,this.progressText);
-        this.progressText.anchor.set(0.5,0.5);
-        this.progressText.x = $engine.getWindowSizeX()/2 - 30;
-        this.progressText.y = $engine.getWindowSizeY()-30;
+        //this.progressText = new PIXI.Text("",$engine.getDefaultSubTextStyle());
+        //$engine.createManagedRenderable(this,this.progressText);
+        //this.progressText.anchor.set(0.5,0.5);
+        //this.progressText.x = $engine.getWindowSizeX()/2 - 30;
+        //this.progressText.y = $engine.getWindowSizeY()-30;
 
         var plant_array = [];
         this.plant_array = plant_array;
@@ -78,8 +78,13 @@ class GardenMinigameController extends MinigameController {
             new GardenHealth(760 - 25*h, 590, h);
         }
 
+        this.healthPlantArr = [1,1,1,1,1];
+        for(var p = 0; p < this.maxScore; p++){
+            new GardenPlantHealth(760 - 25*p, 530, p);
+        }
 
-        this.updateProgressText();
+
+        //this.updateProgressText();
         this.setCheatTooltip("I found an EXTRA spray can!");
         this.setLossReason("WORMS SLOW DOWN PLEASE");
     }
@@ -113,7 +118,7 @@ class GardenMinigameController extends MinigameController {
 
         this.moveSpray();
         this.countPlants();
-        this.updateProgressText();
+        //this.updateProgressText();
         this.handleShake();
         this.timer++;
         this.speedup++;
@@ -133,9 +138,9 @@ class GardenMinigameController extends MinigameController {
         this.shakeTimer+=factor;
     }
 
-    updateProgressText() {
-        this.progressText.text = "Progress:  Plants Left  "+String(this.score+" / "+String(this.maxScore));
-    }
+    //updateProgressText() {
+        //this.progressText.text = "Progress:  Plants Left  "+String(this.score+" / "+String(this.maxScore));
+    //}
   
     countPlants(){
         var temp_score = 0;
@@ -192,7 +197,7 @@ class GardenMinigameController extends MinigameController {
     draw(gui, camera) {
         super.draw(gui, camera);     
         //EngineDebugUtils.drawHitbox(camera,this);
-        $engine.requestRenderOnCameraGUI(this.progressText);
+        //$engine.requestRenderOnCameraGUI(this.progressText);
     }
 
 }
@@ -229,9 +234,15 @@ class GardenWorm extends EngineInstance {
         if(this.deathTime === 0){
             this.animation.update(1);
         }
-        
-        if(this.wormTimer >= this.wormTimerEat && this.deathTime === 0){            
+
+        if(this.wormTimer >= this.wormTimerEat && this.deathTime === 0 && GardenMinigameController.getInstance().plant_array[this.index] != undefined){            
             GardenMinigameController.getInstance().plant_array[this.index] = undefined;
+            GardenMinigameController.getInstance().healthPlantArr[GardenMinigameController.getInstance().score -1] = 0;
+            GardenMinigameController.getInstance().healthArr[9 - GardenMinigameController.getInstance().wormsmissed] = 0;
+            GardenMinigameController.getInstance().wormsmissed++;
+            this.destroy();
+        }else if(this.wormTimer >= this.wormTimerEat && this.deathTime === 0){            
+            //GardenMinigameController.getInstance().plant_array[this.index] = undefined;
             GardenMinigameController.getInstance().healthArr[9 - GardenMinigameController.getInstance().wormsmissed] = 0;
             GardenMinigameController.getInstance().wormsmissed++;
             this.destroy();
@@ -286,6 +297,33 @@ class GardenPlant extends EngineInstance {
     }
 }
 
+
+class GardenPlantHealth extends EngineInstance {
+    onEngineCreate() {
+        this.setSprite(new PIXI.Sprite($engine.getTexture(GardenMinigameController.getInstance().plant_sprites[3])));
+        this.xScale = 0.9;
+        this.yScale = 0.9;
+    }
+
+    onCreate(x,y,num) {
+        this.x = x;            
+        this.y = y;
+        this.num = num;
+        this.onEngineCreate();
+    }
+
+    step() {
+        if(GardenMinigameController.getInstance().healthPlantArr[this.num] == 0){
+            this.destroy();
+        }
+    }
+    draw(gui,camera) {
+    }
+}
+
+
+
+
 class GardenHealth extends EngineInstance {
     onEngineCreate() {
         this.setSprite(new PIXI.Sprite($engine.getTexture("health_heart")));
@@ -301,8 +339,7 @@ class GardenHealth extends EngineInstance {
     }
 
     step() {
-        if(FallingObjectsController.getInstance().healthArr[this.num] == 0){
-            $engine.audioPlaySound("worm_die");
+        if(GardenMinigameController.getInstance().healthArr[this.num] == 0){
             this.destroy();
         }
     }
