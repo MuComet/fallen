@@ -262,6 +262,10 @@ class MinigameTimer extends EngineInstance {
         this.timerBarGraphic.unpauseAnimation();
     }
 
+    isTimerPaused() {
+        return this.isPaused;
+    }
+
     hideTimer() {
         this.visible = false;
     }

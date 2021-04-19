@@ -140,7 +140,8 @@ class CardMinigameController extends MinigameController {
     }
 
     notifyFramesSkipped(frames) {
-        this.getTimer().tickDown(frames);    // use timer later for total card picking time (7 sec?)
+        if(!this.getTimer().isTimerPaused())
+            this.getTimer().tickDown(frames);    // use timer later for total card picking time (7 sec?)
     }
 
     updateProgressText() {
