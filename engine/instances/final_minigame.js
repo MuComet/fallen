@@ -639,7 +639,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         }
         if(this.hasBeenHurt) {
             this.player.setCanFire(false);
-            this.textBox.setTextArray(["__portrait[gods_profiles_0]__voice[voice_normal]Are you kidding me?!__wait[24]__noShift[1]__portrait[profiles_gods_2] Can you seriously not wait 30 SECONDS for me to talk??__wait[30] Alright,__wait[12] it's on!"])
+            this.textBox.setTextArray(["__portrait[gods_profiles_0]__voice[voice_normal]Are you kidding me?!__wait[24]__noShift[1]__portrait[gods_profiles_2] Can you seriously not wait 30 SECONDS for me to talk??__wait[30] Alright,__wait[12] it's on!"])
         }
 
         if(this.sharedPhaseTimer>=300) {
@@ -734,7 +734,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                 this.genericTimer = 400
             } else if(rand===3) { // wipe
                 EngineUtils.setAnimation(this.animation,this.animationDirect);
-                for(var i =0;i<4;i++) {
+                for(var i =1;i<=4;i++) {
                     this.delayedAction(i*90, this.sequenceAttackWipeFull,this.x,125);
                 }
                 this.playSoundFor("final_attack_direct",90*4)

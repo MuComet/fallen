@@ -157,6 +157,10 @@ class MenuIntroController extends EngineInstance {
         this.buttons.difficultyBack.setOnPressed(function() {
             MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_MAIN);
         })
+
+        this.buttons.difficultyEasy.disableClickSound();
+        this.buttons.difficultyNormal.disableClickSound();
+        this.buttons.difficultyHard.disableClickSound();
     }
 
     createButtons() {
@@ -556,6 +560,7 @@ class MainMenuButton extends EngineInstance {
         this.active = false;
         this.onlyOnce = false;
         this.canBePushed = true;
+        this.clickSoundEnabled = true;
     }
 
     setTextures(def, armed, fire) {
@@ -580,6 +585,10 @@ class MainMenuButton extends EngineInstance {
         this.fitlers = [];
         this.framesSinceEnabled=0;
         this.onEngineCreate();
+    }
+
+    disableClickSound() {
+        this.clickSoundEnabled=false;
     }
 
     setOneTime() {
@@ -678,8 +687,9 @@ class MainMenuButton extends EngineInstance {
     testPress() {
         if(!this.testPressed || this.testPressed()) {
             if(this.onlyOnce)
-                this.pressed = true;
-            SoundManager.playSystemSound(1)
+                this.pressed = true;    
+            if(this.clickSoundEnabled)
+                SoundManager.playSystemSound(1)
             this.onPressed.call(this);
             this.getSprite().texture = this.tex3; // pressed
         }

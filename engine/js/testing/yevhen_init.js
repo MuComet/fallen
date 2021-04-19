@@ -1,7 +1,7 @@
 //$__engineData.loadRoom = "IntroMinigameRoom"
 //$__engineData.loadRoom = "GardenRoom"
 //$__engineData.loadRoom = "WaterRoom"
-$__engineData.loadRoom = "UpdateCutsceneRoom"
+$__engineData.loadRoom = "BadEndingCutsceneRoom"
 //$__engineData.loadRoom = "CreditsRoom"
 //$__engineData.loadRoom = "DrawingMinigame2"
 //$__engineData.loadRoom = "MazeRoom"
