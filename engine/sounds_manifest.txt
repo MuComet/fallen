@@ -71,6 +71,10 @@ thunder_0 engine/audio/se/cutscene/Thunder9.ogg SE
 thunder_1 engine/audio/se/cutscene/Thunder6.ogg SE
 thunder_2 engine/audio/se/cutscene/Thunder10.ogg SE
 
+voice_normal engine/audio/se/talk/Voice.ogg SE
+voice_deep engine/audio/se/talk/VoiceDeep.ogg SE
+voice_high engine/audio/se/talk/VoiceHigh.ogg SE
+
 eson_move_maze engine/audio/se/maze/EsonMove.ogg SE
 explosion_maze engine/audio/se/maze/Explode.ogg SE
 
@@ -104,6 +108,9 @@ final_enemy_hit engine/audio/se/final/Ouch.ogg SE
 final_charge_1 engine/audio/se/final/Charge1.ogg SE
 final_charge_2 engine/audio/se/final/Charge2.ogg SE
 final_charge_3 engine/audio/se/final/Charge3.ogg SE
+final_attack_direct engine/audio/se/final/Direct.ogg SE
+final_attack_direct_spin engine/audio/se/final/SpinnyAttack.ogg SE
+final_zone_attack engine/audio/se/final/Attack.ogg SE
 
 final_music_1 engine/audio/bgm/FinalSection1.ogg BGM
 final_music_2 engine/audio/bgm/FinalSection2.ogg BGM

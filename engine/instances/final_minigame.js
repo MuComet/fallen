@@ -107,6 +107,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.animationIdle = $engine.getAnimation("seye_idle");
         this.animationDirect = $engine.getAnimation("seye_direct_attack");
         this.animationExternal = $engine.getAnimation("seye_external_attack");
+        this.animationDie = $engine.getAnimation("seye_die");
 
         this.xScale = 0.6;
         this.yScale = 0.6;
@@ -114,6 +115,9 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 
         this.sourceX = -999;
         this.sourceY = -9999;
+
+        this.bossFinalLocationX = -1; // for die anim.
+        this.bossFinalLocationY = -1;
 
         this.timeSinceLastHit = 0;
 
@@ -140,19 +144,40 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
     }
 
     playRandomCharge() {
-        $engine.audioPlaySound("final_charge_"+String(EngineUtils.irandom(2) + 1));
+        $engine.audioPlaySound("final_charge_"+String(EngineUtils.irandom(2) + 1),0.8);
     }
 
-    onEnd(won) {
+    /**
+     * 
+     * Plays a sound slowed to take exactly n frames
+     * 
+     * @param {String} soundName The name of the sound to play
+     * @param {Number | -1} frames The amount of frames to stretch the sound for
+     */
+    playSoundFor(soundName, frames=-1, volume = 0.5) {
+        if(frames===-1) {
+            $engine.audioPlaySound(soundName,0.5);
+            return;
+        }
+        var snd = $engine.audioPlaySound(soundName,0.5);
+        var frameDuration = frames/60;
+        var soundDuration = snd._duration;
+        var speed = soundDuration/frameDuration;
+        snd.speed = speed;
+    }
+
+    onEnd(won, final = false) {
         if(won) {
-            $engine.setTimescale(0);
+            if(!final) {
+                $engine.setTimescale(0);
+                $engine.audioFadeAll();
+            }
             $engine.startFadeOut(120);
-            $engine.audioFadeAll();
             this.timer.pauseTimer();
-            var cheats = $gameVariables.value(19);
+            var cheats = this.getNumCheats();
             if(cheats===0) {
                 $engine.setRoom("BestEndingCutsceneRoom"); // no cheat and win
-            } else if (cheats>5) {
+            } else if (cheats>=8) {
                 $engine.setRoom("EvilEndingCutsceneRoom"); // cheat a lot and win
             } else {
                 $engine.setRoom("GoodEndingCutsceneRoom"); // cheat some and win
@@ -319,7 +344,19 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                 this.currentHealth = this.maxHealth;
                 this.healthBar.setMax(this.maxHealth);
             break;
-            case(5):
+            case(5): // win!
+                this.player.setCanFire(false);
+                $engine.audioFadeAll(8);
+                $engine.audioPlaySound("final_seye_die");
+                IM.destroy(MoveLinearBullet);
+                IM.destroy(HomingBullet);
+                IM.destroy(DelayedDamageZone);
+                this.bossFinalLocationX = this.x;
+                this.bossFinalLocationY = this.y;
+                this.bossTargetX=this.x;
+                this.bossTargetY=this.y;
+                this.cancelAllDelayedActions();
+                EngineUtils.setAnimation(this.animation,this.animationIdle)
             break;
         }
     }
@@ -582,18 +619,27 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 
         if(this.sharedPhaseTimer===300) {
             this.isBossActive=true;
-            this.textBox.setTextArray(["__portrait[gods_profiles_3]So this is what it comes down to.__wait[30] Me against you.__wait[30] One on one.",
-            "You know for being 600 years old you really are don't have a lot going on for intelligence do you. The signs were all there Eson.",
-            "But ohh noo. You had to get back into the heavens at any cost. The bistro was calling your name and you couldn't care less about the souls you were sacrificing.",
-            "Who's really the enemy here Eson? Me or you?",
-            "Anyway It's about time that I showed you what it really means to be a god.",
-            "Good luck, you'll need it.",
-            ])
+            var arr = [];
+            arr.push("__portrait[gods_profiles_3]__voice[voice_high]So this is what it comes down to.__wait[30] Me against you.__wait[30] One on one.")
+            arr.push("I must say,__wait[12] you really don't have a lot going on in the intelligence department,__wait[12] do you?__wait[30] "
+                + "Then again,__wait[30]__noShift[1]__portrait[gods_profiles_1] what is there to expect from a mere 600 year old Angel.__wait[24]__portrait[gods_profiles_3] "
+                + "The signs were all there Eson.")
+            if(this.getNumCheats()===0) {
+                arr.push("Tsk.__wait[12] Tsk.__wait[12] Tsk.__wait[24] You just had to get back into the heavens at any cost.")
+            } else {
+                arr.push("Tsk.__wait[12] Tsk.__wait[12] Tsk.__wait[24] You just had to get back into the heavens at any cost.__wait[30] "
+                + "That bistro was calling your name and you couldn't care less about the souls you were sacrificing__noShift[1]__portrait[gods_profiles_1]"
+                + " – even if you didn't know.")
+                arr.push("__portrait[gods_profiles_3]Who's really the enemy here Eson?__wait[24] Me__wait[12]__speed[4]__noShift[0] or you?")
+            }
+            arr.push("__portrait[gods_profiles_1]How does it feel,__wait[12] knowing you'll die at my hands,__wait[12] never experiencing the sweet taste of that __speed[6]\"God tier\"__speed[0] bistro?__wait[60]__noShift[1]__portrait[gods_profiles_3] Anyway,__wait[12] It's about time I showed you what it really means to be a god.")
+            arr.push("Good luck,__wait[9] kid.__wait[30]__voice[voice_normal] __speed[5]You'll need it.")
+            this.textBox.setTextArray(arr);
             this.player.setCanFire(true);
         }
         if(this.hasBeenHurt) {
             this.player.setCanFire(false);
-            this.textBox.setTextArray(["__portrait[gods_profiles_0]Are you kidding me?? Can you seriously not wait 30 SECONDS for me to talk???__wait[30] Alright, it's on."])
+            this.textBox.setTextArray(["__portrait[gods_profiles_0]__voice[voice_high]Are you kidding me?!__wait[24]__noShift[1]__portrait[profiles_gods_2] Can you seriously not wait 30 SECONDS for me to talk??__wait[30] Alright,__wait[12] it's on!"])
         }
 
         if(this.sharedPhaseTimer>=300) {
@@ -674,33 +720,40 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             if(rand===0) { // spinny boi
                 EngineUtils.setAnimation(this.animation,this.animationDirect);
                 this.sequenceAttackCircleRotate(this.x,this.y + 125)
+                this.playSoundFor("final_attack_direct_spin",360,1)
                 this.genericTimer = 360
             } else if(rand===1) { // damage zones
                 EngineUtils.setAnimation(this.animation,this.animationExternal);
                 this.delayedAction(60,this.sequenceAttackDamageZones,75,45,20,10 + this.getNumCheats())
+                this.playRandomCharge();
                 this.genericTimer = EngineUtils.irandomRange(360,420)
             } else if(rand===2) { // grid
                 EngineUtils.setAnimation(this.animation,this.animationExternal);
                 this.sequenceAttackGrid(4)
+                this.playRandomCharge();
                 this.genericTimer = 400
             } else if(rand===3) { // wipe
                 EngineUtils.setAnimation(this.animation,this.animationDirect);
                 for(var i =0;i<4;i++) {
                     this.delayedAction(i*90, this.sequenceAttackWipeFull,this.x,125);
                 }
+                this.playSoundFor("final_attack_direct",90*4)
                 this.genericTimer = 90*4
             } else if(rand===4) { // corners
                 EngineUtils.setAnimation(this.animation,this.animationExternal);
                 this.sequenceAttackCornersOffset(10,3);
+                this.playRandomCharge();
                 this.genericTimer = EngineUtils.irandomRange(600,720)
             } else if (rand === 5) { // tunnel
                 EngineUtils.setAnimation(this.animation,this.animationExternal);
                 this.attackTunnel();
+                this.playRandomCharge();
                 this.genericTimer = EngineUtils.irandomRange(180,240);
             } else if(rand===6) { // spinny bois
                 EngineUtils.setAnimation(this.animation,this.animationDirect);
                 this.sequenceAttackCircleRotate(this.x,this.y + 90,20,6,24,0.1)
                 this.delayedAction(12,this.sequenceAttackCircleRotate,this.x,this.y + 90,20,6,24,-0.1);
+                this.playSoundFor("final_attack_direct_spin",20*24,1)
                 this.genericTimer = 20*24
             } else if(rand===7) { // fire lines
                 EngineUtils.setAnimation(this.animation,this.animationDirect);
@@ -709,14 +762,17 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                         this.attackFireLine(this.x,this.y + 125,V2D.calcDir(this.player.x-this.x, -(this.player.y-(this.y+125))));
                     });
                 }
+                this.playSoundFor("final_attack_direct",7*30)
                 this.genericTimer = 7*30;
             } else if(rand===8) { // star corners
                 EngineUtils.setAnimation(this.animation,this.animationExternal);
                 this.sequenceAttackCornersStar(2,120,6, 4, 4, Math.PI/8);
+                this.playRandomCharge();
                 this.genericTimer = 45*4;
             } else if(rand===9) { // star direct
                 EngineUtils.setAnimation(this.animation,this.animationDirect);
                 this.attackStar(this.x,this.y+125,16,5,6,0);
+                this.playSoundFor("final_attack_direct",120)
                 this.genericTimer = 120
             } else if(rand === 10 && this.bossTargetX !== $engine.getWindowSizeX()/2-256) { // move boss to left
                 EngineUtils.setAnimation(this.animation,this.animationIdle);
@@ -745,6 +801,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             } else if (rand===13) { // harder version of grid
                 EngineUtils.setAnimation(this.animation,this.animationExternal);
                 this.sequenceAttackGrid(5,90)
+                this.playRandomCharge();
                 this.genericTimer = 520
             } else if(rand===14) { // harder version of fire lines
                 EngineUtils.setAnimation(this.animation,this.animationDirect);
@@ -759,6 +816,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                         this.attackFireLine(this.x,this.y + 125,V2D.calcDir(this.player.x-this.x, -(this.player.y-(this.y+125))) + Math.PI / 4,5,6);
                     });
                 }
+                this.playSoundFor("final_attack_direct",5*45)
                 this.genericTimer = 5*45;
             } else if(rand===15) { // 5 stars across the top of the screen
                 EngineUtils.setAnimation(this.animation,this.animationExternal);
@@ -767,6 +825,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                 for(var i =0;i<5;i++) {
                     this.delayedAction(i*40,this.attackStar,xStart+diff*i,this.y,6,6,3);
                 }
+                this.playRandomCharge();
                 this.genericTimer=40*5;
 
             } else if(rand === 16) { // fast wipe with star as well
@@ -777,8 +836,8 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                     }
                     this.attackStar(this.x,this.y+125,8,5,4,0);
                     this.delayedAction(120,this.attackStar,this.x,this.y+125,8,5,4,Math.PI/8) // offset by half the angle of the last
-                    
                 })
+                this.playSoundFor("final_attack_direct",60*4 + 45)
                 this.genericTimer = 60*4 + 45
                 
             }
@@ -800,6 +859,45 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         }
         this.genericTimer--;
         this.genericTimer2--;
+    }
+
+    phaseFive() {
+        if(this.sharedPhaseTimer<=60) { // fade out all the UI
+            var fac = EngineUtils.interpolate(this.sharedPhaseTimer/60,1,0,EngineUtils.INTERPOLATE_IN_EXPONENTIAL);
+            this.healthBar.getContainer().alpha = fac;
+            for(var i =0;i<this.healthSprites.length && i<this.health;i++)
+                this.healthSprites[i].alpha = fac;
+        }
+        if(this.sharedPhaseTimer===120) {
+            EngineUtils.setAnimation(this.animation,this.animationDie)
+        }
+        var volume = EngineUtils.interpolate((this.sharedPhaseTimer-120)/240,0.7,0,EngineUtils.INTERPOLATE_IN);
+        if(this.sharedPhaseTimer>=120) {
+            var targetX = $engine.getWindowSizeX()/2;
+            var targetY = this.getCameraTop() + $engine.getWindowSizeY()/2 - this.cameraBias;
+            var dx = targetX - this.player.x;
+            var dy = targetY - this.player.y;
+            this.player.x +=dx/32;
+            this.player.y +=dy/32;
+
+
+            if(this.sharedPhaseTimer%3===0)
+                new FinalMinigameCloudParticle(this.x + EngineUtils.irandomRange(-40,40),this.y + 125 + EngineUtils.irandomRange(-125,125));
+
+            if(this.sharedPhaseTimer%20===0) {
+                $engine.audioPlaySound("final_zone_attack",volume).speed = EngineUtils.randomRange(0.7,1.3);
+            }
+
+            var randFac = EngineUtils.interpolate((this.sharedPhaseTimer-60)/120,0,128,EngineUtils.INTERPOLATE_IN_QUAD);
+            var xFac = EngineUtils.randomRange(-randFac,randFac);
+            var yFac = EngineUtils.randomRange(-randFac,randFac);
+            this.bossTargetX = this.bossFinalLocationX + xFac;
+            this.bossTargetY = this.bossFinalLocationY + yFac;
+        }
+
+        if(this.sharedPhaseTimer===300) {
+            this.onEnd(true,true)
+        }
     }
 
     sequenceFireAtPlayer() {
@@ -1046,8 +1144,8 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
     }
 
     checkBossDeath() {
-        if(this.currentHealth<0) {
-            console.log("YOU WIN!")
+        if(this.currentHealth<0) { // so long
+            this.nextPhase(); // go to phase 5!
         }
     }
 
@@ -1883,6 +1981,48 @@ class FinalMinigameWeapon extends EngineInstance {
     }
 }
 
+class FinalMinigameCloudParticle extends EngineInstance {
+
+    onCreate(x,y) {
+        this.x = x;
+        this.y = y;
+        this.dx = EngineUtils.randomRange(-6,6);
+        this.dy = EngineUtils.randomRange(-6,6);
+
+        this.drag = 0.95;
+
+        this.dz = EngineUtils.randomRange(-0.04,0.04);
+
+        this.lifeTime = EngineUtils.irandomRange(48,60);
+        this.lifeTimer=0;
+
+        this.setSprite(new PIXI.Sprite($engine.getRandomTextureFromSpritesheet("green_cloud")));
+        this.xScale = EngineUtils.randomRange(0.7,1);
+        this.yScale = EngineUtils.randomRange(0.7,1);
+
+        this.alpha = 0.8;
+    }
+
+    step() {
+
+        this.x+=this.dx;
+        this.y+=this.dy;
+        this.angle +=this.dz;
+
+        this.dx*=this.drag;
+        this.dy*=this.drag;
+        this.dz*=this.drag;
+
+        var fac = EngineUtils.interpolate(this.lifeTimer/this.lifeTime,0.8,0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+        this.alpha = fac;
+
+        if(this.lifeTimer > this.lifeTime) {
+            this.destroy();
+        }
+        this.lifeTimer++;
+    }
+}
+
 class FinalMinigameTarget extends Shootable {
     onCreate(x,y,speed=2) {
         this.x = x;
@@ -2095,6 +2235,8 @@ class DelayedDamageZone extends EngineInstance {
             var dist = V2D.calcMag(this.x-this.target.x,this.y-this.target.y);
             if(dist < this.size)
                 this.target.hurt(1);
+            var volume = EngineUtils.clamp(this.size / 100,0,1);
+            $engine.audioPlaySound("final_zone_attack",volume)
         }
 
         if(this.delay<-20) {

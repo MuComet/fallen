@@ -287,6 +287,10 @@ class TextBox extends EngineInstance {
         this.portraitTransitionMode = 1;
         this.showingPortrait = false;
 
+        this.textSound = undefined;
+        this.textSoundTimer = 0;
+        this.textSoundMinDelay = 6;
+
         this.isDone = false; // whether or not the end of the text has been reached.
 
         this.noShift = false; // prevents text shift on profile change.
@@ -379,6 +383,11 @@ class TextBox extends EngineInstance {
         this.textBoxTick();
         this.arrowTick();
         this.testAdvanceFunction();
+        this.textTimerTick();
+    }
+
+    textTimerTick() {
+        this.textSoundTimer--;
     }
 
     alphaTick() {
@@ -476,6 +485,7 @@ class TextBox extends EngineInstance {
         this.isDone = array.length===0;
         this.currentText = "";
         this.textIndex = 0;
+        this.textSound=undefined;
         this._clearText()
         if(autoCreate)
             this.advance();
@@ -767,7 +777,15 @@ class TextBox extends EngineInstance {
             this.firstCharacter=false;
         } else
             this.textImage.text+=this._parseText();
+        this._playTextSound();
         return true;
+    }
+
+    _playTextSound() {
+        if(this.textSound!==undefined && this.textSoundTimer<=0) {
+            $engine.audioPlaySound(this.textSound);
+            this.textSoundTimer=this.textSoundMinDelay;
+        }
     }
 
     _forcePortraitCorrect() {
@@ -856,7 +874,18 @@ class TextBox extends EngineInstance {
             var data = this._extractCommand(txt);
             this.walkingTextIndex+=data.length;
             $engine.audioStopSound(data.argument);
-        } else {
+        } else if(txt.startsWith("__voice")) {
+            var data = this._extractCommand(txt);
+            this.walkingTextIndex+=data.length;
+            if(data.argument==="<none>" || data.argument.length===0) {
+                this.textSound=undefined;
+            } else {
+                this.textSound=data.argument;
+            }
+            
+        } 
+        
+        else {
             return false;
         }
         return true; 
