@@ -22,8 +22,8 @@ endblock
 
 block extern text
 <none>
-__portrait[gods_profiles_4]Well I can't say I'm thrilled about how things turned out__speed[12]...__speed[0]__wait[36] But I'm glad you stopped her from getting the amulet.\0__portrait[eson_profiles_2]Phew! So does that mean I get my wings back?\0__portrait[gods_profiles_5]Yes, you will get to be an angel again, but your title will definitely stay the same. After what you helped her do to those innocent souls, you don't deserve to become a High Angel. 
-__wait[36]__portrait[gods_profiles_4]With the snap of my mighty fingers, I grant you back your wings, however, you will remain a low angel until you can work your way up like everyone else. Eson, this is your final judgment.
+__voice[voice_deep]__portrait[gods_profiles_10]Well,__wait[36] I can't say I'm thrilled about how things turned out__speed[12]...__speed[0]__wait[36] But,__wait[36] I'm glad you stopped her from getting the amulet.\0__voice[voice_normal]__portrait[eson_profiles_2]Phew!__wait[9] So does that mean I get my wings back?\0__voice[voice_deep]__portrait[gods_profiles_5]Sure,__wait[24] you will get to be an angel again,__wait[12] but your title will definitely stay the same.__wait[36] After what you helped her do to those innocent souls,__wait[12] you don't deserve to become a High Angel. 
+__voice[voice_deep]__wait[36]__portrait[gods_profiles_7]With the snap of my mighty fingers,__wait[12] I grant you back your wings,__wait[36] however,__wait[36] you will remain a low angel until you can work your way up like everyone else.__wait[24] Eson,__wait[36] this is your final judgment.
 <none>
 <none>
 endblock
