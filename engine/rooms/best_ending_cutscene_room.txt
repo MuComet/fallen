@@ -7,7 +7,7 @@ best_ending_cutscene_sheet
 endblock
 
 block extern onComplete
-CutsceneController.returnToMenu
+EndingController.loadEndingBest
 endblock
 
 block extern biases

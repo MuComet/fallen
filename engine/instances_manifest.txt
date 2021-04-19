@@ -4,7 +4,8 @@ BufferedKeyInput BufferedMouseInput EngineButton engine/instances/shared/minigam
 EnginePhysicsInstance engine/instances/shared/physics_instance.js
 LightingLayer AnimatedParticle EmptyInstance engine/instances/shared/general_utils.js
 
-CutsceneController TextBox DailyRecapCutsceneController EndingSummary engine/instances/cutscene.js
+CutsceneController TextBox DailyRecapCutsceneController engine/instances/cutscene.js
+EndingController engine/instances/ending.js
 GameOverController engine/instances/game_over.js
 OverworldTextController engine/instances/overworld_text.js
 
@@ -41,4 +42,4 @@ WireMinigameController WireTile engine/instances/wire_minigame.js
 FinalMinigameController FinalMinigameCloudParticle FinalMinigameInstruction FinalMinigameStar FinalMinigameWarning FinalMinigamePlayer BulletClearer Shootable MoveLinearBullet MoveLinearBouncingBullet FinalMinigameTarget DelayedDamageZone engine/instances/final_minigame.js
 FinalMinigameLoss engine/instances/final_minigame_loss.js
 
-CreditsController engine/instances/credits.js
+CreditsController RotatingSprite engine/instances/credits.js

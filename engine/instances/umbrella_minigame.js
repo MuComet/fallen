@@ -1,5 +1,6 @@
 class UmbrellaMinigameController extends MinigameController {
     onEngineCreate() {
+        $engine.unlockMinigame(ENGINE_MINIGAMES.UMBRELLA)
         super.onEngineCreate();
 
         this.score = 750;

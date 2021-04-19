@@ -92,6 +92,8 @@ class MenuIntroController extends EngineInstance {
                 IM.with(MainMenuButton,function(button) {
                     button.disable();
                 })
+                OwO.__addItemsToPlayer(); // re-add items
+                OwO._clearAreaName();
                 return true;
             } else {
                 SoundManager.playBuzzer();
@@ -178,6 +180,22 @@ class MenuIntroController extends EngineInstance {
         this.buttons.extras.buttonBack.setOnPressed(function() {
             MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_MAIN);
         })
+
+        this.buttons.extras.buttonBrowse.setOnPressed(function() {
+            MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_MINIGAME_BROWSER);
+        })
+
+        this.buttons.extras.buttonEndings.setOnPressed(function() {
+            MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_ENDINGS);
+        })
+
+        this.buttons.extras.buttonBonus.setOnPressed(function() {
+            MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_EXTRAS_UNLOCKS);
+        })
+
+        this.buttons.extras.buttonMinigameRush.setOnPressed(function() {
+            MenuIntroController.getInstance().startMinigameRush();
+        })
     }
 
     createButtons() {
@@ -218,6 +236,16 @@ class MenuIntroController extends EngineInstance {
         this.setupMainMenuButtons();
         this.setupDifficultyButtons();
         this.setupExtraButtons();
+    }
+
+    startMinigameRush() {
+        $engine.fadeOutAll(1);
+        $engine.startFadeOut(60)
+        $engine.audioFadeAll();
+        IM.with(MainMenuButton,function(button) {
+            button.disable();
+        })
+        AudioManager.playSe($engine.generateAudioReference("GameStart"))
     }
 
     handleFloatingObjects() {
@@ -337,6 +365,8 @@ class MenuIntroController extends EngineInstance {
     static startNewGame() {
         DataManager.setupNewGame();
         SceneManager.goto(Scene_Map);
+        OwO.__addItemsToPlayer();
+        OwO._clearAreaName();
     }
 
     preDraw() {
@@ -403,10 +433,16 @@ class MenuIntroController extends EngineInstance {
                 this.cameraTargetY = 0;
             break;
             case(MenuIntroController.REGION_ENDINGS):
+                this.cameraTargetX = $engine.getWindowSizeX();
+                this.cameraTargetY = $engine.getWindowSizeY();
             break;
             case(MenuIntroController.REGION_MINIGAME_BROWSER):
+                this.cameraTargetX = $engine.getWindowSizeX()*2;
+                this.cameraTargetY = 0;
             break;
             case(MenuIntroController.REGION_EXTRAS_UNLOCKS):
+                this.cameraTargetX = $engine.getWindowSizeX();
+                this.cameraTargetY = -$engine.getWindowSizeY();
             break;
         }
     }

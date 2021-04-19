@@ -1,6 +1,7 @@
 class CardMinigameController extends MinigameController {
 
     onEngineCreate() {
+        $engine.unlockMinigame(ENGINE_MINIGAMES.CARDS)
         super.onEngineCreate();
         this.maxScore = 3;
         this.score = 0;

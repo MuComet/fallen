@@ -1,5 +1,6 @@
 class FallingObjectsController extends MinigameController {
     onEngineCreate() {
+        $engine.unlockMinigame(ENGINE_MINIGAMES.CATCH)
         super.onEngineCreate();
 
         var bg = new ParallaxingBackground("background_sheet_2");

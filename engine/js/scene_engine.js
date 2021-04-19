@@ -802,26 +802,49 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
-     * Checks if the player has unlocked the specified ending
+     * @returns A list of all persistent items that the player currently owns
+     */
+    __getAllCurrentItems() {
+
+        var items = [];
+        for(const itemRef in ENGINE_ITEMS) { // we love JS (iterate through all keys)
+            var item = ENGINE_ITEMS[String(itemRef)];
+            if(this.hasItem(item)) {
+                items.push(item);
+            }
+        }
+
+        for(var i = 0;i<items.length;i++) {
+            items[i] = items[i].shop[1];
+        }
+
+        return items;
+    }
+
+    /**
+     * Gets the status of a specific ending. 0 for incomplete, 1 for normal, 2 for hard.
      * 
      * @param {ENGINE_ENDING} ending The ending to check
-     * @returns True if the ending has been unlocked
+     * @returns The value associated with the ending
      */
-    hasEnding(ending) {
+    getEnding(ending) {
         if(!$__engineGlobalSaveData.endings)
             $__engineGlobalSaveData.endings = {};
-        return $__engineGlobalSaveData.endings[ending.name]!==undefined;
+        if($__engineGlobalSaveData.endings[ending.name] === undefined)
+            return 0;
+        return $__engineGlobalSaveData.endings[ending.name];
     }
 
     /**
      * Gains the specified ending
      * 
      * @param {ENGINE_ENDING} ending The ending to add
+     * @param {Number | 1} variant The variant of the ending (0 for easy, 1 for hard)
      */
-    gainEnding(ending) {
+    gainEnding(ending, variant = 1) {
         if(!$__engineGlobalSaveData.endings)
             $__engineGlobalSaveData.endings = {};
-        $__engineGlobalSaveData.endings[ending.name]=true
+        $__engineGlobalSaveData.endings[ending.name]=variant
         this.saveEngineGlobalData(); // saved immediately
     }
 
@@ -831,7 +854,7 @@ class Scene_Engine extends Scene_Base {
         return $__engineGlobalSaveData.minigames[minigame.name]!==undefined;
     }
 
-    __unlockMinigame(minigame) {
+    unlockMinigame(minigame) {
         if(!$__engineGlobalSaveData.minigames)
             $__engineGlobalSaveData.minigames = {};
         $__engineGlobalSaveData.items[minigame.name] = true;
@@ -1145,19 +1168,6 @@ class Scene_Engine extends Scene_Base {
         OwO.resetTimeOfDay();
     }
 
-    __checkUnlockMingame() {
-        // check if it was a minigame (this also prevents a very specific bug related to loading autosaves)
-        var cheatIndex = $__engineSaveData.cheatWriteBackIndex;
-        var outcomeIndex = $__engineSaveData.outcomeWriteBackIndex;
-        if((outcomeIndex===-1 && cheatIndex===-1) || $__engineData.__currentMinigame === undefined)
-            return;
-        
-        if($__engineSaveData.__outcomeWriteBackValue===ENGINE_RETURN.LOSS) // gotta win
-            return;
-
-        this.__unlockMinigame($__engineData.__currentMinigame); // congrats, you win :)
-    }
-
     getMinigameOutcomeData() {
         return $__engineSaveData.__minigames
     }
@@ -1190,7 +1200,6 @@ class Scene_Engine extends Scene_Base {
         this.__cleanup();
         this.__recordOutcome();
         this.__writeBack();
-        this.__checkUnlockMingame();
         var shouldDie = this.__checkDeath();
         this.__resetVariables();
         this.__applyBlendModes();
@@ -2932,6 +2941,16 @@ class OwO {
         OwO.__setupRenderLayer();
     }
 
+    /**
+     * Called once when loading or starting a game.
+     */
+    static __addItemsToPlayer() {
+        var items = $engine.__getAllCurrentItems();
+        for(const itemIndex of items) {
+            $gameParty._items[itemIndex] = 1;
+        }
+    }
+
     static __sunglassesCheck() {
         if($engine.hasItem(ENGINE_ITEMS.SUNGLASSES)) {
             $gameTemp.reserveCommonEvent(2)
@@ -2944,6 +2963,13 @@ class OwO {
         OwO.__areaNameText.anchor.y = 1;
         OwO.__areaNameText.__update = function(){}; // needed for special render layer
         OwO.__specialRenderLayer.addChild(OwO.__areaNameText);
+    }
+
+    /**
+     * Clears the current area name (prevents it from displaying). Does not remove from data.
+     */
+    static __clearAreaName() {
+        OwO.__areaNameText.text = "";
     }
 
     static __listenForHP() {
@@ -3326,10 +3352,6 @@ class OwO {
             OwO.__applyParticleInit();
     }
 
-    static getMapContainer() {
-        return SceneManager._scene.children[1];
-    }
-
     static getMap() {
         return SceneManager._scene;
     }
@@ -3346,22 +3368,22 @@ class OwO {
 
     static __applyMapFilters() {
         if($engine.overworldFiltersDisabled()) {
-            OwO.getMapContainer().filters = []
+            OwO.getSpriteset().filters = []
             return;
         }
         if(!$engine.isLow())
-            OwO.getMapContainer().filters = OwO.__gameFilters; // includes blur.
+            OwO.getSpriteset().filters = OwO.__gameFilters; // includes blur.
         else {
-            OwO.getMapContainer().filters = [OwO.__hungerColourFilter];
+            OwO.getSpriteset().filters = [OwO.__hungerColourFilter];
         }
         OwO.__applyTimeOfDayFilter();
     }
 
     static __applyTimeOfDayFilter() {
         // PIXI requires assignment
-        var data = OwO.getMapContainer().filters;
+        var data = OwO.getSpriteset().filters;
         data.push(OwO.__timeOfDayFilter);
-        OwO.getMapContainer().filters = data;
+        OwO.getSpriteset().filters = data;
 
         var time = OwO.getTimeOfDay();
         var fac = Math.abs((time-1) / 4);
@@ -3372,7 +3394,7 @@ class OwO {
     }
 
     static __disableMapFilters() {
-        OwO.getMapContainer().filters = [];
+        OwO.getSpriteset().filters = [];
     }
 
     static __applyHudFilters() {
@@ -3386,7 +3408,7 @@ class OwO {
     }
 
     static __disablePortraitFilters() {
-        OwO.getMapContainer().filters = [];
+        OwO.getSpriteset().filters = [];
     }
 
     static getColourFilter() {
@@ -3789,6 +3811,10 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
         GUIScreen.__bindContainer();
     }
 
+    static __sceneStart(scene) {
+        GUIScreen.__bindContainer();
+    }
+
     static __bindContainer() {
         SceneManager._scene.addChild(GUIScreen.__container); // bind directly to the scene
         // must do it late because Graphics doesn't exist yet
@@ -3799,6 +3825,9 @@ class GUIScreen { // static class for stuff like the custom cursor. always runni
 
         GUIScreen.__loadingText.x = $engine.getWindowSizeX();
         GUIScreen.__loadingText.y = $engine.getWindowSizeY();
+
+
+        GUIScreen.__saveImage.dirty = true;
         /*if($engine.isLow()) {
             GUIScreen.__graphics.filters = []
         } else {
@@ -3971,6 +4000,7 @@ GUIScreen.__init();
 // UwU.addRenderListener(GUIScreen.tick);
 document.addEventListener("pointermove", GUIScreen.__mouseMoveHandler); // fix one frame lag.
 UwU.addSceneCreateListener(GUIScreen.__sceneCreate);
+UwU.addSceneChangeListener(GUIScreen.__sceneStart);
 
 // load the engine global save data
 {

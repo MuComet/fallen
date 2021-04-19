@@ -1,5 +1,6 @@
 class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLLER!
     onEngineCreate() {
+        $engine.unlockMinigame(ENGINE_MINIGAMES.FINALE)
         FinalMinigameController.instance = this;
         this.phase = -1;
         this.survivalTime = 0;

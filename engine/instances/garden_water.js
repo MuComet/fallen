@@ -1,5 +1,6 @@
 class WaterMinigameController extends MinigameController {
     onEngineCreate() { 
+        $engine.unlockMinigame(ENGINE_MINIGAMES.WATERING)
         super.onEngineCreate();
         this.score = 12;
         this.maxScore = 12;

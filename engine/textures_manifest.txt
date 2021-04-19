@@ -36,10 +36,17 @@ spritesheet dimensions 5712 624 7 1 night_one_cutscene engine/textures/cutscenes
 spritesheet dimensions 1632 624 2 1 update_cutscene engine/textures/cutscenes/update_sheet.png 0 0
 spritesheet dimensions 4080 624 5 1 final_intro_cutscene engine/textures/cutscenes/final_intro_cutscene.png 0 0
 
-spritesheet dimensions 4896 624 6 1 evil_ending_cutscene_sheet engine/textures/cutscenes/ending_evil_cutscene.png 0 0
-spritesheet dimensions 5712 624 7 1 bad_ending_cutscene_sheet engine/textures/cutscenes/ending_bad_cutscene.png 0 0
-spritesheet dimensions 3264 624 4 1 good_ending_cutscene_sheet engine/textures/cutscenes/ending_ok_cutscene.png 0 0
-spritesheet dimensions 4080 624 5 1 best_ending_cutscene_sheet engine/textures/cutscenes/ending_best_cutscene.png 0 0
+spritesheet dimensions 4080 624 5 1 evil_ending_cutscene_sheet engine/textures/cutscenes/ending_evil_cutscene.png 0 0
+spritesheet dimensions 4896 624 6 1 bad_ending_cutscene_sheet engine/textures/cutscenes/ending_bad_cutscene.png 0 0
+spritesheet dimensions 2448 624 3 1 good_ending_cutscene_sheet engine/textures/cutscenes/ending_ok_cutscene.png 0 0
+spritesheet dimensions 3264 624 4 1 best_ending_cutscene_sheet engine/textures/cutscenes/ending_best_cutscene.png 0 0
+
+spritesheet dimensions 1250 250 5 1 credits_sheet engine/textures/cutscenes/credits_sheet.png 0.5 0.5
+
+spritesheet dimensions 480 96 5 1 ending_badges engine/textures/cutscenes/ending_badge_sheet.png 0.5 0.5
+spritesheet dimensions 3264 624 4 1 ending_names engine/textures/cutscenes/ending_name_sheet.png 0.5 0.5
+ending_background engine/textures/cutscenes/ending.png 0.5 0.5
+end_hard_badge engine/textures/cutscenes/ending_hard.png 0.5 0.5
 
 
 require spritesheet dimensions 576 576 4 4 limit 4 4 4 4 eson_profiles engine/textures/cutscenes/eson_profiles.png 0.5 0.5

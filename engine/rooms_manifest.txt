@@ -13,6 +13,7 @@ UpdateCutsceneRoom engine/rooms/update_cutscene_room.txt
 FinalIntroCutsceneRoom engine/rooms/final_intro_cutscene_room.txt
 FinalIntroCutsceneNoCheatRoom engine/rooms/final_intro_cutscene_no_cheat_room.txt
 BadEndingCutsceneRoom engine/rooms/bad_ending_cutscene_room.txt
+BadEndingCutsceneNoCheatRoom engine/rooms/bad_ending_cutscene_no_cheat_room.txt
 GoodEndingCutsceneRoom engine/rooms/ok_ending_cutscene_room.txt
 EvilEndingCutsceneRoom engine/rooms/evil_ending_cutscene_room.txt
 BestEndingCutsceneRoom engine/rooms/best_ending_cutscene_room.txt

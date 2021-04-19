@@ -7,7 +7,7 @@ bad_ending_cutscene_sheet
 endblock
 
 block extern onComplete
-CutsceneController.returnToMenu
+EndingController.loadEndingBad
 endblock
 
 block extern biases
@@ -28,7 +28,7 @@ block extern text
 <none>
 <none>
 __voice[voice_deep]__portrait[gods_profiles_8]This is bad, Eson!__wait[30] BAD!__wait[24] I can't believe you helped her take those__speed[12]...__speed[0]those innocent souls!!\0__voice[voice_normal]__portrait[eson_profiles_4] I-__wait[12] I'm so sorry.__wait[24] I-__wait[24]I didn't know__speed[12]...\0__speed[0]__voice[voice_deep]__portrait[gods_profiles_9]Didn't know?!__wait[30] __speed[12]...__speed[0]__wait[10] Kid__wait[24], that's not a valid excuse.__wait[30] This is something I simply__wait[24] CANNOT forgive.\0__voice[voice_normal]__portrait[eson_profiles_6] B__wait[36]-b__wait[24]-b__wait[12]-b__wait[9]-but that's not fair! 
-__voice[voice_deep]__portrait[gods_profiles_5]__italic[1]Sigh\0__italic[0]Well,__wait[9] you should have known better...__wait[24]__noShift[1]__portrait[gods_profiles_7]Even with HER ruling The Heavens,__wait[12] I can't let you back there.\0__noShift[0]__portrait[gods_profiles_5] After what you've done,__noShift[1]__wait[30]__portrait[gods_profiles_8] you don't deserve to be an angel again.\0__noShift[0]__portrait[gods_profiles_6]With the snap of my mighty fingers,__wait[9] I exile you from The Heavens and bind you to the 6th Abyss!__wait[24]__noShift[1]__portrait[gods_profiles_8] Eson,__wait[24] THIS__wait[24] IS your final judgment.
+__voice[voice_deep]__portrait[gods_profiles_10]__italic[1]Sigh\0__italic[0]Well,__wait[9] you should have known better...__wait[24]__noShift[1]__portrait[gods_profiles_7]Even with HER ruling The Heavens,__wait[12] I can't let you back there.\0__noShift[0]__portrait[gods_profiles_5] After what you've done,__noShift[1]__wait[30]__portrait[gods_profiles_8] you don't deserve to be an angel again.\0__noShift[0]__portrait[gods_profiles_6]With the snap of my mighty fingers,__wait[9] I exile you from The Heavens and bind you to the 6th Abyss!__wait[24]__noShift[1]__portrait[gods_profiles_8] Eson,__wait[24] THIS__wait[24] IS your final judgment.
 __voice[]__wait[36]__italic[1]The Sky God snaps his fingers and Eson vanishes to the 6th Abyss, where they spend the rest of their mortal life, haunted by the stolen souls.
 <none>
 endblock

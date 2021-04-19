@@ -1,5 +1,6 @@
 class CrateMinigameController extends MinigameController {
     onEngineCreate() {
+        $engine.unlockMinigame(ENGINE_MINIGAMES.BOXES)
         super.onEngineCreate();
         this.sizeX = 70;
         this.sizeY = 70;

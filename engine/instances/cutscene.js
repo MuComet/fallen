@@ -919,6 +919,8 @@ class DailyRecapCutsceneController extends CutsceneController {
     onEngineCreate() {
         super.onEngineCreate();
 
+        $engine.audioPlaySound("progress_report",1,true)
+
         var day = $__engineSaveData.day++;
         var data = $engine.getMinigameOutcomeData();
         var wins = data.winDaily;
@@ -959,16 +961,6 @@ class DailyRecapCutsceneController extends CutsceneController {
     onGameEnd() {
         $__engineSaveData.day++;
         $engine.onDayEnd();
-    }
-}
-
-class EndingSummary extends EngineInstance {
-    onEngineCreate() {
-
-    }
-
-    onCreate() {
-        this.onEngineCreate();
     }
 }
 

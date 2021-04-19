@@ -43,7 +43,12 @@ class FinalMinigameLoss extends EngineInstance {
             this.playerSprite.alpha = EngineUtils.interpolate((++this.timer-140)/60,1,0,EngineUtils.INTERPOLATE_IN_EXPONENTIAL);
 
             if(this.timer > 240) {
-                $engine.setRoom("BadEndingCutsceneRoom"); // lose :(
+                if($gameVariables.value(19) === 0) { // total cheats are zero
+                    $engine.setRoom("BadEndingCutsceneNoCheatRoom"); // lose :(
+                } else {
+                    $engine.setRoom("BadEndingCutsceneRoom"); // lose :(
+                }
+                    
             }
 
         }

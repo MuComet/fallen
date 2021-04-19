@@ -1,6 +1,7 @@
 class PuyoMinigameController extends MinigameController { // All classes that can be added to the engine MUST extend EngineInstance
 
     onEngineCreate() { // called when the instance is made from a room.
+        $engine.unlockMinigame(ENGINE_MINIGAMES.VIDEO_GAME)
         super.onEngineCreate();
         PuyoMinigameController.score = 0;
         if($engine.isDifficulty(ENGINE_DIFFICULTY.EASY)){

@@ -1,14 +1,20 @@
 class DrawController extends MinigameController { // controls the minigame
     onEngineCreate() {
+        // drawing minigame has 2 versions. the external data "version" will tell us which one we're doing.
+        this.alternate = RoomManager.currentRoom().getExtern("version")[0]==="1";
+        if(!this.alternate) {
+            $engine.unlockMinigame(ENGINE_MINIGAMES.DRAW_1)
+        } else {
+            $engine.unlockMinigame(ENGINE_MINIGAMES.DRAW_2)
+        }
+            
         super.onEngineCreate();
         this.instructiontext = $engine.createRenderable(this,new PIXI.Text("WAIT! " + String(60), $engine.getDefaultSubTextStyle()),false);
         this.instructiontext.anchor.x=0.5
         this.instructiontext.x = $engine.getWindowSizeX()/2;
         this.instructiontext.y = $engine.getWindowSizeY()-80;
 
-        // drawing minigame has 2 versions. the external data "version" will tell us which one we're doing.
-        this.alternate = RoomManager.currentRoom().getExtern("version")[0]==="1";
-
+        
         if(!this.alternate){
             new ParallaxingBackground("background_wall_1");
         }else{

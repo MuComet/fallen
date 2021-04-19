@@ -1,6 +1,7 @@
 class WallBuilderController extends MinigameController {
 
     onEngineCreate() {
+        $engine.unlockMinigame(ENGINE_MINIGAMES.WALL)
         super.onEngineCreate();
         this.possibleLetters = [];
         for(var i = 0;i<26;i++)

@@ -1,5 +1,6 @@
 class MazeMinigameController extends MinigameController {
     onEngineCreate() { 
+        $engine.unlockMinigame(ENGINE_MINIGAMES.MAZE)
         super.onEngineCreate();
         this.timer = 0;
         this.score = 0;

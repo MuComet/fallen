@@ -1,5 +1,6 @@
 class GraffitiMinigameController extends MinigameController { // controls the minigame
     onEngineCreate() {
+        $engine.unlockMinigame(ENGINE_MINIGAMES.GRAFFITI)
         super.onEngineCreate();
         this.instructiontext = $engine.createRenderable(this,new PIXI.Text("WAIT! " + String(60), $engine.getDefaultSubTextStyle()),false);
         this.instructiontext.anchor.x=0.5

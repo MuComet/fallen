@@ -1,0 +1,34 @@
+block instances
+    CutsceneController 0 0 0 0 1 1
+endblock
+
+block extern sheet
+bad_ending_cutscene_sheet
+endblock
+
+block extern onComplete
+EndingController.loadEndingBad
+endblock
+
+block extern biases
+0
+0
+0
+0.5
+0.5
+1
+0
+endblock
+
+block extern music
+endblock
+
+block extern text
+<none>
+<none>
+<none>
+__voice[voice_deep]__portrait[gods_profiles_8]This is bad, Eson!__wait[30] BAD!__wait[24] I can't believe you let her get that amulet!!\0__voice[voice_normal]__portrait[eson_profiles_4] I-__wait[12] I'm so sorry__speed[6]...__speed[0]__wait[24] I tried my best and she fought really hard__speed[6]...\0__speed[0]__voice[voice_deep]__portrait[gods_profiles_9]Well,__wait[9] we wouldn't be in this mess in the first place if it weren't for your selfishness!!\0__voice[voice_normal]__noShift[0]__portrait[eson_profiles_6] That's not fair!__wait[30]__noShift[1]__portrait[eson_profiles_4] How was I supposed to know what she was planning?!
+__voice[voice_deep]__noShift[0]__portrait[gods_profiles_10]__italic[1]Sigh\0__italic[0]Well,__wait[9] you should have known better__speed[6]...__speed[0]__wait[24]__noShift[1]__portrait[gods_profiles_7] Even with HER ruling The Heavens,__wait[12] I can't let you back there__wait[30]__noShift[1]__portrait[gods_profiles_9] -- I can't even go back there myself__speed[6]...\0__noShift[0]__portrait[gods_profiles_6]Honestly,__wait[9] after what you've done,__noShift[1]__wait[30]__portrait[gods_profiles_10] you don't deserve to be an angel again!\0__noShift[0]__portrait[gods_profiles_6]With the snap of my mighty fingers,__wait[9] I exile you from The Heavens and bind you to the 6th Abyss!__wait[24]__noShift[1]__portrait[gods_profiles_8] Eson,__wait[9] this is your final judgment.
+__voice[]__wait[36]__italic[1]The Sky God snaps his fingers and Eson vanishes to the 6th Abyss, where they spend the rest of their mortal life.
+<none>
+endblock

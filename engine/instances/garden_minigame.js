@@ -1,6 +1,7 @@
 class GardenMinigameController extends MinigameController {
     
     onEngineCreate() { 
+        $engine.unlockMinigame(ENGINE_MINIGAMES.WORMS)
         super.onEngineCreate();
         this.score = 5;
         this.maxScore = 5;

@@ -1,5 +1,6 @@
 class WireMinigameController extends MinigameController {
     onEngineCreate() {
+        $engine.unlockMinigame(ENGINE_MINIGAMES.WIRE)
         super.onEngineCreate();
         this.skipPregame();
         this.numRows = 10;

@@ -8,13 +8,9 @@ class CreditsController extends EngineInstance { // Thanks for playing!
         this.startTime = 0;
         this.genericTimer = 0;
         this.setUpCredits();
-        var snd = $engine.audioPlaySound("minigame_music",1);
+        var snd = $engine.audioPlaySound("credits",1);
         $engine.audioSetLoopPoints(snd,8,56)
         $engine.startFadeIn();
-    }
-
-
-    notifyFramesSkipped(frames) {
     }
 
     makeTextRelative(text,relativeTo, yOffset, size) {
@@ -88,6 +84,27 @@ class CreditsController extends EngineInstance { // Thanks for playing!
         this.nextText40 = this.makeTextRelative("Jawdat Toume for Fruit Game",this.nextText39,56,40);
 
         this.nextText41 = this.makeTextRelative("Thank YOU for playing Fallen!",this.nextText40,450,40);
+
+        // borgir
+        new RotatingSprite(this.nextText2.x + 290,this.nextText2.y,"credits_sheet_2")
+        new RotatingSprite(this.nextText2.x - 250,this.nextText2.y-32,"credits_sheet_0")
+
+        new RotatingSprite(this.nextText4.x - 330,this.nextText4.y-45,"credits_sheet_4")
+        new RotatingSprite(this.nextText4.x - 240,this.nextText4.y+90,"credits_sheet_3")
+        new RotatingSprite(this.nextText4.x + 280,this.nextText4.y+400,"credits_sheet_3")
+        new RotatingSprite(this.nextText8.x - 180,this.nextText8.y+135,"credits_sheet_3")
+
+        new RotatingSprite(this.nextText12.x +180,this.nextText12.y-32,"credits_sheet_1")
+
+        new RotatingSprite(this.nextText14.x - 32,this.nextText14.y+145,"credits_sheet_3")
+
+        new RotatingSprite(this.nextText15.x + 195,this.nextText15.y+32,"credits_sheet_0")
+        new RotatingSprite(this.nextText15.x - 245,this.nextText15.y+145,"credits_sheet_3")
+
+        new RotatingSprite(this.nextText24.x + 275,this.nextText24.y+32,"credits_sheet_3")
+        new RotatingSprite(this.nextText35.x - 275,this.nextText35.y-64,"credits_sheet_3")
+
+
     }
 
 
@@ -96,7 +113,7 @@ class CreditsController extends EngineInstance { // Thanks for playing!
         this.startTime++;
         var moveFac = 0;
         if(this.startTime > 100){
-            moveFac = EngineUtils.interpolate((this.startTime-100)/60,0,1.35,EngineUtils.INTERPOLATE_SMOOTH)
+            moveFac = EngineUtils.interpolate((this.startTime-100)/60,0,1.1,EngineUtils.INTERPOLATE_SMOOTH)
         }
 
         var diff = this.nextText41.y - $engine.getCamera().getY() - $engine.getWindowSizeY()/2;
@@ -109,15 +126,30 @@ class CreditsController extends EngineInstance { // Thanks for playing!
             this.genericTimer++;
         }
 
-        if(this.genericTimer===60) {
-            $engine.audioStopAll();
-            $engine.audioPlaySound("minigame_end");
-        }
-
-        if(this.genericTimer===240) {
+        if((this.genericTimer===240 || IN.anyStandardInputPressed()) && ! $engine.isBusy()) {
             $engine.fadeOutAll(120);
+            $engine.audioFadeAll();
             $engine.setRoom("MenuIntro")
         }
 
+    }
+}
+
+class RotatingSprite extends EngineInstance {
+    onCreate(x,y, sprite) {
+        this.xScale = 0.66666;
+        this.yScale = 0.66666;
+        this.x = x;
+        this.y = y;
+        this.changeTimer = EngineUtils.irandom(60);
+        this.angle = EngineUtils.randomRange(-0.1,0.1)
+        this.setSprite(new PIXI.Sprite($engine.getTexture(sprite)));
+    }
+
+    step() {
+        if(--this.changeTimer<=0) {
+            this.changeTimer=EngineUtils.irandomRange(18,60);
+            this.angle = EngineUtils.randomRange(-0.1,0.1)
+        }
     }
 }

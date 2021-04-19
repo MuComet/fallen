@@ -13,6 +13,9 @@ minigame_win_cheat engine/audio/bgm/VictoryCheat.ogg BGM
 minigame_music engine/audio/bgm/Minigame.ogg BGM
 minigame_music_cheat engine/audio/bgm/MinigameCheat.ogg BGM
 
+progress_report engine/audio/bgm/Progress.ogg BGM
+credits engine/audio/bgm/Credits.ogg BGM
+
 minigame_ambience engine/audio/bgs/minigames/CountryAmbient.ogg BGS
 
 game_over engine/audio/bgm/GameOver.ogg BGM
