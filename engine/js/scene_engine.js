@@ -53,6 +53,20 @@ ENGINE_DIFFICULTY.EASY = 0;
 ENGINE_DIFFICULTY.MEDIUM = 1;
 ENGINE_DIFFICULTY.HARD = 2;
 
+const ENGINE_ITEMS = {}; // a mapping of all items in the game
+
+ENGINE_ITEMS.CARROT = {name:"Carrot", shop:[0,7,0,0],persistent:true};
+ENGINE_ITEMS.SANDWICH = {name:"Sandwich", shop:[0,5,0,0],persistent:true};
+ENGINE_ITEMS.LUNCH_BAG = {name:"Lunch Bag", shop:[0,6,0,0],persistent:true};
+ENGINE_ITEMS.BOOZE = {name:"Booze", shop:[0,1,0,0],persistent:false};
+ENGINE_ITEMS.LAMP_OIL = {name:"Lamp Oil", shop:[0,2,0,0],persistent:false}; // rope, bombs
+ENGINE_ITEMS.CATNIP = {name:"Catnip", shop:[0,3,0,0],persistent:false};
+ENGINE_ITEMS.SUNGLASSES = {name:"Sunglasses", shop:[0,4,0,0],persistent:false}; // most important item
+ENGINE_ITEMS.FERTILIZER = {name:"Fertilizer", shop:[0,8,0,0],persistent:false};
+ENGINE_ITEMS.PLUNGER = {name:"Plunger", shop:[0,9,0,0],persistent:false};
+ENGINE_ITEMS.ENIGMA_DECRYPTER = {name:"Enigma Decrypter", shop:[0,10,0,0],persistent:false};
+ENGINE_ITEMS.BRICK_LAYER = {name:"Brick Layer", shop:[0,11,0,0],persistent:false};
+
 // convenience functions for overworld progammers.
 
 const SET_ENGINE_ROOM = function(room) {
@@ -705,6 +719,54 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
+     * Checks if the player has the specified item.
+     * 
+     * @param {ENGINE_ITEM} item The item to check
+     * @returns True if the player has obtained the item, false otherwise
+     */
+    hasItem(item) {
+        if(!$__engineGlobalSaveData.items)
+            $__engineGlobalSaveData.items = {};
+        return $__engineGlobalSaveData.items[item.name]!==undefined;
+    }
+
+    /**
+     * Finds and returns the engine item that corresponds to the given in game item name
+     * 
+     * @param {String} name The in game item name
+     * @returns The engine item, or undefined.
+     */
+    __itemFromName(name) {
+        for(const itemRef in ENGINE_ITEMS) {
+            if(ENGINE_ITEMS[String(itemRef)].name === name)
+                return itemRef;
+        }
+    }
+
+    /**
+     * Adds the specified item to the items list.
+     * 
+     * @param {ENGINE_ITEM} item The item to gain
+     */
+    __gainItem(name) {
+        if(!$__engineGlobalSaveData.items)
+            $__engineGlobalSaveData.items = {};
+        $__engineGlobalSaveData.items[name] = true;
+        this.saveEngineGlobalData(); // saved immediately
+    }
+
+    __getAllPurchasableItems() { // for shop
+        var items = [];
+        for(const itemRef in ENGINE_ITEMS) { // we love JS (iterate through all keys)
+            var item = ENGINE_ITEMS[String(itemRef)];
+            if(!this.hasItem(item)) {
+                items.push(item.shop)
+            }
+        }
+        return items;
+    }
+
+    /**
      * Requests that the engine is terminated and control is returned back
      * to the overworld at the start of the next frame.
      */
@@ -819,6 +881,9 @@ class Scene_Engine extends Scene_Base {
         return $__engineGlobalSaveData;
     }
 
+    /**
+     * Saves the engine's global save data. All operations that write to global data should immediately save as well.
+     */
     saveEngineGlobalData() {
         StorageManager.save(-2, JSON.stringify($__engineGlobalSaveData));
     }
@@ -2375,9 +2440,13 @@ Game_Interpreter.prototype.clear = function() {
     Scene_Shop.prototype.onBuyOk = function() {
         this._item = this._buyWindow.item();
         this.doBuy(1)
+        if($engine.__itemFromName(this._item.name).persistent)
+            $engine.__gainItem(this._item.name);
         SoundManager.playShop();
         this._goldWindow.refresh();
         this._statusWindow.refresh();
+        this._buyWindow._shopGoods = $engine.__getAllPurchasableItems();
+        this._buyWindow.refresh();
         this.activateBuyWindow();
     }
 
@@ -2388,6 +2457,13 @@ Game_Interpreter.prototype.clear = function() {
             SceneManager.pop();
     }
 }
+
+// add custom items to shop
+Scene_Shop.prototype.prepare = function(goods, purchaseOnly) {
+    this._goods = $engine.__getAllPurchasableItems();
+    this._purchaseOnly = purchaseOnly;
+    this._item = null;
+};
 
 // since we upgraded our PIXIJS, the way that renderers are created was changed slightly.
 Graphics._createRenderer = function() {
@@ -2663,6 +2739,8 @@ class OwO {
 
                 OwO.__listenForHP();
                 OwO.__updateHP();
+
+                OwO.__sunglassesCheck();
             }
             if(OwO.__renderLayer) {
                 OwO.__syncRenderLayer();
@@ -2677,6 +2755,12 @@ class OwO {
         OwO.__specialRenderLayer = new PIXI.Container();
 
         OwO.__setupRenderLayer();
+    }
+
+    static __sunglassesCheck() {
+        if($engine.hasItem(ENGINE_ITEMS.SUNGLASSES)) {
+            $gameTemp.reserveCommonEvent(2)
+        }
     }
 
     static __setupRenderLayer() {

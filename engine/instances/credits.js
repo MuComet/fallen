@@ -1,14 +1,16 @@
 
-class CreditsController extends MinigameController {
-
+class CreditsController extends EngineInstance { // Thanks for playing!
 
     onEngineCreate() {
         super.onEngineCreate();        
         $engine.getCamera().setLocation(0, 0);
         //$engine.setBackgroundColour(0xafaa);
-        this.skipPregame();
         this.startTime = 0;
+        this.genericTimer = 0;
         this.setUpCredits();
+        var snd = $engine.audioPlaySound("minigame_music",1);
+        $engine.audioSetLoopPoints(snd,8,56)
+        $engine.startFadeIn();
     }
 
 
@@ -85,15 +87,37 @@ class CreditsController extends MinigameController {
         this.nextText39 = this.makeTextRelative("JP High School",this.nextText38,56,40);
         this.nextText40 = this.makeTextRelative("Jawdat Toume for Fruit Game",this.nextText39,56,40);
 
-        this.nextText41 = this.makeTextRelative("Thank YOU for playing Fallen!",this.nextText40,200,40);
+        this.nextText41 = this.makeTextRelative("Thank YOU for playing Fallen!",this.nextText40,450,40);
     }
 
 
     step() {
         super.step();
         this.startTime++;
+        var moveFac = 0;
         if(this.startTime > 100){
-            $engine.getCamera().translate(0,2);
+            moveFac = EngineUtils.interpolate((this.startTime-100)/60,0,1.35,EngineUtils.INTERPOLATE_SMOOTH)
         }
+
+        var diff = this.nextText41.y - $engine.getCamera().getY() - $engine.getWindowSizeY()/2;
+        if(diff < 50) {
+            moveFac = diff/50;
+        }
+
+        $engine.getCamera().translate(0,moveFac);
+        if(diff<5) {
+            this.genericTimer++;
+        }
+
+        if(this.genericTimer===60) {
+            $engine.audioStopAll();
+            $engine.audioPlaySound("minigame_end");
+        }
+
+        if(this.genericTimer===240) {
+            $engine.fadeOutAll(120);
+            $engine.setRoom("MenuIntro")
+        }
+
     }
 }

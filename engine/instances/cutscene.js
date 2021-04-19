@@ -289,7 +289,7 @@ class TextBox extends EngineInstance {
 
         this.textSound = undefined;
         this.textSoundTimer = 0;
-        this.textSoundMinDelay = 4;
+        this.textSoundMinDelay = 5;
 
         this.isDone = false; // whether or not the end of the text has been reached.
 
@@ -772,18 +772,21 @@ class TextBox extends EngineInstance {
         this.textWaitTimer=0; // force the timer to 0.
         if(this.textComplete())
             return false;
+        var char = this._parseText();
         if(this.firstCharacter) { // PIXI replces empty strings with " "
-            this.textImage.text=this._parseText();
+            this.textImage.text=char;
             this.firstCharacter=false;
         } else
-            this.textImage.text+=this._parseText();
-        this._playTextSound();
+            this.textImage.text+=char;
+
+        if(char!=="" && char!==" ") // command or whitespace
+            this._playTextSound();
         return true;
     }
 
     _playTextSound() {
         if(this.textSound!==undefined && this.textSoundTimer<=0) {
-            $engine.audioPlaySound(this.textSound);
+            $engine.audioPlaySound(this.textSound,0.5);
             this.textSoundTimer=this.textSoundMinDelay;
         }
     }
