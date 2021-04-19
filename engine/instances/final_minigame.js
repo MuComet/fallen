@@ -28,6 +28,8 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.timer.setSurvivalMode();
         this.timer.setGameCompleteText("")
 
+        this.bulletSoundPlayedTimer = 0;
+
         this.textBox = new TextBox();
         this.textBox.disableArrow();
 
@@ -89,7 +91,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 
 
         // NOTE: this is repeated on phase 4 init for testing.
-        this.maxHealth = 100 + this.getNumCheats()*25; // 25 extra HP per cheat, max health is 350
+        this.maxHealth = 100 + this.getNumCheats()*10; // 10 extra HP per cheat, max health is 200
 
         this.currentHealth = this.maxHealth;
 
@@ -106,8 +108,8 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.animationDirect = $engine.getAnimation("seye_direct_attack");
         this.animationExternal = $engine.getAnimation("seye_external_attack");
 
-        this.xScale = 0.5;
-        this.yScale = 0.5;
+        this.xScale = 0.6;
+        this.yScale = 0.6;
         this.x=-999;
 
         this.sourceX = -999;
@@ -118,6 +120,9 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.genericTimer = 0;
         this.genericTimer2 = 0;
 
+        this.bossTargetX = 0;
+        this.bossTargetY = 0;
+
         this.animation = $engine.createRenderable(this, new PIXI.extras.AnimatedSprite(this.animationIdle,false),true)
         this.animation.animationSpeed=0.1;
 
@@ -125,6 +130,17 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             event.preventDefault();
         }
         document.addEventListener('contextmenu', this.documentListener);
+    }
+
+    playBulletSound() {
+        if(this.bulletSoundPlayedTimer > 0)
+            return;
+        $engine.audioPlaySound("final_enemy_fire").speed
+        this.bulletSoundPlayedTimer = 3;
+    }
+
+    playRandomCharge() {
+        $engine.audioPlaySound("final_charge_"+String(EngineUtils.irandom(2) + 1));
     }
 
     onEnd(won) {
@@ -169,22 +185,22 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
     step() {
         switch(this.phase) {
             case(0):
-                this.phaseZero(); // introduction
+                this.phaseZero(); // intro
             break;
             case(1):
-                this.phaseOne(); // easy dodging
+                this.phaseOne(); // tutorial
             break;
             case(2):
-                this.phaseTwo();
+                this.phaseTwo(); // survial
             break;
             case(3):
-                this.phaseThree();
+                this.phaseThree(); // GOB transition
             break;
             case(4):
-                this.phaseFour();
+                this.phaseFour(); // GOB fight
             break;
             case(5):
-                this.phaseFive();
+                this.phaseFive(); // GOB win
             break;
         }
         this.handleCamera();
@@ -193,6 +209,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.handleBoss();
         this.sharedTimer++;
         this.sharedPhaseTimer++;
+        this.bulletSoundPlayedTimer--;
     }
 
     handleBoss() {
@@ -217,6 +234,13 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                 this.y+=EngineUtils.randomRange(-(12-this.timeSinceLastHit),12-this.timeSinceLastHit);
             }
         }
+
+        // move boss:
+        var dx = this.bossTargetX - this.sourceX
+        var dy = this.bossTargetY - this.sourceY
+
+        this.sourceX +=dx/32;
+        this.sourceY +=dy/32;
 
         this.timeSinceLastHit++;
         this.animation.update(1);
@@ -291,8 +315,9 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             case(4):
                 this.player.setCanFire(true);
                 IM.find(FinalMinigameWeapon).setShouldPauseOnHit(false); // too many enemies, don't pause
-                this.maxHealth = 100 + this.getNumCheats()*25; // 25 extra HP per cheat, max health is 350 (this is here for testing, re-evaluates what is above)
+                this.maxHealth = 100 + this.getNumCheats()*10; // 10 extra HP per cheat, max health is 200 (this is here for testing, re-evaluates what is above)
                 this.currentHealth = this.maxHealth;
+                this.healthBar.setMax(this.maxHealth);
             break;
             case(5):
             break;
@@ -551,6 +576,8 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 
             this.sourceX = $engine.getWindowSizeX()/2;
             this.sourceY = this.y;
+            this.bossTargetX = $engine.getWindowSizeX()/2;
+            this.bossTargetY = this.y;
         }
 
         if(this.sharedPhaseTimer===300) {
@@ -601,30 +628,52 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         }
     }
 
+    // please forgive my spaghetti. *ahem* game jam game jam game jam
     phaseFour() { // boss battle!
+        var finalStand = false;
+        if($engine.isDifficulty(ENGINE_DIFFICULTY.HARD)) {
+            finalStand = (this.currentHealth/this.maxHealth < 0.5); // on hard mode, start hard attacks earlier.
+        } else {
+            finalStand = (this.currentHealth/this.maxHealth < 0.3333);
+        }
+
+        if(this.currentHealth/this.maxHealth < 0.2)
+            this.healthBar.setFlashing(true); // ALMOST THERE
+
         if(this.genericTimer<0) {
             var rand = EngineUtils.random(1);
             var healthFac = (1-this.currentHealth/this.maxHealth) // value between 0 and 1 where 0 means that the boss is full health
 
 
             // 75% chance to idle if you didn't cheat.
-            rand-= healthFac/8 * 5; // reduce to 12.5% chance of idle at 0HP
+            rand-= healthFac*0.75; // reduce to 0% chance of idle at 0HP
             rand-= (0.75 * (this.getNumCheats() / this.getNumPossibleCheats())) // always attacking if you cheated max times
+
 
             if(rand>0.25 || this.attacked) { // always idle after an attack, but also chance to idle anyway
                 EngineUtils.setAnimation(this.animation,this.animationIdle);
-                this.genericTimer = EngineUtils.irandomRange(120,240) // wait 2-4 seconds and then do another attack
+                if(finalStand && !$engine.isDifficulty(ENGINE_DIFFICULTY.EASY)) {
+                    this.genericTimer = EngineUtils.irandomRange(60,120) // on final stand, attack faster UNLESS easy mode
+                } else {
+                    this.genericTimer = EngineUtils.irandomRange(120,240)
+                }
+                
                 this.attacked = false;
                 return;
             }
             this.attacked = true;
 
-            rand = EngineUtils.irandom(9);
+            if(finalStand && $engine.isDifficulty(ENGINE_DIFFICULTY.EASY)) { // unleash the H A R D   A T T A C K S
+                rand = EngineUtils.irandom(16);
+            } else {
+                rand = EngineUtils.irandom(12);
+            }
+            
 
             // choose a random main attack
             if(rand===0) { // spinny boi
                 EngineUtils.setAnimation(this.animation,this.animationDirect);
-                this.sequenceAttackCircleRotate(this.x,this.y + 110)
+                this.sequenceAttackCircleRotate(this.x,this.y + 125)
                 this.genericTimer = 360
             } else if(rand===1) { // damage zones
                 EngineUtils.setAnimation(this.animation,this.animationExternal);
@@ -637,7 +686,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             } else if(rand===3) { // wipe
                 EngineUtils.setAnimation(this.animation,this.animationDirect);
                 for(var i =0;i<4;i++) {
-                    this.delayedAction(i*90, this.sequenceAttackWipeFull,110);
+                    this.delayedAction(i*90, this.sequenceAttackWipeFull,this.x,125);
                 }
                 this.genericTimer = 90*4
             } else if(rand===4) { // corners
@@ -657,7 +706,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                 EngineUtils.setAnimation(this.animation,this.animationDirect);
                 for(var i =0;i<8;i++) {
                     this.delayedAction(i*30,function() {
-                        this.attackFireLine(this.x,this.y + 110,V2D.calcDir(this.player.x-this.x, -(this.player.y-(this.y+110))));
+                        this.attackFireLine(this.x,this.y + 125,V2D.calcDir(this.player.x-this.x, -(this.player.y-(this.y+125))));
                     });
                 }
                 this.genericTimer = 7*30;
@@ -667,23 +716,86 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                 this.genericTimer = 45*4;
             } else if(rand===9) { // star direct
                 EngineUtils.setAnimation(this.animation,this.animationDirect);
-                this.attackStar(this.x,this.y+110,16,5,6,0);
+                this.attackStar(this.x,this.y+125,16,5,6,0);
                 this.genericTimer = 120
+            } else if(rand === 10 && this.bossTargetX !== $engine.getWindowSizeX()/2-256) { // move boss to left
+                EngineUtils.setAnimation(this.animation,this.animationIdle);
+                if(this.bossTargetX === $engine.getWindowSizeX()/2-256) { // can't move to same location
+                    this.bossTargetX = $engine.getWindowSizeX()/2;
+                } else {
+                    this.bossTargetX = $engine.getWindowSizeX()/2-256;
+                }
+                this.genericTimer = 60;
+            } else if (rand===11) { // move boss to center
+                EngineUtils.setAnimation(this.animation,this.animationIdle);
+                if(this.bossTargetX === $engine.getWindowSizeX()/2) { // can't move to same location
+                    this.bossTargetX = $engine.getWindowSizeX()/2+256;
+                } else {
+                    this.bossTargetX = $engine.getWindowSizeX()/2;
+                }
+                this.genericTimer = 60;
+            } else if(rand === 12 && this.bossTargetX !== $engine.getWindowSizeX()/2+256) { // move boss right
+                EngineUtils.setAnimation(this.animation,this.animationIdle);
+                if(this.bossTargetX === $engine.getWindowSizeX()/2+256) { // can't move to same location
+                    this.bossTargetX = $engine.getWindowSizeX()/2;
+                } else {
+                    this.bossTargetX = $engine.getWindowSizeX()/2+256;
+                }
+                this.genericTimer = 60;
+            } else if (rand===13) { // harder version of grid
+                EngineUtils.setAnimation(this.animation,this.animationExternal);
+                this.sequenceAttackGrid(5,90)
+                this.genericTimer = 520
+            } else if(rand===14) { // harder version of fire lines
+                EngineUtils.setAnimation(this.animation,this.animationDirect);
+                for(var i =0;i<5;i++) {
+                    this.delayedAction(i*45,function() {
+                        this.attackFireLine(this.x,this.y + 125,V2D.calcDir(this.player.x-this.x, -(this.player.y-(this.y+125))),5,6);
+                    });
+                    this.delayedAction(i*45-15,function() {
+                        this.attackFireLine(this.x,this.y + 125,V2D.calcDir(this.player.x-this.x, -(this.player.y-(this.y+125))) - Math.PI / 4,5,6);
+                    });
+                    this.delayedAction(i*45+15,function() {
+                        this.attackFireLine(this.x,this.y + 125,V2D.calcDir(this.player.x-this.x, -(this.player.y-(this.y+125))) + Math.PI / 4,5,6);
+                    });
+                }
+                this.genericTimer = 5*45;
+            } else if(rand===15) { // 5 stars across the top of the screen
+                EngineUtils.setAnimation(this.animation,this.animationExternal);
+                var xStart = $engine.getWindowSizeX()/2-256;
+                var diff = 128;
+                for(var i =0;i<5;i++) {
+                    this.delayedAction(i*40,this.attackStar,xStart+diff*i,this.y,6,6,3);
+                }
+                this.genericTimer=40*5;
+
+            } else if(rand === 16) { // fast wipe with star as well
+                EngineUtils.setAnimation(this.animation,this.animationDirect);
+                this.delayedAction(45,function() { // arm for 45 frames
+                    for(var i =0;i<4;i++) {
+                        this.delayedAction(i*60, this.sequenceAttackWipeFull,this.x,125);
+                    }
+                    this.attackStar(this.x,this.y+125,8,5,4,0);
+                    this.delayedAction(120,this.attackStar,this.x,this.y+125,8,5,4,Math.PI/8) // offset by half the angle of the last
+                    
+                })
+                this.genericTimer = 60*4 + 45
+                
             }
         }
 
         if(this.genericTimer2<0) { // random add attacks, scales with cheats
             var cheatFactor = (this.getNumCheats() / this.getNumPossibleCheats()) // 1 if always cheated, 0 if never
 
-            this.genericTimer2 = EngineUtils.irandomRange(600,720) * (1.4-cheatFactor/2);
+            this.genericTimer2 = EngineUtils.irandomRange(600,720) * (1.5-cheatFactor/2);
 
             var rand = EngineUtils.irandom(2)
             if(rand===0) { // homing delayed
-                this.sequenceAttackHoming(4 + this.getNumCheats());
+                this.sequenceAttackHoming(2 + this.getNumCheatsClamped(0,4),60);
             } else if (rand===1) { // damage zone add
                 this.sequenceAttackDamageZones(150,100,100,4);
             } else if(rand===2) { // homing all at once
-                this.sequenceAttackHoming(2+this.getNumCheatsClamped(0,6),0);
+                this.sequenceAttackHoming(1+this.getNumCheatsClamped(0,4),0);
             }
         }
         this.genericTimer--;
@@ -712,11 +824,11 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.delayedAction(10,this.attackWipe,$engine.getWindowSizeX()/2,this.getCameraTop() + offset,Math.PI+fac,Math.PI*2-fac,1,30,6)
     }
 
-    sequenceAttackWipeFull(offset = 0) { // variant that attack slightly behind for final
+    sequenceAttackWipeFull(x,offset = 0) { // variant that attack slightly behind for final
         var fac = -Math.PI/16;
-        this.attackWipe($engine.getWindowSizeX()/2,this.getCameraTop() + offset,Math.PI+fac,Math.PI*2-fac,1,30,6);
-        this.delayedAction(5,this.attackWipe,$engine.getWindowSizeX()/2,this.getCameraTop() + offset,Math.PI+fac,Math.PI*2-fac,1,30,6)
-        this.delayedAction(10,this.attackWipe,$engine.getWindowSizeX()/2,this.getCameraTop() + offset,Math.PI+fac,Math.PI*2-fac,1,30,6)
+        this.attackWipe(x,this.getCameraTop() + offset,Math.PI+fac,Math.PI*2-fac,1,30,6);
+        this.delayedAction(5,this.attackWipe,x,this.getCameraTop() + offset,Math.PI+fac,Math.PI*2-fac,1,30,6)
+        this.delayedAction(10,this.attackWipe,x,this.getCameraTop() + offset,Math.PI+fac,Math.PI*2-fac,1,30,6)
     }
 
     sequenceAttackLines(times) {
@@ -832,8 +944,8 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         if(this.sharedPhaseTimer%32===0) {
             var right = this.totalWidth;
             for(var i =0;i<4;i++) {
-                new MoveLinearBullet((i+1)*48-64,this.getCameraTop()-32,Math.PI/2*3,2);
-                new MoveLinearBullet(right-(i+1)*48,this.getCameraTop()-32,Math.PI/2*3,2);
+                new MoveLinearBullet((i+1)*48-64,this.getCameraTop()-32,Math.PI/2*3,2,false);
+                new MoveLinearBullet(right-(i+1)*48,this.getCameraTop()-32,Math.PI/2*3,2,false);
             }
         }
     }
@@ -867,7 +979,21 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         var num = 16;
         var dx = (this.totalWidth-64)/num;
         for(var i =0;i<=num+1;i++) {
-            new MoveLinearBullet(dx*i+this.cameraLeft/2,this.getCameraTop()-32,Math.PI/2*3,2)
+            new MoveLinearBullet(dx*i+this.cameraLeft/2,this.getCameraTop()-32,Math.PI/2*3,2,false)
+        }
+    }
+
+    /**
+     * @param {Number} direction 1 for aim right, 0 for left
+     */
+     attackLineHorizontal(direction) {
+        var num = 24;
+        var dy = ($engine.getWindowSizeY()*2)/num;
+        var yy = this.getCameraTop()-$engine.getWindowSizeY();
+        var dir = direction ? 0 : Math.PI;
+        var offset = direction ? -32 : this.totalWidth+32;
+        for(var i =0;i<=num+1;i++) {
+            new MoveLinearBullet(offset,yy+dy*i,dir,2,false)
         }
     }
 
@@ -897,20 +1023,6 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         }
     }
 
-    /**
-     * @param {Number} direction 1 for aim right, 0 for left
-     */
-    attackLineHorizontal(direction) {
-        var num = 24;
-        var dy = ($engine.getWindowSizeY()*2)/num;
-        var yy = this.getCameraTop()-$engine.getWindowSizeY();
-        var dir = direction ? 0 : Math.PI;
-        var offset = direction ? -32 : this.totalWidth+32;
-        for(var i =0;i<=num+1;i++) {
-            new MoveLinearBullet(offset,yy+dy*i,dir,2)
-        }
-    }
-
     getCameraTop() {
         return $engine.getCamera().getY();
     }
@@ -928,7 +1040,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.currentHealth--;
         this.healthBar.setValue(this.currentHealth);
         this.checkBossDeath(); 
-        this.shake(8); // B I G   H I T
+        this.shake(4); // since it happens so much, small shake
         this.animation.filters = [this.sharedGlowFilter]
         $engine.audioPlaySound("final_enemy_hit").speed = EngineUtils.randomRange(0.8,1.2);
     }
@@ -1817,7 +1929,7 @@ class FinalMinigameTarget extends Shootable {
 
 class MoveLinearBullet extends EngineInstance {
 
-    onCreate(x,y,direction, speed, anim = "bullet_animation") {
+    onCreate(x,y,direction, speed, makeNoise = true, anim = "bullet_animation") {
         this.x = x;
         this.y = y;
         this.direction=direction;
@@ -1846,6 +1958,10 @@ class MoveLinearBullet extends EngineInstance {
         this.randOffsetY = EngineUtils.random(240);
         this.randFactorY = EngineUtils.randomRange(1,8);
         this.randPeriodY = EngineUtils.randomRange(8,48)
+
+        if(makeNoise) {
+            FinalMinigameController.getInstance().playBulletSound();
+        }
     }
 
     disableRandom() {

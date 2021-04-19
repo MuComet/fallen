@@ -767,6 +767,23 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
+     * Checks whether the engine's difficulty is set to the passed in value.
+     * @param {Number} difficulty The difficulty to check 
+     * @returns {Boolean} Whether or not the difficulty is set to the argument
+     */
+    isDifficulty(difficulty) {
+        return $__engineSaveData.difficulty === difficulty;
+    }
+
+    /**
+     * 
+     * @returns The difficulty of the engine, corrected to be between -1 and 1. -1 means easy and 1 means hard.
+     */
+    getDifficultyCorrected() {
+        return $__engineSaveData.difficulty - 1;
+    }
+
+    /**
      * Saves the game into the RPG maker save. If the save fails, a notification will be displayed.
      */
     saveGame() {
@@ -2295,6 +2312,20 @@ DataManager.saveGlobalInfo = function(info) {
     $engine.saveEngineGlobalData();
 };
 
+// record the last event id for multi events.
+Game_Interpreter.prototype.clear = function() {
+	this._lastEventId = this._eventId;
+    this._mapId = 0;
+    this._eventId = 0;
+    this._list = null;
+    this._index = 0;
+    this._waitCount = 0;
+    this._waitMode = '';
+    this._comments = '';
+    this._character = null;
+    this._childInterpreter = null;
+};
+
 // append to the save system.
 {
     let func1 = DataManager.makeSaveContents;
@@ -2794,6 +2825,13 @@ class OwO {
 
     static activateEvent(eventId) {
         OwO.getEvent(eventId)._starting = true;
+    }
+
+    static multiEvent(eventId) {
+        if($gameMap._interpreter._lastEventId === eventId) { // it already ran, don't do it again.
+            return;
+        }
+        OwO.activateEvent(eventId);
     }
 
     /**

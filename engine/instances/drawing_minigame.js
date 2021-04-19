@@ -137,10 +137,10 @@ class DrawController extends MinigameController { // controls the minigame
         // start drawing
         if(this.waitTimer >=60 && !this.drawing && this.buffer.consumeImmedaitely() && IN.mouseInBounds()) {
             this.currentLine = new DrawableLine()
-            this.currentLine.startDrawing();
             this.currentLine.drawing = this.drawings[this.drawingInd];
             this.drawings[this.drawingInd].line = this.currentLine;
             this.drawing = true;
+            this.currentLine.startDrawing();
         }
 
         // end drawiing
