@@ -245,7 +245,7 @@ class PuyoBoard extends EngineInstance {
                 this.dropRate = 34 - (($engine.getWindowSizeY() - this.board[this.currentY[0]][this.currentX[0]].getPuyo().y - 1) % 35)
             }
         }
-        if(IN.keyCheck('ArrowDown')){
+        if(IN.keyCheck('RPGdown')){
             this.dropRate+=10
             this.score+=1
             this.board[this.currentY[0]][this.currentX[0]].getPuyo().fastfall()
@@ -255,7 +255,7 @@ class PuyoBoard extends EngineInstance {
             this.board[this.currentY[0]][this.currentX[0]].getPuyo().fall()
             this.board[this.currentY[1]][this.currentX[1]].getPuyo().fall()
         }
-        if(IN.keyCheck('ArrowRight')){
+        if(IN.keyCheck('RPGright')){
             if(this.movePossible(0) && this.bufferRight >= 8){
                 this.removePuyos(0)
                 this.currentX[0]++
@@ -268,7 +268,7 @@ class PuyoBoard extends EngineInstance {
                     this.dropRate = 0
                 }
             }
-        } else if(IN.keyCheck('ArrowLeft')){
+        } else if(IN.keyCheck('RPGleft')){
             if(this.movePossible(1) && this.bufferLeft >= 8){
                 this.removePuyos(0)
                 this.currentX[0]--
@@ -281,7 +281,12 @@ class PuyoBoard extends EngineInstance {
                     this.dropRate = 0
                 }
             }
-        } if(IN.keyCheckPressed('KeyX')){
+        } else if($engine.hasItem(ENGINE_ITEMS.ENIGMA_DECRYPTER)){
+            if(IN.keyCheck('RPGup')){
+                this.state = 2
+            }
+        }
+        if(IN.keyCheckPressed('KeyX')){
             this.rotateController(0)
         } else if(IN.keyCheckPressed('KeyZ')){
             this.rotateController(1)
