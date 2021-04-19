@@ -289,7 +289,7 @@ class TextBox extends EngineInstance {
 
         this.textSound = undefined;
         this.textSoundTimer = 0;
-        this.textSoundMinDelay = 6;
+        this.textSoundMinDelay = 4;
 
         this.isDone = false; // whether or not the end of the text has been reached.
 

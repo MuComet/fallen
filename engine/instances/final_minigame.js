@@ -620,7 +620,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         if(this.sharedPhaseTimer===300) {
             this.isBossActive=true;
             var arr = [];
-            arr.push("__portrait[gods_profiles_3]__voice[voice_high]So this is what it comes down to.__wait[30] Me against you.__wait[30] One on one.")
+            arr.push("__portrait[gods_profiles_3]__voice[voice_normal]So this is what it comes down to.__wait[30] Me against you.__wait[30] One on one.")
             arr.push("I must say,__wait[12] you really don't have a lot going on in the intelligence department,__wait[12] do you?__wait[30] "
                 + "Then again,__wait[30]__noShift[1]__portrait[gods_profiles_1] what is there to expect from a mere 600 year old Angel.__wait[24]__portrait[gods_profiles_3] "
                 + "The signs were all there Eson.")
@@ -633,13 +633,13 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
                 arr.push("__portrait[gods_profiles_3]Who's really the enemy here Eson?__wait[24] Me__wait[12]__speed[4]__noShift[0] or you?")
             }
             arr.push("__portrait[gods_profiles_1]How does it feel,__wait[12] knowing you'll die at my hands,__wait[12] never experiencing the sweet taste of that __speed[6]\"God tier\"__speed[0] bistro?__wait[60]__noShift[1]__portrait[gods_profiles_3] Anyway,__wait[12] It's about time I showed you what it really means to be a god.")
-            arr.push("Good luck,__wait[9] kid.__wait[30]__voice[voice_normal] __speed[5]You'll need it.")
+            arr.push("Good luck,__wait[9] kid.__wait[30]__voice[voice_deep] __speed[5]You'll need it.")
             this.textBox.setTextArray(arr);
             this.player.setCanFire(true);
         }
         if(this.hasBeenHurt) {
             this.player.setCanFire(false);
-            this.textBox.setTextArray(["__portrait[gods_profiles_0]__voice[voice_high]Are you kidding me?!__wait[24]__noShift[1]__portrait[profiles_gods_2] Can you seriously not wait 30 SECONDS for me to talk??__wait[30] Alright,__wait[12] it's on!"])
+            this.textBox.setTextArray(["__portrait[gods_profiles_0]__voice[voice_normal]Are you kidding me?!__wait[24]__noShift[1]__portrait[profiles_gods_2] Can you seriously not wait 30 SECONDS for me to talk??__wait[30] Alright,__wait[12] it's on!"])
         }
 
         if(this.sharedPhaseTimer>=300) {
