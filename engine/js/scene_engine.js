@@ -20,6 +20,7 @@ $__engineData.__shouldAutoSave = true;
 $__engineData.__deferredAssets = -1;
 $__engineData.__loadedDeferredAssets = -1;
 $__engineData.__currentMinigame = undefined; // for unlocking in minigame rush
+$__engineData.__difficulty = 1;
 
 
 // things to unbork:
@@ -106,15 +107,16 @@ const SET_ENGINE_RETURN = function(indexOutcome, indexCheat, indexWriteAutoSet =
 }
 
 const SET_ENGINE_COST = function(cost) {
-    var difficulty = $__engineSaveData.difficulty;
-    if(difficulty===0) { // easy mde
+    var difficulty = $engine.getSaveData().difficulty;
+    if(difficulty===ENGINE_DIFFICULTY.EASY) { // easy mde
         if(cost%10===5)
             cost-=5;
         $__engineSaveData.__staminaCost = cost / 2;
-    } else if (difficulty===1) { // standard mode
+    } else if (difficulty===ENGINE_DIFFICULTY.MEDIUM) { // standard mode
         $__engineSaveData.__staminaCost = cost;
-    } else if (difficulty===2) { // hard mode
+    } else if (difficulty===ENGINE_DIFFICULTY.HARD) { // hard mode
         $__engineSaveData.__staminaCost = EngineUtils.clamp(cost * 2,0,100);
+        console.log(cost,$__engineSaveData.__staminaCost);
     } else {
         throw new Error("Engine difficulty not set.")
     }
@@ -1476,7 +1478,9 @@ class Scene_Engine extends Scene_Base {
         $__engineSaveData.__lastMinigameOutcome = -1;
         $__engineSaveData.__mapData={};
         $__engineSaveData.day=0;
-        $__engineSaveData.difficulty=1; // default to easy mode
+        $__engineSaveData.difficulty=$__engineData.__difficulty;
+
+        $__engineData.__difficulty = 1; // reset carry difficulty.
 
         $__engineSaveData.__outcomeWriteBackValue = -1
         $__engineSaveData.outcomeWriteBackIndex = -1;

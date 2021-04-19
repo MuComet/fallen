@@ -214,7 +214,7 @@ class MenuIntroController extends EngineInstance {
                 button.disable();
             })
             AudioManager.playSe($engine.generateAudioReference("GameStart"))
-            return true
+            return true;
         }
 
         var commonPressedScript = function() {
@@ -231,7 +231,7 @@ class MenuIntroController extends EngineInstance {
         });
         this.buttons.difficultyEasy.setOnPressed(function() {
             commonPressedScript.call(this);
-            $engine.getSaveData().difficulty = ENGINE_DIFFICULTY.EASY;
+            $__engineData.__difficulty = ENGINE_DIFFICULTY.EASY;
         });
         this.buttons.difficultyEasy.setOnSelected(function() {
             difficultyTextBox.setTextArray(["Easy mode halves stamina loss.\nCannot buy new items."]);
@@ -243,7 +243,7 @@ class MenuIntroController extends EngineInstance {
         });
         this.buttons.difficultyNormal.setOnPressed(function() {
             commonPressedScript.call(this);
-            $engine.getSaveData().difficulty = ENGINE_DIFFICULTY.MEDIUM;
+            $__engineData.__difficulty = ENGINE_DIFFICULTY.MEDIUM;
         });
         this.buttons.difficultyNormal.setOnSelected(function() {
             difficultyTextBox.setTextArray(["The intended way to play Fallen."]);
@@ -256,7 +256,7 @@ class MenuIntroController extends EngineInstance {
         });
         this.buttons.difficultyHard.setOnPressed(function() {
             commonPressedScript.call(this);
-            $engine.getSaveData().difficulty = ENGINE_DIFFICULTY.HARD;
+            $__engineData.__difficulty = ENGINE_DIFFICULTY.HARD;
         });
         this.buttons.difficultyHard.setOnSelected(function() {
             difficultyTextBox.setTextArray(["Doubles stamina loss.\nSave deleted on loss.\nSpecial border unlocked when getting an ending"]);
@@ -328,6 +328,9 @@ class MenuIntroController extends EngineInstance {
     }
 
     startSelectedMinigame() {
+        IM.with(MainMenuButton,function(button) {
+            button.disable();
+        })
         $engine.audioFadeAll();
         $engine.setRoom(this.getSelectedMingame().room)
         $engine.overrideRoomChange("MenuIntro")

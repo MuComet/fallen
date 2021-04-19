@@ -116,21 +116,15 @@ selector_cloud engine/textures/garden/selector_cloud.png 0.5 0.5
 spritesheet dimensions 4500 624 5 1 background_garden1 engine/textures/backgrounds/background_garden2.png 0.5 0.5
 spritesheet dimensions 464 74 8 1 animate worm_anim 14 0 1  2 3 4 5 7 7 5 4 3 2 1 0 alias 6 garden_worm_dead worm engine/textures/garden/worm_sheet.png 0.5 0.5
 
-plant_1_ded engine/textures/water/plant1-ded.png 0.5 0.5
-plant_2_ded engine/textures/water/plant2-ded.png 0.5 0.5
-plant_3_ded engine/textures/water/plant3-ded.png 0.5 0.5
-
 wall_tile engine/textures/crate/wall_tile.png 0 0
 box_break engine/textures/crate/box_break.png 0 0
 spritesheet dimensions 192 64 3 1 crate_normal engine/textures/crate/crate_sprites_normal.png 0 0
 spritesheet dimensions 192 64 3 1 crate_marked engine/textures/crate/crate_sprites_marked.png 0 0
 spritesheet dimensions 6528 1248 4 1 animate crate_mask_animation 4 0 1 2 3 lamp_mask engine/textures/crate/mask.png 0.5 0.5
 
-water1 engine/textures/water/water_can_1.png 0.5 0.5
-water2 engine/textures/water/water_can_2.png 0.5 0.5
-water3 engine/textures/water/water_can_3.png 0.5 0.5
-water4 engine/textures/water/water_can_4.png 0.5 0.5
-animate water1 water1 water2 water2 water3 water3 water3 water3 water4 water4 water4 water4 water4 water_can_anim
+spritesheet dimensions 150 74 3 1 alias 0 plant_1_ded alias 1 plant_2_ded alias 2 plant_3_ded plant_dead engine/textures/water/plant_dead_sheet.png 0.5 0.5
+
+spritesheet dimensions 400 100 4 1 animate water_can_anim 13 0 0 1 1 2 2 2 2 3 3 3 3 3 water_can engine/textures/water/water_can_sheet.png 0.5 0.5
 
 arrow_down engine/textures/water/arrow_down.png 0 0
 arrow_left engine/textures/water/arrow_left.png 0 0
