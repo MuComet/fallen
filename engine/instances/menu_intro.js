@@ -15,6 +15,8 @@ class MenuIntroController extends EngineInstance {
         this.activeButtons = [];
         this.activeButton = undefined;
 
+        this.backButton = undefined;
+
         this.letters = [];
         //var locX = [37,159,308,451,522,671];
         var locX = [60, 160, 290, 418, 544, 660, 785, 900];
@@ -57,8 +59,17 @@ class MenuIntroController extends EngineInstance {
         this.createButtons();
     }
 
+    registerBackButton(button) {
+        this.backButton = button;
+    }
+
     setupMainMenuButtons() {
         // main menu
+
+        this.buttons.extrasButton.setOnPressed(function() {
+            MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_EXTRAS);
+        })
+
         this.buttons.continueButton.setOnPressed(function() {
             SceneManager.goto(Scene_Map);
             var oldFunc = $engine.terminate;
@@ -163,12 +174,20 @@ class MenuIntroController extends EngineInstance {
         this.buttons.difficultyHard.disableClickSound();
     }
 
+    setupExtraButtons() {
+        this.buttons.extras.buttonBack.setOnPressed(function() {
+            MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_MAIN);
+        })
+    }
+
     createButtons() {
         this.buttons = {};
-        this.buttons.continueButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+120);
-        this.buttons.continueButton.setTextures("button_continue_1","button_continue_1","button_continue_2")
-        this.buttons.startButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2);
-        this.buttons.startButton.setTextures("button_new_game_1","button_new_game_1","button_new_game_2")
+        this.buttons.extrasButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+170);
+        this.buttons.extrasButton.setTextures("buttons_main_0","buttons_main_0","buttons_main_1")
+        this.buttons.continueButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2+70);
+        this.buttons.continueButton.setTextures("buttons_main_2","buttons_main_2","buttons_main_3")
+        this.buttons.startButton = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2-30);
+        this.buttons.startButton.setTextures("buttons_main_4","buttons_main_4","buttons_main_5")
         
         var offsetDifficulty = $engine.getWindowSizeY();
 
@@ -181,8 +200,24 @@ class MenuIntroController extends EngineInstance {
         this.buttons.difficultyHard = new MainMenuButton($engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2 + 100 + offsetDifficulty);
         this.buttons.difficultyHard.setTextures("difficulty_buttons_4","difficulty_buttons_4","difficulty_buttons_5")
 
+        var offsetExtras = $engine.getWindowSizeX()+50;
+
+        this.buttons.extras = {};
+
+        this.buttons.extras.buttonBonus = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2-150);
+        this.buttons.extras.buttonBonus.setTextures("buttons_extra_0","buttons_extra_0","buttons_extra_1")
+        this.buttons.extras.buttonMinigameRush = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2-50);
+        this.buttons.extras.buttonMinigameRush.setTextures("buttons_extra_2","buttons_extra_2","buttons_extra_3")
+        this.buttons.extras.buttonBrowse = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2+50);
+        this.buttons.extras.buttonBrowse.setTextures("buttons_extra_6","buttons_extra_6","buttons_extra_7")
+        this.buttons.extras.buttonEndings = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2+150);
+        this.buttons.extras.buttonEndings.setTextures("buttons_extra_4","buttons_extra_4","buttons_extra_5")
+        this.buttons.extras.buttonBack = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras - 250,$engine.getWindowSizeY()/2);
+        this.buttons.extras.buttonBack.setTextures("back_button_0","back_button_0","back_button_1")
+
         this.setupMainMenuButtons();
         this.setupDifficultyButtons();
+        this.setupExtraButtons();
     }
 
     handleFloatingObjects() {
@@ -247,6 +282,11 @@ class MenuIntroController extends EngineInstance {
             this.cycleButtonBackward();
         if(IN.keyCheckPressed("RPGup") || IN.keyCheckPressed("RPGleft"))
             this.cycleButtonForward();
+
+        if(IN.keyCheckPressed("RPGescape") && this.backButton) {
+            this.backButton.setSelected();
+            this.backButton.testPress();
+        }
     }
 
     step() {
@@ -359,6 +399,8 @@ class MenuIntroController extends EngineInstance {
                 this.cameraTargetY = $engine.getWindowSizeY();
             break;
             case(MenuIntroController.REGION_EXTRAS):
+                this.cameraTargetX = $engine.getWindowSizeX();
+                this.cameraTargetY = 0;
             break;
             case(MenuIntroController.REGION_ENDINGS):
             break;
@@ -379,7 +421,9 @@ class MenuIntroController extends EngineInstance {
                 this.buttons.startButton.setSelected();
                 this.buttons.startButton.enable();
                 this.buttons.continueButton.enable();
-                this.activeButtons = [this.buttons.continueButton, this.buttons.startButton]
+                this.buttons.extrasButton.enable();
+                this.activeButtons = [this.buttons.continueButton, this.buttons.startButton,this.buttons.extrasButton]
+                this.registerBackButton(undefined)
             break;
             case(MenuIntroController.REGION_DIFFICULTY):
                 this.buttons.difficultyBack.setSelected();
@@ -388,8 +432,18 @@ class MenuIntroController extends EngineInstance {
                 this.buttons.difficultyHard.enable();
                 this.buttons.difficultyBack.enable();
                 this.activeButtons = [this.buttons.difficultyHard, this.buttons.difficultyNormal, this.buttons.difficultyEasy, this.buttons.difficultyBack]
+                this.registerBackButton(this.buttons.difficultyBack);
             break;
             case(MenuIntroController.REGION_EXTRAS):
+                this.buttons.extras.buttonBack.setSelected();
+                this.buttons.extras.buttonBack.enable();
+                this.buttons.extras.buttonBonus.enable();
+                this.buttons.extras.buttonMinigameRush.enable();
+                this.buttons.extras.buttonBrowse.enable();
+                this.buttons.extras.buttonEndings.enable();
+                this.activeButtons = [this.buttons.extras.buttonBack,this.buttons.extras.buttonEndings,this.buttons.extras.buttonBrowse,
+                            this.buttons.extras.buttonMinigameRush,this.buttons.extras.buttonBonus]
+                this.registerBackButton(this.buttons.extras.buttonBack);
             break;
             case(MenuIntroController.REGION_ENDINGS):
             break;
@@ -547,7 +601,32 @@ class RisingSprite extends EngineInstance {
     }
 }
 
-class MainMenuButton extends EngineInstance {
+class FloatingObject extends EngineInstance {
+    onCreate(x,y) {
+        this.x = x;
+        this.y = y;
+        this.xStart = x;
+        this.yStart = y;
+        this.ox = 0;
+        this.oy = 0;
+        this.rand1 = EngineUtils.irandom(128);
+        this.rand2 = EngineUtils.irandom(128);
+        this.rand3 = EngineUtils.irandom(128);
+        this.rand4 = EngineUtils.irandomRange(64,128);
+    }
+
+    step() {
+        this.angle = Math.sin(($engine.getGameTimer()+this.rand3)/this.rand4)/16
+        var diffX = (this.ox - (IN.getMouseX()-this.x)/8)
+        var diffY = (this.oy - (IN.getMouseY()-this.y)/8)
+        this.ox -= diffX/60;
+        this.oy -= diffY/60;
+        this.x = this.xStart + 10 * Math.sin(($engine.getGameTimer()+this.x+this.rand2)/64) + this.ox;
+        this.y = this.yStart + 10 *  Math.cos(($engine.getGameTimer()+this.y+this.rand1)/64) + this.oy;
+    }
+}
+
+class MainMenuButton extends FloatingObject {
     onEngineCreate() {
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-368,-125,368,125));
         this.alpha = 0;
@@ -571,16 +650,7 @@ class MainMenuButton extends EngineInstance {
     }
 
     onCreate(x,y) {
-        this.x = x;
-        this.y = y;
-        this.xStart = x;
-        this.yStart = y;
-        this.ox = 0;
-        this.oy = 0;
-        this.rand1 = EngineUtils.irandom(128);
-        this.rand2 = EngineUtils.irandom(128);
-        this.rand3 = EngineUtils.irandom(128);
-        this.rand4 = EngineUtils.irandomRange(64,128);
+        super.onCreate(x,y);
         this.outlineFilter = new PIXI.filters.OutlineFilter(8,0xffffff);
         this.fitlers = [];
         this.framesSinceEnabled=0;
@@ -645,13 +715,7 @@ class MainMenuButton extends EngineInstance {
     }
 
     step() {
-        this.angle = Math.sin(($engine.getGameTimer()+this.rand3)/this.rand4)/16
-        var diffX = (this.ox - (IN.getMouseX()-this.x)/8)
-        var diffY = (this.oy - (IN.getMouseY()-this.y)/8)
-        this.ox -= diffX/60;
-        this.oy -= diffY/60;
-        this.x = this.xStart + 10 * Math.sin(($engine.getGameTimer()+this.x+this.rand2)/64) + this.ox;
-        this.y = this.yStart + 10 *  Math.cos(($engine.getGameTimer()+this.y+this.rand1)/64) + this.oy;
+        super.step();
         this.outlineTick();
 
 

@@ -13,12 +13,12 @@ $__engineData.__haltAndReturn = false;
 $__engineData.__ready = false;
 $__engineData.__fullyReady = false;
 $__engineData.loadRoom = "MenuIntro";
-$__engineData.__lowPerformanceMode = false;
 $__engineData.__overrideRoom = undefined;
 $__engineData.__readyOverride = true;
 $__engineData.__shouldAutoSave = true;
 $__engineData.__deferredAssets = -1;
 $__engineData.__loadedDeferredAssets = -1;
+$__engineData.__currentMinigame = undefined; // for unlocking in minigame rush
 
 
 // things to unbork:
@@ -66,6 +66,25 @@ ENGINE_ITEMS.FERTILIZER = {name:"Fertilizer", shop:[0,8,0,0],persistent:false};
 ENGINE_ITEMS.PLUNGER = {name:"Plunger", shop:[0,9,0,0],persistent:false};
 ENGINE_ITEMS.ENIGMA_DECRYPTER = {name:"Enigma Decrypter", shop:[0,10,0,0],persistent:false};
 ENGINE_ITEMS.BRICK_LAYER = {name:"Brick Layer", shop:[0,11,0,0],persistent:false};
+
+const ENGINE_MINIGAMES = {} // names are never actually used
+ENGINE_MINIGAMES.TUTORIAL = {name:"Tutorial"}
+ENGINE_MINIGAMES.SKYBUILD = {name:"Sand Castle"}
+ENGINE_MINIGAMES.WALL = {name:"Wall Building"}
+ENGINE_MINIGAMES.DRAW_1 = {name:"Drawing 1"}
+ENGINE_MINIGAMES.DRAW_2 = {name:"Drawing 2"}
+ENGINE_MINIGAMES.CATCH = {name:"Leaves"}
+ENGINE_MINIGAMES.DRAIN = {name:"Drain"}
+ENGINE_MINIGAMES.WORMS = {name:"Worms"}
+ENGINE_MINIGAMES.CARDS = {name:"Cards"}
+ENGINE_MINIGAMES.UMBRELLA = {name:"Umbrella"}
+ENGINE_MINIGAMES.GRAFFITI = {name:"Graffiti"}
+ENGINE_MINIGAMES.WATERING = {name:"Watering"}
+ENGINE_MINIGAMES.BOXES = {name:"Boxes"}
+ENGINE_MINIGAMES.MAZE = {name:"Maze"}
+ENGINE_MINIGAMES.WIRE = {name:"Wires"}
+ENGINE_MINIGAMES.VIDEO_GAME = {name:"Video Game"}
+ENGINE_MINIGAMES.FINALE = {name:"Finale"}
 
 // convenience functions for overworld progammers.
 
@@ -731,6 +750,14 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
+     * Purges all items that the player owns.
+     */
+    purgeItems() {
+        $__engineGlobalSaveData.items = {};
+        this.saveEngineGlobalData(); // saved immediately
+    }
+
+    /**
      * Finds and returns the engine item that corresponds to the given in game item name
      * 
      * @param {String} name The in game item name
@@ -766,12 +793,34 @@ class Scene_Engine extends Scene_Base {
         return items;
     }
 
+    hasMinigame(minigame) {
+        if(!$__engineGlobalSaveData.minigames)
+            $__engineGlobalSaveData.minigames = {};
+        return $__engineGlobalSaveData.minigames[minigame.name]!==undefined;
+    }
+
+    __unlockMinigame(minigame) {
+        if(!$__engineGlobalSaveData.minigames)
+            $__engineGlobalSaveData.minigames = {};
+        $__engineGlobalSaveData.items[minigame.name] = true;
+        this.saveEngineGlobalData(); // saved immediately
+    }
+
     /**
      * Requests that the engine is terminated and control is returned back
      * to the overworld at the start of the next frame.
      */
     endGame() {
         $__engineData.__haltAndReturn=true;
+    }
+
+    /**
+     * Sets the current minigame for unlock purposes in Minigame Rush
+     * 
+     * @param {ENGINE_MINIGAME} minigame The current minigame
+     */
+    setCurrentMinigame(minigame) {
+        $__engineData.__currentMinigame = minigame;
     }
 
     setOutcomeWriteBackValue(value) {
@@ -821,11 +870,17 @@ class Scene_Engine extends Scene_Base {
     }
 
     setLowPerformanceMode(bool) {
-        $__engineData.__lowPerformanceMode = bool;
+        var data = this.getEngineGlobalData();
+        data.__lowPerformanceMode = bool;
+        this.saveEngineGlobalData();
     }
 
     isLow() {
-        return $__engineData.__lowPerformanceMode;
+        return this.getEngineGlobalData().__lowPerformanceMode;
+    }
+
+    overworldFiltersDisabled() {
+        return this.getEngineGlobalData().__disableOverworldFilters;
     }
 
     /**
@@ -1058,6 +1113,19 @@ class Scene_Engine extends Scene_Base {
         OwO.resetTimeOfDay();
     }
 
+    __checkUnlockMingame() {
+        // check if it was a minigame (this also prevents a very specific bug related to loading autosaves)
+        var cheatIndex = $__engineSaveData.cheatWriteBackIndex;
+        var outcomeIndex = $__engineSaveData.outcomeWriteBackIndex;
+        if((outcomeIndex===-1 && cheatIndex===-1) || $__engineData.__currentMinigame === undefined)
+            return;
+        
+        if($__engineSaveData.__outcomeWriteBackValue===ENGINE_RETURN.LOSS) // gotta win
+            return;
+
+        this.__unlockMinigame($__engineData.__currentMinigame); // congrats, you win :)
+    }
+
     getMinigameOutcomeData() {
         return $__engineSaveData.__minigames
     }
@@ -1078,6 +1146,8 @@ class Scene_Engine extends Scene_Base {
         $__engineSaveData.cheatWriteBackIndex=-1;
         $__engineSaveData.__cheatWriteBackValue=-1;
         $__engineSaveData.autoSetWriteBackIndex=-1;
+
+        $__engineData.__currentMinigame === undefined
     }
     
     /**
@@ -1088,6 +1158,7 @@ class Scene_Engine extends Scene_Base {
         this.__cleanup();
         this.__recordOutcome();
         this.__writeBack();
+        this.__checkUnlockMingame();
         var shouldDie = this.__checkDeath();
         this.__resetVariables();
         this.__applyBlendModes();
@@ -2465,6 +2536,77 @@ Scene_Shop.prototype.prepare = function(goods, purchaseOnly) {
     this._item = null;
 };
 
+
+// add low performance mode option
+Window_Options.prototype.addGeneralOptions = function() {
+    this.addCommand(TextManager.alwaysDash, 'alwaysDash');
+    this.addCommand(TextManager.commandRemember, 'commandRemember');
+    this.addCommand('Low Performance Mode', 'commandQuality');
+    this.addCommand('Disable Filters', 'commandDisbleFilters');
+    
+};
+
+Window_Options.prototype.statusText = function(index) {
+    var symbol = this.commandSymbol(index);
+    var value = this.getConfigValue(symbol);
+    if(symbol === 'commandQuality') {
+        var data = $engine.getEngineGlobalData();
+        var low = data.__lowPerformanceMode;
+        return this.booleanStatusText(low);
+    }
+
+    if(symbol === 'commandDisbleFilters') {
+        var data = $engine.getEngineGlobalData();
+        var disable = data.__disableOverworldFilters;
+        return this.booleanStatusText(disable);
+    }
+
+    if (this.isVolumeSymbol(symbol)) {
+        return this.volumeStatusText(value);
+    } else {
+        return this.booleanStatusText(value);
+    }
+};
+
+Window_Options.prototype.processOk = function() {
+    var index = this.index();
+    var symbol = this.commandSymbol(index);
+
+    if(symbol==='commandQuality') {
+        var data = $engine.getEngineGlobalData();
+        var value = !data.__lowPerformanceMode;
+        data.__lowPerformanceMode = value;
+        $__engineData.__lowPerformanceMode = value; // write to current engine
+        $engine.saveEngineGlobalData(); // write to save
+
+        this.changeValue(symbol, value);
+        return;
+    }
+
+    if(symbol==='commandDisbleFilters') {
+        var data = $engine.getEngineGlobalData();
+        var value = !data.__disableOverworldFilters;
+        data.__disableOverworldFilters = value;
+        $__engineData.__disableOverworldFilters = value; // write to current engine
+        $engine.saveEngineGlobalData(); // write to save
+
+        this.changeValue(symbol, value);
+        return;
+    }
+
+    var value = this.getConfigValue(symbol);
+    if (this.isVolumeSymbol(symbol)) {
+        value += this.volumeOffset();
+        if (value > 100) {
+            value = 0;
+        }
+        value = value.clamp(0, 100);
+        this.changeValue(symbol, value);
+    } else {
+        this.changeValue(symbol, !value);
+    }
+};
+
 // since we upgraded our PIXIJS, the way that renderers are created was changed slightly.
 Graphics._createRenderer = function() {
     // PIXI.dontSayHello = true; // the actual line is PIXI.utils.skipHello(), but we don't use it anyway becuse: http://pixijs.download/next/docs/PIXI.utils.html#.sayHello
@@ -2835,7 +2977,7 @@ class OwO {
     }
 
     static __gameLoss() {
-        if($__engineSaveData.difficulty === ENGINE_DIFFICULTY.HARD)
+        if(this.isDifficulty(ENGINE_DIFFICULTY.HARD))
             $engine.deleteSave(); // hehe so long save
         $__engineData.loadRoom="GameOverRoom"
         SceneManager.goto(Scene_Engine)
@@ -3170,6 +3312,10 @@ class OwO {
     }
 
     static __applyMapFilters() {
+        if($engine.overworldFiltersDisabled()) {
+            OwO.getMapContainer().filters = []
+            return;
+        }
         if(!$engine.isLow())
             OwO.getMapContainer().filters = OwO.__gameFilters; // includes blur.
         else {
@@ -3286,8 +3432,7 @@ class OwO {
     }
 
     static __rebindRenderLayer() {
-        if(!$engine.isLow())
-            OwO.getSpriteset().children[0].addChild(OwO.__renderLayer);
+        OwO.getSpriteset().children[0].addChild(OwO.__renderLayer);
     }
 
     static __rebindSpecialRenderLayer() {
@@ -3550,8 +3695,7 @@ class OwO {
     // this method runs once per frame no matter what
     static tick() {
         OwO.__applyUpdateFunctions();
-        if(!$engine.isLow())
-            OwO.__renderLayerTick();
+        OwO.__renderLayerTick();
         OwO.__specialRenderLayerTick();
         if(!UwU.sceneIsMenu())
             OwO.__RPGgameTimer++;
@@ -3800,6 +3944,13 @@ UwU.addSceneCreateListener(GUIScreen.__sceneCreate);
     let json = StorageManager.load(-2);
     if(json) {
         $__engineGlobalSaveData = JSON.parse(json);
+    } else {
+        $__engineGlobalSaveData = {};
+        $__engineGlobalSaveData.__lowPerformanceMode = false;
+        $__engineGlobalSaveData.__disableOverworldFilters = false;
+        $__engineGlobalSaveData.items = {};
+        $__engineGlobalSaveData.__emergencyAutoSave = false;
+        $__engineGlobalSaveData.minigames = {};
     }
     
 }

@@ -18,7 +18,7 @@ SiblingStoryController engine/instances/sibling.js
 Umbrella UmbrellaPlayer Raindrop engine/instances/umbrella_minigame.js
 DrawController ShapeToDraw DrawableLine engine/instances/drawing_minigame.js
 GraffitiMinigameController ShapeToClean Droplet BubbleParticle engine/instances/graffiti_minigame.js
-MenuIntroController Letter RisingSprite MainMenuButton engine/instances/menu_intro.js
+MenuIntroController Letter RisingSprite FloatingObject MainMenuButton engine/instances/menu_intro.js
 RockMinigameController RockDodgingPlayer FallingRock engine/instances/falling_rocks.js
 SkyMinigameController SkyBuildPlayer FallingTowerPlatform engine/instances/sky_minigame.js
 CardMinigameController CardBoard engine/instances/card_minigame.js

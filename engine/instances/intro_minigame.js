@@ -104,17 +104,20 @@ class IntroMinigameController extends MinigameController {
 
         //$engine.pauseGameSpecial(this.text)
 
-        this.lighting = new LightingLayer();
-        this.lighting.setPixelsPerStep(6)
-
-        // get the mask as pixels.
-        var pixelSprite = new PIXI.Sprite($engine.getTexture("tutorial_sheet_1"));
-        pixelSprite.x = $engine.getWindowSizeX()/2;
-        pixelSprite.y = $engine.getWindowSizeY()/2;
-        this.lighting.renderSprite(pixelSprite);
-        this.lighting.updatePixels();
-        $engine.freeRenderable(pixelSprite);
-        this.lighting.raytraceFrom(IN.getMouseX(), IN.getMouseY())
+        if(!$engine.isLow()) {
+            this.lighting = new LightingLayer();
+            this.lighting.setPixelsPerStep(6)
+    
+            // get the mask as pixels.
+            var pixelSprite = new PIXI.Sprite($engine.getTexture("tutorial_sheet_1"));
+            pixelSprite.x = $engine.getWindowSizeX()/2;
+            pixelSprite.y = $engine.getWindowSizeY()/2;
+            this.lighting.renderSprite(pixelSprite);
+            this.lighting.updatePixels();
+            $engine.freeRenderable(pixelSprite);
+            this.lighting.raytraceFrom(IN.getMouseX(), IN.getMouseY())
+        }
+        
     }
 
     nextTutorial() {
@@ -304,6 +307,8 @@ class IntroMinigameController extends MinigameController {
     }
 
     renderRaytrace() {
+        if($engine.isLow())
+            return;
         if(!IN.mouseInBounds()) {
             this.lighting.clear();
             return;
