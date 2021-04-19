@@ -3,6 +3,7 @@ require intro1 engine/audio/bgm/Intro1.ogg BGM
 require intro2 engine/audio/bgm/Intro2.ogg BGM
 require intro3 engine/audio/bgm/Intro3.ogg BGM
 require intro4 engine/audio/bgm/Intro4.ogg BGM
+require extras engine/audio/bgm/Extras.ogg BGM
 
 minigame_loss engine/audio/bgm/Loss.ogg BGM
 minigame_loss_cheat engine/audio/bgm/LossCheat.ogg BGM

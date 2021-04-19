@@ -70,6 +70,14 @@ class MenuIntroController extends EngineInstance {
         this.menuMusic = $engine.audioPlaySound("title_music",1,true)
         $engine.audioSetLoopPoints(this.menuMusic,10,50);
 
+        this.extrasMusic = $engine.audioPlaySound("extras",1,true);
+        $engine.audioSetLoopPoints(this.extrasMusic,16,48);
+        $engine.audioSetVolume(this.extrasMusic,0)
+
+        this.extrasMusicTimer = 0;
+
+        this.currentRegion = -1;
+
         this.setupEndings();
         this.createButtons();
         this.setupBrowser();
@@ -287,14 +295,14 @@ class MenuIntroController extends EngineInstance {
             MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_ENDINGS);
         })
 
-        this.buttons.extras.buttonBonus.setOnPressed(function() {
+        /*this.buttons.extras.buttonBonus.setOnPressed(function() {
             MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_EXTRAS_UNLOCKS);
         })
 
         if(this.totalUnlockedEndings<4) {
             this.buttons.extras.buttonBonus.lock();
             this.buttons.extras.buttonBonus.setTooltip("Unlock every ending to view\n concept art and developer stories!");
-        }
+        }*/
 
         /*this.buttons.extras.buttonMinigameRush.setOnPressed(function() {
             MenuIntroController.getInstance().startMinigameRush();
@@ -389,13 +397,13 @@ class MenuIntroController extends EngineInstance {
 
         this.buttons.extras = {};
 
-        this.buttons.extras.buttonBonus = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2-100);
-        this.buttons.extras.buttonBonus.setTextures("buttons_extra_0","buttons_extra_0","buttons_extra_1")
+        //this.buttons.extras.buttonBonus = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2-100);
+        //this.buttons.extras.buttonBonus.setTextures("buttons_extra_0","buttons_extra_0","buttons_extra_1")
         //this.buttons.extras.buttonMinigameRush = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2-50);
         //this.buttons.extras.buttonMinigameRush.setTextures("buttons_extra_2","buttons_extra_2","buttons_extra_3")
-        this.buttons.extras.buttonBrowse = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2);
+        this.buttons.extras.buttonBrowse = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2-50);
         this.buttons.extras.buttonBrowse.setTextures("buttons_extra_6","buttons_extra_6","buttons_extra_7")
-        this.buttons.extras.buttonEndings = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2+100);
+        this.buttons.extras.buttonEndings = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2+50);
         this.buttons.extras.buttonEndings.setTextures("buttons_extra_4","buttons_extra_4","buttons_extra_5")
         this.buttons.extras.buttonBack = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras - 250,$engine.getWindowSizeY()/2);
         this.buttons.extras.buttonBack.setTextures("back_button_0","back_button_0","back_button_1")
@@ -510,7 +518,7 @@ class MenuIntroController extends EngineInstance {
 
     handleTooltips() {
         var obj = IM.instancePosition(IN.getMouseX(),IN.getMouseY(),FloatingObject);
-        if(!obj) {
+        if(!obj || !IN.mouseInBounds()) {
             this.tooltip.text = "";
         } else {
             this.tooltip.text = obj.tooltip;
@@ -531,6 +539,22 @@ class MenuIntroController extends EngineInstance {
         this.currentMinigameGraphic.rotation = this.browser.angle;
     }
 
+    handleExtrasMusic() {
+        if(this.currentRegion === MenuIntroController.REGION_MINIGAME_BROWSER) {
+            this.extrasMusicTimer++;
+            if(this.extrasMusicTimer > 60)
+                this.extrasMusicTimer = 60;
+        } else  {
+            this.extrasMusicTimer--;
+            if(this.extrasMusicTimer < 0)
+                this.extrasMusicTimer = 0;
+        }
+
+        var fac = this.extrasMusicTimer/60;
+        $engine.audioSetVolume(this.menuMusic,1-fac)
+        $engine.audioSetVolume(this.extrasMusic,fac)
+    }
+
     step() {
 
         if(IN.anyKeyPressed() && this.timer < this.endTime) {
@@ -543,6 +567,7 @@ class MenuIntroController extends EngineInstance {
         this.handleKeyboardNavigation();
         this.handleTooltips();
         this.handleMingameBrowser();
+        this.handleExtrasMusic();
 
         this.timer++;
 
@@ -635,6 +660,7 @@ class MenuIntroController extends EngineInstance {
 
     moveToRegion(region) {
         this.enableRegion(region);
+        this.currentRegion = region;
         switch(region) {
             case(MenuIntroController.REGION_MAIN):
                 this.cameraTargetX = 0;
@@ -689,12 +715,12 @@ class MenuIntroController extends EngineInstance {
             case(MenuIntroController.REGION_EXTRAS):
                 this.buttons.extras.buttonBack.setSelected();
                 this.buttons.extras.buttonBack.enable();
-                this.buttons.extras.buttonBonus.enable();
+                //this.buttons.extras.buttonBonus.enable();
                 //this.buttons.extras.buttonMinigameRush.enable();
                 this.buttons.extras.buttonBrowse.enable();
                 this.buttons.extras.buttonEndings.enable();
                 this.activeButtons = [this.buttons.extras.buttonBack,this.buttons.extras.buttonEndings,this.buttons.extras.buttonBrowse,
-                            /*this.buttons.extras.buttonMinigameRush,*/this.buttons.extras.buttonBonus]
+                            /*this.buttons.extras.buttonMinigameRush,this.buttons.extras.buttonBonus*/]
                 this.registerBackButton(this.buttons.extras.buttonBack);
             break;
             case(MenuIntroController.REGION_ENDINGS):
