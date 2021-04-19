@@ -781,10 +781,10 @@ class Scene_Engine extends Scene_Base {
      * 
      * @param {ENGINE_ITEM} item The item to gain
      */
-    __gainItem(name) {
+    __gainItem(item) {
         if(!$__engineGlobalSaveData.items)
             $__engineGlobalSaveData.items = {};
-        $__engineGlobalSaveData.items[name] = true;
+        $__engineGlobalSaveData.items[item.name] = true;
         this.saveEngineGlobalData(); // saved immediately
     }
 
@@ -2543,8 +2543,9 @@ Game_Interpreter.prototype.clear = function() {
     Scene_Shop.prototype.onBuyOk = function() {
         this._item = this._buyWindow.item();
         this.doBuy(1)
-        if($engine.__itemFromName(this._item.name).persistent)
-            $engine.__gainItem(this._item.name);
+        var item = $engine.__itemFromName(this._item.name)
+        if(item.persistent)
+            $engine.__gainItem(item);
         SoundManager.playShop();
         this._goldWindow.refresh();
         this._statusWindow.refresh();

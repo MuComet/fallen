@@ -128,7 +128,7 @@ class SkyBuildPlayer extends EngineInstance {
     }
 
     swingMove() {
-        var sin = Math.sin($engine.getGameTimer()/EngineUtils.clamp(24-SkyMinigameController.score,3.5,24) + this.randomOffset);
+        var sin = Math.sin($engine.getGameTimer()/EngineUtils.clamp(24-SkyMinigameController.score,5,24) + this.randomOffset);
         this.angle = -sin/2;
         var angle2 = Math.PI*3/2+sin/2;
         this.lastX=this.x;
