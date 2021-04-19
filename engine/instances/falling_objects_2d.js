@@ -157,7 +157,7 @@ class FallingHealth extends EngineInstance {
 
     step() {
         if(FallingObjectsController.getInstance().healthArr[this.num] === 0){
-            $engine.audioPlaySound("worm_die");
+            //$engine.audioPlaySound("worm_die");
             this.destroy();
         }
     }
@@ -234,7 +234,7 @@ class FallingObject extends EngineInstance {
             this.dz = EngineUtils.randomRange(-0.05,0.05);
             this.fell = true;
             if(!this.isLeaf) {
-                $engine.audioPlaySound("sky_donk",0.8).speed = EngineUtils.randomRange(0.8,1.2);
+                $engine.audioPlaySound("catch_landing_rock",0.8).speed = EngineUtils.randomRange(0.8,1.2);
                 FallingObjectsController.getInstance().shake(5);
             }
         }
@@ -264,13 +264,13 @@ class FallingObject extends EngineInstance {
         if(!this.fell && IM.instanceCollision(this,this.x,this.y,FallingObjectsPlayer)) {
             if(this.object == 0){
                 controller.score++;
-                $engine.audioPlaySound("sky_bonk");
+                $engine.audioPlaySound("sky_donk");
             }else{
                 controller.lives--;
                 controller.healthArr[controller.lives] = 0;
                 controller.shake();
                 //console.log(controller.healthArr);
-                $engine.audioPlaySound("sky_donk");
+                $engine.audioPlaySound("sky_bonk");
             }
             //IM.find(FallingObjectsPlayer,0).hasBeenHurt = true;
             this.destroy();

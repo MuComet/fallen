@@ -49,6 +49,9 @@ sky_wobble engine/audio/se/skybuild/WobblyTrue.ogg SE
 sky_woosh_1 engine/audio/se/skybuild/Woosh1.ogg SE
 sky_woosh_2 engine/audio/se/skybuild/Woosh2.ogg SE
 
+catch_falling_rock engine/audio/se/catch/FallingRock.ogg SE
+catch_landing_rock engine/audio/se/catch/LandingRock.ogg SE
+
 card_flip engine/audio/se/card/Flip.ogg SE
 card_select_1 engine/audio/se/card/Select1.ogg SE
 card_select_2 engine/audio/se/card/Select2.ogg SE
