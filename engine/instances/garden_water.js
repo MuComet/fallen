@@ -16,6 +16,20 @@ class WaterMinigameController extends MinigameController {
         this.speedmul = 0.008;
         this.attempts = 6;
 
+        this.textureBest = $engine.getTexture("ddr_feedback_0");
+        this.textureOk = $engine.getTexture("ddr_feedback_1");
+        this.textureBad = $engine.getTexture("ddr_feedback_2");
+
+        this.lastNoteResult = $engine.createManagedRenderable(this, new PIXI.Sprite(PIXI.Texture.EMPTY));
+        this.lastNoteResult.anchor.set(0.5);
+        this.lastNoteResult.scale.set(0.3)
+
+        this.lastNoteResult.x = $engine.getWindowSizeX()/2;
+        this.lastNoteResult.y = $engine.getWindowSizeY()/2+120;
+
+        this.feedbackTimer = 9999;
+
+
         
         this.startTimer(30*60);
         this.getTimer().setSurvivalMode();
@@ -145,8 +159,17 @@ class WaterMinigameController extends MinigameController {
 
         this.updateProgressText();
         this.handleShake();
+        this.handleFeedback();
         this.timer++;
         this.speedtimer++;
+    }
+    
+    handleFeedback() {
+        var fac = EngineUtils.interpolate(this.feedbackTimer/20,0,0.3,EngineUtils.INTERPOLATE_OUT_BACK);
+        this.lastNoteResult.scale.y = fac;
+        var fac2 = EngineUtils.interpolate((this.feedbackTimer-20)/10,1,0,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+        this.lastNoteResult.alpha = fac2;
+        this.feedbackTimer++;
     }
 
     randomPlantSelect(){
@@ -189,7 +212,23 @@ class WaterMinigameController extends MinigameController {
             this.penalty = 0;
             current_tile.getSprite().tint = (0xab1101);
             $engine.audioPlaySound("wall_miss");
+            this.notifyHit(-1,false)
         }  
+    }
+
+    notifyHit(location, hit=true) {
+        var diff = Math.abs(this.y - location);
+
+        this.feedbackTimer = 0;
+        if(!hit) {
+            this.lastNoteResult.texture=this.textureBad
+            return;
+        }
+        if(diff < 12) {
+            this.lastNoteResult.texture=this.textureBest
+        } else {
+            this.lastNoteResult.texture=this.textureOk
+        }
     }
 
 
@@ -202,6 +241,7 @@ class WaterMinigameController extends MinigameController {
         super.draw(gui, camera);     
         //EngineDebugUtils.drawHitbox(camera,this);
         $engine.requestRenderOnCameraGUI(this.progressText);
+        $engine.requestRenderOnCameraGUI(this.lastNoteResult);
     }
 
 }
@@ -236,6 +276,10 @@ class DDRTiles extends EngineInstance {
             this.destroy();
             WaterMinigameController.getInstance().next = 2;
         }
+    }
+
+    onDestroy() {
+        WaterMinigameController.getInstance().notifyHit(this.y);
     }
 }
 
