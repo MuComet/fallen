@@ -35,3 +35,5 @@ FinalMinigameRoom engine/rooms/final_minigame.txt
 FinalMinigameLossRoom engine/rooms/final_minigame_loss_room.txt
 MazeRoom engine/rooms/maze_room.txt
 WireRoom engine/rooms/wire.txt
+
+CreditsRoom engine/rooms/credits_room.txt
