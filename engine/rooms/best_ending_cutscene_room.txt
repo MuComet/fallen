@@ -22,7 +22,7 @@ block extern music
 endblock
 
 block extern text
-<none>
+__playSound[best_end,1,1,24,40]
 __italic[1]A few hours after the battle...\0__italic[0]__voice[voice_deep]__portrait[gods_profiles_4]Hey, Eson!__wait[24] Come on in.\0__voice[voice_normal]__portrait[eson_profiles_4]__speed[4]You called for me?\0__speed[0]__voice[voice_deep]__portrait[gods_profiles_7] Yes,__wait[9] I did!__wait[24] I just got a report from __speed[2]the Big Guys__speed[0],__wait[12] and they are VERY happy with how things turned out today!\0__voice[voice_normal]__portrait[eson_profiles_2]Phew!__wait[24] That's great news__speed[12]...__speed[0]__wait[24] So...__wait[24] does...__wait[24] that mean I get to be an angel again? 
 __voice[voice_deep]__portrait[gods_profiles_4]Not only that,__wait[12] but I am also promoting you to High Angel status!__wait[24] Here's your honorary badge.\0__voice[voice_normal]__portrait[eson_profiles_2]Oh,__wait[9] wow!__wait[24] I'm so honored,__wait[9] thank you so much!
 __wait[36]__italic[1]After leaving the castle, Eson makes their way to the "God Tier Bistro". They cut in line with their head held high and flash their new badge to the host, who finally lets them in.

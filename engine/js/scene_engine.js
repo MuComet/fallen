@@ -14,6 +14,7 @@ $__engineData.__ready = false;
 $__engineData.__fullyReady = false;
 $__engineData.loadRoom = "MenuIntro";
 $__engineData.__overrideRoom = undefined;
+$__engineData.__overrideRoomChange = undefined;
 $__engineData.__readyOverride = true;
 $__engineData.__shouldAutoSave = true;
 $__engineData.__deferredAssets = -1;
@@ -68,23 +69,23 @@ ENGINE_ITEMS.ENIGMA_DECRYPTER = {name:"Enigma Decrypter", shop:[0,10,0,0],persis
 ENGINE_ITEMS.BRICK_LAYER = {name:"Brick Layer", shop:[0,11,0,0],persistent:true};
 
 const ENGINE_MINIGAMES = {} // names are never actually used
-ENGINE_MINIGAMES.TUTORIAL = {name:"Tutorial"}
-ENGINE_MINIGAMES.SKYBUILD = {name:"Sand Castle"}
-ENGINE_MINIGAMES.WALL = {name:"Wall Building"}
-ENGINE_MINIGAMES.DRAW_1 = {name:"Drawing 1"}
-ENGINE_MINIGAMES.DRAW_2 = {name:"Drawing 2"}
-ENGINE_MINIGAMES.CATCH = {name:"Leaves"}
-ENGINE_MINIGAMES.DRAIN = {name:"Drain"}
-ENGINE_MINIGAMES.WORMS = {name:"Worms"}
-ENGINE_MINIGAMES.CARDS = {name:"Cards"}
-ENGINE_MINIGAMES.UMBRELLA = {name:"Umbrella"}
-ENGINE_MINIGAMES.GRAFFITI = {name:"Graffiti"}
-ENGINE_MINIGAMES.WATERING = {name:"Watering"}
-ENGINE_MINIGAMES.BOXES = {name:"Boxes"}
-ENGINE_MINIGAMES.MAZE = {name:"Maze"}
-ENGINE_MINIGAMES.WIRE = {name:"Wires"}
-ENGINE_MINIGAMES.VIDEO_GAME = {name:"Video Game"}
-ENGINE_MINIGAMES.FINALE = {name:"Finale"}
+ENGINE_MINIGAMES.TUTORIAL = {name:"Tutorial",room:"IntroMinigameRoom"}
+ENGINE_MINIGAMES.SKYBUILD = {name:"Sand Castle",room:"SkyRoom"}
+ENGINE_MINIGAMES.WALL = {name:"Wall Building",room:"WallBuildingRoom"}
+ENGINE_MINIGAMES.DRAW_1 = {name:"Drawing 1",room:"DrawingMinigame"}
+ENGINE_MINIGAMES.DRAW_2 = {name:"Drawing 2",room:"DrawingMinigame2"}
+ENGINE_MINIGAMES.CATCH = {name:"Leaves",room:"FallingObjectsRoom"}
+ENGINE_MINIGAMES.DRAIN = {name:"Drain",room:"HoleMinigameRoom"}
+ENGINE_MINIGAMES.WORMS = {name:"Worms",room:"GardenRoom"}
+ENGINE_MINIGAMES.CARDS = {name:"Cards",room:"CardRoom"}
+ENGINE_MINIGAMES.UMBRELLA = {name:"Umbrella",room:"UmbrellaRoom"}
+ENGINE_MINIGAMES.GRAFFITI = {name:"Graffiti",room:"GraffitiRoom"}
+ENGINE_MINIGAMES.WATERING = {name:"Watering",room:"WaterRoom"}
+ENGINE_MINIGAMES.BOXES = {name:"Boxes",room:"CrateRoom"}
+ENGINE_MINIGAMES.MAZE = {name:"Maze",room:"MazeRoom"}
+ENGINE_MINIGAMES.WIRE = {name:"Wires",room:"WireRoom"}
+ENGINE_MINIGAMES.VIDEO_GAME = {name:"Video Game",room:"PuyoRoom"}
+ENGINE_MINIGAMES.FINALE = {name:"Finale",room:"FinalMinigameRoom"}
 
 const ENGINE_ENDINGS = {}
 ENGINE_ENDINGS.BEST = {name:"Best"};
@@ -399,6 +400,7 @@ class Scene_Engine extends Scene_Base {
         this.audioSetVolume(audio, volume); // volume for a sound, but because you can't change volume in engine i don't have to improve this.
         audio.__tick = function(self){}; // nothing for now
         this.__sounds.push(audio);
+        audio.__pauseTime = -1;
         audio.__sourceSound = snd;
         audio.__destroyed=false;
         audio.addListener("end",function() { // for cleanup purposes
@@ -552,6 +554,25 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
+     * 
+     * @param {ImediaInstance | PIXI.Sound} snd The sound to pause
+     * @param {Number} time The time, in seconds, to pause the music at
+     */
+    audioPauseSoundAt(snd, time) {
+        for(const sound of this.__lookupSounds(snd)) {
+            sound.__pauseTime = time;
+            sound.__tick = function(self) {
+                console.log(self._source.context.currentTime)
+                if(self._source.context.currentTime > self.__pauseTime) {
+                    $engine.audioPauseSound(self);
+
+                    self.__tick = function(self) {}; // reset the function
+                }
+            }
+        }
+    }
+
+    /**
      * Resumes a previously paused sound or all instances of that specific sound if it is a PIXI.Sound
      * 
      * @param {IMediaInstance | PIXI.Sound} snd The sound to pause
@@ -562,6 +583,9 @@ class Scene_Engine extends Scene_Base {
             if(sound.__loopStart!==undefined) {
                 sound._source.loopStart = sound.__loopStart;
                 sound._source.loopEnd = sound.__loopEnd;
+            }
+            if(sound.__pauseTime!==-1) { // was awaiting pause, but we want to resume it now.
+                sound.__pauseTime = -1;
             }
         }
     }
@@ -577,6 +601,16 @@ class Scene_Engine extends Scene_Base {
      */
     audioIsSoundPlaying(snd) {
         return this.__lookupSounds(snd).length!==0;
+    }
+
+    /**
+     * Attempts to find a playing instance of the sound.
+     * 
+     * @param {String | PIXI.Sound} snd The sound to find
+     * @returns The first instnace of the sound, or undefined.
+     */
+    audioFindSound(snd) {
+        return this.__lookupSounds(snd)[0];
     }
 
     /**
@@ -704,6 +738,19 @@ class Scene_Engine extends Scene_Base {
     }
 
     /**
+     * The next time the engine tries to go to a new room, override the request and instead go to the specified room.
+     * 
+     * This does not effect a room change request. Only a return to overworld request.
+     * 
+     * The engine will completely restart itself in this situation, 
+     * and it will act as if the engine terminated and then immediately started in the new room.
+     * @param {String} newRoom The room to go to instead
+     */
+    overrideRoomChange(newRoom) {
+        $__engineData.__overrideRoomChange = newRoom;
+    }
+
+    /**
      * Requests that at the start of the next frame, the current room be changed to
      * the specified room.
      * 
@@ -712,6 +759,10 @@ class Scene_Engine extends Scene_Base {
      * @param {String} newRoom The name of the room to go to
      */
     setRoom(newRoom) {
+        if($__engineData.__overrideRoomChange) { // override room change
+            newRoom = $__engineData.__overrideRoomChange;
+            $__engineData.__overrideRoomChange = undefined;
+        }
         if(!RoomManager.roomExists(newRoom))
             throw new Error("Attemping to change to non existent room "+newRoom);
         if(this.shouldChangeRooms)
@@ -727,6 +778,7 @@ class Scene_Engine extends Scene_Base {
                 this.removeFilter(this.__filters[i].filter);
             }
         }
+
         this.getCamera().reset();
         RoomManager.loadRoom(roomName); // also sets current room
         IM.__startRoom();
@@ -857,7 +909,7 @@ class Scene_Engine extends Scene_Base {
     unlockMinigame(minigame) {
         if(!$__engineGlobalSaveData.minigames)
             $__engineGlobalSaveData.minigames = {};
-        $__engineGlobalSaveData.items[minigame.name] = true;
+        $__engineGlobalSaveData.minigames[minigame.name] = true;
         this.saveEngineGlobalData(); // saved immediately
     }
 

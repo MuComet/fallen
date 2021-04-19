@@ -484,6 +484,7 @@ class MinigameController extends EngineInstance {
         MinigameController.controller = this;
 
         $engine.pauseGame();
+        $engine.startFadeIn();
     }
 
     onCreate() {

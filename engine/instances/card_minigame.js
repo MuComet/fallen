@@ -116,11 +116,15 @@ class CardMinigameController extends MinigameController {
 
         // target some cheat cards.
         var idx = 0;
+        var boozeCardCount = $engine.hasItem(ENGINE_ITEMS.BOOZE) ? 2 : 0; // mini cheat!
         while(this.cheatTargetCards.length<this.numberCheatCards) {
             var card = this.cardsRandomOrder[++idx];
             if(card.cardTexture!==this.goalTexture) {
                 this.cheatTargetCards.push(card);
                 card.isCheatCard = true;
+                if(boozeCardCount-->0) { // goes to 0...
+                    card.isBoozeCard = true;
+                }
             }
         }
 
@@ -343,6 +347,7 @@ class CardBoard extends EngineInstance {
         this.lifeTime = EngineUtils.irandomRange(25,45);
 
         this.isCheatCard = false;
+        this.isBoozeCard = false;
     }
 
     cardFlip(){
@@ -394,7 +399,7 @@ class CardBoard extends EngineInstance {
 
             if(this.moveTimer===this.moveTime) {
                 this.moving = false;
-                if(CardMinigameController.getInstance().hasCheated() && this.isCheatCard)
+                if((CardMinigameController.getInstance().hasCheated() && this.isCheatCard) || this.isBoozeCard)
                     this.break();
             }
                 

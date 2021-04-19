@@ -3,10 +3,11 @@ class GardenMinigameController extends MinigameController {
     onEngineCreate() { 
         $engine.unlockMinigame(ENGINE_MINIGAMES.WORMS)
         super.onEngineCreate();
-        this.score = 5;
-        this.maxScore = 5;
+        var scoreOffset = $engine.hasItem(ENGINE_ITEMS.FERTILIZER) ? 1 : 0
+        this.score = 5 + scoreOffset;
+        this.maxScore = 5 + scoreOffset;
         this.wormsmissed = 0;
-        this.wormsMax = 10;
+        this.wormsMax = 10 + scoreOffset * 2;
         this.speedup = 0;
 
 
@@ -41,7 +42,7 @@ class GardenMinigameController extends MinigameController {
 
         this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
 
-        var text = new PIXI.Text("Use Arrows to select a worm's spawn hole. Protect the \n garden's vegetation and spray the worms\n before they can retreat and eat the plants. \n Press SPACE to spray.\n\n You may lose at most 5 plants \n AND miss spraying at most 10 worms. \n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
+        var text = new PIXI.Text("Use Arrows to select a worm's spawn hole. Protect the \n garden's vegetation and spray the worms\n before they can retreat and eat the plants. \n Press SPACE to spray.\n\n You may lose at most "+String(this.maxScore)+" plants \n AND miss spraying at most "+String(this.wormsMax)+" worms. \n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);
         this.setControls(true,false);
         this.skipPregame();
@@ -74,12 +75,18 @@ class GardenMinigameController extends MinigameController {
             }
         }
 
-        this.healthArr = [1,1,1,1,1,1,1,1,1,1];
+        this.healthArr = [];
+        for(var i =0;i<this.wormsMax;i++) {
+            this.healthArr.push(1);
+        }
         for(var h = 0; h < this.wormsMax; h++){
             new GardenHealth(760 - 25*h, 590, h);
         }
 
-        this.healthPlantArr = [1,1,1,1,1];
+        this.healthPlantArr = [];
+        for(var i =0;i<this.maxScore;i++) {
+            this.healthPlantArr.push(1);
+        }
         for(var p = 0; p < this.maxScore; p++){
             new GardenPlantHealth(760 - 25*p, 530, p);
         }
@@ -239,13 +246,13 @@ class GardenWorm extends EngineInstance {
         if(this.wormTimer >= this.wormTimerEat && this.deathTime === 0 && GardenMinigameController.getInstance().plant_array[this.index] != undefined){            
             GardenMinigameController.getInstance().plant_array[this.index] = undefined;
             GardenMinigameController.getInstance().healthPlantArr[GardenMinigameController.getInstance().score -1] = 0;
-            GardenMinigameController.getInstance().healthArr[9 - GardenMinigameController.getInstance().wormsmissed] = 0;
             GardenMinigameController.getInstance().wormsmissed++;
+            GardenMinigameController.getInstance().healthArr[GardenMinigameController.getInstance().wormsMax - GardenMinigameController.getInstance().wormsmissed] = 0;
             this.destroy();
         }else if(this.wormTimer >= this.wormTimerEat && this.deathTime === 0){            
             //GardenMinigameController.getInstance().plant_array[this.index] = undefined;
-            GardenMinigameController.getInstance().healthArr[9 - GardenMinigameController.getInstance().wormsmissed] = 0;
             GardenMinigameController.getInstance().wormsmissed++;
+            GardenMinigameController.getInstance().healthArr[GardenMinigameController.getInstance().wormsMax - GardenMinigameController.getInstance().wormsmissed] = 0;
             this.destroy();
         }
 

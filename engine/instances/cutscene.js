@@ -865,14 +865,20 @@ class TextBox extends EngineInstance {
             var data = this._extractCommand(txt);
             this.walkingTextIndex+=data.length;
             return false;
-        } else if(txt.startsWith("__playSound")) { // [snd,volume,loop]
+        } else if(txt.startsWith("__playSound")) { // [snd,volume,loop,[loopStart], [loopEnd]]
             var data = this._extractCommand(txt);
             this.walkingTextIndex+=data.length;
             var data2 = data.argument.split(",");
             var snd = data2[0];
             var volume = parseFloat(data2[1]);
             var loop = data2[2]==="1" || data2[2].toLowerCase()==="true"
-            $engine.audioPlaySound(snd,volume,loop);
+            var snd = $engine.audioPlaySound(snd,volume,loop);
+
+            if(data2[3]) {
+                var loopStart = parseFloat(data2[3]);
+                var loopEnd = parseFloat(data2[4]);
+                $engine.audioSetLoopPoints(snd,loopStart,loopEnd);
+            }
         } else if(txt.startsWith("__stopSound")) {
             var data = this._extractCommand(txt);
             this.walkingTextIndex+=data.length;
@@ -885,7 +891,6 @@ class TextBox extends EngineInstance {
             } else {
                 this.textSound=data.argument;
             }
-            
         } 
         
         else {

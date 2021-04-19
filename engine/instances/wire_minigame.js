@@ -51,7 +51,10 @@ class WireMinigameController extends MinigameController {
         this.generatePath();
         this.recalculate();
 
-        this.startTimer(60*60);
+        this.time = $engine.hasItem(ENGINE_ITEMS.ENIGMA_DECRYPTER) ? 70*60 : 60*60;
+
+
+        this.startTimer(this.time);
         this.getTimer().alpha = 0.85
 
         this.setSprite(new PIXI.Sprite($engine.getTexture("wire_board")))
@@ -78,8 +81,8 @@ class WireMinigameController extends MinigameController {
                 }
             }
 
-            if(self.getTimer().getTimeRemaining()<30*60) { // give them at least 30 seconds to solve
-                self.getTimer().setTimeRemaining(30*60)
+            if(self.getTimer().getTimeRemaining()<self.time/2) { // give them at least 30 seconds to solve
+                self.getTimer().setTimeRemaining(self.time/2)
             }
         })
         this.setCheatTooltip("The inner workings!");

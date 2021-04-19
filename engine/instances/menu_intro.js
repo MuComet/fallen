@@ -17,6 +17,8 @@ class MenuIntroController extends EngineInstance {
 
         this.backButton = undefined;
 
+        this.totalUnlockedEndings = 0;
+
         this.letters = [];
         //var locX = [37,159,308,451,522,671];
         var locX = [60, 160, 290, 418, 544, 660, 785, 900];
@@ -43,7 +45,19 @@ class MenuIntroController extends EngineInstance {
         this.isFading=false;
         $engine.startFadeIn();
 
+        this.tooltip = $engine.createRenderable(this, new PIXI.Text("",$engine.getDefaultTextStyle()))
+        this.tooltip.anchor.x = 0.5;
+        this.tooltip.anchor.y = 1;
+
         MenuIntroController.instance = this;
+
+        this.minigameList = [];
+        for(const val in ENGINE_MINIGAMES) {
+            this.minigameList.push(ENGINE_MINIGAMES[String(val)]);
+        }
+
+        this.selectedMinigameIndex = 0;
+        this.selectedMinigameTimer = 0;
 
         // overwrite the mouse location, PIXI doesn't update immedaitely...
         /*IN.getMouseXGUI()
@@ -56,8 +70,92 @@ class MenuIntroController extends EngineInstance {
         this.menuMusic = $engine.audioPlaySound("title_music",1,true)
         $engine.audioSetLoopPoints(this.menuMusic,10,50);
 
+        this.setupEndings();
         this.createButtons();
+        this.setupBrowser();
     }
+
+    setupEndings() {
+        var endingValues = [];
+        endingValues.push($engine.getEnding(ENGINE_ENDINGS.BEST));
+        endingValues.push($engine.getEnding(ENGINE_ENDINGS.GOOD));
+        endingValues.push($engine.getEnding(ENGINE_ENDINGS.BAD));
+        endingValues.push($engine.getEnding(ENGINE_ENDINGS.EVIL));
+        var offsetX = $engine.getWindowSizeX()*1.5;
+        var offsetY = $engine.getWindowSizeY()*1.5
+        var tooltips = ["Best Ending\nWin the game without cheating once",
+            "Good Ending\nWin the game cheating\n a normal amount of times",
+            "Bad Ending\nLose on the final minigame",
+            "Evil Ending\nWin the game after cheating at\n least 8 people",
+        ]
+        for(var i=0;i<4;i++) {
+            var floatingObject = new FloatingObject(offsetX + (i-1.5)*128,offsetY);
+            floatingObject.setHitbox(new Hitbox(floatingObject,new RectangleHitbox(floatingObject,-48,-48,48,48)))
+            var sprite = $engine.createRenderable(floatingObject, new PIXI.Sprite(PIXI.Texture.EMPTY),true);
+
+            floatingObject.setTooltip(tooltips[i])
+
+            if(endingValues[i]===0) {
+                sprite.addChild($engine.createManagedRenderable(floatingObject, new PIXI.Sprite($engine.getTexture("ending_badges_0"))))
+            } else {
+                this.totalUnlockedEndings++;
+            }
+            if(endingValues[i] > 0) { // normal badge
+                sprite.addChild($engine.createManagedRenderable(floatingObject, new PIXI.Sprite($engine.getTexture("ending_badges_"+String(i+1)))));
+            }
+            if(endingValues[i] > 1) { // hard mode bade
+                sprite.addChild($engine.createManagedRenderable(floatingObject, new PIXI.Sprite($engine.getTexture("end_hard_badge"))));
+            }
+        }
+    }
+
+    setupBrowser() {
+        this.browser = new FloatingObject($engine.getWindowSizeX()*2.5, $engine.getWindowSizeY()/2-96);
+        this.browser.setSprite(new PIXI.Sprite($engine.getTexture("minigame_browser_board")));
+        this.currentMinigameGraphic = $engine.createRenderable(this.browser,new PIXI.Sprite(PIXI.Texture.EMPTY));
+        this.currentMinigameGraphic.anchor.set(0.5)
+        this.refreshMinigameBrowser();
+    }
+
+    getGraphicFromMinigame(minigame) {
+        switch(minigame.name) {
+            case(ENGINE_MINIGAMES.TUTORIAL.name):
+                return $engine.getTexture("mingames_sheet_0");
+            case(ENGINE_MINIGAMES.SKYBUILD.name):
+                return $engine.getTexture("mingames_sheet_1");
+            case(ENGINE_MINIGAMES.WALL.name):
+                return $engine.getTexture("mingames_sheet_2");
+            case(ENGINE_MINIGAMES.DRAW_1.name):
+                return $engine.getTexture("mingames_sheet_3");
+            case(ENGINE_MINIGAMES.DRAW_2.name):
+                return $engine.getTexture("mingames_sheet_4");
+            case(ENGINE_MINIGAMES.CATCH.name):
+                return $engine.getTexture("mingames_sheet_5");
+            case(ENGINE_MINIGAMES.DRAIN.name):
+                return $engine.getTexture("mingames_sheet_6");
+            case(ENGINE_MINIGAMES.WORMS.name):
+                return $engine.getTexture("mingames_sheet_7");
+            case(ENGINE_MINIGAMES.CARDS.name):
+                return $engine.getTexture("mingames_sheet_8");
+            case(ENGINE_MINIGAMES.UMBRELLA.name):
+                return $engine.getTexture("mingames_sheet_9");
+            case(ENGINE_MINIGAMES.GRAFFITI.name):
+                return $engine.getTexture("mingames_sheet_10");
+            case(ENGINE_MINIGAMES.WATERING.name):
+                return $engine.getTexture("mingames_sheet_11");
+            case(ENGINE_MINIGAMES.BOXES.name):
+                return $engine.getTexture("mingames_sheet_12");
+            case(ENGINE_MINIGAMES.MAZE.name):
+                return $engine.getTexture("mingames_sheet_13");
+            case(ENGINE_MINIGAMES.WIRE.name):
+                return $engine.getTexture("mingames_sheet_14");
+            case(ENGINE_MINIGAMES.VIDEO_GAME.name):
+                return $engine.getTexture("mingames_sheet_15");
+            case(ENGINE_MINIGAMES.FINALE.name):
+                return $engine.getTexture("mingames_sheet_16");
+        }
+    }
+
 
     registerBackButton(button) {
         this.backButton = button;
@@ -93,7 +191,7 @@ class MenuIntroController extends EngineInstance {
                     button.disable();
                 })
                 OwO.__addItemsToPlayer(); // re-add items
-                OwO._clearAreaName();
+                OwO.__clearAreaName();
                 return true;
             } else {
                 SoundManager.playBuzzer();
@@ -136,7 +234,7 @@ class MenuIntroController extends EngineInstance {
             $engine.getSaveData().difficulty = ENGINE_DIFFICULTY.EASY;
         });
         this.buttons.difficultyEasy.setOnSelected(function() {
-            difficultyTextBox.setTextArray(["Easy mode halves stamina loss."]);
+            difficultyTextBox.setTextArray(["Easy mode halves stamina loss.\nCannot buy new items."]);
         })
 
         // normal
@@ -161,7 +259,7 @@ class MenuIntroController extends EngineInstance {
             $engine.getSaveData().difficulty = ENGINE_DIFFICULTY.HARD;
         });
         this.buttons.difficultyHard.setOnSelected(function() {
-            difficultyTextBox.setTextArray(["Doubles stamina loss.\nSave deleted on loss."]);
+            difficultyTextBox.setTextArray(["Doubles stamina loss.\nSave deleted on loss.\nSpecial border unlocked when getting an ending"]);
         })
 
         this.buttons.difficultyBack.setOnSelected(function() {
@@ -193,8 +291,74 @@ class MenuIntroController extends EngineInstance {
             MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_EXTRAS_UNLOCKS);
         })
 
-        this.buttons.extras.buttonMinigameRush.setOnPressed(function() {
+        if(this.totalUnlockedEndings<4) {
+            this.buttons.extras.buttonBonus.lock();
+            this.buttons.extras.buttonBonus.setTooltip("Unlock every ending to view\n concept art and developer stories!");
+        }
+
+        /*this.buttons.extras.buttonMinigameRush.setOnPressed(function() {
             MenuIntroController.getInstance().startMinigameRush();
+        })*/
+    }
+
+    setupBrowseButtons() {
+
+        this.buttons.browse.buttonRight.setOnPressed(function() {
+            MenuIntroController.getInstance().nextMinigame(1);
+        });
+
+        this.buttons.browse.buttonLeft.setOnPressed(function() {
+            MenuIntroController.getInstance().nextMinigame(-1);
+        });
+
+        this.buttons.browse.buttonPlay.setTestPressed(function() {
+            var canPlay = $engine.hasMinigame(MenuIntroController.getInstance().getSelectedMingame());
+            if(!canPlay)
+                SoundManager.playBuzzer();
+            return canPlay
+        });
+
+        this.buttons.browse.buttonPlay.setOnPressed(function() {
+            MenuIntroController.getInstance().startSelectedMinigame();
+        });
+
+        this.buttons.browse.buttonBack.setOnPressed(function() {
+            MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_EXTRAS);
+        });
+    }
+
+    startSelectedMinigame() {
+        $engine.audioFadeAll();
+        $engine.setRoom(this.getSelectedMingame().room)
+        $engine.overrideRoomChange("MenuIntro")
+        $engine.overrideReturn("MenuIntro")
+        $engine.startFadeOut();
+
+    }
+
+    getSelectedMingame() {
+        return this.minigameList[this.selectedMinigameIndex];
+    }
+
+    nextMinigame(change) {
+        this.selectedMinigameIndex+=change;
+        this.selectedMinigameIndex = (this.selectedMinigameIndex + this.minigameList.length) % this.minigameList.length;
+        this.selectedMinigameTimer=0;
+        this.refreshMinigameBrowser();
+    }
+
+    refreshMinigameBrowser() {
+        var minigame = this.getSelectedMingame();
+        if($engine.hasMinigame(minigame)) {
+            this.currentMinigameGraphic.texture = this.getGraphicFromMinigame(minigame);
+        } else {
+            this.currentMinigameGraphic.texture = $engine.getTexture("mingames_sheet_17");
+        }
+    }
+
+    setupEndingButtons() {
+        this.buttons.endings.buttonBack.setOnPressed(function() {
+            MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_EXTRAS);
         })
     }
 
@@ -222,20 +386,44 @@ class MenuIntroController extends EngineInstance {
 
         this.buttons.extras = {};
 
-        this.buttons.extras.buttonBonus = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2-150);
+        this.buttons.extras.buttonBonus = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2-100);
         this.buttons.extras.buttonBonus.setTextures("buttons_extra_0","buttons_extra_0","buttons_extra_1")
-        this.buttons.extras.buttonMinigameRush = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2-50);
-        this.buttons.extras.buttonMinigameRush.setTextures("buttons_extra_2","buttons_extra_2","buttons_extra_3")
-        this.buttons.extras.buttonBrowse = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2+50);
+        //this.buttons.extras.buttonMinigameRush = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2-50);
+        //this.buttons.extras.buttonMinigameRush.setTextures("buttons_extra_2","buttons_extra_2","buttons_extra_3")
+        this.buttons.extras.buttonBrowse = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2);
         this.buttons.extras.buttonBrowse.setTextures("buttons_extra_6","buttons_extra_6","buttons_extra_7")
-        this.buttons.extras.buttonEndings = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2+150);
+        this.buttons.extras.buttonEndings = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2+100);
         this.buttons.extras.buttonEndings.setTextures("buttons_extra_4","buttons_extra_4","buttons_extra_5")
         this.buttons.extras.buttonBack = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras - 250,$engine.getWindowSizeY()/2);
         this.buttons.extras.buttonBack.setTextures("back_button_0","back_button_0","back_button_1")
 
+        this.buttons.endings = {};
+        this.buttons.endings.buttonBack = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX(),$engine.getWindowSizeY()/2 + $engine.getWindowSizeY() - 200);
+        this.buttons.endings.buttonBack.setTextures("back_button_0","back_button_0","back_button_1")
+
+        this.buttons.browse = {};
+        this.buttons.browse.buttonBack = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX() * 2,$engine.getWindowSizeY() - 25);
+        this.buttons.browse.buttonBack.setTextures("back_button_0","back_button_0","back_button_1")
+        this.buttons.browse.buttonPlay = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX() * 2,$engine.getWindowSizeY() - 125);
+        this.buttons.browse.buttonPlay.setTextures("play_button_0","play_button_0","play_button_1")
+        this.buttons.browse.buttonLeft = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX() * 2 - 150,$engine.getWindowSizeY() - 125);
+        this.buttons.browse.buttonLeft.setTextures("arrow_button_0","arrow_button_0","arrow_button_1")
+        this.buttons.browse.buttonRight = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX() * 2 + 150,$engine.getWindowSizeY() - 125);
+        this.buttons.browse.buttonRight.setTextures("arrow_button_0","arrow_button_0","arrow_button_1")
+
+        this.buttons.browse.buttonLeft.xScale *= -1;
+
+        var button = this.buttons.browse.buttonLeft;
+        button.setHitbox(new Hitbox(button, new RectangleHitbox(button, -315/2,-125,315/2,125)));
+        var button = this.buttons.browse.buttonRight;
+        button.setHitbox(new Hitbox(button, new RectangleHitbox(button, -315/2,-125,315/2,125)));
+        
+
         this.setupMainMenuButtons();
         this.setupDifficultyButtons();
         this.setupExtraButtons();
+        this.setupEndingButtons();
+        this.setupBrowseButtons();
     }
 
     startMinigameRush() {
@@ -317,6 +505,29 @@ class MenuIntroController extends EngineInstance {
         }
     }
 
+    handleTooltips() {
+        var obj = IM.instancePosition(IN.getMouseX(),IN.getMouseY(),FloatingObject);
+        if(!obj) {
+            this.tooltip.text = "";
+        } else {
+            this.tooltip.text = obj.tooltip;
+        }
+        this.tooltip.x = IN.getMouseX();
+        this.tooltip.y = IN.getMouseY();
+
+        this.tooltip.rotation = Math.sin($engine.getGameTimer()/37)/16;
+        this.tooltip.scale.x = Math.cos($engine.getGameTimer()/21)/16 + 1;
+        this.tooltip.scale.y = Math.sin($engine.getGameTimer()/31)/16 + 1;
+    }
+
+    handleMingameBrowser() {
+        this.selectedMinigameTimer++;
+        this.currentMinigameGraphic.scale.y = EngineUtils.interpolate(this.selectedMinigameTimer/18,0.5,1,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
+        this.currentMinigameGraphic.x = this.browser.x;
+        this.currentMinigameGraphic.y = this.browser.y;
+        this.currentMinigameGraphic.rotation = this.browser.angle;
+    }
+
     step() {
 
         if(IN.anyKeyPressed() && this.timer < this.endTime) {
@@ -327,6 +538,8 @@ class MenuIntroController extends EngineInstance {
         this.handleLetters();
         this.handleCamera();
         this.handleKeyboardNavigation();
+        this.handleTooltips();
+        this.handleMingameBrowser();
 
         this.timer++;
 
@@ -366,7 +579,7 @@ class MenuIntroController extends EngineInstance {
         DataManager.setupNewGame();
         SceneManager.goto(Scene_Map);
         OwO.__addItemsToPlayer();
-        OwO._clearAreaName();
+        OwO.__clearAreaName();
     }
 
     preDraw() {
@@ -474,16 +687,27 @@ class MenuIntroController extends EngineInstance {
                 this.buttons.extras.buttonBack.setSelected();
                 this.buttons.extras.buttonBack.enable();
                 this.buttons.extras.buttonBonus.enable();
-                this.buttons.extras.buttonMinigameRush.enable();
+                //this.buttons.extras.buttonMinigameRush.enable();
                 this.buttons.extras.buttonBrowse.enable();
                 this.buttons.extras.buttonEndings.enable();
                 this.activeButtons = [this.buttons.extras.buttonBack,this.buttons.extras.buttonEndings,this.buttons.extras.buttonBrowse,
-                            this.buttons.extras.buttonMinigameRush,this.buttons.extras.buttonBonus]
+                            /*this.buttons.extras.buttonMinigameRush,*/this.buttons.extras.buttonBonus]
                 this.registerBackButton(this.buttons.extras.buttonBack);
             break;
             case(MenuIntroController.REGION_ENDINGS):
+                this.buttons.endings.buttonBack.setSelected();
+                this.buttons.endings.buttonBack.enable();
+                this.activeButtons = [this.buttons.endings.buttonBack]
+                this.registerBackButton(this.buttons.endings.buttonBack);
             break;
             case(MenuIntroController.REGION_MINIGAME_BROWSER):
+                this.buttons.browse.buttonBack.setSelected();
+                this.buttons.browse.buttonBack.enable();
+                this.buttons.browse.buttonLeft.enable();
+                this.buttons.browse.buttonPlay.enable();
+                this.buttons.browse.buttonRight.enable();
+                this.activeButtons = [this.buttons.browse.buttonBack,this.buttons.browse.buttonLeft,this.buttons.browse.buttonPlay,this.buttons.browse.buttonRight]
+                this.registerBackButton(this.buttons.browse.buttonBack);
             break;
             case(MenuIntroController.REGION_EXTRAS_UNLOCKS):
             break;
@@ -516,7 +740,7 @@ class MenuIntroController extends EngineInstance {
                 this.activeButtons[check].select();
                 break;
             }
-            check++;
+            check--;
         }
     }
 
@@ -625,7 +849,7 @@ class RisingSprite extends EngineInstance {
         this.getSprite().visible = this.x > camera.getX()-120 && this.x < camera.getX() + $engine.getWindowSizeX() + 120;
 
         this.y-=this.speed;
-        if(this.y<=-120)
+        if(this.y<=-120 - $engine.getWindowSizeY())
             this.destroy();
         this.angle = this.baseAngle+Math.sin(this.randRot+$engine.getGameTimer()/32)/16 * this.rotateFactor;
         if(this.flipHoriz) {
@@ -649,6 +873,12 @@ class FloatingObject extends EngineInstance {
         this.rand2 = EngineUtils.irandom(128);
         this.rand3 = EngineUtils.irandom(128);
         this.rand4 = EngineUtils.irandomRange(64,128);
+        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,0,0,0,0)))
+        this.tooltip = "";
+    }
+
+    setTooltip(tooltip) {
+        this.tooltip = tooltip;
     }
 
     step() {
@@ -797,11 +1027,12 @@ class MainMenuButton extends FloatingObject {
 
     lock() {
         this.canBePushed = false;
-        this.getSprite().tint = 707070;
+        this.getSprite().tint = 0x707070;
     }
 
     unlock() {
         this.canBePushed = true;
+        this.getSprite().tint = 0xffffff;
     }
 
     canActivate() {

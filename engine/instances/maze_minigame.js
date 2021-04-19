@@ -1,6 +1,7 @@
 class MazeMinigameController extends MinigameController {
     onEngineCreate() { 
         $engine.unlockMinigame(ENGINE_MINIGAMES.MAZE)
+        this.lampSpriteFactor = $engine.hasItem(ENGINE_ITEMS.LAMP_OIL) ? 1.25 : 1;
         super.onEngineCreate();
         this.timer = 0;
         this.score = 0;
@@ -20,6 +21,7 @@ class MazeMinigameController extends MinigameController {
 
         this.lampSprite = $engine.createManagedRenderable(this, new PIXI.extras.AnimatedSprite($engine.getAnimation("crate_mask_animation")));
         this.lampSprite.animationSpeed = 0.1; // 6FPS
+        this.lampSprite.scale.set(this.lampSpriteFactor)
         
         this.startTimer(45*60);
         this.getTimer().pauseTimer();

@@ -24,7 +24,7 @@ block extern music
 endblock
 
 block extern text
-<none>
+__playSound[bad_end,1,1,40,72]
 <none>
 <none>
 __voice[voice_deep]__portrait[gods_profiles_8]This is bad, Eson!__wait[30] BAD!__wait[24] I can't believe you helped her take those__speed[12]...__speed[0]those innocent souls!!\0__voice[voice_normal]__portrait[eson_profiles_4] I-__wait[12] I'm so sorry.__wait[24] I-__wait[24]I didn't know__speed[12]...\0__speed[0]__voice[voice_deep]__portrait[gods_profiles_9]Didn't know?!__wait[30] __speed[12]...__speed[0]__wait[10] Kid__wait[24], that's not a valid excuse.__wait[30] This is something I simply__wait[24] CANNOT forgive.\0__voice[voice_normal]__portrait[eson_profiles_6] B__wait[36]-b__wait[24]-b__wait[12]-b__wait[9]-but that's not fair! 

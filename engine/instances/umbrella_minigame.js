@@ -3,7 +3,7 @@ class UmbrellaMinigameController extends MinigameController {
         $engine.unlockMinigame(ENGINE_MINIGAMES.UMBRELLA)
         super.onEngineCreate();
 
-        this.score = 750;
+        this.score = $engine.hasItem(ENGINE_ITEMS.CATNIP) ? 850 : 750;
 
         this.skipPregame();
 

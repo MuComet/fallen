@@ -78,7 +78,9 @@ class WallBuilderController extends MinigameController {
         this.endWaitTimer = 0;
         this.waiting = false;
 
-        this.startTimer(30*60)
+        var time = $engine.hasItem(ENGINE_ITEMS.BRICK_LAYER) ? 35 * 60 : 30 * 60;
+
+        this.startTimer(time)
     }
 
     landed(dy) {

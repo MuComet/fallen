@@ -21,7 +21,7 @@ block extern music
 endblock
 
 block extern text
-<none>
+__playSound[good_end,1,1,26.666,48]
 __voice[voice_deep]__portrait[gods_profiles_10]Well,__wait[12] I can't say I'm thrilled about how things turned out__speed[12]...__speed[0]__wait[12] But,__wait[9] I'm glad you stopped her from getting the amulet.\0__voice[voice_normal]__portrait[eson_profiles_2]Phew!__wait[24] So does that mean I get my wings back?\0__voice[voice_deep]__portrait[gods_profiles_5]Sure,__wait[9] you will get to be an angel again,__wait[12] but your title will definitely stay the same.__wait[24] After what you helped her do to those innocent souls,__wait[9] you don't deserve to become a High Angel. 
 __voice[voice_deep]__wait[36]__break[]__portrait[gods_profiles_7]With the snap of my mighty fingers,__wait[9] I grant you back your wings,__wait[9] however,__wait[9] you will remain a low angel until you can work your way up like everyone else.__wait[24] Eson,__wait[9] this is your final judgment.
 <none>

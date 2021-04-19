@@ -92,7 +92,7 @@ class EndingController extends EngineInstance {
                 $engine.setRoom("MenuIntro")
             }
 
-            if($engine.isDifficulty(ENGINE_DIFFICULTY.HARD)) { // one try
+            if($engine.isDifficulty(ENGINE_DIFFICULTY.HARD)) { // one
                 $engine.deleteSave();
             }
         }

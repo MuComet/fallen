@@ -45,7 +45,7 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
         this.baseSpeed = 2;
         this.baseTurnRate = Math.PI/256; // 64 frames to turn around
 
-        this.bufferTime = 0*60; // 0 extra seconds. (can cut corners)
+        this.bufferTime = $engine.hasItem(ENGINE_ITEMS.BRICK_LAYER) ? 60 : 0; // extra second if you have brick layer.
         this.nextImageWaitTimer=99999;
 
         this.cheatFactor = 1;

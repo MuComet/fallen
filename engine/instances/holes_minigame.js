@@ -5,7 +5,7 @@ class HoleMinigameController extends MinigameController {
         super.onEngineCreate();
 
         this.cameraDy = 1.75;
-        this.cameraDyChange = 0.001;
+        this.cameraDyChange = $engine.hasItem(ENGINE_ITEMS.PLUNGER) ? 0.00095 : 0.001;
         this.cameraY = 0;
         this.shakeTimer=0;
         this.startTimer(40*60);

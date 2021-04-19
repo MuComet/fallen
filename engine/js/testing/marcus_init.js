@@ -1,4 +1,4 @@
-$__engineData.loadRoom = "CreditsRoom"
+$__engineData.loadRoom = "BadEndingCutsceneRoom"
 $__engineData.__debugPreventReturn=true;
 $__engineData.__debugRequireAllTextures = true;
 $__engineData.__debugRequireAllSounds = true;

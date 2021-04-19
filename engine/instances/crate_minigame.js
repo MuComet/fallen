@@ -1,6 +1,7 @@
 class CrateMinigameController extends MinigameController {
     onEngineCreate() {
         $engine.unlockMinigame(ENGINE_MINIGAMES.BOXES)
+        this.lampSpriteFactor = $engine.hasItem(ENGINE_ITEMS.LAMP_OIL) ? 1.25 : 1;
         super.onEngineCreate();
         this.sizeX = 70;
         this.sizeY = 70;
@@ -31,6 +32,8 @@ class CrateMinigameController extends MinigameController {
 
         this.lampSprite = $engine.createManagedRenderable(this, new PIXI.extras.AnimatedSprite($engine.getAnimation("crate_mask_animation")));
         this.lampSprite.animationSpeed = 0.1; // 6FPS
+
+        this.lampSprite.scale.set(this.lampSpriteFactor);
 
         var arr = [];
         this.targetCrate = new Crate(true);
@@ -66,8 +69,8 @@ class CrateMinigameController extends MinigameController {
         this.startTimer(60*30);
 
         this.addOnCheatCallback(this,function(self) {
-            self.lampSprite.scale.x = 1.5;
-            self.lampSprite.scale.y = 1.5;
+            self.lampSprite.scale.x = 1.5 * self.lampSpriteFactor;
+            self.lampSprite.scale.y = 1.5 * self.lampSpriteFactor;
             if(this.lastInst) {
                 this.lastInst.getSprite().filters = [];
             }

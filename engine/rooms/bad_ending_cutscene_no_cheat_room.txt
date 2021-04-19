@@ -24,7 +24,7 @@ block extern music
 endblock
 
 block extern text
-<none>
+__playSound[bad_end,1,1,40,72]
 <none>
 <none>
 __voice[voice_deep]__portrait[gods_profiles_8]This is bad, Eson!__wait[30] BAD!__wait[24] I can't believe you let her get that amulet!!\0__voice[voice_normal]__portrait[eson_profiles_4] I-__wait[12] I'm so sorry__speed[6]...__speed[0]__wait[24] I tried my best and she fought really hard__speed[6]...\0__speed[0]__voice[voice_deep]__portrait[gods_profiles_9]Well,__wait[9] we wouldn't be in this mess in the first place if it weren't for your selfishness!!\0__voice[voice_normal]__noShift[0]__portrait[eson_profiles_6] That's not fair!__wait[30]__noShift[1]__portrait[eson_profiles_4] How was I supposed to know what she was planning?!

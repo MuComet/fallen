@@ -17,12 +17,14 @@ require cloud_generic_3 engine/textures/generic/cloud_generic_3.png 0.5 0.5
 require cloud_generic_4 engine/textures/generic/cloud_generic_4.png 0.5 0.5
 
 require minigame_browser_board engine/textures/intro/board.png 0.5 0.5
-require spritesheet dimensions 11700 420 17 1 engine/textures/intro/minigames_sheet.png 0.5 0.5
+require spritesheet dimensions 11700 420 18 1 mingames_sheet engine/textures/intro/minigames_sheet.png 0.5 0.5
 
 require spritesheet dimensions 750 1500 1 6 buttons_main engine/textures/buttons/main_sheet.png 0.5 0.5
 require spritesheet dimensions 700 1600 1 8 buttons_extra engine/textures/buttons/buttons_extra_sheet.png 0.5 0.5
 require spritesheet dimensions 731 1470 1 6 difficulty_buttons engine/textures/buttons/difficulty_sheet.png 0.5 0.5
 require spritesheet dimensions 706 382 1 2 back_button engine/textures/buttons/back_sheet.png 0.5 0.5
+require spritesheet dimensions 315 500 1 2 arrow_button engine/textures/buttons/arrow_sheet.png 0.5 0.5
+require spritesheet dimensions 473 484 1 2 play_button engine/textures/buttons/play_sheet.png 0.5 0.5
 
 spritesheet dimensions 6000 624 6 1 background_sheet_1 engine/textures/backgrounds/background_generic_1.png 0.5 0.5
 spritesheet dimensions 6000 624 6 1 background_sheet_2 engine/textures/backgrounds/background_generic_2.png 0.5 0.5
@@ -43,10 +45,10 @@ spritesheet dimensions 3264 624 4 1 best_ending_cutscene_sheet engine/textures/c
 
 spritesheet dimensions 1250 250 5 1 credits_sheet engine/textures/cutscenes/credits_sheet.png 0.5 0.5
 
-spritesheet dimensions 480 96 5 1 ending_badges engine/textures/cutscenes/ending_badge_sheet.png 0.5 0.5
+require spritesheet dimensions 480 96 5 1 ending_badges engine/textures/cutscenes/ending_badge_sheet.png 0.5 0.5
 spritesheet dimensions 3264 624 4 1 ending_names engine/textures/cutscenes/ending_name_sheet.png 0.5 0.5
 ending_background engine/textures/cutscenes/ending.png 0.5 0.5
-end_hard_badge engine/textures/cutscenes/ending_hard.png 0.5 0.5
+require end_hard_badge engine/textures/cutscenes/ending_hard.png 0.5 0.5
 
 
 require spritesheet dimensions 576 576 4 4 limit 4 4 4 4 eson_profiles engine/textures/cutscenes/eson_profiles.png 0.5 0.5

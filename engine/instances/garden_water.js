@@ -2,8 +2,9 @@ class WaterMinigameController extends MinigameController {
     onEngineCreate() { 
         $engine.unlockMinigame(ENGINE_MINIGAMES.WATERING)
         super.onEngineCreate();
-        this.score = 12;
-        this.maxScore = 12;
+        var scoreOffset = $engine.hasItem(ENGINE_ITEMS.FERTILIZER) ? 3 : 0
+        this.score = 12 + scoreOffset;
+        this.maxScore = 12 + scoreOffset;
         this.penalty = 0;
         this.next = 0;
         this.numberarrows = 0;
@@ -14,8 +15,6 @@ class WaterMinigameController extends MinigameController {
         this.speedtimer = 0;
         this.speedmul = 0.008;
         this.attempts = 6;
-        this.waiting = false;
-        this.waitTimer = 0;
 
         
         this.startTimer(30*60);
@@ -23,12 +22,12 @@ class WaterMinigameController extends MinigameController {
         this.x = 149;
         this.y = $engine.getWindowSizeY() -180;
 
-        var ddr_tiles = ["arrow_down_c", "arrow_left_c", "arrow_up_c", "arrow_right_c"];
+        var ddr_tiles = ["arrow_left_c", "arrow_down_c", "arrow_up_c", "arrow_right_c"];
         this.ddr_tiles = ddr_tiles;
 
-        this.sprite0 = new PIXI.Sprite($engine.getTexture("arrow_down"));
+        this.sprite0 = new PIXI.Sprite($engine.getTexture("arrow_left"));
         $engine.createRenderable(this, this.sprite0, true);
-        this.sprite1 = new PIXI.Sprite($engine.getTexture("arrow_left"));
+        this.sprite1 = new PIXI.Sprite($engine.getTexture("arrow_down"));
         $engine.createRenderable(this, this.sprite1, true);
         this.sprite1.dx = 120;
 
@@ -74,7 +73,6 @@ class WaterMinigameController extends MinigameController {
             IM.with(DDRTiles, function(tile){
                 tile.destroy();
             });
-            console.log(WaterMinigameController.getInstance().numberarrows);
         });
 
         //this.hitbox = new Hitbox(this,new RectangleHitbox(this,-25,-37,25,37));
@@ -114,7 +112,6 @@ class WaterMinigameController extends MinigameController {
     }
 
     notifyFramesSkipped(frames) {
-        this.getTimer().tickDown(frames);  
     }
 
     onCreate() { 
@@ -171,12 +168,12 @@ class WaterMinigameController extends MinigameController {
                 $engine.audioPlaySound("card_flip");
                 current_tile.destroy();    
             }
-            if(IN.keyCheckPressed("RPGleft") && current_tile.arrow === 1){
+            if(IN.keyCheckPressed("RPGdown") && current_tile.arrow === 1){
                 WaterMinigameController.getInstance().next = 1;
                 $engine.audioPlaySound("card_flip");
                 current_tile.destroy();
             }
-            if(IN.keyCheckPressed("RPGdown") && current_tile.arrow === 0){
+            if(IN.keyCheckPressed("RPGleft") && current_tile.arrow === 0){
                 WaterMinigameController.getInstance().next = 1;
                 $engine.audioPlaySound("card_flip");
                 current_tile.destroy();
@@ -187,9 +184,9 @@ class WaterMinigameController extends MinigameController {
                 current_tile.destroy();
             }
         }
-        if((IN.keyCheckPressed("RPGright") && current_tile.arrow != 3) || (IN.keyCheckPressed("RPGleft") && current_tile.arrow != 1)
-        || (IN.keyCheckPressed("RPGdown") && current_tile.arrow != 0) || (IN.keyCheckPressed("RPGup") && current_tile.arrow != 2)){
-            this.penalty = 40;
+        if((IN.keyCheckPressed("RPGright") && current_tile.arrow != 3) || (IN.keyCheckPressed("RPGdown") && current_tile.arrow != 1)
+        || (IN.keyCheckPressed("RPGleft") && current_tile.arrow != 0) || (IN.keyCheckPressed("RPGup") && current_tile.arrow != 2)){
+            this.penalty = 0;
             current_tile.getSprite().tint = (0xab1101);
             $engine.audioPlaySound("wall_miss");
         }  

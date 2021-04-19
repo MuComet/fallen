@@ -16,6 +16,12 @@ minigame_music_cheat engine/audio/bgm/MinigameCheat.ogg BGM
 progress_report engine/audio/bgm/Progress.ogg BGM
 credits engine/audio/bgm/Credits.ogg BGM
 
+best_end engine/audio/bgm/BestEnd.ogg BGM
+bad_end engine/audio/bgm/BadEnd.ogg BGM
+evil_end engine/audio/bgm/EvilEnd.ogg BGM
+good_end engine/audio/bgm/GoodEnd.ogg BGM
+pre_final engine/audio/bgm/PreFinal.ogg BGM
+
 minigame_ambience engine/audio/bgs/minigames/CountryAmbient.ogg BGS
 
 game_over engine/audio/bgm/GameOver.ogg BGM
