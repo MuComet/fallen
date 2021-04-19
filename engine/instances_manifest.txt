@@ -40,3 +40,5 @@ WireMinigameController WireTile engine/instances/wire_minigame.js
 
 FinalMinigameController FinalMinigameCloudParticle FinalMinigameInstruction FinalMinigameStar FinalMinigameWarning FinalMinigamePlayer BulletClearer Shootable MoveLinearBullet MoveLinearBouncingBullet FinalMinigameTarget DelayedDamageZone engine/instances/final_minigame.js
 FinalMinigameLoss engine/instances/final_minigame_loss.js
+
+CreditsController engine/instances/credits.js
