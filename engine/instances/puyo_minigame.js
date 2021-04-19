@@ -3,13 +3,19 @@ class PuyoMinigameController extends MinigameController { // All classes that ca
     onEngineCreate() { // called when the instance is made from a room.
         super.onEngineCreate();
         PuyoMinigameController.score = 0;
-        PuyoMinigameController.timer = 60;
-        PuyoMinigameController.endTime = 60;
+        if($engine.isDifficulty(ENGINE_DIFFICULTY.EASY)){
+            PuyoMinigameController.timer = 90;
+            PuyoMinigameController.endTime = 90;
+        }
+        else{
+            PuyoMinigameController.timer = 60;
+            PuyoMinigameController.endTime = 60;
+        }
         PuyoMinigameController.pCamY = 0;
         PuyoMinigameController.nCamY = 0;
 
         $engine.setBackgroundColour(0xa58443);
-        this.startTimer(60*60);
+        this.startTimer(PuyoMinigameController.timer*60);
 
         var background = new PIXI.Sprite($engine.getTexture("background_table_cards"));
         $engine.setBackground(background);
@@ -282,8 +288,11 @@ class PuyoBoard extends EngineInstance {
                 }
             }
         } else if($engine.hasItem(ENGINE_ITEMS.ENIGMA_DECRYPTER)){
-            if(IN.keyCheck('RPGup')){
-                this.state = 2
+            if(IN.keyCheckPressed('RPGup')){
+                this.currentPuyo[0].pop()
+                this.currentPuyo[1].pop()
+                this.removePuyos(0)
+                this.state = 0
             }
         }
         if(IN.keyCheckPressed('KeyX')){
