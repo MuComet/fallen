@@ -16,6 +16,7 @@ BadEndingCutsceneRoom engine/rooms/bad_ending_cutscene_room.txt
 GoodEndingCutsceneRoom engine/rooms/ok_ending_cutscene_room.txt
 EvilEndingCutsceneRoom engine/rooms/evil_ending_cutscene_room.txt
 BestEndingCutsceneRoom engine/rooms/best_ending_cutscene_room.txt
+AddEndingRoom engine/rooms/add_ending_room.txt
 
 SiblingRoom engine/rooms/sibling.txt
 

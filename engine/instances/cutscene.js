@@ -786,7 +786,7 @@ class TextBox extends EngineInstance {
 
     _playTextSound() {
         if(this.textSound!==undefined && this.textSoundTimer<=0) {
-            $engine.audioPlaySound(this.textSound,0.5);
+            $engine.audioPlaySound(this.textSound,0.4);
             this.textSoundTimer=this.textSoundMinDelay;
         }
     }

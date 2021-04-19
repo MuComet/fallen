@@ -78,6 +78,10 @@ voice_high engine/audio/se/talk/VoiceHigh.ogg SE
 eson_move_maze engine/audio/se/maze/EsonMove.ogg SE
 explosion_maze engine/audio/se/maze/Explode.ogg SE
 
+wire_rotate engine/audio/se/wires/RotateWire.ogg SE
+wire_connect engine/audio/se/wires/Connect.ogg SE
+wire_disconnect engine/audio/se/wires/Disconnect.ogg SE
+
 crate_laser engine/audio/se/crate/Laser.ogg SE
 
 worm_appear engine/audio/se/worms/Appear.ogg SE

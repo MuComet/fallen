@@ -86,6 +86,12 @@ ENGINE_MINIGAMES.WIRE = {name:"Wires"}
 ENGINE_MINIGAMES.VIDEO_GAME = {name:"Video Game"}
 ENGINE_MINIGAMES.FINALE = {name:"Finale"}
 
+const ENGINE_ENDINGS = {}
+ENGINE_ENDINGS.BEST = {name:"Best"};
+ENGINE_ENDINGS.GOOD = {name:"Good"};
+ENGINE_ENDINGS.BAD = {name:"Bad"};
+ENGINE_ENDINGS.EVIL = {name:"Evil"};
+
 // convenience functions for overworld progammers.
 
 const SET_ENGINE_ROOM = function(room) {
@@ -791,6 +797,30 @@ class Scene_Engine extends Scene_Base {
             }
         }
         return items;
+    }
+
+    /**
+     * Checks if the player has unlocked the specified ending
+     * 
+     * @param {ENGINE_ENDING} ending The ending to check
+     * @returns True if the ending has been unlocked
+     */
+    hasEnding(ending) {
+        if(!$__engineGlobalSaveData.endings)
+            $__engineGlobalSaveData.endings = {};
+        return $__engineGlobalSaveData.endings[ending.name]!==undefined;
+    }
+
+    /**
+     * Gains the specified ending
+     * 
+     * @param {ENGINE_ENDING} ending The ending to add
+     */
+    gainEnding(ending) {
+        if(!$__engineGlobalSaveData.endings)
+            $__engineGlobalSaveData.endings = {};
+        $__engineGlobalSaveData.endings[ending.name]=true
+        this.saveEngineGlobalData(); // saved immediately
     }
 
     hasMinigame(minigame) {
@@ -3951,6 +3981,7 @@ UwU.addSceneCreateListener(GUIScreen.__sceneCreate);
         $__engineGlobalSaveData.items = {};
         $__engineGlobalSaveData.__emergencyAutoSave = false;
         $__engineGlobalSaveData.minigames = {};
+        $__engineGlobalSaveData.endings = {};
     }
     
 }

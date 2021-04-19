@@ -439,7 +439,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             v.speed = 2;
         }
         if(this.sharedPhaseTimer===400*3) {
-            new FinalMinigameInstruction("Left click to shoot",false, function() {
+            new FinalMinigameInstruction("Hold left click to shoot",false, function() {
                 return IN.mouseCheck(0);
             });
         }
@@ -482,9 +482,9 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         }
 
 
-        if(this.sharedPhaseTimer>400 && this.sharedPhaseTimer<1000 && this.sharedPhaseTimer%90===0) {
-            this.attackLineHorizontal(this.sharedPhaseTimer%180===0)
-            if(this.checkCheats((this.sharedPhaseTimer - 400)/90)) // each line represents one cheat
+        if(this.sharedPhaseTimer>400 && this.sharedPhaseTimer<1000 && this.sharedPhaseTimer%120===0) {
+            this.attackLineHorizontal(this.sharedPhaseTimer%240===0)
+            if(this.checkCheats((this.sharedPhaseTimer - 400)/120)) // each line represents one cheat
                 this.attackLine();
         }
 
@@ -540,8 +540,8 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             this.sequenceSpawnCorners(2,150,20);
         }
 
-        if(this.sharedPhaseTimer>2500 && this.sharedPhaseTimer<3000 && this.sharedPhaseTimer%75===0) {
-            this.attackLineHorizontal(this.sharedPhaseTimer%150===0)
+        if(this.sharedPhaseTimer>2500 && this.sharedPhaseTimer<3000 && this.sharedPhaseTimer%150===0) {
+            this.attackLineHorizontal(this.sharedPhaseTimer%300===0)
             this.attackLine();
         }
 

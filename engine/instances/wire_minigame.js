@@ -11,6 +11,8 @@ class WireMinigameController extends MinigameController {
 
         var distributions = [0.6,0.85,1];
 
+        this.pathLength = -1;
+
         var total = this.numCols * this.numRows;
         var distIdx = 0;
         var results = []
@@ -283,6 +285,9 @@ class WireMinigameController extends MinigameController {
     }
 
     recalculate() {
+        var oldPathLength = this.pathLength;
+        var tempPathLength = 0;
+        
         // reset all tiles
         for(var x = 0;x<this.numCols;x++) {
             for(var y = 0;y<this.numRows;y++) {
@@ -302,6 +307,7 @@ class WireMinigameController extends MinigameController {
                 currentTile.liveParity = (fromDir + currentTile.currentRotation) % 2;
                 fromDir = (currentTile.getOutputDirection(fromDir) + 2) % 4
                 currentTile = this.getNextTile(currentTile, fromDir);
+                tempPathLength++;
             } else {
                 currentTile = undefined;
             }
@@ -310,6 +316,7 @@ class WireMinigameController extends MinigameController {
         if(currentTile===this.endTile && currentTile.canInputFrom(fromDir) && currentTile.getOutputDirection(fromDir) === WireTile.EAST) {
             currentTile.liveCount++;
             currentTile.energized=true;
+            tempPathLength++;
             for(var x = 0;x<this.numCols;x++) {
                 for(var y = 0;y<this.numRows;y++) {
                     this.tiles[x][y].lock();
@@ -322,6 +329,17 @@ class WireMinigameController extends MinigameController {
             for(var y = 0;y<this.numRows;y++) {
                 this.tiles[x][y].updateSprite();
             }
+        }
+
+        this.pathLength = tempPathLength;
+
+        if(oldPathLength===-1) { // init
+            return;
+        }
+        if(this.pathLength > oldPathLength) {
+            $engine.audioPlaySound("wire_connect");
+        } else if(this.pathLength < oldPathLength) {
+            $engine.audioPlaySound("wire_disconnect");
         }
     }
 
@@ -466,6 +484,7 @@ class WireTile extends EngineInstance{
     rotate(dir) {
         if(this.locked)
             return;
+        $engine.audioPlaySound("wire_rotate");
         this.currentRotation = ((this.currentRotation + dir) + 4) %4;
         this.visualRotation+=dir;
     }
