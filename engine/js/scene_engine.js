@@ -729,7 +729,10 @@ class Scene_Engine extends Scene_Base {
     /**
      * The next time the engine tries to return, override the request and instead go to the specified room.
      * 
-     * This does not effect a room change request. Only a return to overworld request.
+     * This does not effect a room change request. Only a return to overworld request. However, if an override room
+     * is specified and the room changes, then this request is ignored.
+     * 
+     * This function is mutually exclusive with overrideRoomChange. If both are set, only one will be run and the other request will be dropped
      * 
      * The engine will completely restart itself in this situation, 
      * and it will act as if the engine terminated and then immediately started in the new room.
@@ -742,10 +745,10 @@ class Scene_Engine extends Scene_Base {
     /**
      * The next time the engine tries to go to a new room, override the request and instead go to the specified room.
      * 
-     * This does not effect a room change request. Only a return to overworld request.
+     * If a request is made that the engine be terminated, then the request to override a room change will be ignored
      * 
-     * The engine will completely restart itself in this situation, 
-     * and it will act as if the engine terminated and then immediately started in the new room.
+     * This function is mutually exclusive with overrideReturn. If both are set, only one will be run and the other request will be dropped
+     * 
      * @param {String} newRoom The room to go to instead
      */
     overrideRoomChange(newRoom) {
@@ -763,6 +766,7 @@ class Scene_Engine extends Scene_Base {
     setRoom(newRoom) {
         if($__engineData.__overrideRoomChange) { // override room change
             newRoom = $__engineData.__overrideRoomChange;
+            $__engineData.__overrideRoom = undefined;
             $__engineData.__overrideRoomChange = undefined;
         }
         if(!RoomManager.roomExists(newRoom))
@@ -1088,6 +1092,7 @@ class Scene_Engine extends Scene_Base {
             $__engineData.loadRoom = $__engineData.__overrideRoom
             this.__startEngine();
             $__engineData.__overrideRoom=undefined;
+            $__engineData.__overrideRoomChange=undefined; // engine would have returned, disregard
             this.startFadeIn();
             return;
         }

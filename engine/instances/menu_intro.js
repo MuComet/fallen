@@ -428,6 +428,9 @@ class MenuIntroController extends EngineInstance {
         button.setHitbox(new Hitbox(button, new RectangleHitbox(button, -315/2,-125,315/2,125)));
         var button = this.buttons.browse.buttonRight;
         button.setHitbox(new Hitbox(button, new RectangleHitbox(button, -315/2,-125,315/2,125)));
+
+        var button = this.buttons.browse.buttonPlay;
+        button.setHitbox(new Hitbox(button , new RectangleHitbox(button, -437/2,-242/2,437/2,242/2)))
         
 
         this.setupMainMenuButtons();
@@ -735,7 +738,7 @@ class MenuIntroController extends EngineInstance {
                 this.buttons.browse.buttonLeft.enable();
                 this.buttons.browse.buttonPlay.enable();
                 this.buttons.browse.buttonRight.enable();
-                this.activeButtons = [this.buttons.browse.buttonBack,this.buttons.browse.buttonLeft,this.buttons.browse.buttonPlay,this.buttons.browse.buttonRight]
+                this.activeButtons = [this.buttons.browse.buttonRight,this.buttons.browse.buttonPlay,this.buttons.browse.buttonLeft, this.buttons.browse.buttonBack,]
                 this.registerBackButton(this.buttons.browse.buttonBack);
             break;
             case(MenuIntroController.REGION_EXTRAS_UNLOCKS):
