@@ -3097,7 +3097,7 @@ class OwO {
     }
 
     static __gameLoss() {
-        if(this.isDifficulty(ENGINE_DIFFICULTY.HARD))
+        if($engine.isDifficulty(ENGINE_DIFFICULTY.HARD))
             $engine.deleteSave(); // hehe so long save
         $__engineData.loadRoom="GameOverRoom"
         SceneManager.goto(Scene_Engine)
