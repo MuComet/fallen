@@ -25,6 +25,7 @@ require spritesheet dimensions 731 1470 1 6 difficulty_buttons engine/textures/b
 require spritesheet dimensions 706 382 1 2 back_button engine/textures/buttons/back_sheet.png 0.5 0.5
 require spritesheet dimensions 315 500 1 2 arrow_button engine/textures/buttons/arrow_sheet.png 0.5 0.5
 require spritesheet dimensions 473 484 1 2 play_button engine/textures/buttons/play_sheet.png 0.5 0.5
+require spritesheet dimensions 1296 250 6 1 button_icons engine/textures/buttons/button_icons.png 0.5 0.5
 
 spritesheet dimensions 6000 624 6 1 background_sheet_1 engine/textures/backgrounds/background_generic_1.png 0.5 0.5
 spritesheet dimensions 6000 624 6 1 background_sheet_2 engine/textures/backgrounds/background_generic_2.png 0.5 0.5

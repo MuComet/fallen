@@ -33,7 +33,7 @@ class MazeMinigameController extends MinigameController {
         this.paperBackground = new PIXI.extras.TilingSprite($engine.getTexture("background_paper_tile"),this.totalWidth,this.totalHeight);
         $engine.setBackground(this.paperBackground);
 
-        var text = new PIXI.Text("Use movement keys to move Eson through the maze.\nYou start at the bottom center and must reach the top center\n"
+        var text = new PIXI.Text("Use movement keys to move Eson through the maze.\nYou start at the bottom and must reach the top\n"
             + "MEMORIZE THE LAYOUT and travel through as fast as you can.\nDon't make a wrong turn!"
             + "\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle());
         this.setInstructionRenderable(text);

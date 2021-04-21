@@ -345,12 +345,15 @@ class ShapeToDraw extends EngineInstance {
     }
 
     showDrawing() {
-        this.alpha = 1;
+        this.getSprite().visible = true;
+        this.graphicsMask.visible = true;
         this.showing = true;
     }
 
     hideDrawing() {
-        this.alpha = 0;
+        this.getSprite().visible = false;
+        this.graphicsMask.visible = false;
+        this.showing = false;
     }
 
     step() {

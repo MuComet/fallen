@@ -81,6 +81,14 @@ class MenuIntroController extends EngineInstance {
         this.setupEndings();
         this.createButtons();
         this.setupBrowser();
+        this.setupFloatingObjects();
+    }
+
+    setupFloatingObjects() {
+        var confirmText = new FloatingObject(-$engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2);
+        var spr = $engine.createRenderable(confirmText, new PIXI.Text("Are you sure you want to delete your save data?"
+        + "\n Deleting save data will remove items and your current save.\nDeleting data will NOT delete unlocked minigames.",$engine.getDefaultSubTextStyle()),true)
+        spr.anchor.set(0.5);
     }
 
     setupEndings() {
@@ -295,6 +303,10 @@ class MenuIntroController extends EngineInstance {
             MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_ENDINGS);
         })
 
+        this.buttons.extras.buttonDelete.setOnPressed(function() {
+            MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_DELETE_SAVE);
+        })
+
         /*this.buttons.extras.buttonBonus.setOnPressed(function() {
             MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_EXTRAS_UNLOCKS);
         })
@@ -331,6 +343,20 @@ class MenuIntroController extends EngineInstance {
         });
 
         this.buttons.browse.buttonBack.setOnPressed(function() {
+            MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_EXTRAS);
+        });
+    }
+
+    setupDeleteButtons() {
+
+        this.buttons.delete.buttonAccept.setOnPressed(function() {
+            $engine.purgeItems();
+            $engine.deleteSave();
+            SoundManager.playLoad(); // maybe change later
+            MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_EXTRAS);
+        });
+
+        this.buttons.delete.buttonReject.setOnPressed(function() {
             MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_EXTRAS);
         });
     }
@@ -407,6 +433,9 @@ class MenuIntroController extends EngineInstance {
         this.buttons.extras.buttonEndings.setTextures("buttons_extra_4","buttons_extra_4","buttons_extra_5")
         this.buttons.extras.buttonBack = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras - 250,$engine.getWindowSizeY()/2);
         this.buttons.extras.buttonBack.setTextures("back_button_0","back_button_0","back_button_1")
+        this.buttons.extras.buttonDelete = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras + 250,$engine.getWindowSizeY()/2)
+        this.buttons.extras.buttonDelete.setTextures("button_icons_0","button_icons_0","button_icons_1")
+        
 
         this.buttons.endings = {};
         this.buttons.endings.buttonBack = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX(),$engine.getWindowSizeY()/2 + $engine.getWindowSizeY() - 200);
@@ -424,13 +453,12 @@ class MenuIntroController extends EngineInstance {
 
         this.buttons.browse.buttonLeft.xScale *= -1;
 
-        var button = this.buttons.browse.buttonLeft;
-        button.setHitbox(new Hitbox(button, new RectangleHitbox(button, -315/2,-125,315/2,125)));
-        var button = this.buttons.browse.buttonRight;
-        button.setHitbox(new Hitbox(button, new RectangleHitbox(button, -315/2,-125,315/2,125)));
 
-        var button = this.buttons.browse.buttonPlay;
-        button.setHitbox(new Hitbox(button , new RectangleHitbox(button, -437/2,-242/2,437/2,242/2)))
+        this.buttons.delete = {};
+        this.buttons.delete.buttonAccept = new MainMenuButton(-$engine.getWindowSizeX()/2 - 150,$engine.getWindowSizeY()/2 + 125);
+        this.buttons.delete.buttonAccept.setTextures("button_icons_4","button_icons_4","button_icons_5")
+        this.buttons.delete.buttonReject = new MainMenuButton(-$engine.getWindowSizeX()/2 + 150,$engine.getWindowSizeY()/2 + 125);
+        this.buttons.delete.buttonReject.setTextures("button_icons_2","button_icons_2","button_icons_3")
         
 
         this.setupMainMenuButtons();
@@ -438,6 +466,7 @@ class MenuIntroController extends EngineInstance {
         this.setupExtraButtons();
         this.setupEndingButtons();
         this.setupBrowseButtons();
+        this.setupDeleteButtons();
     }
 
     startMinigameRush() {
@@ -461,13 +490,13 @@ class MenuIntroController extends EngineInstance {
         }
         this.nextLeaf--;
         if(this.nextLeaf<=0) {
-            let leaf = new RisingSprite(EngineUtils.random($engine.getWindowSizeX()*3),$engine.getRandomTextureFromSpritesheet("leaf_particles"))
+            let leaf = new RisingSprite(EngineUtils.randomRange(-$engine.getWindowSizeX(),$engine.getWindowSizeX()*3),$engine.getRandomTextureFromSpritesheet("leaf_particles"))
             leaf.rotateFactor = 10;
             leaf.changeScale(0.5,0.5)
             leaf.flipHoriz = true;
             leaf.flipVert = true;
             leaf.speed*=EngineUtils.randomRange(1.6,3);
-            this.nextLeaf = EngineUtils.irandomRange(4,8);
+            this.nextLeaf = EngineUtils.irandomRange(3,6);
             if(this.timer<this.endTime) {
                 leaf.alpha = 0;
             }
@@ -689,6 +718,10 @@ class MenuIntroController extends EngineInstance {
                 this.cameraTargetX = $engine.getWindowSizeX();
                 this.cameraTargetY = -$engine.getWindowSizeY();
             break;
+            case(MenuIntroController.REGION_DELETE_SAVE):
+                this.cameraTargetX = -$engine.getWindowSizeX();
+                this.cameraTargetY = 0;
+            break;
         }
     }
 
@@ -722,7 +755,8 @@ class MenuIntroController extends EngineInstance {
                 //this.buttons.extras.buttonMinigameRush.enable();
                 this.buttons.extras.buttonBrowse.enable();
                 this.buttons.extras.buttonEndings.enable();
-                this.activeButtons = [this.buttons.extras.buttonBack,this.buttons.extras.buttonEndings,this.buttons.extras.buttonBrowse,
+                this.buttons.extras.buttonDelete.enable();
+                this.activeButtons = [this.buttons.extras.buttonBack, this.buttons.extras.buttonDelete,this.buttons.extras.buttonEndings,this.buttons.extras.buttonBrowse
                             /*this.buttons.extras.buttonMinigameRush,this.buttons.extras.buttonBonus*/]
                 this.registerBackButton(this.buttons.extras.buttonBack);
             break;
@@ -738,10 +772,17 @@ class MenuIntroController extends EngineInstance {
                 this.buttons.browse.buttonLeft.enable();
                 this.buttons.browse.buttonPlay.enable();
                 this.buttons.browse.buttonRight.enable();
-                this.activeButtons = [this.buttons.browse.buttonRight,this.buttons.browse.buttonPlay,this.buttons.browse.buttonLeft, this.buttons.browse.buttonBack,]
+                this.activeButtons = [this.buttons.browse.buttonRight,this.buttons.browse.buttonPlay,this.buttons.browse.buttonLeft, this.buttons.browse.buttonBack]
                 this.registerBackButton(this.buttons.browse.buttonBack);
             break;
             case(MenuIntroController.REGION_EXTRAS_UNLOCKS):
+            break;
+            case(MenuIntroController.REGION_DELETE_SAVE):
+                this.buttons.delete.buttonReject.setSelected();
+                this.buttons.delete.buttonReject.enable();
+                this.buttons.delete.buttonAccept.enable();
+                this.activeButtons = [this.buttons.delete.buttonAccept, this.buttons.delete.buttonReject]
+                this.registerBackButton(this.buttons.delete.buttonReject);
             break;
         }
     }
@@ -790,6 +831,7 @@ MenuIntroController.REGION_EXTRAS = 2
 MenuIntroController.REGION_ENDINGS = 3 // like main
 MenuIntroController.REGION_MINIGAME_BROWSER = 4
 MenuIntroController.REGION_EXTRAS_UNLOCKS = 5 // stories
+MenuIntroController.REGION_DELETE_SAVE = 6 // deletion of save data
 MenuIntroController.instance = undefined;
 
 class Letter extends EngineInstance {
@@ -926,7 +968,6 @@ class FloatingObject extends EngineInstance {
 
 class MainMenuButton extends FloatingObject {
     onEngineCreate() {
-        this.hitbox = new Hitbox(this,new RectangleHitbox(this,-368,-125,368,125));
         this.alpha = 0;
         this.enabled = false;
         this.onPressed = undefined;
@@ -945,6 +986,10 @@ class MainMenuButton extends FloatingObject {
         this.tex2 = $engine.getTexture(armed);
         this.tex3 = $engine.getTexture(fire);
         this.setSprite(new PIXI.Sprite(this.tex1))
+
+        var spr = this.getSprite();
+
+        this.setHitbox(new Hitbox(this, new RectangleHitbox(this,-spr.width/2,-spr.height/2,spr.width/2,spr.height/2)))
     }
 
     onCreate(x,y) {

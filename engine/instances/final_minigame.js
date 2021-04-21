@@ -427,7 +427,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             });
         }
         if(this.sharedPhaseTimer===400*1) {
-            new FinalMinigameInstruction("Press right click or middle mouse button to dodge!",false, function() {
+            new FinalMinigameInstruction("Press right click or middle mouse button\nto dodge towards the mouse!",false, function() {
                 return IN.mouseCheck(2) || IN.mouseCheck(1);
             });
         }
@@ -652,6 +652,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         }
 
         if(this.sharedPhaseTimer>300 && !this.textBox.hasMoreText()) {
+            this.player.setCanFire(false); // don't let them shoot
             var fac = EngineUtils.interpolate(this.genericTimer/30,this.healthBarTargetY+180,this.healthBarTargetY,EngineUtils.INTERPOLATE_OUT_EXPONENTIAL);
             this.healthBar.getContainer().y = fac;
             if(this.genericTimer===30) {
