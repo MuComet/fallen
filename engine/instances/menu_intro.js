@@ -86,8 +86,10 @@ class MenuIntroController extends EngineInstance {
 
     setupFloatingObjects() {
         var confirmText = new FloatingObject(-$engine.getWindowSizeX()/2,$engine.getWindowSizeY()/2);
+        var style = $engine.getDefaultTextStyle();
+        style.fontSize = 25;
         var spr = $engine.createRenderable(confirmText, new PIXI.Text("Are you sure you want to delete your save data?"
-        + "\n Deleting save data will remove items and your current save.\nDeleting data will NOT delete unlocked minigames.",$engine.getDefaultSubTextStyle()),true)
+        + "\n Deleting save data will remove items and your current save.\nDeleting save data will NOT delete unlocked minigames.",style),true)
         spr.anchor.set(0.5);
     }
 
@@ -433,7 +435,7 @@ class MenuIntroController extends EngineInstance {
         this.buttons.extras.buttonEndings.setTextures("buttons_extra_4","buttons_extra_4","buttons_extra_5")
         this.buttons.extras.buttonBack = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras - 250,$engine.getWindowSizeY()/2);
         this.buttons.extras.buttonBack.setTextures("back_button_0","back_button_0","back_button_1")
-        this.buttons.extras.buttonDelete = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras + 250,$engine.getWindowSizeY()/2)
+        this.buttons.extras.buttonDelete = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras + 150,$engine.getWindowSizeY()/2)
         this.buttons.extras.buttonDelete.setTextures("button_icons_0","button_icons_0","button_icons_1")
         
 
@@ -482,7 +484,7 @@ class MenuIntroController extends EngineInstance {
     handleFloatingObjects() {
         this.nextCloud--;
         if(this.nextCloud<=0) {
-            let cloud = new RisingSprite(EngineUtils.random($engine.getWindowSizeX()*3),$engine.getTexture("cloud_generic_"+EngineUtils.irandomRange(1,4)))
+            let cloud = new RisingSprite(EngineUtils.randomRange(-$engine.getWindowSizeX(),$engine.getWindowSizeX()*3),$engine.getTexture("cloud_generic_"+EngineUtils.irandomRange(1,4)))
             this.nextCloud = EngineUtils.irandomRange(20,60);
             if(this.timer<this.endTime) {
                 cloud.alpha = 0;
