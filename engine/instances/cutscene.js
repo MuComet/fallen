@@ -847,7 +847,7 @@ class TextBox extends EngineInstance {
         } else if(txt.startsWith("__portrait")) {
             var data = this._extractCommand(txt);
             this.walkingTextIndex+=data.length;
-            if(data.argument==="<none>" || data.arumgnet.length === 0) { // <none> or empty string
+            if(data.argument==="<none>" || data.argument.length === 0) { // <none> or empty string
                 this.setPortrait(undefined);
             } else {
                 var tex = $engine.getTexture(data.argument);
