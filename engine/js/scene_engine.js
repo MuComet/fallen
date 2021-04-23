@@ -1231,6 +1231,12 @@ class Scene_Engine extends Scene_Base {
         return $__engineSaveData.__minigames
     }
 
+    /**
+     * Explicitly signals to the engine that you do not want to count this in the minigame count.
+     * Note that a run is implicitly not counted as a minigame if both cheat and outcome index are not set.
+     * 
+     * All other functions such as checking death will still be performed.
+     */
     ignoreMingameResults() {
         $__engineData.__ignoreResults = true;
     }

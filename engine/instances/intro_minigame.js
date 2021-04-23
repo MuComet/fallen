@@ -5,7 +5,7 @@ class IntroMinigameController extends MinigameController {
         var text = new PIXI.Text("Start at the top of the drain pipe. \n Use the mouse to traverse the drain and TOUCH \n the junk clog to grab it. Make it down and back up \n without hitting the pipe walls.",$engine.getDefaultTextStyle())
         this.setInstructionRenderable(text);
 
-        new IntroMinigameJunk(740,505);
+        this.target = new IntroMinigameJunk(740,505);
 
         this.setControls(false,true);
         this.disablePreGameAmbience();
@@ -203,7 +203,20 @@ class IntroMinigameController extends MinigameController {
             this.hitTimer = this.hitTime;
             this.zoneTimer = -this.zoneTime;
             this.tintColour = 0xff1222;
+            this.hasGoal = false;
             $engine.audioPlaySound("drain_hit")
+
+            this.target.returnTimer = this.target.returnTime;
+            this.target.isFollowingPlayer = false;
+            this.target.targetX = this.target.x;
+            this.target.targetY = this.target.y;
+        }
+
+        if(this.valid && !this.hasGoal && this.target.returnTimer<0 && IM.instanceCollisionPoint(IN.getMouseXGUI(),IN.getMouseYGUI(),this.target)) {
+            this.target.isFollowingPlayer = true;
+            this.hasGoal = true;
+            this.tintColour = 0x12ff22;
+            this.zoneTimer = -this.zoneTime;
         }
 
         if(this.samplingMouse) {
@@ -371,18 +384,6 @@ class IntroMinigameJunk extends EngineInstance {
         if(controller.minigameOver()) {
             this.y-=5;
             return;
-        }
-        
-        if(this.returnTimer < 0 && !controller.hasGoal && controller.valid && IM.instanceCollisionPoint(IN.getMouseXGUI(),IN.getMouseYGUI(),this)) {
-            this.isFollowingPlayer = true;
-            controller.hasGoal = true;
-            controller.tintColour = 0x12ff22;
-            controller.zoneTimer = -controller.zoneTime;
-        }
-        if(!controller.valid && this.isFollowingPlayer) {
-            this.returnTimer = this.returnTime;
-            this.isFollowingPlayer = false;
-            controller.hasGoal = false;
         }
 
         this.grabbedTimer = EngineUtils.clamp(this.grabbedTimer + (this.isFollowingPlayer ? 1 : -1), 0, 60);
