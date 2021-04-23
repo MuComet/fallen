@@ -2,6 +2,7 @@ class HoleMinigameController extends MinigameController {
 
     onEngineCreate() {
         $engine.unlockMinigame(ENGINE_MINIGAMES.DRAIN)
+        $engine.ignoreMingameResults();
         super.onEngineCreate();
 
         this.cameraDy = 1.75;

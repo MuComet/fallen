@@ -936,7 +936,7 @@ class DailyRecapCutsceneController extends CutsceneController {
             arr.push("__voice[voice_deep]__portrait[gods_profiles_7]Eson!__wait[12] Remember me? The __speed[2]__noShift[1]__portrait[gods_profiles_6]\"cranky old man\"__speed[0] that kicked you out of the Heavens?");
             arr.push("__voice[voice_deep]__noShift[0]__portrait[gods_profiles_7]That's right,__wait[12] I heard what you said about me earlier. __wait[20]__noShift[1]__portrait[gods_profiles_7]I've got ears everywhere!");
 
-            if(wins>2) { // won 2 minigames (innkeeper counts for 1)
+            if(wins>1) { // won 2 or more minigames
                 arr.push("__voice[voice_deep]__portrait[gods_profiles_4]Anyways,__wait[9] I've come to let you know that you're doing a great job!__wait[24] Keep this up and you'll have your wings back in no time.")
                 arr.push("__voice[voice_deep]__choice[Believe it or not, but~You may not believe it, but] I truly am rooting for you.");
                 arr.push("__voice[voice_deep]__portrait[gods_profiles_5]I have to go now, __wait[20]__noShift[1]__portrait[gods_profiles_4]but keep up the good work!");
@@ -948,7 +948,7 @@ class DailyRecapCutsceneController extends CutsceneController {
                 arr.push("__noShift[0]__portrait[gods_profiles_7]Anyways, I have to go.");
             }
         } else { // day 2
-            if(wins>2) { // (2 because innkeeper counts for 1)
+            if(wins>1) { // won 2 or more
                 arr.push("__voice[voice_deep]__portrait[gods_profiles_4]Hey __choice[kid~son]!__wait[12] I just got a report from the big guys and it turns out you're doing really good.__wait[24] Great job!__wait[20] You're making me look really good.");
                 arr.push("__voice[voice_deep]__portrait[gods_profiles_5]I have to go now, __wait[20]__noShift[1]__portrait[gods_profiles_4]but keep up the great work!");
                 arr.push("__voice[voice_deep]__noShift[1]__portrait[<none>]__wait[45]O__portrait[gods_profiles_7]h!__wait[12] Almost forgot,__wait[12]__noShift[1]__portrait[gods_profiles_5] your final judgement is tomorrow night.__wait[12]__portrait[gods_profiles_4] I'll see you at the south forest tomorrow. I'm sure you'll do just fine.");

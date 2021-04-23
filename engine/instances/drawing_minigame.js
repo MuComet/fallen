@@ -42,7 +42,7 @@ class DrawController extends MinigameController { // controls the minigame
         this.gameOverTimer=0;
 
         this.selectDrawings();
-        this.loadFirstDrawing();
+        
         this.drawingInd=-1;
         this.addOnGameStartCallback(this, function(self) {
             self.nextDrawing(); // for SE
@@ -107,6 +107,7 @@ class DrawController extends MinigameController { // controls the minigame
         if(this.drawingInd>0) {
             this.drawings[this.drawingInd-1].hideDrawing();
             this.drawings[this.drawingInd-1].calculateScore();
+            console.log("hiding: "+String(this.drawingInd-1))
         }
         if(this.drawingInd>=3) {
             this.done = true;
@@ -115,10 +116,7 @@ class DrawController extends MinigameController { // controls the minigame
         $engine.audioPlaySound("draw_start")
         $engine.audioPlaySound("draw_shake",1,true)
         this.drawings[this.drawingInd].showDrawing();
-    }
-
-    loadFirstDrawing() {
-        this.drawings[this.drawingInd].alpha = 1;
+        console.log("showing: "+String(this.drawingInd))
     }
 
     step() {
@@ -336,7 +334,6 @@ class ShapeToDraw extends EngineInstance {
         this.graphicsMask = $engine.createRenderable(this, new PIXI.Graphics(),true);
         var pz = this.pathData.path[0];
         this.graphicsMask.moveTo(pz.x,pz.y);
-        this.getSprite().mask = this.graphicsMask;
         this.onEngineCreate();
         this.setupTimer = 0;
         this.lastIdx = 0;
@@ -345,18 +342,24 @@ class ShapeToDraw extends EngineInstance {
     }
 
     showDrawing() {
-        this.getSprite().visible = true;
-        this.graphicsMask.visible = true;
+        this.alpha = 1;
         this.showing = true;
+        this.getSprite().mask = this.graphicsMask;
     }
 
     hideDrawing() {
-        this.getSprite().visible = false;
-        this.graphicsMask.visible = false;
+        this.alpha = 0;
         this.showing = false;
+        this.getSprite().mask = undefined;
+        this.graphicsMask.visible = false;
     }
 
     step() {
+        
+        if(this.setupTimer === this.inTime) {
+            this.getSprite().mask = undefined;
+            this.graphicsMask.visible = false;
+        }
         if(this.setupTimer>=this.inTime || !this.showing){
             return;
         }

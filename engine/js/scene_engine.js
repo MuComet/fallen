@@ -20,7 +20,7 @@ $__engineData.__shouldAutoSave = true;
 $__engineData.__deferredAssets = -1;
 $__engineData.__loadedDeferredAssets = -1;
 $__engineData.__currentMinigame = undefined; // for unlocking in minigame rush
-$__engineData.__difficulty = 1;
+$__engineData.__ignoreResults = 1;
 
 
 // things to unbork:
@@ -1175,10 +1175,10 @@ class Scene_Engine extends Scene_Base {
     }
 
     __recordOutcome() {
-        // was not a mingiame
+        // was not a mingiame OR we have been told to ignore the results
         var cheatIndex = $__engineSaveData.cheatWriteBackIndex;
         var outcomeIndex = $__engineSaveData.outcomeWriteBackIndex;
-        if(outcomeIndex===-1 && cheatIndex===-1)
+        if((outcomeIndex===-1 && cheatIndex===-1) || $__engineData.__ignoreResults)
             return;
         var data = $__engineSaveData.__minigames
         data.minigamesTotal++
@@ -1231,6 +1231,10 @@ class Scene_Engine extends Scene_Base {
         return $__engineSaveData.__minigames
     }
 
+    ignoreMingameResults() {
+        $__engineData.__ignoreResults = true;
+    }
+
     __applyBlendModes() { // applies the khas blend modes every time the engine quits. Fixes a bug with khas.
         var renderer = this.getRenderer();
         var gl = renderer.gl;
@@ -1248,7 +1252,8 @@ class Scene_Engine extends Scene_Base {
         $__engineSaveData.__cheatWriteBackValue=-1;
         $__engineSaveData.autoSetWriteBackIndex=-1;
 
-        $__engineData.__currentMinigame === undefined
+        $__engineData.__currentMinigame = undefined
+        $__engineData.__ignoreResults = false
     }
     
     /**
