@@ -164,7 +164,7 @@ class IntroMinigameController extends MinigameController {
         if(!this.valid) {
             this.samplingMouse = false;
             this.trailColour= 0xff1222;
-            if(this.mouseInZoneBounds()) {
+            if(this.mouseInZoneBounds() && !this.mouseIsInvalid()) {
                 this.points=[];
                 this.valid=true;
             }
@@ -189,15 +189,19 @@ class IntroMinigameController extends MinigameController {
         
     }
 
+    mouseIsInvalid() {
+        var v1 = new EngineLightweightPoint(this.lastMouseX,this.lastMouseY);
+        var v2 = new EngineLightweightPoint(this.mouseX,this.mouseY);
+        return (this.hitbox1.checkLineCollision(v1,v2) || this.hitbox2.checkLineCollision(v1,v2) || !IN.mouseInBounds())
+    }
+
     handleMouse() {
         this.lastMouseX = this.mouseX;
         this.lastMouseY = this.mouseY;
         this.mouseX = IN.getMouseXGUI();
         this.mouseY = IN.getMouseYGUI();
 
-        var v1 = new EngineLightweightPoint(this.lastMouseX,this.lastMouseY);
-        var v2 = new EngineLightweightPoint(this.mouseX,this.mouseY);
-        if(this.valid && (this.hitbox1.checkLineCollision(v1,v2) || this.hitbox2.checkLineCollision(v1,v2) || !IN.mouseInBounds())) {
+        if(this.valid && this.mouseIsInvalid()) {
             this.valid = false;
             this.lastKnownLocation = new EngineLightweightPoint(this.mouseX,this.mouseY)
             this.hitTimer = this.hitTime;
