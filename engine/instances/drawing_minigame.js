@@ -107,7 +107,6 @@ class DrawController extends MinigameController { // controls the minigame
         if(this.drawingInd>0) {
             this.drawings[this.drawingInd-1].hideDrawing();
             this.drawings[this.drawingInd-1].calculateScore();
-            console.log("hiding: "+String(this.drawingInd-1))
         }
         if(this.drawingInd>=3) {
             this.done = true;
@@ -116,7 +115,6 @@ class DrawController extends MinigameController { // controls the minigame
         $engine.audioPlaySound("draw_start")
         $engine.audioPlaySound("draw_shake",1,true)
         this.drawings[this.drawingInd].showDrawing();
-        console.log("showing: "+String(this.drawingInd))
     }
 
     step() {

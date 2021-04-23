@@ -2956,6 +2956,30 @@ class UwU {
     }
 }
 
+Game_Temp.prototype.initialize = function() {
+    this._isPlaytest = Utils.isOptionValid('test');
+    this._commonEventId = [];
+    this._destinationX = null;
+    this._destinationY = null;
+};
+
+
+Game_Temp.prototype.reserveCommonEvent = function(commonEventId) {
+    this._commonEventId.push(commonEventId);
+};
+
+Game_Temp.prototype.clearCommonEvent = function() {
+    this._commonEventId.pop();
+};
+
+Game_Temp.prototype.isCommonEventReserved = function() {
+    return this._commonEventId.length > 0;
+};
+
+Game_Temp.prototype.reservedCommonEvent = function() {
+    return $dataCommonEvents[this._commonEventId[this._commonEventId.length - 1]];
+};
+
 UwU.__onSceneChangeListeners = [];
 UwU.__onSceneCreateListeners = [];
 UwU.__lastMapId = 0;

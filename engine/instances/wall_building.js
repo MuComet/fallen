@@ -8,7 +8,7 @@ class WallBuilderController extends MinigameController {
             this.possibleLetters.push("Key"+String.fromCharCode(i+65));
         this.lastLetter = "";
         this.delayToNext = 999;
-        this.maxDelayToNext = 30; // if you mess up
+        this.maxDelayToNext = 40; // if you mess up
         this.currentKey = "";
 
         this.progress = 0;
@@ -173,9 +173,9 @@ class WallBuilderController extends MinigameController {
     keyIncorrect() {
         this.spawnFadingLetter(true);
         
-        var times = 1;
+        var times = 2;
         if(this.hasCheated()) {
-            times = 3;
+            times = 4;
         }
         for(var i =0;i<times;i++) {
             this.spawnBrick(false);
@@ -187,7 +187,7 @@ class WallBuilderController extends MinigameController {
         //this.spawnFadingLetter(false);
         this.delayToNext=0;
         this.errorTimer=0;
-        this.flipTimer=this.flipTime+this.errorTime;
+        this.flipTimer=this.errorTime;
         this.next();
         this.letterText.visible = false;
     }
