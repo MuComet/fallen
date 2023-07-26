@@ -9,6 +9,14 @@ class WaterMinigameController extends MinigameController {
         this.next = 0;
         this.numberarrows = 0;
 
+        this.buffer = 0;
+        this.currentTimer = 0;
+
+        this.lines = [];
+        this.measure = -1;
+        this.part = 0;
+        this.chart = this.convert("charts/chart.txt");
+
         new ParallaxingBackground("background_garden1");
     
         this.timer = 0;
@@ -29,9 +37,10 @@ class WaterMinigameController extends MinigameController {
 
         this.feedbackTimer = 9999;
 
-
+        this.musicPlaying = false;
+        this.fulltimer = 0;
         
-        this.startTimer(30*60);
+        this.startTimer(60*60);
         this.getTimer().setSurvivalMode();
         this.x = 149;
         this.y = $engine.getWindowSizeY() -180;
@@ -77,6 +86,13 @@ class WaterMinigameController extends MinigameController {
         }
 
         this.addOnCheatCallback(this, function(controller){
+            $engine.audioPauseSound(WaterMinigameController.getInstance().musicStandard)
+            $engine.audioPauseSound(WaterMinigameController.getInstance().musicCheat)
+            WaterMinigameController.getInstance().musicPlaying = false;
+            WaterMinigameController.getInstance().fulltimer = (120 + Math.abs(WaterMinigameController.getInstance().y-100)/6)+5;
+            WaterMinigameController.getInstance().chart = WaterMinigameController.getInstance().convert("charts/cheatChart.txt");
+            WaterMinigameController.getInstance().currLength = 120/(WaterMinigameController.getInstance().chart[WaterMinigameController.getInstance().measure].length);
+            WaterMinigameController.getInstance().lines = [];
             controller.speedmul = 0;
             IM.with(DDRTiles, function(tile){
                 tile.destroy();
@@ -102,13 +118,43 @@ class WaterMinigameController extends MinigameController {
         this.progressText.x = $engine.getWindowSizeX()/2;
         this.progressText.y = $engine.getWindowSizeY()-30;
 
-        
         this.updateProgressText();
         this.randomPlantSelect();
         new WaterCan(); // must be in this order
         
-        this.setCheatTooltip("Sometimes faster isn't better!");
+        this.setCheatTooltip("Let's try simplifying this, shall we?");
         this.setLossReason("Maybe try practicing on BreadHeist?");
+    }
+    stopMusic(){
+        $engine.audioPauseSound(this.musicStandard);
+        $engine.audioPauseSound(this.musicCheat);
+    }
+
+    _initMusic() {
+        this.musicStandard = $engine.audioPlaySound("minigame_music",0.5)
+        $engine.audioPauseSound(this.musicStandard)
+
+        this.musicCheat = $engine.audioPlaySound("minigame_music_cheat",0.5)
+        $engine.audioSetVolume(this.musicCheat,0); // this call is because the engine uses the input volume for future calculations.
+        $engine.audioPauseSound(this.musicCheat)
+
+        this.ambience = $engine.audioPlaySound("minigame_ambience",1,true,EngineUtils.random(111),111)
+        $engine.audioSetLoopPoints(this.ambience,0,111)
+        $engine.audioSetVolume(this.ambience,0);
+    }
+
+    startMinigame(){
+        if(this._minigameStarted)
+            throw new Error("Minigame is already started.")
+        this._minigameStarted=true;
+        $engine.audioPlaySound("minigame_start",0.75)
+
+        this.delayedAction($engine.isGamePaused() ? 0 : 60, function() {
+            if(this._timer && !this._skipPregame)
+                this._timer.unpauseTimer();
+            this._onGameStart();
+            this.routine(this._fadeInMusic);
+        });
     }
 
     handleShake() {
@@ -133,17 +179,93 @@ class WaterMinigameController extends MinigameController {
         this.onEngineCreate();
     }
 
-    step() {
+    min(num1, num2){
+        if(num1 < num2){
+            return num1
+        }
+        else{
+            return num2
+        }
+    }
 
+    step() {
         super.step();
+
         if(this.minigameOver()){
             return;
         }
 
-        if((this.timer >= (30 -  this.speedtimer * this.speedmul)) && this.numberarrows <= 74){
-            new DDRTiles(149, 100, 0);
-            this.numberarrows++;
+        // if((this.timer >= (30 -  this.speedtimer * this.speedmul)) && this.numberarrows <= 74){
+
+        //     new DDRTiles(149, 100, 0);
+        //     this.numberarrows++;
+        //     this.timer = 0;
+        // }
+        if(this.timer >= 120 && this.measure <= 27){
+            this.measure++;
             this.timer = 0;
+
+            if(this.measure <= 27){
+                this.currLength = 120/(this.chart[this.measure].length);
+            }
+        }
+
+        console.log(this.timer)
+        if(this.fulltimer > (120 + 5 + Math.abs(this.y-100)/6) && !this.musicPlaying && this.buffer == 0){
+            this._startMusic();
+            this.musicPlaying = true;
+
+            if(this.currentTimer != 0){
+                var tile = IM.find(DDRTiles, 0);
+                if(tile === undefined){
+                    return;
+                }
+                var nice = Math.abs(tile.y - this.currentTimer)/6
+                console.log("nice")
+                console.log(nice)
+                this.buffer = 15
+                this.currentTimer = 0
+            }
+
+            function focusOutHandler(event){
+                WaterMinigameController.getInstance().stopMusic()
+                WaterMinigameController.getInstance().musicPlaying = false;
+                WaterMinigameController.getInstance().fulltimer = (120 + Math.abs(WaterMinigameController.getInstance().y-100)/6+6);
+                WaterMinigameController.getInstance().buffer = 15
+                WaterMinigameController.getInstance().currentTimer = 1;
+            }
+
+            if (window.addEventListener){
+                window.addEventListener("blur", focusOutHandler, true);
+            } else {
+                window.observe("focusout", focusOutHandler);
+            }
+
+            // window.observe('focus:in', function(event) {
+                
+            // });
+
+            // window.observe('focus:out', function(event) {
+            //     this.stopMusic()
+            // });
+            // if (window.addEventListener){
+            //     window.addEventListener("focus", WaterMinigameController.getInstance()._startMusic, true);
+            //     window.addEventListener("blur", WaterMinigameController.getInstance().stopMusic, true);
+            // } else {
+            //     window.observe("focusin", WaterMinigameController.getInstance()._startMusic);
+            //     window.observe("focusout", WaterMinigameController.getInstance().stopMusic);
+            // }
+        }
+
+        if(this.timer%this.currLength == 0 && this.timer >= 0 && this.buffer == 0 && this.measure <= 27){
+            var note = this.chart[this.measure][this.timer/this.currLength];
+            this.lines.push(note);
+
+            for(var i = 0; i < note.length; i++){
+                if(note[i] != '0'){
+                    new DDRTiles(149, 100, i);
+                }
+            }
         }
 
         if(this.score <= 0){
@@ -160,7 +282,16 @@ class WaterMinigameController extends MinigameController {
         this.updateProgressText();
         this.handleShake();
         this.handleFeedback();
-        this.timer++;
+        if(this.buffer == 0){
+            this.timer++;
+        }
+        else{
+            this.buffer--;
+            if(this.buffer == 0){
+                this.timer++;
+            }
+        }
+        this.fulltimer++;
         this.speedtimer++;
     }
     
@@ -178,50 +309,80 @@ class WaterMinigameController extends MinigameController {
     }
 
     tileHit() {
+        var current_line = this.lines[0];
+        var current_tiles = [0,0,0,0];
         var current_tile = IM.find(DDRTiles, 0);
-        if(current_tile === undefined || this.penalty != 0){
+        var count = 0;
+        if(current_tile === undefined || current_line === undefined || this.penalty != 0){
             return;
         }
-
-
-        if($engine.getWindowSizeY() -220 <= current_tile.y && current_tile.y <= $engine.getWindowSizeY()){
-
-            if(IN.keyCheckPressed("RPGright") && current_tile.arrow === 3){
-                WaterMinigameController.getInstance().next = 1;
-                $engine.audioPlaySound("card_flip");
-                current_tile.destroy();    
-            }
-            if(IN.keyCheckPressed("RPGdown") && current_tile.arrow === 1){
-                WaterMinigameController.getInstance().next = 1;
-                $engine.audioPlaySound("card_flip");
-                current_tile.destroy();
-            }
-            if(IN.keyCheckPressed("RPGleft") && current_tile.arrow === 0){
-                WaterMinigameController.getInstance().next = 1;
-                $engine.audioPlaySound("card_flip");
-                current_tile.destroy();
-            }
-            if(IN.keyCheckPressed("RPGup") && current_tile.arrow === 2){
-                WaterMinigameController.getInstance().next = 1;
-                $engine.audioPlaySound("card_flip");
-                current_tile.destroy();
+        for(var i = 0; i < current_line.length; i++){
+            if(current_line[i] != '0'){
+                var current = IM.find(DDRTiles, count);
+                count++;
+                current_tiles[current.arrow] = current;
             }
         }
-        if((IN.keyCheckPressed("RPGright") && current_tile.arrow != 3) || (IN.keyCheckPressed("RPGdown") && current_tile.arrow != 1)
-        || (IN.keyCheckPressed("RPGleft") && current_tile.arrow != 0) || (IN.keyCheckPressed("RPGup") && current_tile.arrow != 2)){
+
+        var success = false;
+        if($engine.getWindowSizeY() -220 <= current_tile.y && current_tile.y <= $engine.getWindowSizeY()){
+
+            var line_list = Array.from(current_line)
+            if(IN.keyCheckPressed("RPGleft") && current_line[0] != '0'){
+                WaterMinigameController.getInstance().next = 1;
+                $engine.audioPlaySound("card_flip");
+                line_list[0] = '0';
+                current_tiles[0].clicked = true;
+                current_tiles[0].destroy();
+                success = true;
+            }
+            if(IN.keyCheckPressed("RPGdown") && current_line[1] != '0'){
+                WaterMinigameController.getInstance().next = 1;
+                $engine.audioPlaySound("card_flip");
+                line_list[1] = '0';
+                current_tiles[1].clicked = true;
+                current_tiles[1].destroy();
+                success = true;
+            }
+            if(IN.keyCheckPressed("RPGup") && current_line[2] != '0'){
+                WaterMinigameController.getInstance().next = 1;
+                $engine.audioPlaySound("card_flip");
+                line_list[2] = '0';
+                current_tiles[2].clicked = true;
+                current_tiles[2].destroy();
+                success = true;
+            }
+            if(IN.keyCheckPressed("RPGright") && current_line[3] != '0'){
+                WaterMinigameController.getInstance().next = 1;
+                $engine.audioPlaySound("card_flip");
+                line_list[3] = '0';
+                current_tiles[3].clicked = true;
+                current_tiles[3].destroy();  
+                success = true;  
+            }
+            current_line = line_list.join('');
+            this.lines[0] = current_line;
+        }
+        if(current_line == '0000' || current_tile.y >= $engine.getWindowSizeY()){
+            this.lines.shift();
+        }
+
+        if(!success && ((IN.keyCheckPressed("RPGright") && current_line[3] == '0') || (IN.keyCheckPressed("RPGdown") && current_line[1] == '0')
+        || (IN.keyCheckPressed("RPGleft") && current_line[0] == '0') || (IN.keyCheckPressed("RPGup") && current_line[2] == '0')
+        || (current_tile.y > $engine.getWindowSizeY()))){
             this.penalty = 0;
             current_tile.getSprite().tint = (0xab1101);
             $engine.audioPlaySound("wall_miss");
             this.notifyHit(-1,false)
-        }  
+        }
     }
 
     notifyHit(location, hit=true) {
         var diff = Math.abs(this.y - location);
 
         this.feedbackTimer = 0;
-        if(!hit) {
-            this.lastNoteResult.texture=this.textureBad
+        if(!hit || location >= $engine.getWindowSizeY()){
+            this.lastNoteResult.texture=this.textureBad;
             return;
         }
         if(diff < 12) {
@@ -234,6 +395,16 @@ class WaterMinigameController extends MinigameController {
 
     updateProgressText() {
         this.progressText.text = "Progress:  Plants Alive  "+String(this.score+" / "+String(this.maxScore));
+    }
+
+    convert(file){
+        var content = EngineUtils.readLocalFile(file);
+        var contentList = content.split(',\r\n');
+        for(var i = 0; i < contentList.length; i++){
+            contentList[i] = contentList[i].split('\r\n');
+            contentList[i].pop();
+        }
+        return contentList;
     }
   
 
@@ -248,9 +419,9 @@ class WaterMinigameController extends MinigameController {
 
 
 class DDRTiles extends EngineInstance {
-    onCreate(x,y) {
+    onCreate(x,y,arrow) {
         this.depth = -10;
-        this.arrow = EngineUtils.irandomRange(0,3);
+        this.arrow = arrow;
         this.x = x + this.arrow*120;
         this.y = y;
         this.speed = 6;
@@ -272,14 +443,16 @@ class DDRTiles extends EngineInstance {
             plant.getSprite().texture = $engine.getTexture(WaterMinigameController.getInstance().plant_sprites[plant.index + 3]);
 
             WaterMinigameController.getInstance().plant_array.splice(WaterMinigameController.getInstance().index, 1);
-
+            var line_list = Array.from(WaterMinigameController.getInstance().lines[0]);
+            line_list[this.arrow] = '0';
+            WaterMinigameController.getInstance().lines[0] = line_list.join('');
             this.destroy();
             WaterMinigameController.getInstance().next = 2;
         }
     }
 
     onDestroy() {
-        WaterMinigameController.getInstance().notifyHit(this.y);
+        WaterMinigameController.getInstance().notifyHit(this.y, this.clicked);
     }
 }
 
@@ -355,4 +528,5 @@ class WaterCan extends EngineInstance {
         //EngineDebugUtils.drawHitbox(camera,this);
         //EngineDebugUtils.drawBoundingBox(camera,this);
     }
+
 }
