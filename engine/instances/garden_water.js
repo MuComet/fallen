@@ -125,6 +125,14 @@ class WaterMinigameController extends MinigameController {
         this.setCheatTooltip("Let's try simplifying this, shall we?");
         this.setLossReason("Maybe try practicing on BreadHeist?");
     }
+
+    _onMinigameEnd(self, expired){
+        window.removeEventListener("blur", this.focusOutHandler, true);
+        window.removeEventListener("focusout", this.focusOutHandler, true);
+        console.log('hehe')
+        super._onMinigameEnd(self, expired);
+    }
+
     stopMusic(){
         $engine.audioPauseSound(this.musicStandard);
         $engine.audioPauseSound(this.musicCheat);
@@ -191,6 +199,38 @@ class WaterMinigameController extends MinigameController {
     step() {
         super.step();
 
+        if(IN.keyCheckPressed("RPGup")){
+            this.sprite2.tint = 0x888888;
+        }
+
+        if(IN.keyCheckReleased("RPGup")){
+            this.sprite2.tint = 0xFFFFFF;
+        }
+
+        if(IN.keyCheckPressed("RPGleft")){
+            this.sprite0.tint = 0x888888;
+        }
+
+        if(IN.keyCheckReleased("RPGleft")){
+            this.sprite0.tint = 0xFFFFFF;
+        }
+
+        if(IN.keyCheckPressed("RPGdown")){
+            this.sprite1.tint = 0x888888;
+        }
+
+        if(IN.keyCheckReleased("RPGdown")){
+            this.sprite1.tint = 0xFFFFFF;
+        }
+
+        if(IN.keyCheckPressed("RPGright")){
+            this.sprite3.tint = 0x888888;
+        }
+
+        if(IN.keyCheckReleased("RPGright")){
+            this.sprite3.tint = 0xFFFFFF;
+        }
+
         if(this.minigameOver()){
             return;
         }
@@ -210,7 +250,6 @@ class WaterMinigameController extends MinigameController {
             }
         }
 
-        console.log(this.timer)
         if(this.fulltimer > (120 + 5 + Math.abs(this.y-100)/6) && !this.musicPlaying && this.buffer == 0){
             this._startMusic();
             this.musicPlaying = true;
@@ -223,23 +262,11 @@ class WaterMinigameController extends MinigameController {
                 var nice = Math.abs(tile.y - this.currentTimer)/6
                 console.log("nice")
                 console.log(nice)
-                this.buffer = 15
                 this.currentTimer = 0
             }
 
-            function focusOutHandler(event){
-                WaterMinigameController.getInstance().stopMusic()
-                WaterMinigameController.getInstance().musicPlaying = false;
-                WaterMinigameController.getInstance().fulltimer = (120 + Math.abs(WaterMinigameController.getInstance().y-100)/6+6);
-                WaterMinigameController.getInstance().buffer = 15
-                WaterMinigameController.getInstance().currentTimer = 1;
-            }
-
-            if (window.addEventListener){
-                window.addEventListener("blur", focusOutHandler, true);
-            } else {
-                window.observe("focusout", focusOutHandler);
-            }
+            window.addEventListener("blur", this.focusOutHandler, true);
+            window.addEventListener("focusout", this.focusOutHandler, true);
 
             // window.observe('focus:in', function(event) {
                 
@@ -269,7 +296,8 @@ class WaterMinigameController extends MinigameController {
         }
 
         if(this.score <= 0){
-            this.getTimer().pauseTimer();
+            this.getTimer().pauseTimer;
+
             this.endMinigame(false);
         }
 
