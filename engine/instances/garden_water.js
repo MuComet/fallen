@@ -173,6 +173,13 @@ class WaterMinigameController extends MinigameController {
         this.shakeTimer--;
     }
 
+    focusOutHandler(event) {
+        WaterMinigameController.getInstance().stopMusic()
+        WaterMinigameController.getInstance().buffer = 13
+        WaterMinigameController.getInstance().currentTimer = 1
+        WaterMinigameController.getInstance().musicPlaying = false
+    }
+
     shake(factor = 20) {
         if(this.shakeTimer < 0);
             this.shakeTimer=0;

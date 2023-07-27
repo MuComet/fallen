@@ -164,6 +164,7 @@ function Sprite_QButton() {
 
   TouchInput.setCursor = function(cursor) {
     if (this._cursor === cursor) return;
+    if ($gameTemp === undefined || cursor === undefined || this._cursor === undefined || _CURSORIMGS === undefined || overrides === undefined) return;
     this._cursor = cursor || this._cursor;
     var overrides = $gameTemp ? $gameTemp._CURSOROVERRIDES : {};
     var cursorImg = overrides[this._cursor] || _CURSORIMGS[this._cursor];

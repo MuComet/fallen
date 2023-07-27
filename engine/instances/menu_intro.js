@@ -18,6 +18,7 @@ class MenuIntroController extends EngineInstance {
         this.backButton = undefined;
 
         this.totalUnlockedEndings = 0;
+        this.totalUnlockedMinigames = 0;
 
         this.letters = [];
         //var locX = [37,159,308,451,522,671];
@@ -54,6 +55,9 @@ class MenuIntroController extends EngineInstance {
         this.minigameList = [];
         for(const val in ENGINE_MINIGAMES) {
             this.minigameList.push(ENGINE_MINIGAMES[String(val)]);
+            if($engine.hasMinigame(val)){
+                this.totalUnlockedMinigames++;
+            }
         }
 
         this.selectedMinigameIndex = 0;
@@ -309,18 +313,23 @@ class MenuIntroController extends EngineInstance {
             MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_DELETE_SAVE);
         })
 
-        /*this.buttons.extras.buttonBonus.setOnPressed(function() {
+        this.buttons.extras.buttonBonus.setOnPressed(function() {
             MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_EXTRAS_UNLOCKS);
         })
 
         if(this.totalUnlockedEndings<4) {
-            this.buttons.extras.buttonBonus.lock();
+            //this.buttons.extras.buttonBonus.lock();
             this.buttons.extras.buttonBonus.setTooltip("Unlock every ending to view\n concept art and developer stories!");
-        }*/
+        }
 
-        /*this.buttons.extras.buttonMinigameRush.setOnPressed(function() {
+        this.buttons.extras.buttonMinigameRush.setOnPressed(function() {
             MenuIntroController.getInstance().startMinigameRush();
-        })*/
+        })
+
+        if(this.totalUnlockedMinigames<17) {
+            //this.buttons.extras.buttonMinigameRush.lock();
+            this.buttons.extras.buttonMinigameRush.setTooltip("Unlock every minigame\n and challenge yourself in one big rush\n of them all!");
+        }
     }
 
     setupBrowseButtons() {
@@ -349,6 +358,20 @@ class MenuIntroController extends EngineInstance {
         });
     }
 
+    setupBonusButtons() {
+        // this.buttons.bonus.buttonRight.setOnPressed(function() {
+        //     MenuIntroController.getInstance().nextMinigame(1);
+        // });
+
+        // this.buttons.bonus.buttonLeft.setOnPressed(function() {
+        //     MenuIntroController.getInstance().nextMinigame(-1);
+        // });
+
+        this.buttons.bonus.buttonBack.setOnPressed(function() {
+            MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_EXTRAS);
+        });
+    }
+
     setupDeleteButtons() {
 
         this.buttons.delete.buttonAccept.setOnPressed(function() {
@@ -372,7 +395,6 @@ class MenuIntroController extends EngineInstance {
         $engine.overrideRoomChange("MenuIntro")
         $engine.overrideReturn("MenuIntro")
         $engine.startFadeOut();
-
     }
 
     getSelectedMingame() {
@@ -425,10 +447,10 @@ class MenuIntroController extends EngineInstance {
 
         this.buttons.extras = {};
 
-        //this.buttons.extras.buttonBonus = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2-100);
-        //this.buttons.extras.buttonBonus.setTextures("buttons_extra_0","buttons_extra_0","buttons_extra_1")
-        //this.buttons.extras.buttonMinigameRush = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2-50);
-        //this.buttons.extras.buttonMinigameRush.setTextures("buttons_extra_2","buttons_extra_2","buttons_extra_3")
+        this.buttons.extras.buttonBonus = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2-150);
+        this.buttons.extras.buttonBonus.setTextures("buttons_extra_0","buttons_extra_0","buttons_extra_1")
+        this.buttons.extras.buttonMinigameRush = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2+150);
+        this.buttons.extras.buttonMinigameRush.setTextures("buttons_extra_2","buttons_extra_2","buttons_extra_3")
         this.buttons.extras.buttonBrowse = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2-50);
         this.buttons.extras.buttonBrowse.setTextures("buttons_extra_6","buttons_extra_6","buttons_extra_7")
         this.buttons.extras.buttonEndings = new MainMenuButton($engine.getWindowSizeX()/2 + offsetExtras,$engine.getWindowSizeY()/2+50);
@@ -453,6 +475,14 @@ class MenuIntroController extends EngineInstance {
         this.buttons.browse.buttonRight = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX() * 2 + 150,$engine.getWindowSizeY() - 125);
         this.buttons.browse.buttonRight.setTextures("arrow_button_0","arrow_button_0","arrow_button_1")
 
+        this.buttons.bonus = {};
+        this.buttons.bonus.buttonBack = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX(), - 100);
+        this.buttons.bonus.buttonBack.setTextures("back_button_0","back_button_0","back_button_1")
+        this.buttons.bonus.buttonLeft = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX() - 150, - 200);
+        this.buttons.bonus.buttonLeft.setTextures("arrow_button_0","arrow_button_0","arrow_button_1")
+        this.buttons.bonus.buttonRight = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX() + 150, - 200);
+        this.buttons.bonus.buttonRight.setTextures("arrow_button_0","arrow_button_0","arrow_button_1")
+
         this.buttons.browse.buttonLeft.xScale *= -1;
 
 
@@ -468,6 +498,7 @@ class MenuIntroController extends EngineInstance {
         this.setupExtraButtons();
         this.setupEndingButtons();
         this.setupBrowseButtons();
+        this.setupBonusButtons();
         this.setupDeleteButtons();
     }
 
@@ -479,6 +510,13 @@ class MenuIntroController extends EngineInstance {
             button.disable();
         })
         AudioManager.playSe($engine.generateAudioReference("GameStart"))
+        for(var i = 0; i < this.minigameList.length - 1; i++){    
+            $engine.audioFadeAll();
+            $engine.setRoom(this.minigameList[i].room)
+        }
+        $engine.overrideRoomChange("MenuIntro")
+        $engine.overrideReturn("MenuIntro")
+        $engine.startFadeOut();
     }
 
     handleFloatingObjects() {
@@ -753,13 +791,13 @@ class MenuIntroController extends EngineInstance {
             case(MenuIntroController.REGION_EXTRAS):
                 this.buttons.extras.buttonBack.setSelected();
                 this.buttons.extras.buttonBack.enable();
-                //this.buttons.extras.buttonBonus.enable();
-                //this.buttons.extras.buttonMinigameRush.enable();
+                this.buttons.extras.buttonBonus.enable();
+                this.buttons.extras.buttonMinigameRush.enable();
                 this.buttons.extras.buttonBrowse.enable();
                 this.buttons.extras.buttonEndings.enable();
                 this.buttons.extras.buttonDelete.enable();
-                this.activeButtons = [this.buttons.extras.buttonBack, this.buttons.extras.buttonDelete,this.buttons.extras.buttonEndings,this.buttons.extras.buttonBrowse
-                            /*this.buttons.extras.buttonMinigameRush,this.buttons.extras.buttonBonus*/]
+                this.activeButtons = [this.buttons.extras.buttonBack, this.buttons.extras.buttonDelete, this.buttons.extras.buttonMinigameRush, this.buttons.extras.buttonEndings,this.buttons.extras.buttonBrowse,
+                             this.buttons.extras.buttonBonus]
                 this.registerBackButton(this.buttons.extras.buttonBack);
             break;
             case(MenuIntroController.REGION_ENDINGS):
@@ -778,6 +816,12 @@ class MenuIntroController extends EngineInstance {
                 this.registerBackButton(this.buttons.browse.buttonBack);
             break;
             case(MenuIntroController.REGION_EXTRAS_UNLOCKS):
+                this.buttons.bonus.buttonBack.setSelected();
+                this.buttons.bonus.buttonBack.enable();
+                this.buttons.bonus.buttonLeft.enable();
+                this.buttons.bonus.buttonRight.enable();
+                this.activeButtons = [this.buttons.bonus.buttonRight,this.buttons.bonus.buttonLeft, this.buttons.bonus.buttonBack]
+                this.registerBackButton(this.buttons.bonus.buttonBack);
             break;
             case(MenuIntroController.REGION_DELETE_SAVE):
                 this.buttons.delete.buttonReject.setSelected();
