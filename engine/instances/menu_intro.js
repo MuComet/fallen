@@ -15,6 +15,8 @@ class MenuIntroController extends EngineInstance {
         this.activeButtons = [];
         this.activeButton = undefined;
 
+        this.data = $engine.getEngineGlobalData();
+
         this.backButton = undefined;
 
         this.totalUnlockedEndings = 0;
@@ -55,10 +57,14 @@ class MenuIntroController extends EngineInstance {
         this.minigameList = [];
         for(const val in ENGINE_MINIGAMES) {
             this.minigameList.push(ENGINE_MINIGAMES[String(val)]);
-            if($engine.hasMinigame(val)){
+        }
+
+        for(var i = 0; i < this.minigameList.length; i++){
+            if($engine.hasMinigame(this.minigameList[i])){
                 this.totalUnlockedMinigames++;
             }
         }
+        console.log(this.totalUnlockedMinigames);
 
         this.selectedMinigameIndex = 0;
         this.selectedMinigameTimer = 0;
@@ -95,6 +101,9 @@ class MenuIntroController extends EngineInstance {
         var spr = $engine.createRenderable(confirmText, new PIXI.Text("Are you sure you want to delete your save data?"
         + "\n Deleting save data will remove items and your current save.\nDeleting save data will NOT delete unlocked minigames.",style),true)
         spr.anchor.set(0.5);
+        var rushConfirmText = new FloatingObject($engine.getWindowSizeX()*2.5, -$engine.getWindowSizeY()/2)
+        var rushSpr = $engine.createRenderable(rushConfirmText, new PIXI.Text("Suspended Minigame Rush data found!\nWould you like to continue where you last left off?",style),true)
+        rushSpr.anchor.set(0.5)
     }
 
     setupEndings() {
@@ -323,13 +332,50 @@ class MenuIntroController extends EngineInstance {
         }
 
         this.buttons.extras.buttonMinigameRush.setOnPressed(function() {
-            MenuIntroController.getInstance().startMinigameRush();
+            if(MenuIntroController.getInstance().data.rushGames === undefined){
+                MenuIntroController.getInstance().startMinigameRush();
+            }
+            else{
+                MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_RUSH_SAVE);
+            }
         })
 
         if(this.totalUnlockedMinigames<17) {
             //this.buttons.extras.buttonMinigameRush.lock();
             this.buttons.extras.buttonMinigameRush.setTooltip("Unlock every minigame\n and challenge yourself in one big rush\n of them all!");
         }
+
+        else if(MenuIntroController.getInstance().data.bestRunNoCheat === undefined){
+            this.buttons.extras.buttonMinigameRush.setTooltip("Try out the minigame gauntlet!");
+        }
+
+        else{
+            this.buttons.extras.buttonMinigameRush.setTooltip("Best Run: " + MenuIntroController.getInstance().data.bestRunCheat + "\nBest Run without Cheats: " + MenuIntroController.getInstance().data.bestRunNoCheat);
+        }
+    }
+
+    setupRushButtons() {
+        this.buttons.progress.buttonBack.setOnPressed(function() {
+            MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_EXTRAS);
+        });
+
+        this.buttons.progress.buttonAccept.setOnPressed(function() {
+            $engine.fadeOutAll(1);
+            $engine.startFadeOut(60)
+            $engine.audioFadeAll();
+            IM.with(MainMenuButton,function(button) {
+                button.disable();
+            })
+            AudioManager.playSe($engine.generateAudioReference("GameStart"))
+            $engine.audioFadeAll();
+            $engine.setRoom("RushBreak")
+            $engine.startFadeOut();
+        });
+
+        this.buttons.progress.buttonReject.setOnPressed(function() {
+            MenuIntroController.getInstance().data.rushGames = undefined;
+            MenuIntroController.getInstance().startMinigameRush();
+        });
     }
 
     setupBrowseButtons() {
@@ -491,6 +537,14 @@ class MenuIntroController extends EngineInstance {
         this.buttons.delete.buttonAccept.setTextures("button_icons_4","button_icons_4","button_icons_5")
         this.buttons.delete.buttonReject = new MainMenuButton(-$engine.getWindowSizeX()/2 + 150,$engine.getWindowSizeY()/2 + 125);
         this.buttons.delete.buttonReject.setTextures("button_icons_2","button_icons_2","button_icons_3")
+
+        this.buttons.progress = {};
+        this.buttons.progress.buttonBack = new MainMenuButton($engine.getWindowSizeX()*2.5, -$engine.getWindowSizeY()/2 + 200);
+        this.buttons.progress.buttonBack.setTextures("back_button_0","back_button_0","back_button_1")
+        this.buttons.progress.buttonAccept = new MainMenuButton($engine.getWindowSizeX()*2.5 - 150,-$engine.getWindowSizeY()/2 + 125);
+        this.buttons.progress.buttonAccept.setTextures("button_icons_4","button_icons_4","button_icons_5")
+        this.buttons.progress.buttonReject = new MainMenuButton($engine.getWindowSizeX()*2.5 + 150,-$engine.getWindowSizeY()/2 + 125);
+        this.buttons.progress.buttonReject.setTextures("button_icons_2","button_icons_2","button_icons_3")
         
 
         this.setupMainMenuButtons();
@@ -500,6 +554,7 @@ class MenuIntroController extends EngineInstance {
         this.setupBrowseButtons();
         this.setupBonusButtons();
         this.setupDeleteButtons();
+        this.setupRushButtons();
     }
 
     startMinigameRush() {
@@ -510,12 +565,10 @@ class MenuIntroController extends EngineInstance {
             button.disable();
         })
         AudioManager.playSe($engine.generateAudioReference("GameStart"))
-        for(var i = 0; i < this.minigameList.length - 1; i++){    
-            $engine.audioFadeAll();
-            $engine.setRoom(this.minigameList[i].room)
-        }
-        $engine.overrideRoomChange("MenuIntro")
-        $engine.overrideReturn("MenuIntro")
+        $engine.audioFadeAll();
+        $engine.setRoom(this.minigameList[0].room)
+        $engine.overrideRoomChange("RushBreak")
+        $engine.overrideReturn("RushBreak")
         $engine.startFadeOut();
     }
 
@@ -762,6 +815,10 @@ class MenuIntroController extends EngineInstance {
                 this.cameraTargetX = -$engine.getWindowSizeX();
                 this.cameraTargetY = 0;
             break;
+            case(MenuIntroController.REGION_RUSH_SAVE):
+                this.cameraTargetX = $engine.getWindowSizeX()*2;
+                this.cameraTargetY = -$engine.getWindowSizeY();
+            break;
         }
     }
 
@@ -830,6 +887,14 @@ class MenuIntroController extends EngineInstance {
                 this.activeButtons = [this.buttons.delete.buttonAccept, this.buttons.delete.buttonReject]
                 this.registerBackButton(this.buttons.delete.buttonReject);
             break;
+            case(MenuIntroController.REGION_RUSH_SAVE):
+                this.buttons.progress.buttonBack.setSelected();
+                this.buttons.progress.buttonBack.enable();
+                this.buttons.progress.buttonReject.enable();
+                this.buttons.progress.buttonAccept.enable();
+                this.activeButtons = [this.buttons.progress.buttonAccept, this.buttons.progress.buttonReject, this.buttons.progress.buttonBack]
+                this.registerBackButton(this.buttons.progress.buttonBack);
+            break;
         }
     }
 
@@ -878,6 +943,7 @@ MenuIntroController.REGION_ENDINGS = 3 // like main
 MenuIntroController.REGION_MINIGAME_BROWSER = 4
 MenuIntroController.REGION_EXTRAS_UNLOCKS = 5 // stories
 MenuIntroController.REGION_DELETE_SAVE = 6 // deletion of save data
+MenuIntroController.REGION_RUSH_SAVE = 7 // deletion of save data
 MenuIntroController.instance = undefined;
 
 class Letter extends EngineInstance {
