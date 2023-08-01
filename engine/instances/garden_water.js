@@ -37,6 +37,7 @@ class WaterMinigameController extends MinigameController {
 
         this.feedbackTimer = 9999;
 
+        this.eventListenerAttached = false;
         this.musicPlaying = false;
         this.fulltimer = 0;
         
@@ -91,7 +92,9 @@ class WaterMinigameController extends MinigameController {
             WaterMinigameController.getInstance().musicPlaying = false;
             WaterMinigameController.getInstance().fulltimer = (120 + Math.abs(WaterMinigameController.getInstance().y-100)/6)+5;
             WaterMinigameController.getInstance().chart = WaterMinigameController.getInstance().convert("charts/cheatChart.txt");
-            WaterMinigameController.getInstance().currLength = 120/(WaterMinigameController.getInstance().chart[WaterMinigameController.getInstance().measure].length);
+            if(WaterMinigameController.getInstance().measure >= 0){
+                WaterMinigameController.getInstance().currLength = 120/(WaterMinigameController.getInstance().chart[WaterMinigameController.getInstance().measure].length);
+            }
             WaterMinigameController.getInstance().lines = [];
             controller.speedmul = 0;
             IM.with(DDRTiles, function(tile){
@@ -271,9 +274,11 @@ class WaterMinigameController extends MinigameController {
                 console.log(nice)
                 this.currentTimer = 0
             }
-
-            window.addEventListener("blur", this.focusOutHandler, true);
-            window.addEventListener("focusout", this.focusOutHandler, true);
+            if(!this.eventListenerAttached){
+                window.addEventListener("blur", this.focusOutHandler, true);
+                window.addEventListener("focusout", this.focusOutHandler, true);
+                this.eventListenerAttached = true;
+            }
 
             // window.observe('focus:in', function(event) {
                 
@@ -304,8 +309,15 @@ class WaterMinigameController extends MinigameController {
 
         if(this.score <= 0){
             this.getTimer().pauseTimer;
+            window.removeEventListener("blur", this.focusOutHandler, true);
+            window.removeEventListener("focusout", this.focusOutHandler, true);
 
             this.endMinigame(false);
+        }
+
+        if(this.getTimer().getTimeRemaining() < 1){
+            window.removeEventListener("blur", this.focusOutHandler, true);
+            window.removeEventListener("focusout", this.focusOutHandler, true);
         }
 
         this.tileHit();

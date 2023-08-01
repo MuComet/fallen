@@ -162,11 +162,10 @@ function Sprite_QButton() {
     this.setCursor();
   };
 
-  TouchInput.setCursor = function(cursor) {
+  TouchInput.setCursor = function (cursor) {
     if (this._cursor === cursor) return;
     this._cursor = cursor || this._cursor;
-    var overrides = $gameTemp ? $gameTemp._CURSOROVERRIDES : {};
-    if ($gameTemp === undefined || this._cursor === undefined || _CURSORIMGS === undefined || overrides === undefined) return;
+    var overrides = $gameTemp ? $gameTemp._CURSOROVERRIDES || {} : {};
     var cursorImg = overrides[this._cursor] || _CURSORIMGS[this._cursor];
     if (cursorImg) {
       document.body.style.cursor = `url('${cursorImg}'), ${this._cursor}`;
@@ -175,11 +174,12 @@ function Sprite_QButton() {
     }
   };
 
-  TouchInput.changeCursorImg = function(cursor, img) {
+  TouchInput.changeCursorImg = function (cursor, img) {
     if (!$gameTemp) return;
+    $gameTemp._CURSOROVERRIDES = $gameTemp._CURSOROVERRIDES || {};
     $gameTemp._CURSOROVERRIDES[cursor] = img;
     this.setCursor();
-  };
+  }
 
   //-----------------------------------------------------------------------------
   // Game_Interpreter
