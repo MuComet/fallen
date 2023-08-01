@@ -96,6 +96,7 @@ class RushBreakController extends EngineInstance {
 
         this.createButtons();
         this.setupFloatingObjects();
+        this.handleLetters();
     }
 
     setupFloatingObjects() {
@@ -219,10 +220,24 @@ class RushBreakController extends EngineInstance {
             this.refreshMinigameBrowser(this.currentMinigameGraphic, this.minigameList[16]);
 
             this.buttons.playButton1.setOnPressed(function() {
+                RushBreakController.getInstance().data.rushGames = [0];
                 RushBreakController.getInstance().startSelectedMinigame(16)
                 RushBreakController.getInstance().rushGameSelected(16)
-                $engine.overrideRoomChange("MenuIntro")
-                $engine.overrideReturn("MenuIntro")
+            })
+        }
+
+        else if(this.choices[0] == 0){
+            this.browser = new RushFloatingObject($engine.getWindowSizeX()*0.5, $engine.getWindowSizeY()/2);
+            this.browser.setSprite(new PIXI.Sprite($engine.getTexture("minigame_browser_board")));
+
+            this.currentMinigameGraphic = $engine.createRenderable(this.browser,new PIXI.Sprite(PIXI.Texture.EMPTY), true);
+            this.currentMinigameGraphic.anchor.set(0.5)
+            this.refreshMinigameBrowser(this.currentMinigameGraphic, this.minigameList[0]);
+
+            this.buttons.playButton1.setOnPressed(function() {
+                RushBreakController.getInstance().resetRush();
+                RushBreakController.getInstance().startSelectedMinigame(16)
+                RushBreakController.getInstance().rushGameSelected(16)
             })
         }
 
@@ -241,25 +256,25 @@ class RushBreakController extends EngineInstance {
         }
 
         else if(this.choices[2] == null){
-            this.browser = new RushFloatingObject($engine.getWindowSizeX()*0.5 - 250, $engine.getWindowSizeY()/2-150);
+            this.browser = new RushFloatingObject($engine.getWindowSizeX()*0.5 - 200, $engine.getWindowSizeY()/2 - 60);
             this.browser.setSprite(new PIXI.Sprite($engine.getTexture("minigame_browser_board")));
 
             this.currentMinigameGraphic = $engine.createRenderable(this.browser,new PIXI.Sprite(PIXI.Texture.EMPTY), true);
             this.currentMinigameGraphic.anchor.set(0.5)
             this.refreshMinigameBrowser(this.currentMinigameGraphic, this.minigameList[this.choices[0]]);
-            this.currentMinigameGraphic.scale.set(0.75,0.75)// = new PIXI.Point(0.5, 0.5);
-            this.browser.xScale = 0.75;
-            this.browser.yScale = 0.75;
+            this.currentMinigameGraphic.scale.set(0.6,0.6)// = new PIXI.Point(0.5, 0.5);
+            this.browser.xScale = 0.6;
+            this.browser.yScale = 0.6;
 
-            this.browser2 = new RushFloatingObject($engine.getWindowSizeX()*0.5 + 250, $engine.getWindowSizeY()/2-150);
+            this.browser2 = new RushFloatingObject($engine.getWindowSizeX()*0.5 + 200, $engine.getWindowSizeY()/2 - 60);
             this.browser2.setSprite(new PIXI.Sprite($engine.getTexture("minigame_browser_board")));
-            this.browser2.xScale = 0.75;
-            this.browser2.yScale = 0.75;
+            this.browser2.xScale = 0.6;
+            this.browser2.yScale = 0.6;
 
             this.currentMinigameGraphic2 = $engine.createRenderable(this.browser2,new PIXI.Sprite(PIXI.Texture.EMPTY), true);
             this.currentMinigameGraphic2.anchor.set(0.5, 0.5)
             this.refreshMinigameBrowser(this.currentMinigameGraphic2, this.minigameList[this.choices[1]]);
-            this.currentMinigameGraphic2.scale = new PIXI.Point(0.75, 0.75);
+            this.currentMinigameGraphic2.scale = new PIXI.Point(0.6, 0.6);
 
             this.buttons.playButton1.setOnPressed(function() {
                 RushBreakController.getInstance().startSelectedMinigame(RushBreakController.getInstance().choices[0])
@@ -361,9 +376,9 @@ class RushBreakController extends EngineInstance {
             this.buttons.playButton1.setTextures("play_button_0","play_button_0","play_button_1")              
         }
         else if(this.choices[2] == null){
-            this.buttons.playButton1 = new RushMainMenuButton($engine.getWindowSizeX()/2 - 250,$engine.getWindowSizeY()/2+200);
+            this.buttons.playButton1 = new RushMainMenuButton($engine.getWindowSizeX()/2 - 200,$engine.getWindowSizeY()/2 + 120);
             this.buttons.playButton1.setTextures("play_button_0","play_button_0","play_button_1")
-            this.buttons.playButton2 = new RushMainMenuButton($engine.getWindowSizeX()/2 + 250,$engine.getWindowSizeY()/2+200);
+            this.buttons.playButton2 = new RushMainMenuButton($engine.getWindowSizeX()/2 + 200,$engine.getWindowSizeY()/2 + 120);
             this.buttons.playButton2.setTextures("play_button_0","play_button_0","play_button_1")               
         }
         else{
@@ -471,7 +486,6 @@ class RushBreakController extends EngineInstance {
         }
 
         this.handleFloatingObjects();
-        this.handleLetters();
         this.handleCamera();
         this.handleKeyboardNavigation();
         this.handleTooltips();
@@ -633,6 +647,7 @@ class RushBreakController extends EngineInstance {
 
     notifyButtonFocused(button) {
         this.activeButton = button;
+        console.log(this.activeButton)
     }
 
     static getInstance() {
