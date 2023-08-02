@@ -89,8 +89,10 @@ class WaterMinigameController extends MinigameController {
         this.addOnCheatCallback(this, function(controller){
             $engine.audioPauseSound(WaterMinigameController.getInstance().musicStandard)
             $engine.audioPauseSound(WaterMinigameController.getInstance().musicCheat)
+            if(WaterMinigameController.getInstance().musicPlaying){
+                WaterMinigameController.getInstance().fulltimer = (120 + Math.abs(WaterMinigameController.getInstance().y-100)/6)+5;
+            }
             WaterMinigameController.getInstance().musicPlaying = false;
-            WaterMinigameController.getInstance().fulltimer = (120 + Math.abs(WaterMinigameController.getInstance().y-100)/6)+5;
             WaterMinigameController.getInstance().chart = WaterMinigameController.getInstance().convert("charts/cheatChart.txt");
             if(WaterMinigameController.getInstance().measure >= 0){
                 WaterMinigameController.getInstance().currLength = 120/(WaterMinigameController.getInstance().chart[WaterMinigameController.getInstance().measure].length);
