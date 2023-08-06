@@ -83,6 +83,8 @@ class RushBreakController extends EngineInstance {
 
         this.currentRegion = -1;
 
+        this.createButtons();
+        this.handleLetters();
         if(this.data.lastResult == 1){
             console.log("lol")
             this.data.lastResult = 2
@@ -100,6 +102,7 @@ class RushBreakController extends EngineInstance {
         else if(this.data.lastResult == 0){
             $engine.audioFadeAll();
             this.data.rushGames = undefined;
+            $engine.saveEngineGlobalData();
             this.moveToRegion(RushBreakController.REGION_LOSS)
             console.log("hi there")
         }
@@ -107,9 +110,7 @@ class RushBreakController extends EngineInstance {
         if(this.data.isCheatRun){
             this.setCheatText();
         }
-        this.createButtons();
         this.setupFloatingObjects();
-        this.handleLetters();
     }
 
     setCheatText() {
@@ -133,9 +134,9 @@ class RushBreakController extends EngineInstance {
         spr.anchor.set(0.5);
 
         var lossText = new RushFloatingObject($engine.getWindowSizeX()*2.5, $engine.getWindowSizeY()/2);
-        var lossText2 = new RushFloatingObject($engine.getWindowSizeX()*2.5, $engine.getWindowSizeY()/2+50);
-        var lossText3 = new RushFloatingObject($engine.getWindowSizeX()*2.5, $engine.getWindowSizeY()/2+100);
-        var haha = false
+        var lossText2 = new RushFloatingObject($engine.getWindowSizeX()*2.5, $engine.getWindowSizeY()/2);
+        var lossText3 = new RushFloatingObject($engine.getWindowSizeX()*2.5, $engine.getWindowSizeY()/2);
+        var haha = false;
         if(this.data.currRunCheat == 1){
             var spr = $engine.createRenderable(lossText, new PIXI.Text("You made it through " + this.data.currRunCheat + " minigame!",style),true)
         }
@@ -144,15 +145,19 @@ class RushBreakController extends EngineInstance {
         }
         if(this.data.currRunNoCheat == this.data.bestRunNoCheat){
             var spr1 = $engine.createRenderable(lossText2, new PIXI.Text("That was your best run without cheating!",style),true)
+            lossText.y -= 50;
             haha = true;
             spr1.anchor.set(0.5);
         }
         if(this.data.currRunCheat == this.data.bestRunCheat && haha){
             var spr2 = $engine.createRenderable(lossText3, new PIXI.Text("And also was your best run yet!",style),true)
+            lossText.y -= 50;
+            lossText2.y -= 50;
             spr2.anchor.set(0.5);
         }
         else if(this.data.currRunCheat == this.data.bestRunCheat){
             var spr2 = $engine.createRenderable(lossText3, new PIXI.Text("That was your best run yet!",style),true)
+            lossText.y -= 50;
             spr2.anchor.set(0.5);
         }
         spr.anchor.set(0.5);
@@ -642,6 +647,7 @@ class RushBreakController extends EngineInstance {
 
     moveToRegion(region) {
         this.enableRegion(region);
+        console.log("ha,, there")
         this.currentRegion = region;
         switch(region) {
             case(RushBreakController.REGION_MAIN):
@@ -678,6 +684,7 @@ class RushBreakController extends EngineInstance {
                 this.registerBackButton(this.buttons.backButton)
             break;
             case(RushBreakController.REGION_LOSS):
+                console.log("guru guru guru guru")
                 this.buttons.loss.backButton.setSelected();
                 this.buttons.loss.backButton.enable();
                 this.activeButtons = [this.buttons.loss.backButton]
