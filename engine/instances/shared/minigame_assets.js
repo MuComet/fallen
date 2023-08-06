@@ -596,6 +596,21 @@ class MinigameController extends EngineInstance {
     _onMinigameEndNoTimer(won) {
         if(this.failedMinigame || this.wonMinigame)
             return;
+        var data = $engine.getEngineGlobalData()
+        if(data.inRush){
+            if(won) {
+                data.lastResult = ENGINE_RETURN.WIN;
+            } else {
+                data.lastResult = ENGINE_RETURN.LOSS
+            }
+
+            if(this.hasCheated()) {
+                data.didCheat = ENGINE_RETURN.CHEAT
+            } else {
+                data.didCheat = ENGINE_RETURN.NO_CHEAT
+            }
+        }
+
         if(won) {
             this._gameWin();
             $engine.setOutcomeWriteBackValue(ENGINE_RETURN.WIN)

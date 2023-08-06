@@ -12,27 +12,19 @@ class RushBreakController extends EngineInstance {
         this.loadText.x = $engine.getWindowSizeX()/2;
         this.loadText.y = $engine.getWindowSizeY();
 
+        this.cameraTargetX =0;
+        this.cameraTargetY =0;
+
         this.data = $engine.getEngineGlobalData();
+        
         if(this.data.rushGames === undefined){
             this.rushGameLost();
+            this.data.lastResult = 2
+            this.data.didCheat = 2
         }
         if(this.data.bestRunCheat === undefined){
-            this.data.bestRunCheat = 0;
-            this.data.bestRunNoCheat = 0;
-        }
-        if(this.data.__outcomeWriteBackValue === 1){
-            if($gameVariables.value(19) === 0){
-                this.rushGameCompleted();
-            }
-            else{
-                this.rushGameCompletedCheat();
-            }
-        }
-        else if($gameVariables.value(18) === 0){
-            //this.data.rushGames = undefined;
-            $engine.audioFadeAll();
-            $engine.setRoom("MenuIntro");
-            $engine.startFadeOut();
+            this.data.bestRunCheat = 1;
+            this.data.bestRunNoCheat = 1;
         }
 
         this.choices = this.selectRushGames();
@@ -80,9 +72,6 @@ class RushBreakController extends EngineInstance {
         IN.__mouseXGUI=410;
         IN.__mouseYGUI=120;*/
 
-        this.cameraTargetX =0;
-        this.cameraTargetY =0;
-
         this.menuMusic = $engine.audioPlaySound("extras",1,true)
         $engine.audioSetLoopPoints(this.menuMusic,16,48);
 
@@ -94,9 +83,41 @@ class RushBreakController extends EngineInstance {
 
         this.currentRegion = -1;
 
+        if(this.data.lastResult == 1){
+            console.log("lol")
+            this.data.lastResult = 2
+            if(this.data.didCheat == 1){
+                this.data.isCheatRun = true;
+            }
+            if(this.data.isCheatRun){
+                this.rushGameCompletedCheat();
+                this.setCheatText();
+            }
+            else{
+                this.rushGameCompleted();
+            }
+        }
+        else if(this.data.lastResult == 0){
+            $engine.audioFadeAll();
+            this.data.rushGames = undefined;
+            this.moveToRegion(RushBreakController.REGION_LOSS)
+            console.log("hi there")
+        }
+
+        if(this.data.isCheatRun){
+            this.setCheatText();
+        }
         this.createButtons();
         this.setupFloatingObjects();
         this.handleLetters();
+    }
+
+    setCheatText() {
+        var confirmText = new RushFloatingObject(75, 25);
+        var style = $engine.getDefaultTextStyle();
+        style.fontSize = 25;
+        var spr = $engine.createRenderable(confirmText, new PIXI.Text("Cheat run!", style), true)
+        spr.anchor.set(0.5);
     }
 
     setupFloatingObjects() {
@@ -108,6 +129,31 @@ class RushBreakController extends EngineInstance {
         }
         else{
             var spr = $engine.createRenderable(confirmText, new PIXI.Text("Current run: " + this.data.currRunCheat + " minigames!",style),true)
+        }
+        spr.anchor.set(0.5);
+
+        var lossText = new RushFloatingObject($engine.getWindowSizeX()*2.5, $engine.getWindowSizeY()/2);
+        var lossText2 = new RushFloatingObject($engine.getWindowSizeX()*2.5, $engine.getWindowSizeY()/2+50);
+        var lossText3 = new RushFloatingObject($engine.getWindowSizeX()*2.5, $engine.getWindowSizeY()/2+100);
+        var haha = false
+        if(this.data.currRunCheat == 1){
+            var spr = $engine.createRenderable(lossText, new PIXI.Text("You made it through " + this.data.currRunCheat + " minigame!",style),true)
+        }
+        else{
+            var spr = $engine.createRenderable(lossText, new PIXI.Text("You made it through " + this.data.currRunCheat + " minigames!",style),true)
+        }
+        if(this.data.currRunNoCheat == this.data.bestRunNoCheat){
+            var spr1 = $engine.createRenderable(lossText2, new PIXI.Text("That was your best run without cheating!",style),true)
+            haha = true;
+            spr1.anchor.set(0.5);
+        }
+        if(this.data.currRunCheat == this.data.bestRunCheat && haha){
+            var spr2 = $engine.createRenderable(lossText3, new PIXI.Text("And also was your best run yet!",style),true)
+            spr2.anchor.set(0.5);
+        }
+        else if(this.data.currRunCheat == this.data.bestRunCheat){
+            var spr2 = $engine.createRenderable(lossText3, new PIXI.Text("That was your best run yet!",style),true)
+            spr2.anchor.set(0.5);
         }
         spr.anchor.set(0.5);
     }
@@ -204,9 +250,18 @@ class RushBreakController extends EngineInstance {
     }
 
     rushGameLost(){
-        this.data.currRunNoCheat = 0;
-        this.data.currRunCheat = 0;
+        this.data.currRunNoCheat = 1;
+        this.data.currRunCheat = 1;
+        this.data.isCheatRun = false;
         this.resetRush();
+    }
+
+    setupLossButtons() {
+        this.buttons.loss.backButton.setOnPressed(function() {
+            $engine.setRoom("MenuIntro");
+            RushBreakController.getInstance().data.inRush = false;
+            $engine.startFadeOut();
+        })
     }
 
     setupMainMenuButtons() {
@@ -334,6 +389,7 @@ class RushBreakController extends EngineInstance {
 
         this.buttons.backButton.setOnPressed(function() {
             $engine.audioFadeAll();
+            RushBreakController.getInstance().data.inRush = true;
             $engine.setRoom("MenuIntro");
             $engine.startFadeOut();
         })
@@ -344,6 +400,7 @@ class RushBreakController extends EngineInstance {
             button.disable();
         })
         $engine.audioFadeAll();
+        SET_ENGINE_RETURN(99, 100)
         $engine.setRoom(this.minigameList[minigame].room)
         $engine.overrideRoomChange("RushBreak")
         $engine.overrideReturn("RushBreak")
@@ -388,6 +445,11 @@ class RushBreakController extends EngineInstance {
             this.buttons.playButton3.setTextures("play_button_0","play_button_0","play_button_1")               
         }
         this.setupMainMenuButtons();
+
+        this.buttons.loss = {};
+        this.buttons.loss.backButton = new RushMainMenuButton($engine.getWindowSizeX()*2.5,$engine.getWindowSizeY()/2 + 100);
+        this.buttons.loss.backButton.setTextures("back_button_0","back_button_0","back_button_1")
+        this.setupLossButtons();
     }
 
     startMinigameRush() {
@@ -585,6 +647,11 @@ class RushBreakController extends EngineInstance {
             case(RushBreakController.REGION_MAIN):
                 this.cameraTargetX = 0;
                 this.cameraTargetY = 0;
+            break;
+            case(RushBreakController.REGION_LOSS):
+                this.cameraTargetX = $engine.getWindowSizeX()*2;
+                this.cameraTargetY = 0;
+            break;
         }
     }
 
@@ -607,8 +674,14 @@ class RushBreakController extends EngineInstance {
                     this.buttons.playButton3.enable();
                     this.activeButtons.push(this.buttons.playButton3)
                 }
-                this.activeButtons.push(this.backButton)
-                this.registerBackButton(this.backButton)
+                this.activeButtons.push(this.buttons.backButton)
+                this.registerBackButton(this.buttons.backButton)
+            break;
+            case(RushBreakController.REGION_LOSS):
+                this.buttons.loss.backButton.setSelected();
+                this.buttons.loss.backButton.enable();
+                this.activeButtons = [this.buttons.loss.backButton]
+                this.registerBackButton(this.buttons.loss.backButton)
             break;
         }
     }
@@ -653,6 +726,7 @@ class RushBreakController extends EngineInstance {
     }
 }
 RushBreakController.REGION_MAIN = 0;
+RushBreakController.REGION_LOSS = 1;
 RushBreakController.instance = undefined;
 
 class RushLetter extends EngineInstance {

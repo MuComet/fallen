@@ -16,6 +16,7 @@ class MenuIntroController extends EngineInstance {
         this.activeButton = undefined;
 
         this.data = $engine.getEngineGlobalData();
+        this.data.inRush = false;
 
         this.backButton = undefined;
 
@@ -368,6 +369,7 @@ class MenuIntroController extends EngineInstance {
             })
             AudioManager.playSe($engine.generateAudioReference("GameStart"))
             $engine.audioFadeAll();
+            MenuIntroController.getInstance().data.inRush = true;
             $engine.setRoom("RushBreak")
             $engine.startFadeOut();
         });
@@ -565,6 +567,7 @@ class MenuIntroController extends EngineInstance {
             button.disable();
         })
         AudioManager.playSe($engine.generateAudioReference("GameStart"))
+        this.data.inRush = true;
         $engine.audioFadeAll();
         $engine.setRoom(this.minigameList[0].room)
         $engine.overrideRoomChange("RushBreak")
