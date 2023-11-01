@@ -664,7 +664,7 @@ class TextBox extends EngineInstance {
         this._setVisisble(true);
         if(this.textWaitTimer>0) {
             this.textWaitTimer--;
-            if(this.textWaitTimer===0)
+            if(this.textWaitTimer===0 && !this.textComplete()) // textComplete prevents an infinite loop where text is complete
                 while(this._preProcessText()); // account for break
             return;
         }
