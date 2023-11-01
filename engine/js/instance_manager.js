@@ -97,8 +97,8 @@ class IM {
         var mode = $engine.__getPauseMode();
         if(lastFrame) {
             if(mode===0) { // normal mode
-                IM.__cleanup();
                 IM.__deleteFromObjects();
+                IM.__cleanup();
                 IM.__implicit();
                 IM.__step();
                 IM.__postStep();
@@ -115,8 +115,8 @@ class IM {
             }
         } else {
             if(mode===0) {
-                IM.__cleanup();
                 IM.__deleteFromObjects();
+                IM.__cleanup();
                 IM.__step();
             }
         }
