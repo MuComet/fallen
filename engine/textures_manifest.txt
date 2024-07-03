@@ -19,6 +19,14 @@ require cloud_generic_4 engine/textures/generic/cloud_generic_4.png 0.5 0.5
 require minigame_browser_board engine/textures/intro/board.png 0.5 0.5
 require spritesheet dimensions 11700 420 18 1 mingames_sheet engine/textures/intro/minigames_sheet.png 0.5 0.5
 
+require bonus0 engine/textures/bonus/bonus0.png 0.5 0.5
+require bonus1 engine/textures/bonus/bonus1.png 0.5 0.5
+require bonus2 engine/textures/bonus/bonus2.png 0.5 0.5
+require bonus3 engine/textures/bonus/bonus3.png 0.5 0.5
+require bonus4 engine/textures/bonus/bonus4.png 0.5 0.5
+require bonus5 engine/textures/bonus/bonus5.png 0.5 0.5
+require bonus6 engine/textures/bonus/bonus6.png 0.5 0.5
+
 require spritesheet dimensions 750 1500 1 6 buttons_main engine/textures/buttons/main_sheet.png 0.5 0.5
 require spritesheet dimensions 700 1600 1 8 buttons_extra engine/textures/buttons/buttons_extra_sheet.png 0.5 0.5
 require spritesheet dimensions 731 1470 1 6 difficulty_buttons engine/textures/buttons/difficulty_sheet.png 0.5 0.5

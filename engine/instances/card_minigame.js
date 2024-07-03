@@ -236,6 +236,9 @@ class CardMinigameController extends MinigameController {
         }
 
         if(this.score >= this.maxScore){
+            if(!this.hasCheated() && this.getTimer().getTimeRemaining() >= 1200){
+                greenworks.activateAchievement("CARD_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+            }
             this.endMinigame(true);
         }
     }

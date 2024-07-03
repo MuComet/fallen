@@ -59,6 +59,7 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
         this.cameraShakeTimer = 0;
 
         this.totalCheats = $gameVariables.value(19);
+        this.totalWins = $gameVariables.value(53);
         this.totalPossibleCheats = 10;
 
         this.hasBeenHurt = false;
@@ -169,6 +170,9 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
 
     onEnd(won, final = false) {
         if(won) {
+            if(this.health == this.playerHealth){
+                greenworks.activateAchievement("FINAL_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+            }
             if(!final) {
                 $engine.setTimescale(0);
                 $engine.audioFadeAll();
@@ -176,6 +180,12 @@ class FinalMinigameController extends EngineInstance { // NOT A MINIGAMECONTROLL
             $engine.startFadeOut(120);
             this.timer.pauseTimer();
             var cheats = this.getNumCheats();
+            if(this.totalWins===16){
+                greenworks.activateAchievement("WIN_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
+            }
+            if(cheats===this.getNumPossibleCheats()){
+                greenworks.activateAchievement("CHEAT_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
+            }
             if(cheats===0) {
                 $engine.setRoom("BestEndingCutsceneRoom"); // no cheat and win
             } else if (cheats>=8) {

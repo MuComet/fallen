@@ -20,5 +20,6 @@ var $plugins =
 {"name":"KhasUltraLighting","status":true,"description":"[4.2] Adds lighting and real-time shadows to your game.","parameters":{"Custom Blending":"ON","Transfer Reset":"ON","Auto Battle Lighting":"OFF"}},
 {"name":"MrTS_NoItemCategories","status":true,"description":"Removes item categories from item menu scene and from shop scene.","parameters":{"Hide Menu":"True","Hide Shop":"True"}},
 {"name":"YEP_FootstepSounds","status":true,"description":"v1.01 Set footstep sounds to play when the player and/or\r\nevents walk over specific tiles.","parameters":{"---Default---":"","Default Sound":"Walk","Default Volume":"100","Default Pitch":"100","---Player Settings---":"","Player Enable":"true","Player Volume":"1.00","Player Pitch":"1.00","---Event Settings---":"","Event Enable":"true","Event Volume":"1.00","Distance Volume":"-0.10","Event Pitch":"1.00","Distance Pitch":"-0.00","Distance Pan":"10"}},
-{"name":"CaeX_FootstepTime","status":true,"description":"v1.0 - Extends YEP_FootstepSounds: minimum time between step sounds.","parameters":{"Sound Interval":"20","Property Name":"_stepSoundTime"}}
+{"name":"CaeX_FootstepTime","status":true,"description":"v1.0 - Extends YEP_FootstepSounds: minimum time between step sounds.","parameters":{"Sound Interval":"20","Property Name":"_stepSoundTime"}},
+{"name":"achievements","status":true,"description":"","parameters":{}}
 ];

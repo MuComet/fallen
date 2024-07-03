@@ -2576,7 +2576,7 @@ Graphics._createRenderer = function() {
     PIXI.dontSayHello = true;
     var width = this._width;
     var height = this._height;
-    var options = { view: this._canvas };
+    var options = { view: this._canvas, powerPreference: "high-performance" };
     try {
         switch (this._rendererType) {
         case 'canvas':

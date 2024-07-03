@@ -126,6 +126,10 @@ class CrateMinigameController extends MinigameController {
         var fac2 = Math.abs(Math.sin($engine.getGlobalTimer()/16)) * 8 + 1;
         this.glowFilter.innerStrength = fac2 * (1-fac);
 
+        if(!this.hasCheated() && this.getTimer().getTimeRemaining() >= 1200){
+            greenworks.activateAchievement("BOXES_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+        }
+
         $engine.getCamera().setLocation(this.targetCrate.x-(1-fac)*$engine.getWindowSizeX()/2+diffX * fac,
                                         this.targetCrate.y-(1-fac)*$engine.getWindowSizeY()/2+diffY * fac)
 

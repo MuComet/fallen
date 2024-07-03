@@ -109,6 +109,9 @@ class GardenMinigameController extends MinigameController {
     step() {
         super.step();
         if(this.minigameOver()){
+            if(!this.hasCheated() && this.wormsmissed == 0){
+                greenworks.activateAchievement("WORM_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+            }
             return;
         }
         if(this.timer >= 75 - this.speedup*0.008){

@@ -1,0 +1,7 @@
+imports:
+    - "parameters.yml"
+    - "services.yml"
+
+passes:
+    - !require "../compilers/ArgvCompilerPass"
+    - !require "../compilers/SingleArgvCompilerPass"

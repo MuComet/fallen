@@ -18,6 +18,7 @@ class SkyMinigameController extends MinigameController { // All classes that can
         $engine.setBackgroundColour(0xa58443);
         SkyMinigameController.iBuffer = new BufferedKeyInput('Space',2);
 
+        this.achievement = true;
         this.startTimer(5*60);
         this.getTimer().setWarningTime(2*60); // last 2 seconds
 
@@ -37,7 +38,7 @@ class SkyMinigameController extends MinigameController { // All classes that can
 
         // instructions
 
-        var text = new PIXI.Text("Press the SPACE key to drop the swinging slabs.\n Drop each slab within a 5 seconds.\n Only the highest tower slab can be stacked on.\n Reach the goal height.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle())
+        var text = new PIXI.Text("Press the SPACE key to drop the swinging slabs.\n Drop each slab within 5 seconds.\n Only the highest tower slab can be stacked on.\n Reach the goal height.\n\nPress ENTER to cheat!",$engine.getDefaultTextStyle())
         this.setInstructionRenderable(text);
         this.setControls(true,false);
         this.skipPregame();
@@ -175,6 +176,7 @@ class SkyBuildPlayer extends EngineInstance {
                 this.angle = EngineUtils.interpolate(fac,this.dropAngle,0,EngineUtils.INTERPOLATE_OUT) + EngineUtils.randomRange(-0.125,0.125)*(1-fac);
                 var offset = 0;
                 if(SkyMinigameController.getInstance().hasCheated()) {
+                    SkyMinigameController.getInstance().achievement = false;
                     offset = EngineUtils.interpolate(fac,0,this.targetXDiff, EngineUtils.INTERPOLATE_OUT_QUAD)
                 }
                 this.x = this.dropX + EngineUtils.randomRange(-18,18) * (1-fac) + offset;
@@ -200,6 +202,9 @@ class SkyBuildPlayer extends EngineInstance {
             var tower = IM.instancePlace(this,this.x,this.y,this.nextnext);
             if(tower) { // don't use 'in', use 'of'
                 if(tower.activated === false){
+                    if(SkyMinigameController.getInstance().getTimer().getTimeRemaining() < 60){
+                        SkyMinigameController.getInstance().achievement = false;
+                    }
                     SkyMinigameController.getInstance().getTimer().setTimeRemaining(60*5)
                     SkyMinigameController.getInstance().getTimer().unpauseTimer();
                     SkyMinigameController.score+= 1;
@@ -217,6 +222,9 @@ class SkyBuildPlayer extends EngineInstance {
                         SkyMinigameController.nCamY = -100 * (SkyMinigameController.score-3)-100;
                     }
                     if(SkyMinigameController.score>=SkyMinigameController.maxScore) {
+                        if(SkyMinigameController.getInstance().achievement){
+                            greenworks.activateAchievement("SAND_CASTLE_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+                        }
                         SkyMinigameController.getInstance().getTimer().stopTimer();
                         SkyMinigameController.nCamY = SkyMinigameController.pCamY;
                     } else {
@@ -266,6 +274,9 @@ class FallingTowerPlatform extends SkyBuildPlayer {
             var towers = IM.instanceCollisionList(this,this.x,this.y,SkyBuildPlayer);
             for(const tower of towers) { // don't use 'in', use 'of'
                 if(tower.activated == true){
+                    if(SkyMinigameController.getInstance().getTimer().getTimeRemaining() < 60){
+                        SkyMinigameController.getInstance().achievement = false;
+                    }
                     SkyMinigameController.getInstance().getTimer().setTimeRemaining(60*5)
                     SkyMinigameController.getInstance().getTimer().unpauseTimer();
                     SkyMinigameController.score+= 1;

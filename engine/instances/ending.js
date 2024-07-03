@@ -25,15 +25,19 @@ class EndingController extends EngineInstance {
 
         if(this.currentType === ENGINE_ENDINGS.BEST) {
             this.oldValue = this.endingValues[0];
+            greenworks.activateAchievement("BEST_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
             this.endingIndex = 0;
         } else if(this.currentType === ENGINE_ENDINGS.GOOD) {
             this.oldValue = this.endingValues[1];
+            greenworks.activateAchievement("GOOD_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
             this.endingIndex = 1;
         } else if(this.currentType === ENGINE_ENDINGS.BAD) {
             this.oldValue = this.endingValues[2];
+            greenworks.activateAchievement("BAD_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
             this.endingIndex = 2;
         } else if(this.currentType === ENGINE_ENDINGS.EVIL) {
             this.oldValue = this.endingValues[3];
+            greenworks.activateAchievement("EVIL_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
             this.endingIndex = 3;
         }
 
@@ -57,6 +61,8 @@ class EndingController extends EngineInstance {
     setupSprites() {
         this.backSprite = $engine.createRenderable(this, new PIXI.Sprite($engine.getTexture("ending_background")),true)
         this.endingSprites = [];
+        var completed = 0;
+        var completedHard = 0;
         for(var i=0;i<4;i++) {
             var sprite = $engine.createRenderable(this, new PIXI.Sprite(PIXI.Texture.EMPTY),false);
             sprite.y = $engine.getWindowSizeY()/2-128;
@@ -68,13 +74,22 @@ class EndingController extends EngineInstance {
             }
             if(this.endingValues[i] > 0) { // normal badge
                 sprite.addChild($engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("ending_badges_"+String(i+1)))));
+                completed++;
             }
             if(this.endingValues[i] > 1) { // hard mode bade
                 sprite.addChild($engine.createManagedRenderable(this, new PIXI.Sprite($engine.getTexture("end_hard_badge"))));
+                completedHard++;
             }
 
             if(this.endingIndex === i) {
                 this.endingSprite = sprite;
+            }
+
+            if(completed >= 4){
+                greenworks.activateAchievement("ALL_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
+            }
+            if(completedHard >= 4){
+                greenworks.activateAchievement("HARD_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
             }
         }
 

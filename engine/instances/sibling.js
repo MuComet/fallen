@@ -6,6 +6,7 @@ class SiblingStoryController extends EngineInstance {
         arr.push("__noShift[0]__portrait[eson_profiles_1]Hmm,__wait[12] it looks like there's something written on the back__speed[4]...__speed[0]__wait[30]__speed[1]\n\"Property of the Back Alley Gang\"?!\n__noShift[1]__portrait[eson_profiles_6]__wait[60]__break[]__speed[0]__portrait[eson_profiles_10]__wait[30] Welp,__wait[24] it looks like it's my property now!")
         arr.push("__portrait[<none>]__voice[]__noShift[0]__italic[1]__wait[30]+ 10 gold!")
         this.textBox = new TextBox(arr);
+        greenworks.activateAchievement("HIDDEN_TREASURE", function() { console.log("Success!")}, function(err) { console.log(err) })
         this.textBox.setWaiting(true)
         this.setSprite(new PIXI.Sprite($engine.getTexture("sibling")));
         this.x = $engine.getWindowSizeX()/2;

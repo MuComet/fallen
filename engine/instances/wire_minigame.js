@@ -326,6 +326,9 @@ class WireMinigameController extends MinigameController {
                     this.tiles[x][y].lock();
                 }
             }
+            if(this.getTimer().getTimeRemaining() >= 2700){
+                greenworks.activateAchievement("WIRE_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+            }
             this.endMinigame(true);
         }
 

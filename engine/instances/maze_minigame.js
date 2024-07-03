@@ -435,6 +435,9 @@ class MazeMinigameController extends MinigameController {
             }
         }
         if(this.currentX===this.startX && this.currentY===0) {
+            if(!this.hasCheated() && this.getTimer().getTimeRemaining() >= 900){
+                greenworks.activateAchievement("MAZE_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+            }
             this.endMinigame(true);
         }
     }

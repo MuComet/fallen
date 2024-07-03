@@ -304,6 +304,18 @@ class Scene_Engine extends Scene_Base {
         // RPG MAKER
         super.update();
 
+        var achieveNum = 0;
+        var achievements = greenworks.getAchievementNames();
+        for(let i = 0; i < achievements.length; i++){
+            if(greenworks.getAchievement(achievements[i], function() { console.log("Success!")}, function(err) { console.log(err) })){
+                achieveNum++;
+            }        
+        }
+
+        if(achieveNum == 29){
+            greenworks.activateAchievement("ALL_ACHIEVEMENTS", function() { console.log("Success!")}, function(err) { console.log(err) })
+        }
+
         // ENGINE
         if(this.__shouldChangeRooms && !this.isBusy())
             this.__setRoom(this.__nextRoom);
@@ -2628,6 +2640,9 @@ Game_Interpreter.prototype.clear = function() {
         if(item.persistent)
             $engine.__gainItem(item);
         SoundManager.playShop();
+        if($engine.hasItem(ENGINE_ITEMS.SUNGLASSES)) {
+            greenworks.activateAchievement("SUNGLASSES", function() { console.log("Success!")}, function(err) { console.log(err) })
+        }
         this._goldWindow.refresh();
         this._statusWindow.refresh();
         this._buyWindow._shopGoods = $engine.__getAllPurchasableItems();

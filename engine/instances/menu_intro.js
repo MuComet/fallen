@@ -68,7 +68,9 @@ class MenuIntroController extends EngineInstance {
         console.log(this.totalUnlockedMinigames);
 
         this.selectedMinigameIndex = 0;
+        this.selectedArtIndex = 0;
         this.selectedMinigameTimer = 0;
+        this.selectedArtTimer = 0;
 
         // overwrite the mouse location, PIXI doesn't update immedaitely...
         /*IN.getMouseXGUI()
@@ -92,6 +94,7 @@ class MenuIntroController extends EngineInstance {
         this.setupEndings();
         this.createButtons();
         this.setupBrowser();
+        this.setupBonus();
         this.setupFloatingObjects();
     }
 
@@ -104,7 +107,7 @@ class MenuIntroController extends EngineInstance {
         spr.anchor.set(0.5);
         var rushConfirmText = new FloatingObject($engine.getWindowSizeX()*2.5, -$engine.getWindowSizeY()/2)
         var rushSpr = $engine.createRenderable(rushConfirmText, new PIXI.Text("Suspended Minigame Rush data found!\nWould you like to continue where you last left off?",style),true)
-        rushSpr.anchor.set(0.5)
+        rushSpr.anchor.set(0.5);
     }
 
     setupEndings() {
@@ -147,6 +150,18 @@ class MenuIntroController extends EngineInstance {
         this.currentMinigameGraphic = $engine.createRenderable(this.browser,new PIXI.Sprite(PIXI.Texture.EMPTY));
         this.currentMinigameGraphic.anchor.set(0.5)
         this.refreshMinigameBrowser();
+    }
+
+    setupBonus() {
+        this.bonus = new FloatingObject($engine.getWindowSizeX()*1.5-200, -$engine.getWindowSizeY()/2-96);
+        //this.bonus.setSprite(new PIXI.Sprite($engine.getTexture("minigame_browser_board")));
+        this.currentBonusGraphic = $engine.createRenderable(this.bonus,new PIXI.Sprite(PIXI.Texture.EMPTY));
+        this.currentBonusGraphic.anchor.set(0.5);
+        var textLocation = new FloatingObject($engine.getWindowSizeX()*1.5+150, -$engine.getWindowSizeY()/2-96);
+        this.bonusText = $engine.createRenderable(textLocation, new PIXI.Text(this.getArtText(), $engine.getDefaultTextStyle()));
+        this.bonusText.anchor.set(0.5);
+        this.bonusText.scale.set(0.6);
+        this.refreshArtBrowser();
     }
 
     getGraphicFromMinigame(minigame) {
@@ -328,7 +343,7 @@ class MenuIntroController extends EngineInstance {
         })
 
         if(this.totalUnlockedEndings<4) {
-            //this.buttons.extras.buttonBonus.lock();
+            this.buttons.extras.buttonBonus.lock();
             this.buttons.extras.buttonBonus.setTooltip("Unlock every ending to view\n concept art and developer stories!");
         }
 
@@ -342,7 +357,7 @@ class MenuIntroController extends EngineInstance {
         })
 
         if(this.totalUnlockedMinigames<17) {
-            //this.buttons.extras.buttonMinigameRush.lock();
+            this.buttons.extras.buttonMinigameRush.lock();
             this.buttons.extras.buttonMinigameRush.setTooltip("Unlock every minigame\n and challenge yourself in one big rush\n of them all!");
         }
 
@@ -407,13 +422,13 @@ class MenuIntroController extends EngineInstance {
     }
 
     setupBonusButtons() {
-        // this.buttons.bonus.buttonRight.setOnPressed(function() {
-        //     MenuIntroController.getInstance().nextMinigame(1);
-        // });
+        this.buttons.bonus.buttonRight.setOnPressed(function() {
+            MenuIntroController.getInstance().nextArt(1);
+        });
 
-        // this.buttons.bonus.buttonLeft.setOnPressed(function() {
-        //     MenuIntroController.getInstance().nextMinigame(-1);
-        // });
+        this.buttons.bonus.buttonLeft.setOnPressed(function() {
+            MenuIntroController.getInstance().nextArt(-1);
+        });
 
         this.buttons.bonus.buttonBack.setOnPressed(function() {
             MenuIntroController.getInstance().moveToRegion(MenuIntroController.REGION_EXTRAS);
@@ -448,12 +463,62 @@ class MenuIntroController extends EngineInstance {
     getSelectedMingame() {
         return this.minigameList[this.selectedMinigameIndex];
     }
+    
+    getArtText(){
+        switch(this.selectedArtIndex){
+            case(0):
+                return "Hello everyone! Welcome to the bonus menu!\nCongrats on making it here. I was the\nlead designer and audio designer\nof Fallen and was the primary person\nworking on the Steam port.\nI thought I would share some fun\ninsider stories and concepts we had with you all.\nThank you very much for playing our game and\nmaking it far enough to get into this menu.\nI hope you enjoy everything you see here!"
+            case(1):
+                return "Here is the very first logo of Fallen.\nOriginally, the game was going\nto be called Fallen Angel,\nbut the design looked a lot better with just\nFallen, so we redesigned the logo.\nA lot of changes were made to the\ngame from conception to release.\nOriginally, Fallen was going to have many resource\nbars in addition to money and stamina,\nthe game was going to focus more on\nthe morality aspect than it does now,\nbut they were cut as they were found to\nbe too complex and not that fun."
+            case(2):
+                return "This is the very first concept of Eson.\nBeing the protagonist, they were\nthe first character designed.\nThe design is quite a bit different\nfrom what we ended up with. But it's\ncool looking back at where it all\nstarted. This design was sent to the\nteam on January 27th, 2020. This date is actually\nreferenced in Eson's ID in one of the\ncutscenes, we consider this day to be\ntheir birthday of sorts."
+            case(3):
+                return "Here is the sprite sheet of all the NPCs.\nOriginally, Fallen was planned\nto be a roguelike of sorts,\nwhere each run would have random\ncharacters from a predefined list. However\nwe decided to make more story characters\nand the game became more linear.\nThis means that all of the residents of Havoton\nhave so much personality in their\ndesigns and dialogue. Who are your favourites?"
+            case(4):
+                return "Here is a progress image for one of the\nframes in one of the cutscenes.\nEach frame in all the cutscenes\nwere drawn by hand by our wonderful artist.\nThey took a lot of effort, and\nthey turned out wonderful! A lot had to\ngo into making sure the cutscenes,\nminigames and rest of the game felt good,\nfrom a visual, audio and programming standpoint.\nI would like to thank our team for all\nthe work they put in!"
+            case(5):
+                return "This is an image of the Goddess of Balance we\nmade because of how many people\nreacted to her when\nwe released the Beta. Fun fact about the Gods,\nthe Sky God's name is Daeh, and\nthe Goddess of Balance's name is Seye!\nWe had a naming convention for\nall the heavenly beings. I wonder if you'd\nbe able to figure out what it is."
+            case(6):
+                return "Here is a beta image of the Video Game minigame.\nI made this game myself\nbecause I really wanted\nthis minigame idea to be in the final game,\nsince it's inspired by one of my\nfavourite games. All the minigames started\nwith lists of ideas and each of our\nminigame programmers picked some to work on.\nEach one had a lot of effort put because we needed\nsound effects, graphics and a\ncharacter to give the minigame.\nI'm pretty happy with the number of minigames we had."
+            case(7):
+                return "The treasure picture is actually a reference to\na different game that was\nmade at the same time\nas Fallen, called Sibling Story! We had a sort\nof rivalry with the members of\ntheir team because we originally\npicked the same team name\n(before we swapped to Main Street Games).\nAnother game we referenced is BreadHeist.\nFind both of those games on itch.io and give them a try!"
+        }
+    }
+
+    getSelectedArt() {
+        this.currentBonusGraphic.scale.set([0.3,0.5,0.4,0.45,0.3,0.3,0.75,0.75][this.selectedArtIndex])
+        switch(this.selectedArtIndex) {
+            case(0):
+                return $engine.getTexture("bonus1");
+            case(1):
+                return $engine.getTexture("bonus5");
+            case(2):
+                return $engine.getTexture("bonus0");
+            case(3):
+                return $engine.getTexture("bonus2");
+            case(4):
+                return $engine.getTexture("bonus4");
+            case(5):
+                return $engine.getTexture("bonus3");
+            case(6):
+                return $engine.getTexture("bonus6");
+            case(7):
+                return $engine.getTexture("sibling");
+        }
+    }
 
     nextMinigame(change) {
         this.selectedMinigameIndex+=change;
         this.selectedMinigameIndex = (this.selectedMinigameIndex + this.minigameList.length) % this.minigameList.length;
         this.selectedMinigameTimer=0;
         this.refreshMinigameBrowser();
+    }
+
+    nextArt(change) {
+        this.selectedArtIndex+=change;
+        this.selectedArtIndex = (this.selectedArtIndex + 8) % 8; // 8 is the number of tabs we have, change if to be changed
+        this.selectedArtTimer=0;
+        this.refreshArtBrowser();
     }
 
     refreshMinigameBrowser() {
@@ -464,6 +529,12 @@ class MenuIntroController extends EngineInstance {
             this.currentMinigameGraphic.texture = $engine.getTexture("mingames_sheet_17");
         }
     }
+
+    refreshArtBrowser() {
+        this.currentBonusGraphic.texture = this.getSelectedArt();
+        this.bonusText.text = this.getArtText()
+    }
+
 
     setupEndingButtons() {
         this.buttons.endings.buttonBack.setOnPressed(function() {
@@ -526,12 +597,13 @@ class MenuIntroController extends EngineInstance {
         this.buttons.bonus = {};
         this.buttons.bonus.buttonBack = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX(), - 100);
         this.buttons.bonus.buttonBack.setTextures("back_button_0","back_button_0","back_button_1")
-        this.buttons.bonus.buttonLeft = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX() - 150, - 200);
+        this.buttons.bonus.buttonLeft = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX() - 200, - 100);
         this.buttons.bonus.buttonLeft.setTextures("arrow_button_0","arrow_button_0","arrow_button_1")
-        this.buttons.bonus.buttonRight = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX() + 150, - 200);
+        this.buttons.bonus.buttonRight = new MainMenuButton($engine.getWindowSizeX()/2 + $engine.getWindowSizeX() + 200, - 100);
         this.buttons.bonus.buttonRight.setTextures("arrow_button_0","arrow_button_0","arrow_button_1")
 
         this.buttons.browse.buttonLeft.xScale *= -1;
+        this.buttons.bonus.buttonLeft.xScale *= -1;
 
 
         this.buttons.delete = {};
@@ -667,6 +739,16 @@ class MenuIntroController extends EngineInstance {
         this.currentMinigameGraphic.rotation = this.browser.angle;
     }
 
+    handleArtBrowser() {
+        this.selectedArtTimer++;
+        this.currentBonusGraphic.x = this.bonus.x;
+        this.currentBonusGraphic.y = this.bonus.y;
+        this.currentBonusGraphic.rotation = this.bonus.angle;
+        this.bonusText.x = this.bonus.x+350;
+        this.bonusText.y = this.bonus.y;
+        this.bonusText.rotation = this.bonus.angle;
+    }
+
     handleExtrasMusic() {
         if(this.currentRegion === MenuIntroController.REGION_MINIGAME_BROWSER) {
             this.extrasMusicTimer++;
@@ -695,6 +777,7 @@ class MenuIntroController extends EngineInstance {
         this.handleKeyboardNavigation();
         this.handleTooltips();
         this.handleMingameBrowser();
+        this.handleArtBrowser();
         this.handleExtrasMusic();
 
         this.timer++;
@@ -857,7 +940,7 @@ class MenuIntroController extends EngineInstance {
                 this.buttons.extras.buttonEndings.enable();
                 this.buttons.extras.buttonDelete.enable();
                 this.activeButtons = [this.buttons.extras.buttonBack, this.buttons.extras.buttonDelete, this.buttons.extras.buttonMinigameRush, this.buttons.extras.buttonEndings,this.buttons.extras.buttonBrowse,
-                             this.buttons.extras.buttonBonus]
+                            this.buttons.extras.buttonBonus]
                 this.registerBackButton(this.buttons.extras.buttonBack);
             break;
             case(MenuIntroController.REGION_ENDINGS):
