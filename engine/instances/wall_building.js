@@ -162,7 +162,7 @@ class WallBuilderController extends MinigameController {
             this.letterText.visible = false;
             if(this.progress===this.total) {
                 if(!this.hasCheated() && this.getTimer().getTimeRemaining() >= 600){
-                    greenworks.activateAchievement("WALL_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+                    $engine.activateAchievement("WALL_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
                 }
                 this.getTimer().stopTimer();
                 return;

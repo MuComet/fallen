@@ -25,19 +25,19 @@ class EndingController extends EngineInstance {
 
         if(this.currentType === ENGINE_ENDINGS.BEST) {
             this.oldValue = this.endingValues[0];
-            greenworks.activateAchievement("BEST_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
+            $engine.activateAchievement("BEST_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
             this.endingIndex = 0;
         } else if(this.currentType === ENGINE_ENDINGS.GOOD) {
             this.oldValue = this.endingValues[1];
-            greenworks.activateAchievement("GOOD_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
+            $engine.activateAchievement("GOOD_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
             this.endingIndex = 1;
         } else if(this.currentType === ENGINE_ENDINGS.BAD) {
             this.oldValue = this.endingValues[2];
-            greenworks.activateAchievement("BAD_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
+            $engine.activateAchievement("BAD_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
             this.endingIndex = 2;
         } else if(this.currentType === ENGINE_ENDINGS.EVIL) {
             this.oldValue = this.endingValues[3];
-            greenworks.activateAchievement("EVIL_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
+            $engine.activateAchievement("EVIL_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
             this.endingIndex = 3;
         }
 
@@ -86,10 +86,10 @@ class EndingController extends EngineInstance {
             }
 
             if(completed >= 4){
-                greenworks.activateAchievement("ALL_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
+                $engine.activateAchievement("ALL_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
             }
             if(completedHard >= 4){
-                greenworks.activateAchievement("HARD_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
+                $engine.activateAchievement("HARD_ENDING", function() { console.log("Success!")}, function(err) { console.log(err) })
             }
         }
 

@@ -128,7 +128,7 @@ class GraffitiMinigameController extends MinigameController { // controls the mi
     finishMinigame() {
         var won = this.averageScoreTotal/this.countedScores>=this.winThreshold;
         if(this.averageScoreTotal/this.countedScores >= 0.999){
-            greenworks.activateAchievement("CLEAN_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+            $engine.activateAchievement("CLEAN_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
         }
         if(!won) {
             var wonDrawing = $engine.getSaveData().drawingMinigameResult; // whether they won drawing minigame v1 or not

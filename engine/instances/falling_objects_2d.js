@@ -68,7 +68,7 @@ class FallingObjectsController extends MinigameController {
                 object.destroy();
             })
             if(this.lives == 5){
-                greenworks.activateAchievement("CATCH_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+                $engine.activateAchievement("CATCH_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
             }
             this.endMinigame(true);
         }

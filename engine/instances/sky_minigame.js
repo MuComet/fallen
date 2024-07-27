@@ -223,7 +223,7 @@ class SkyBuildPlayer extends EngineInstance {
                     }
                     if(SkyMinigameController.score>=SkyMinigameController.maxScore) {
                         if(SkyMinigameController.getInstance().achievement){
-                            greenworks.activateAchievement("SAND_CASTLE_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+                            $engine.activateAchievement("SAND_CASTLE_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
                         }
                         SkyMinigameController.getInstance().getTimer().stopTimer();
                         SkyMinigameController.nCamY = SkyMinigameController.pCamY;

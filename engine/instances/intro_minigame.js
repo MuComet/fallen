@@ -173,7 +173,7 @@ class IntroMinigameController extends MinigameController {
             this.trailColour= 0;
             if(this.mouseInZoneBounds() && this.hasGoal) {
                 this.endMinigame(true)
-                greenworks.activateAchievement("INTRO_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+                $engine.activateAchievement("INTRO_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
             }
         }
 

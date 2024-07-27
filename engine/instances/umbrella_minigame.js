@@ -63,7 +63,7 @@ class UmbrellaMinigameController extends MinigameController {
         super.step();
         if(this.minigameOver()){
             if(!this.hasCheated() && this.score>=150){
-                greenworks.activateAchievement("UMBRELLA_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+                $engine.activateAchievement("UMBRELLA_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
             }
             return;
         }

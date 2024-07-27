@@ -71,10 +71,10 @@ class DrawController extends MinigameController { // controls the minigame
             this.setLossReason("Try following the lines next time.")
         }
         if(!this.alternate && !this.hasCheated() && this.calcWin()>=0.9){
-            greenworks.activateAchievement("DRAW_1_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+            $engine.activateAchievement("DRAW_1_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
         }
         if(this.alternate && !this.hasCheated() && this.getTimer().getTimeRemaining() >= 360){
-            greenworks.activateAchievement("DRAW_2_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+            $engine.activateAchievement("DRAW_2_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
         }
         this.endMinigame(won);
         if(!this.alternate)

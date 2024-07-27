@@ -3,6 +3,8 @@
 /** @type {Scene_Engine} */
 var $engine;
 
+var greenworks = greenworks || {};
+
 /** @type {Object} */
 var $__engineData = {}
 $__engineData.__textureCache = {};
@@ -305,7 +307,7 @@ class Scene_Engine extends Scene_Base {
         super.update();
 
         var achieveNum = 0;
-        var achievements = greenworks.getAchievementNames();
+        var achievements = greenworks.getAchievementNames ? greenworks.getAchievementNames() : [];
         for(let i = 0; i < achievements.length; i++){
             if(greenworks.getAchievement(achievements[i], function() { console.log("Success!")}, function(err) { console.log(err) })){
                 achieveNum++;
@@ -313,7 +315,7 @@ class Scene_Engine extends Scene_Base {
         }
 
         if(achieveNum == 29){
-            greenworks.activateAchievement("ALL_ACHIEVEMENTS", function() { console.log("Success!")}, function(err) { console.log(err) })
+            $engine.activateAchievement("ALL_ACHIEVEMENTS", function() { console.log("Success!")}, function(err) { console.log(err) })
         }
 
         // ENGINE
@@ -1553,6 +1555,12 @@ class Scene_Engine extends Scene_Base {
 
     isFading() {
         return this._fadeDuration > 0;
+    }
+
+    activateAchievement(achievement, success, fail) {
+        if(greenworks.activateAchievement) {
+            greenworks.activateAchievement(achievement, success, fail);
+        }
     }
 
     /**

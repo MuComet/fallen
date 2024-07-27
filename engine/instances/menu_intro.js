@@ -18,6 +18,8 @@ class MenuIntroController extends EngineInstance {
         this.data = $engine.getEngineGlobalData();
         this.data.inRush = false;
 
+        this.skipIntro = $engine.minigameHack !== undefined;
+
         this.backButton = undefined;
 
         this.totalUnlockedEndings = 0;
@@ -80,14 +82,17 @@ class MenuIntroController extends EngineInstance {
         this.cameraTargetX =0;
         this.cameraTargetY =0;
 
+        var musicVolume = $engine.minigameHack !== undefined ? 0 : 1
+
         this.menuMusic = $engine.audioPlaySound("title_music",1,true)
         $engine.audioSetLoopPoints(this.menuMusic,10,50);
+        $engine.audioSetVolume(this.menuMusic, musicVolume);
 
         this.extrasMusic = $engine.audioPlaySound("extras",1,true);
         $engine.audioSetLoopPoints(this.extrasMusic,16,48);
-        $engine.audioSetVolume(this.extrasMusic,0)
+        $engine.audioSetVolume(this.extrasMusic,1-musicVolume);
 
-        this.extrasMusicTimer = 0;
+        this.extrasMusicTimer = $engine.minigameHack !== undefined ? 60 : 0;
 
         this.currentRegion = -1;
 
@@ -96,6 +101,14 @@ class MenuIntroController extends EngineInstance {
         this.setupBrowser();
         this.setupBonus();
         this.setupFloatingObjects();
+
+        if($engine.minigameHack !== undefined) {
+            this.moveToRegion(MenuIntroController.REGION_MINIGAME_BROWSER, true)
+            this.selectedMinigameIndex = $engine.minigameHack
+            this.refreshMinigameBrowser();
+        }
+
+        $engine.minigameHack = undefined;
     }
 
     setupFloatingObjects() {
@@ -457,6 +470,7 @@ class MenuIntroController extends EngineInstance {
         $engine.setRoom(this.getSelectedMingame().room)
         $engine.overrideRoomChange("MenuIntro")
         $engine.overrideReturn("MenuIntro")
+        $engine.minigameHack = this.selectedMinigameIndex;
         $engine.startFadeOut();
     }
 
@@ -676,7 +690,9 @@ class MenuIntroController extends EngineInstance {
             if(this.timer===this.endTime+1) {
                 IM.with(RisingSprite, function(cloud){cloud.alpha = 1});
                 IM.with(MainMenuButton, function(button){button.enable()})
-                this.enableRegion(MenuIntroController.REGION_MAIN);
+                if(!this.skipIntro) {
+                    this.enableRegion(MenuIntroController.REGION_MAIN);
+                }
                 for(var i=0;i<8;i++) {
                     var letter = this.letters[i]
                     letter.angle = 0;
@@ -761,13 +777,13 @@ class MenuIntroController extends EngineInstance {
         }
 
         var fac = this.extrasMusicTimer/60;
-        $engine.audioSetVolume(this.menuMusic,1-fac)
-        $engine.audioSetVolume(this.extrasMusic,fac)
+        // $engine.audioSetVolume(this.menuMusic,1-fac)
+        // $engine.audioSetVolume(this.extrasMusic,fac)
     }
 
     step() {
 
-        if(IN.anyKeyPressed() && this.timer < this.endTime) {
+        if((IN.anyKeyPressed() || this.skipIntro) && this.timer < this.endTime) {
             this.endTime=this.timer;
         }
 
@@ -869,7 +885,7 @@ class MenuIntroController extends EngineInstance {
         $engine.saveEngineGlobalData();
     }
 
-    moveToRegion(region) {
+    moveToRegion(region, jump) {
         this.enableRegion(region);
         this.currentRegion = region;
         switch(region) {
@@ -905,6 +921,10 @@ class MenuIntroController extends EngineInstance {
                 this.cameraTargetX = $engine.getWindowSizeX()*2;
                 this.cameraTargetY = -$engine.getWindowSizeY();
             break;
+        }
+
+        if(jump) {
+            $engine.getCamera().setLocation(this.cameraTargetX, this.cameraTargetY)
         }
     }
 

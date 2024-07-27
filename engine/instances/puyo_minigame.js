@@ -141,7 +141,7 @@ class PuyoBoard extends EngineInstance {
         if(this.state == 0){
             if(PuyoMinigameController.getInstance().getTimer().isTimerDone()){
                 if(this.score >= 5000 && !PuyoMinigameController.getInstance().hasCheated()){
-                    greenworks.activateAchievement("VIDEO_GAME_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+                    $engine.activateAchievement("VIDEO_GAME_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
                 }
                 if(this.score >= 2424){
                     PuyoMinigameController.getInstance().endMinigame(true)
@@ -151,7 +151,7 @@ class PuyoBoard extends EngineInstance {
             }
             if(this.board[1][2].getState()==2){
                 if(this.score >= 5000 && !PuyoMinigameController.getInstance().hasCheated()){
-                    greenworks.activateAchievement("VIDEO_GAME_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+                    $engine.activateAchievement("VIDEO_GAME_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
                 }
                 if(this.score >= 2424){
                     PuyoMinigameController.getInstance().endMinigame(true)

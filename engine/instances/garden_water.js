@@ -245,7 +245,7 @@ class WaterMinigameController extends MinigameController {
 
         if(this.minigameOver()){
             if(!this.hasCheated() && this.score == this.maxScore){
-                greenworks.activateAchievement("WATERING_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
+                $engine.activateAchievement("WATERING_MINIGAME", function() { console.log("Success!")}, function(err) { console.log(err) })
             }
             return;
         }

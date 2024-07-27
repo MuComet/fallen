@@ -239,10 +239,10 @@ class RushBreakController extends EngineInstance {
         this.data.currRunCheat++;
 
         if(this.data.currRunCheat===17){
-            greenworks.activateAchievement("MINIGAME_RUSH", function() { console.log("Success!")}, function(err) { console.log(err) })
+            $engine.activateAchievement("MINIGAME_RUSH", function() { console.log("Success!")}, function(err) { console.log(err) })
         }
         if(this.data.currRunNoCheat===40){
-            greenworks.activateAchievement("MINIGAME_RUSH_MORE", function() { console.log("Success!")}, function(err) { console.log(err) })
+            $engine.activateAchievement("MINIGAME_RUSH_MORE", function() { console.log("Success!")}, function(err) { console.log(err) })
         }
 
         if(this.data.currRunNoCheat > this.data.bestRunNoCheat){
