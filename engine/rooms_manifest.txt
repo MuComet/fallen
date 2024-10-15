@@ -7,6 +7,8 @@ MenuIntro engine/rooms/menu_intro.txt
 RushBreak engine/rooms/rush_break_room.txt
 RockRoom engine/rooms/rock.txt
 SkyRoom engine/rooms/sky.txt
+CarnivalRoom engine/rooms/carnival_room.txt
+CarnivalDecorateRoom engine/rooms/carnival_decorate_room.txt
 
 IntroCutsceneRoom engine/rooms/intro_cutscene_room.txt
 NightOneCutsceneRoom engine/rooms/night_one_cutscene_room.txt

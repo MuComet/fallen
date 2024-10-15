@@ -23,6 +23,8 @@ MenuIntroController Letter RisingSprite FloatingObject MainMenuButton engine/ins
 RushBreakController RushLetter RushRisingSprite RushFloatingObject RushMainMenuButton engine/instances/rush_break.js
 RockMinigameController RockDodgingPlayer FallingRock engine/instances/falling_rocks.js
 SkyMinigameController SkyBuildPlayer FallingTowerPlatform engine/instances/sky_minigame.js
+CarnivalMinigameController CarnivalThrower CarnivalBalloon engine/instances/carnival_minigame.js
+CarnivalDecorateController Sticker engine/instances/carnival_decorate.js
 CardMinigameController CardBoard engine/instances/card_minigame.js
 FallingObjectsController FallingObjectsPlayer FallingObject FallingHealth engine/instances/falling_objects_2d.js
 WallBuilderController Brick engine/instances/wall_building.js
